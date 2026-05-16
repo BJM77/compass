@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,24 +70,54 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
       if (!db || !userId) return;
       const planRef = doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`);
       const snap = await getDoc(planRef);
+      let loadedFocus: FocusAccount[] = [];
       if (snap.exists()) {
         const data = snap.data();
-        const loadedFocus = (data.focusAccounts || []).map((acc: any) => ({
+        loadedFocus = (data.focusAccounts || []).map((acc: any) => ({
           ...acc,
           eav: acc.eav || 0,
           aboutAccount: acc.aboutAccount || acc.expectedOutcome || ''
         }));
-        setFocusAccounts(loadedFocus);
         setKpiTargets(data.kpiTargets || {
           callsToMake: userRole === 'BDM' ? 50 : 30,
-          appsToSet: userRole === 'BDM' ? 10 : 5,
-          proposalsToSubmit: userRole === 'BDM' ? 5 : 2,
-          dealsToClose: userRole === 'BDM' ? 2 : 1
+          appointmentsToSet: userRole === 'BDM' ? 15 : 10,
+          proposalsToSend: 8,
+          dealsToClose: 3,
+          revenueTarget: 250000
         });
         if (Array.isArray(data.actionPlan)) setActionPlan(data.actionPlan);
         setRoadblocks(data.roadblocks || '');
         setSupportNeeded(data.supportNeeded || '');
       }
+
+      // Query Starred Top 8 accounts from pipelineReviews
+      try {
+        const reviewsSnap = await getDocs(query(
+          collection(db, 'pipelineReviews'),
+          where('userId', '==', userId),
+          where('week', '==', currentWeek),
+          where('isReviewSelected', '==', true)
+        ));
+        
+        const starredAccounts = reviewsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+        
+        starredAccounts.forEach(starred => {
+          const accName = (starred.pipeline || '').toUpperCase().trim();
+          if (accName && !loadedFocus.some(f => f.accountName.toUpperCase().trim() === accName)) {
+            loadedFocus.push({
+              accountId: starred.id || crypto.randomUUID(),
+              accountName: accName,
+              actionType: starred.stage || 'Prospect',
+              eav: parseFloat(starred.value) || 0,
+              aboutAccount: starred.barriers || ''
+            });
+          }
+        });
+      } catch (err) {
+        console.error("Failed to load starred Top 8 accounts", err);
+      }
+
+      setFocusAccounts(loadedFocus);
     }
     loadPlan();
   }, [db, userId, currentWeek]);

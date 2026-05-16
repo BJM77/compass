@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Trash2, FileCheck, 
   Rocket, Loader2, Award, TrendingUp, 
-  ClipboardCheck, Phone, CalendarCheck, Target
+  ClipboardCheck, Phone, CalendarCheck, Target,
+  Clock, ArrowRight
 } from 'lucide-react';
 import { format, startOfWeek } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [signedDeals, setSignedDeals] = useState<any[]>([]);
   const [newBusiness, setNewBusiness] = useState<any[]>([]);
+  const [stillWorking, setStillWorking] = useState<any[]>([]);
   
   // High-Level Narrative (Week That Was)
   const [notes, setNotes] = useState('');
@@ -42,8 +44,9 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
     const opps = opportunities.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
     const signed = signedDeals.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
     const business = newBusiness.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
-    return opps + signed + business;
-  }, [opportunities, signedDeals, newBusiness]);
+    const working = stillWorking.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
+    return opps + signed + business + working;
+  }, [opportunities, signedDeals, newBusiness, stillWorking]);
 
   // Load existing data if available
   useEffect(() => {
@@ -51,26 +54,84 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       if (!db || !userId) return;
       const reportRef = doc(db, 'weeklyReports', `${userId}_${currentWeek}`);
       const snap = await getDoc(reportRef);
+      let loadedWorking: any[] = [];
       if (snap.exists()) {
         const data = snap.data();
         setNotes(data.weeklyNotes || '');
+        if (Array.isArray(data.stillWorkingAccounts)) {
+          loadedWorking = data.stillWorkingAccounts;
+        }
       }
       
       const oppsSnap = await getDocs(query(collection(db, 'opportunities'), where('userId', '==', userId), where('week', '==', currentWeek)));
-      setOpportunities(oppsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any)));
+      const oppsData = oppsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any));
+      setOpportunities(oppsData);
       
       const signedSnap = await getDocs(query(collection(db, 'signedPaperwork'), where('userId', '==', userId), where('week', '==', currentWeek)));
-      setSignedDeals(signedSnap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any)));
+      const signedData = signedSnap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any));
+      setSignedDeals(signedData);
 
       const businessSnap = await getDocs(query(collection(db, 'newBusiness'), where('userId', '==', userId), where('week', '==', currentWeek)));
-      setNewBusiness(businessSnap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any)));
+      const businessData = businessSnap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any));
+      setNewBusiness(businessData);
+
+      // Query Monday's commitments if stillWorking not previously saved or empty
+      if (loadedWorking.length === 0) {
+        try {
+          const commitRef = doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`);
+          const commitSnap = await getDoc(commitRef);
+          if (commitSnap.exists()) {
+            const mondayFocus = commitSnap.data().focusAccounts || [];
+            mondayFocus.forEach((focus: any) => {
+              const accName = (focus.accountName || '').toUpperCase().trim();
+              if (
+                accName &&
+                !loadedWorking.some(w => w.accountName.toUpperCase().trim() === accName) &&
+                !oppsData.some(o => o.accountName.toUpperCase().trim() === accName) &&
+                !signedData.some(s => s.accountName.toUpperCase().trim() === accName) &&
+                !businessData.some(b => b.accountName.toUpperCase().trim() === accName)
+              ) {
+                loadedWorking.push({
+                  id: focus.accountId || crypto.randomUUID(),
+                  accountName: accName,
+                  eav: parseFloat(focus.eav) || 0,
+                  notes: focus.aboutAccount || ''
+                });
+              }
+            });
+          }
+        } catch (err) {
+          console.error("Failed to load Monday commitments", err);
+        }
+      }
+
+      setStillWorking(loadedWorking);
     }
     loadExisting();
   }, [db, userId, currentWeek]);
 
+  const addStillWorking = () => setStillWorking([...stillWorking, { id: crypto.randomUUID(), accountName: '', eav: 0, notes: '' }]);
   const addOpportunity = () => setOpportunities([...opportunities, { id: crypto.randomUUID(), accountName: '', eav: 0, stage: 'PROPOSAL', probability: 20 }]);
   const addSigned = () => setSignedDeals([...signedDeals, { id: crypto.randomUUID(), accountName: '', eav: 0, termMonths: 12 }]);
   const addBusiness = () => setNewBusiness([...newBusiness, { id: crypto.randomUUID(), accountName: '', eav: 0, assignedAE: '' }]);
+
+  const moveToOpp = (item: any) => {
+    setStillWorking(stillWorking.filter(w => w.id !== item.id));
+    setOpportunities([...opportunities, { id: item.id, accountName: item.accountName, eav: item.eav, stage: 'PROPOSAL', probability: 20 }]);
+    toast({ title: "Moved to New Opps" });
+  };
+
+  const moveToWin = (item: any) => {
+    setStillWorking(stillWorking.filter(w => w.id !== item.id));
+    setSignedDeals([...signedDeals, { id: item.id, accountName: item.accountName, eav: item.eav, termMonths: 12 }]);
+    toast({ title: "Moved to Signed Win" });
+  };
+
+  const moveToLive = (item: any) => {
+    setStillWorking(stillWorking.filter(w => w.id !== item.id));
+    setNewBusiness([...newBusiness, { id: item.id, accountName: item.accountName, eav: item.eav, assignedAE: '' }]);
+    toast({ title: "Moved to Live Trading" });
+  };
 
   const handleSaveDraft = async () => {
     if (!db) return;
@@ -84,6 +145,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         userName, 
         week: currentWeek, 
         weeklyNotes: notes, 
+        stillWorkingAccounts: stillWorking,
         status: 'DRAFT', 
         submittedAt: serverTimestamp(),
         summary: { 
@@ -91,6 +153,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
           newOpportunitiesCount: opportunities.length, 
           signedPaperworkCount: signedDeals.length, 
           newBusinessCount: newBusiness.length,
+          stillWorkingCount: stillWorking.length,
           callsMade: progress?.calls || 0,
           meetingsHeld: progress?.apps || 0
         }
@@ -121,6 +184,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         userName, 
         week: currentWeek, 
         weeklyNotes: notes, 
+        stillWorkingAccounts: stillWorking,
         status: 'SUBMITTED', 
         submittedAt: serverTimestamp(),
         summary: { 
@@ -128,6 +192,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
           newOpportunitiesCount: opportunities.length, 
           signedPaperworkCount: signedDeals.length, 
           newBusinessCount: newBusiness.length,
+          stillWorkingCount: stillWorking.length,
           callsMade: progress?.calls || 0,
           meetingsHeld: progress?.apps || 0
         }
@@ -144,6 +209,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       setOpportunities([]);
       setSignedDeals([]);
       setNewBusiness([]);
+      setStillWorking([]);
       setNotes('');
     } catch (e) {
       toast({ variant: "destructive", title: "Submission Failed" });
@@ -204,7 +270,31 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2 px-2">
           <TrendingUp className="w-4 h-4 text-accent" /> Weekly Pipeline Progression
         </h3>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <Card className="border-none shadow-xl bg-white overflow-hidden rounded-[2rem]">
+            <CardHeader className="bg-amber-50 border-b py-6"><div className="flex items-center gap-2"><Clock className="w-5 h-5 text-amber-600" /><CardTitle className="text-xs font-black uppercase text-amber-950">Still Working (In Progress)</CardTitle></div></CardHeader>
+            <CardContent className="p-6 space-y-4">
+               {stillWorking.map((w, idx) => (
+                 <div key={w.id} className="p-4 bg-slate-50 rounded-2xl border space-y-3 relative group hover:border-amber-200 transition-colors">
+                    <Input placeholder="Account..." value={w.accountName} onChange={e => { const n = [...stillWorking]; n[idx].accountName = e.target.value.toUpperCase(); setStillWorking(n); }} className="h-9 text-xs font-bold bg-white" />
+                    <div className="flex gap-2">
+                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={w.eav} onChange={e => { const n = [...stillWorking]; n[idx].eav = e.target.value; setStillWorking(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
+                      <Button variant="ghost" size="icon" onClick={() => setStillWorking(stillWorking.filter(x => x.id !== w.id))} className="text-red-300 hover:text-red-600 h-9 w-9"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                    <div className="flex items-center gap-1 pt-2 border-t border-slate-200/60 justify-between">
+                       <span className="text-[9px] font-black uppercase text-slate-400">Transfer:</span>
+                       <div className="flex gap-1">
+                         <Button size="sm" variant="outline" onClick={() => moveToOpp(w)} className="h-7 px-2 text-[9px] font-black bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">Opp <ArrowRight className="w-3 h-3 ml-1" /></Button>
+                         <Button size="sm" variant="outline" onClick={() => moveToWin(w)} className="h-7 px-2 text-[9px] font-black bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200">Win <ArrowRight className="w-3 h-3 ml-1" /></Button>
+                         <Button size="sm" variant="outline" onClick={() => moveToLive(w)} className="h-7 px-2 text-[9px] font-black bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200">Live <ArrowRight className="w-3 h-3 ml-1" /></Button>
+                       </div>
+                    </div>
+                 </div>
+               ))}
+               <Button variant="outline" onClick={addStillWorking} className="w-full h-12 border-dashed border-2 rounded-2xl font-black text-[10px] uppercase text-slate-400">+ Add In-Progress Biz</Button>
+            </CardContent>
+          </Card>
+
           <Card className="border-none shadow-xl bg-white overflow-hidden rounded-[2rem]">
             <CardHeader className="bg-blue-50 border-b py-6"><div className="flex items-center gap-2"><Target className="w-5 h-5 text-blue-600" /><CardTitle className="text-xs font-black uppercase">New Opps (EAV & %)</CardTitle></div></CardHeader>
             <CardContent className="p-6 space-y-4">
