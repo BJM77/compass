@@ -63,6 +63,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
   const [supportNeeded, setSupportNeeded] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
   useEffect(() => {
     async function loadPlan() {
@@ -112,6 +113,29 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
     setActionPlan(actionPlan.filter((_, i) => i !== index));
   };
 
+  const handleSaveDraft = async () => {
+    if (!db || !userId) return;
+    setIsSavingDraft(true);
+    try {
+      await setDoc(doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`), {
+        userId,
+        week: currentWeek,
+        focusAccounts,
+        kpiTargets,
+        actionPlan,
+        roadblocks,
+        supportNeeded,
+        status: 'DRAFT',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      toast({ title: "Draft Saved", description: "Your Monday Planning progress is safely saved." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Draft Failed" });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   const savePlan = async () => {
     if (!db || !userId) return;
     setIsSaving(true);
@@ -128,6 +152,12 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
         updatedAt: serverTimestamp()
       }, { merge: true });
       toast({ title: "Weekly Strategy Locked", description: "Your tactical commitments are now live on the governance node." });
+      
+      // Clear form ready for next week
+      setFocusAccounts([]);
+      setActionPlan(['', '', '', '', '']);
+      setRoadblocks('');
+      setSupportNeeded('');
     } catch (e) {
       toast({ variant: "destructive", title: "Save Failed" });
     } finally {
@@ -145,9 +175,14 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
           </h1>
           <p className="text-muted-foreground text-sm mt-1 uppercase font-bold tracking-widest">Week {currentWeek.split('-')[1]} • Strategic Alignment Mode</p>
         </div>
-        <Button onClick={savePlan} disabled={isSaving} className="bg-primary font-black h-12 px-8 uppercase shadow-xl gap-2 w-full md:w-auto">
-          {isSaving ? 'Synchronising...' : 'Commit Weekly Plan'}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSaving} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-primary/20 text-primary">
+            {isSavingDraft ? 'Saving Draft...' : 'Save Draft'}
+          </Button>
+          <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-black h-12 px-8 uppercase shadow-xl gap-2 text-white">
+            {isSaving ? 'Synchronising...' : 'Commit Weekly Plan'}
+          </Button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

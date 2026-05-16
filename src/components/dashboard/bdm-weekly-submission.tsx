@@ -21,6 +21,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   const db = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const currentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-ww');
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
@@ -71,6 +72,43 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   const addSigned = () => setSignedDeals([...signedDeals, { id: crypto.randomUUID(), accountName: '', eav: 0, termMonths: 12 }]);
   const addBusiness = () => setNewBusiness([...newBusiness, { id: crypto.randomUUID(), accountName: '', eav: 0, assignedAE: '' }]);
 
+  const handleSaveDraft = async () => {
+    if (!db) return;
+    setIsSavingDraft(true);
+    try {
+      const batch = writeBatch(db);
+      const reportRef = doc(db, 'weeklyReports', `${userId}_${currentWeek}`);
+      
+      batch.set(reportRef, {
+        userId, 
+        userName, 
+        week: currentWeek, 
+        weeklyNotes: notes, 
+        status: 'DRAFT', 
+        submittedAt: serverTimestamp(),
+        summary: { 
+          totalEAV, 
+          newOpportunitiesCount: opportunities.length, 
+          signedPaperworkCount: signedDeals.length, 
+          newBusinessCount: newBusiness.length,
+          callsMade: progress?.calls || 0,
+          meetingsHeld: progress?.apps || 0
+        }
+      }, { merge: true });
+
+      opportunities.forEach(o => batch.set(doc(collection(db, 'opportunities')), { ...o, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
+      signedDeals.forEach(s => batch.set(doc(collection(db, 'signedPaperwork')), { ...s, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
+      newBusiness.forEach(b => batch.set(doc(collection(db, 'newBusiness')), { ...b, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
+
+      await batch.commit();
+      toast({ title: "Draft Saved", description: "Your Friday Synthesis progress is safely saved." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Draft Failed" });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!db) return;
     setIsSubmitting(true);
@@ -101,6 +139,12 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
 
       await batch.commit();
       toast({ title: "Synthesis Dispatched", description: "Your weekly performance data is now live on the GM dashboard." });
+      
+      // Clear page ready for next week
+      setOpportunities([]);
+      setSignedDeals([]);
+      setNewBusiness([]);
+      setNotes('');
     } catch (e) {
       toast({ variant: "destructive", title: "Submission Failed" });
     } finally {
@@ -117,13 +161,16 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
            <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">The Week That Was</h2>
            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Performance Validation • Week {currentWeek.split('-')[1]}</p>
         </div>
-        <div className="mt-6 lg:mt-0 flex items-center gap-6 relative z-10">
-           <div className="text-right hidden sm:block">
+        <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full lg:w-auto justify-end">
+           <div className="text-right hidden sm:block mr-2">
               <p className="text-[10px] font-black text-accent uppercase tracking-widest">Total Combined EAV</p>
               <p className="text-3xl font-black">${(totalEAV / 1000).toFixed(0)}K</p>
            </div>
-           <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-accent hover:bg-accent/90 text-white font-black h-16 px-10 rounded-2xl shadow-xl gap-3 text-sm">
-             {isSubmitting ? <Loader2 className="animate-spin w-6 h-6" /> : <ClipboardCheck className="w-6 h-6" />} FINALISE FRIDAY PACK
+           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSubmitting} className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs w-full sm:w-auto">
+             {isSavingDraft ? <Loader2 className="animate-spin w-5 h-5" /> : 'SAVE DRAFT'}
+           </Button>
+           <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft} className="bg-accent hover:bg-accent/90 text-white font-black h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto">
+             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : <ClipboardCheck className="w-5 h-5" />} FINALISE FRIDAY PACK
            </Button>
         </div>
       </header>
