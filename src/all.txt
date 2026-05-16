@@ -1,0 +1,400 @@
+=== BDM COMPASS - ENTERPRISE SALES OPERATIONS PLATFORM ===
+=== VERSION: 3.2.1 - FULL SYSTEM MASTER BACKUP ===
+=== LAST UPDATED: 2026-05-25 ===
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            CORE ARCHITECTURE                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ FRAMEWORK:                                                                   │
+│ ├── Next.js 15 (App Router) + React 19 + TypeScript                          │
+│ ├── Firebase (Firestore, Auth with Custom Claims)                             │
+│ ├── TailwindCSS + shadcn/ui (High-Density Professional Theme)               │
+│ ├── Genkit (AI Flows: Personal Scorecard, Team Summary, Whitespace)         │
+│ └── Recharts (Matrix & Trend Visualisation)                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         STRATEGIC WORKFLOW SEQUENCE                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. DASHBOARD: Performance Hub & SMART Goals Lock.                           │
+│  2. CALL PLANS: SPIN Model preparation for field calls.                      │
+│  3. ALL CALL PLANS (ADMIN): Territory-wide strategy archive.                  │
+│  4. WHITE SPACE: Strategic expansion diagnostic tool.                         │
+│  5. SAVED PLANS: Ephemeral (14-day) diagnostic archive.                      │
+│  6. BRIEFS (ADMIN): AI Intelligence & Coaching Hub.                          │
+│  7. TEAM GOALS (ADMIN): SMART commitment audit node.                         │
+│  8. STRATEGY (ADMIN): Playbooks & 30-60-90 Blueprints.                       │
+│  9. TEAM (ADMIN): User provisioning & Simulation access.                     │
+│ 10. GM COMMAND HUB (ADMIN): Executive Review & Group Strategy.               │
+│ 11. SETTINGS: System configuration & Governance rules.                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+--- START OF FULL SOURCE CODE ---
+
+[FILE: firestore.rules]
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { 
+      return isSignedIn() && (
+        request.auth.token.role == 'LEADER' || 
+        request.auth.uid == 'eFPAFC5wauPrnguvwzebKssdpSg2' || 
+        request.auth.uid == 'admin-override'
+      ); 
+    }
+
+    // User Management
+    match /users/{userId} { 
+      allow get, list: if isSignedIn(); 
+      allow create, update, delete: if isAdmin() || isOwner(userId); 
+    }
+
+    // Revenue Rollups
+    match /bdmStats/{userId} { 
+      allow get, list: if isSignedIn(); 
+      allow write: if isAdmin(); 
+    }
+
+    // Strategy Documents
+    match /callPlans/{planId} { 
+      allow get, list: if isSignedIn(); 
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /whitespacePlans/{planId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn(); 
+      allow update, delete: if isAdmin() || (resource.data.userId == request.auth.uid);
+    }
+
+    // Pipeline & CRM Data
+    match /pipelineReviews/{reviewId} { 
+      allow get, list: if isSignedIn(); 
+      allow create: if isSignedIn(); 
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /lostCustomers/{lostId} { 
+      allow get, list: if isSignedIn(); 
+      allow create: if isSignedIn(); 
+      allow delete: if isAdmin(); 
+    }
+
+    // Weekly Governance Nodes
+    match /weeklyCommitments/{docId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /activityLogs/{logId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /weeklyProgress/{id} {
+      allow get, list: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    match /weeklyActivity/{id} {
+      allow get, list: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Intelligence & Reporting
+    match /aiBriefs/{briefId} { 
+      allow get, list: if isSignedIn(); 
+      allow create: if isSignedIn(); 
+      allow update, delete: if isAdmin(); 
+    }
+
+    match /weeklyReports/{reportId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /gmReports/{reportId} {
+      allow get, list: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /teamReports/{id} {
+      allow get, list: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // System Config
+    match /systemAnnouncements/{docId} { 
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+
+    match /strategyConfig/{docId} { 
+      allow get, list: if isSignedIn(); 
+      allow write: if isAdmin(); 
+    }
+
+    match /appSettings/{docId} { 
+      allow get: if isSignedIn();
+      allow write: if isAdmin() || (isSignedIn() && docId == request.auth.uid); 
+    }
+  }
+}
+
+[FILE: src/lib/utils.ts]
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+export function openSalesforceSearch(term: string) {
+  if (!term || term === 'TEAM CAMPAIGN') return;
+  const cleanTerm = term.split(' (')[0].split(' - ')[0].trim();
+  const searchUrl = `https://teamglobalexp.lightning.force.com/lightning/globalSearch/searchTerm?q=${encodeURIComponent(cleanTerm)}`;
+  window.open(searchUrl, '_blank');
+}
+
+[FILE: src/firebase/index.ts]
+'use client';
+import { firebaseConfig } from '@/firebase/config';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+
+export function initializeFirebase() {
+  let firebaseApp: FirebaseApp;
+  if (!getApps().length) {
+    firebaseApp = initializeApp(firebaseConfig);
+  } else {
+    firebaseApp = getApp();
+  }
+  return getSdks(firebaseApp);
+}
+
+export function getSdks(firebaseApp: FirebaseApp) {
+  return {
+    firebaseApp,
+    auth: getAuth(firebaseApp),
+    firestore: getFirestore(firebaseApp)
+  };
+}
+
+export * from './provider';
+export * from './client-provider';
+export * from './firestore/use-collection';
+export * from './firestore/use-doc';
+export * from './non-blocking-updates';
+export * from './non-blocking-login';
+export * from './errors';
+export * from './error-emitter';
+
+[FILE: src/app/dashboard/page.tsx]
+"use client";
+import { useState } from 'react';
+import { AuthGuard } from '@/components/auth-guard';
+import { useAuth } from '@/contexts/auth-context';
+import { BDMDashboard } from '@/components/dashboard/bdm-dashboard';
+import { LeaderDashboard } from '@/components/dashboard/leader-dashboard';
+import { UserManagement } from '@/components/dashboard/user-management';
+import { GMWeeklyReview } from '@/components/dashboard/gm-weekly-review';
+import { StrategyManagement } from '@/components/dashboard/strategy-management';
+import { AIBriefsHub } from '@/components/dashboard/ai-briefs-hub';
+import { FridayReviewHub } from '@/components/dashboard/friday-review-hub';
+import { CallPlanning } from '@/components/dashboard/call-planning';
+import { AdminCallPlanning } from '@/components/dashboard/admin-call-planning';
+import { SettingsHub } from '@/components/dashboard/settings-hub';
+import { WhitespaceAnalysis } from '@/components/dashboard/whitespace-analysis';
+import { WhitespaceHistory } from '@/components/dashboard/whitespace-history';
+import { SmartGoalsAudit } from '@/components/dashboard/smart-goals-audit';
+import {
+  SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
+  SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
+  SidebarMenuItem, SidebarMenuButton,
+} from '@/components/ui/sidebar';
+import {
+  LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
+  UserCircle, XCircle, FileText, Map, Sparkles, MessageSquare,
+  PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
+  Star
+} from 'lucide-react';
+import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { collection } from 'firebase/firestore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { format } from 'date-fns';
+
+type DashboardView =
+  | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
+  | 'WHITESPACE_HISTORY' | 'BRIEFS' | 'SMART_GOALS_AUDIT' | 'STRATEGY' 
+  | 'TEAM' | 'GM_REVIEW' | 'SETTINGS';
+
+const NAV_ITEMS = [
+  { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false },
+  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false },
+  { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true },
+  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false },
+  { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false },
+  { view: 'BRIEFS' as DashboardView,            label: 'Briefs',            icon: Sparkles,         adminOnly: true },
+  { view: 'SMART_GOALS_AUDIT' as DashboardView, label: 'Team Goals',        icon: Star,             adminOnly: true },
+  { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true },
+  { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true },
+  { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true },
+  { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false },
+];
+
+export default function DashboardPage() {
+  const { profile, isLeader, user } = useAuth();
+  const db = useFirestore();
+  const auth = useFirebaseAuth();
+  const router = useRouter();
+  const [currentView, setCurrentView] = useState<DashboardView>('DASHBOARD');
+  const [simulationUid, setSimulationUid] = useState<string | null>(null);
+
+  const usersQuery = useMemoFirebase(() => { if (!db || !isLeader) return null; return collection(db, 'users'); }, [db, isLeader]);
+  const { data: allUsers } = useCollection(usersQuery);
+
+  const activeUserId = simulationUid || user?.uid;
+  const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);
+
+  const handleSignOut = async () => { if (auth) { await signOut(auth); router.push('/login'); } };
+  const handleSimulate = (uid: string) => { setSimulationUid(uid); setCurrentView('DASHBOARD'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+  const renderContent = () => {
+    if (currentView === 'TEAM' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
+    if (currentView === 'CALL_PLANNING') return <div className="container mx-auto p-4 md:p-8"><CallPlanning userId={activeUserId || ''} /></div>;
+    if (currentView === 'ALL_CALL_PLANNING' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><AdminCallPlanning /></div>;
+    if (currentView === 'BRIEFS' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;
+    if (currentView === 'SMART_GOALS_AUDIT' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><SmartGoalsAudit /></div>;
+    if (currentView === 'STRATEGY' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><StrategyManagement /></div>;
+    if (currentView === 'GM_REVIEW' && isLeader) return <div className="container mx-auto p-4 md:p-8"><GMWeeklyReview /></div>;
+    if (currentView === 'WHITE_SPACE') return <div className="container mx-auto p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
+    if (currentView === 'WHITESPACE_HISTORY') return <div className="container mx-auto p-4 md:p-8"><WhitespaceHistory userId={activeUserId || ''} /></div>;
+    if (currentView === 'SETTINGS') return <div className="container mx-auto p-4 md:p-8"><SettingsHub /></div>;
+    
+    if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
+    return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
+  };
+
+  return (
+    <AuthGuard>
+      <SidebarProvider>
+        <Sidebar collapsible="icon">
+          <SidebarHeader className="p-4 flex items-center gap-2"><div className="bg-primary rounded-lg p-1.5"><Compass className="w-5 h-5 text-white" /></div><span className="font-bold text-lg font-headline text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></SidebarHeader>
+          <SidebarContent>
+            <SidebarMenu className="px-2">
+              {NAV_ITEMS.filter(item => item.adminOnly ? isLeader : true).map(nav => (
+                <SidebarMenuItem key={nav.view}>
+                  <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
+                    <nav.icon className="w-4 h-4" />
+                    <span>{nav.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
+          <SidebarFooter className="p-4 border-t border-border"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500 hover:text-red-600 hover:bg-red-50"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
+        </Sidebar>
+        <SidebarInset className="bg-[#F7F6F8]">
+          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4 md:px-6 shadow-sm"><SidebarTrigger /><div className="flex-1 flex justify-center"><div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-primary/5 rounded-full border border-primary/10"><Shield className="w-3 h-3 text-primary" /><span className="text-[9px] font-black uppercase text-primary tracking-widest">Enterprise Secure Node</span></div></div><div className="flex items-center gap-3">{isLeader && allUsers && <div className="hidden md:flex items-center gap-2 mr-4 border-r pr-4 border-border"><UserCircle className="w-4 h-4 text-muted-foreground" /><Select value={simulationUid || 'none'} onValueChange={(val) => setSimulationUid(val === 'none' ? null : val)}><SelectTrigger className="h-8 w-[200px] text-[10px] font-bold uppercase tracking-tight"><SelectValue placeholder="SIMULATE USER..." /></SelectTrigger><SelectContent><SelectItem value="none" className="text-[10px] font-bold">MY ADMIN VIEW</SelectItem>{allUsers.filter(u => u.role !== 'LEADER').map(u => (<SelectItem key={u.id} value={u.id} className="text-[10px] font-bold">{u.name.toUpperCase()} ({u.role})</SelectItem>))}</SelectContent></Select></div>}<div className="text-right hidden sm:block"><p className="text-xs font-bold leading-none">{profile?.name}</p><p className="text-[9px] text-muted-foreground uppercase mt-0.5 tracking-widest">{profile?.role?.replace('_', ' ')}</p></div><div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white font-bold text-xs shadow-md border-2 border-white">{profile?.name?.charAt(0)}</div></div></header>
+          <main className="min-h-screen">{renderContent()}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    </AuthGuard>
+  );
+}
+
+[FILE: src/components/dashboard/activity-logger.tsx]
+"use client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Phone, CalendarCheck, FileText, Target, Loader2, Zap, Plus } from 'lucide-react';
+import { useFirestore, useMemoFirebase, useDoc, setDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp, increment } from 'firebase/firestore';
+import { format } from 'date-fns';
+
+export function ActivityLogger({ userId }: { userId: string }) {
+  const db = useFirestore();
+  const currentWeek = format(new Date(), 'yyyy-ww');
+  const docId = `${userId}_${currentWeek}`;
+
+  const progressRef = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return doc(db, 'weeklyProgress', docId);
+  }, [db, userId, docId]);
+
+  const { data: progress, isLoading } = useDoc(progressRef);
+
+  const updateCount = (field: string, delta: number) => {
+    if (!db || !userId) return;
+    const docRef = doc(db, 'weeklyProgress', docId);
+    setDocumentNonBlocking(docRef, {
+      userId,
+      week: currentWeek,
+      [field]: increment(delta),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  };
+
+  const setManualValue = (field: string, value: string) => {
+    if (!db || !userId) return;
+    const num = parseInt(value) || 0;
+    const docRef = doc(db, 'weeklyProgress', docId);
+    setDocumentNonBlocking(docRef, {
+      userId,
+      week: currentWeek,
+      [field]: num,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  };
+
+  if (isLoading) return <div className="flex items-center justify-center h-40"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <EditableStatCard icon={<Phone className="w-3.5 h-3.5" />} val={progress?.calls || 0} label="Calls" color="blue" onChange={(v: string) => setManualValue('calls', v)} />
+        <EditableStatCard icon={<CalendarCheck className="w-3.5 h-3.5" />} val={progress?.apps || 0} label="Apps" color="green" onChange={(v: string) => setManualValue('apps', v)} />
+        <EditableStatCard icon={<FileText className="w-3.5 h-3.5" />} val={progress?.proposals || 0} label="Opps" color="purple" onChange={(v: string) => setManualValue('proposals', v)} />
+        <EditableStatCard icon={<Target className="w-3.5 h-3.5" />} val={progress?.deals || 0} label="Wins" color="orange" onChange={(v: string) => setManualValue('deals', v)} />
+      </div>
+      <Card className="border-none shadow-2xl overflow-hidden bg-white">
+        <CardHeader className="bg-slate-50 border-b py-4"><CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2"><Zap className="w-4 h-4 text-accent" />Rapid Habit Tracker</CardTitle></CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 gap-4">
+            <PunchButton label="CALL" icon={<Phone className="w-4 h-4" />} color="bg-blue-600 shadow-blue-200" onClick={() => updateCount('calls', 1)} />
+            <PunchButton label="APP" icon={<CalendarCheck className="w-4 h-4" />} color="bg-emerald-600 shadow-emerald-200" onClick={() => updateCount('apps', 1)} />
+            <PunchButton label="OPP" icon={<FileText className="w-4 h-4" />} color="bg-violet-600 shadow-violet-200" onClick={() => updateCount('proposals', 1)} />
+            <PunchButton label="WIN" icon={<Target className="w-4 h-4" />} color="bg-orange-600 shadow-orange-200" onClick={() => updateCount('deals', 1)} />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function EditableStatCard({ icon, val, label, color, onChange }: any) {
+  const colors: any = { blue: 'bg-blue-50 text-blue-600 border-blue-100', green: 'bg-green-50 text-green-600 border-green-100', purple: 'bg-purple-50 text-purple-600 border-purple-100', orange: 'bg-orange-50 text-orange-600 border-orange-100' };
+  return (<div className={`p-4 rounded-2xl border text-center transition-all ${colors[color]}`}><div className="flex justify-center mb-2 opacity-70">{icon}</div><Input type="number" value={val} onChange={(e) => onChange(e.target.value)} className="bg-transparent border-none text-center text-2xl font-black h-8 focus-visible:ring-0 p-0 shadow-none" /><p className="text-[8px] font-black uppercase tracking-widest mt-1 opacity-70">{label}</p></div>);
+}
+
+function PunchButton({ label, icon, color, onClick }: any) {
+  return (<Button onClick={onClick} className={`${color} hover:opacity-90 h-16 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg active:scale-95 transition-all text-white border-none`}><Plus className="w-5 h-5" /><span className="text-[10px] font-black tracking-widest">{label}</span></Button>);
+}
+
+--- END OF MASTER BACKUP ---

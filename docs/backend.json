@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user within the BDM performance platform, including their role, assigned territory, and specialisation.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["LEADER", "BDM", "ACCOUNT_MANAGER"] },
+        "salesforceUserId": { "type": "string" },
+        "territory": { "type": "string", "enum": ["METRO_NORTH", "METRO_SOUTH", "WESTERN_TRADE_COAST", "REGIONAL", "FLEX"] },
+        "zones": { "type": "array", "items": { "type": "string" } },
+        "specialisation": { "type": "string" },
+        "target": { "type": "number", "description": "Annual strategic revenue target." },
+        "planType": { "type": "string", "enum": ["BDM_NORTH_90", "BDM_SOUTH_90", "AM_90"] },
+        "assignedAgents": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "name", "role"]
+    },
+    "BdmStat": {
+      "title": "BdmStat",
+      "type": "object",
+      "description": "A snapshot of a BDM or AM's current performance KPIs.",
+      "properties": {
+        "id": { "type": "string" },
+        "revenueYTD": { "type": "number" },
+        "target": { "type": "number" },
+        "activityScore": { "type": "number" },
+        "behaviourScore": { "type": "number" },
+        "overallScore": { "type": "number" },
+        "recoveryStatus": { "type": "string", "enum": ["ON_TRACK", "RECOVERING", "AT_RISK"] },
+        "retentionRate": { "type": "number" },
+        "frequencyGrowth": { "type": "number" },
+        "yoyPct": { "type": "number" },
+        "yoyDollar": { "type": "number" },
+        "funnel": {
+          "type": "object",
+          "properties": {
+            "prospecting": { "type": "number" },
+            "discovery": { "type": "number" },
+            "proposal": { "type": "number" },
+            "closed": { "type": "number" }
+          }
+        }
+      },
+      "required": ["id", "revenueYTD", "target", "activityScore", "behaviourScore", "overallScore", "recoveryStatus"]
+    },
+    "WeeklyReport": {
+      "title": "WeeklyReport",
+      "type": "object",
+      "description": "The Friday Synthesis submission for BDMs and Account Managers.",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "week": { "type": "string" },
+        "weeklyNotes": { "type": "string" },
+        "roadblocks": { "type": "string" },
+        "supportNeeded": { "type": "string" },
+        "nextWeekCommitments": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "SUBMITTED", "REVIEWED"] },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "object",
+          "properties": {
+            "totalEAV": { "type": "number" },
+            "newOpportunitiesCount": { "type": "number" },
+            "signedPaperworkCount": { "type": "number" },
+            "newBusinessCount": { "type": "number" },
+            "callsMade": { "type": "number" },
+            "meetingsHeld": { "type": "number" }
+          }
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/User" },
+      "description": "User profiles."
+    },
+    "/bdmStats/{userId}": {
+      "schema": { "$ref": "#/backend/entities/BdmStat" },
+      "description": "Performance snapshots."
+    },
+    "/weeklyReports/{reportId}": {
+      "schema": { "$ref": "#/backend/entities/WeeklyReport" },
+      "description": "Friday synthesis submissions."
+    }
+  }
+}
