@@ -3,7 +3,7 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+
 
 /**
  * Global Firebase Initializer
@@ -23,11 +23,18 @@ export function initializeFirebase() {
   return getSdks(firebaseApp);
 }
 
+import { initializeFirestore } from 'firebase/firestore';
+
 export function getSdks(firebaseApp: FirebaseApp) {
+  // Use initializeFirestore with auto-detect long polling to prevent WebChannel disconnects and 400/404 proxy errors
+  const firestore = initializeFirestore(firebaseApp, {
+    experimentalAutoDetectLongPolling: true
+  });
+
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+    firestore
   };
 }
 
