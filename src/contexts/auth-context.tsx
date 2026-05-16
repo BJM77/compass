@@ -5,7 +5,7 @@ import { User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useUser, useFirestore } from '@/firebase';
 
-export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER';
+export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM';
 export type Territory = 'METRO_NORTH' | 'METRO_SOUTH' | 'WESTERN_TRADE_COAST' | 'REGIONAL' | 'FLEX';
 
 export interface UserProfile {
@@ -30,6 +30,7 @@ interface AuthContextType {
   isLeader: boolean;
   isBDM: boolean;
   isAM: boolean;
+  isGM: boolean;
   setMockAuth: (profile: UserProfile | null) => void;
 }
 
@@ -40,6 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   isLeader: false,
   isBDM: false,
   isAM: false,
+  isGM: false,
   setMockAuth: () => {},
 });
 
@@ -102,9 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user: mockProfile ? ({ uid: mockProfile.uid, email: 'demo@example.com' } as User) : firebaseUser,
     profile,
     loading: isUserLoading || profileLoading,
-    isLeader: profile?.role === 'LEADER',
+    isLeader: profile?.role === 'LEADER' || profile?.role === 'GM',
     isBDM: profile?.role === 'BDM',
     isAM: profile?.role === 'ACCOUNT_MANAGER',
+    isGM: profile?.role === 'GM',
     setMockAuth,
   };
 

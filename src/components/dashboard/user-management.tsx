@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface UserManagementProps {
 }
 
 export function UserManagement({ onSimulate }: UserManagementProps) {
+  const { isGM } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
@@ -65,27 +67,29 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div className="lg:col-span-5">
-        <Card className="border-none shadow-xl">
-          <CardHeader className="bg-primary/5"><CardTitle className="text-xl font-bold flex items-center gap-2"><UserPlus className="w-5 h-5" /> Provisioning</CardTitle></CardHeader>
-          <CardContent className="pt-6">
-            <form onSubmit={handleSave} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Firebase UID</Label><Input value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} required /></div>
-                <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Full Name</Label><Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required /></div>
-                <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Email</Label><Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required /></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Role</Label><Select value={formData.role} onValueChange={v => setFormData({...formData, role: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="BDM">BDM</SelectItem><SelectItem value="ACCOUNT_MANAGER">AM</SelectItem><SelectItem value="LEADER">Leader</SelectItem></SelectContent></Select></div>
-                  <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Territory</Label><Select value={formData.territory} onValueChange={v => setFormData({...formData, territory: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="METRO_NORTH">North</SelectItem><SelectItem value="METRO_SOUTH">South</SelectItem><SelectItem value="WESTERN_TRADE_COAST">Trade Coast</SelectItem><SelectItem value="REGIONAL">Regional</SelectItem><SelectItem value="FLEX">Flex</SelectItem></SelectContent></Select></div>
+      {!isGM && (
+        <div className="lg:col-span-5">
+          <Card className="border-none shadow-xl">
+            <CardHeader className="bg-primary/5"><CardTitle className="text-xl font-bold flex items-center gap-2"><UserPlus className="w-5 h-5" /> Provisioning</CardTitle></CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSave} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Firebase UID</Label><Input value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} required /></div>
+                  <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Full Name</Label><Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required /></div>
+                  <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Email</Label><Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required /></div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Role</Label><Select value={formData.role} onValueChange={v => setFormData({...formData, role: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="BDM">BDM</SelectItem><SelectItem value="ACCOUNT_MANAGER">AM</SelectItem><SelectItem value="LEADER">Leader</SelectItem><SelectItem value="GM">GM</SelectItem></SelectContent></Select></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Territory</Label><Select value={formData.territory} onValueChange={v => setFormData({...formData, territory: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="METRO_NORTH">North</SelectItem><SelectItem value="METRO_SOUTH">South</SelectItem><SelectItem value="WESTERN_TRADE_COAST">Trade Coast</SelectItem><SelectItem value="REGIONAL">Regional</SelectItem><SelectItem value="FLEX">Flex</SelectItem></SelectContent></Select></div>
+                  </div>
+                  <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Target</Label><Input type="number" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} required /></div>
                 </div>
-                <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Target</Label><Input type="number" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} required /></div>
-              </div>
-              <Button type="submit" className="w-full bg-primary font-bold h-12 uppercase" disabled={isSaving}>{isSaving ? <Loader2 className="animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Sync Node</>}</Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="lg:col-span-7">
+                <Button type="submit" className="w-full bg-primary font-bold h-12 uppercase" disabled={isSaving}>{isSaving ? <Loader2 className="animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Sync Node</>}</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      <div className={isGM ? "lg:col-span-12" : "lg:col-span-7"}>
         <Card className="border-none shadow-xl overflow-hidden">
           <CardHeader className="border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><ShieldCheck className="text-green-600" /> Registry</CardTitle></CardHeader>
           <CardContent className="p-0">
@@ -111,8 +115,12 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                         <UserCircle className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} title="Edit User"><Edit3 className="w-4 h-4" /></Button>
-                    <Button size="icon" variant="ghost" className="text-red-400" onClick={() => handleRemove(u)} title="Remove User"><Trash2 className="w-4 h-4" /></Button>
+                    {!isGM && (
+                      <>
+                        <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} title="Edit User"><Edit3 className="w-4 h-4" /></Button>
+                        <Button size="icon" variant="ghost" className="text-red-400" onClick={() => handleRemove(u)} title="Remove User"><Trash2 className="w-4 h-4" /></Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}</div>

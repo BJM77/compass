@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -39,6 +40,7 @@ const defaultPlans = {
 };
 
 export function StrategyManagement() {
+  const { isGM } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -119,10 +121,12 @@ export function StrategyManagement() {
               <h3 className="text-base md:text-lg font-bold text-primary">Territory Definitions</h3>
               <p className="text-[10px] md:text-xs text-muted-foreground">Manage Precincts, Winning Messages, and Specialisations.</p>
             </div>
-            <Button onClick={savePlaybooks} disabled={isSaving} className="w-full md:w-auto bg-primary font-bold h-10 text-xs">
-              {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-              Save Playbooks
-            </Button>
+            {!isGM && (
+              <Button onClick={savePlaybooks} disabled={isSaving} className="w-full md:w-auto bg-primary font-bold h-10 text-xs">
+                {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+                Save Playbooks
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -143,15 +147,16 @@ export function StrategyManagement() {
                       className="text-xs h-8"
                       value={p.precincts?.join(', ')} 
                       onChange={(e) => updatePlaybookField(key, 'precincts', e.target.value.split(',').map(s => s.trim()))} 
+                      readOnly={isGM}
                     />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[9px] uppercase font-bold text-muted-foreground">Specialisation</Label>
-                    <Input className="text-xs h-8" value={p.specialisation} onChange={(e) => updatePlaybookField(key, 'specialisation', e.target.value)} />
+                    <Input className="text-xs h-8" value={p.specialisation} onChange={(e) => updatePlaybookField(key, 'specialisation', e.target.value)} readOnly={isGM} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[9px] uppercase font-bold text-muted-foreground">Core Target</Label>
-                    <Input className="text-xs h-8" value={p.target} onChange={(e) => updatePlaybookField(key, 'target', e.target.value)} />
+                    <Input className="text-xs h-8" value={p.target} onChange={(e) => updatePlaybookField(key, 'target', e.target.value)} readOnly={isGM} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[9px] uppercase font-bold text-muted-foreground">Winning Messages</Label>
@@ -159,6 +164,7 @@ export function StrategyManagement() {
                       className="min-h-[80px] text-xs" 
                       value={p.wins?.join('\n')} 
                       onChange={(e) => updatePlaybookField(key, 'wins', e.target.value.split('\n'))}
+                      readOnly={isGM}
                     />
                   </div>
                 </CardContent>
@@ -173,10 +179,12 @@ export function StrategyManagement() {
               <h3 className="text-base md:text-lg font-bold text-primary">Onboarding Pathways</h3>
               <p className="text-[10px] md:text-xs text-muted-foreground">Define tasks and success markers for the first 90 days. Includes Group Plan.</p>
             </div>
-            <Button onClick={saveOnboarding} disabled={isSaving} className="w-full md:w-auto bg-primary font-bold h-10 text-xs">
-              {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-              Save Plans
-            </Button>
+            {!isGM && (
+              <Button onClick={saveOnboarding} disabled={isSaving} className="w-full md:w-auto bg-primary font-bold h-10 text-xs">
+                {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+                Save Plans
+              </Button>
+            )}
           </div>
 
           <div className="space-y-8">
@@ -203,6 +211,7 @@ export function StrategyManagement() {
                               newPlans[planKey][phase].focus = e.target.value;
                               setOnboarding(newPlans);
                             }}
+                            readOnly={isGM}
                           />
                         </div>
                         <div className="space-y-1">
@@ -215,6 +224,7 @@ export function StrategyManagement() {
                               newPlans[planKey][phase].tasks = e.target.value.split('\n');
                               setOnboarding(newPlans);
                             }}
+                            readOnly={isGM}
                           />
                         </div>
                         <div className="space-y-1">
@@ -227,6 +237,7 @@ export function StrategyManagement() {
                               newPlans[planKey][phase].markers = e.target.value.split('\n');
                               setOnboarding(newPlans);
                             }}
+                            readOnly={isGM}
                           />
                         </div>
                       </div>
