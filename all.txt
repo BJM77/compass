@@ -9893,42 +9893,58 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
 
   const handleDispatchToGM = async () => {
     setIsGeneratingPDF(true);
-    // Force overview tab to ensure individual results are rendered
-    setSelectedTab('overview');
     
-    // Slight delay to allow DOM to render the overview tab fully if it was switched
+    // Slight delay to allow DOM to render the unrolled layout fully
     setTimeout(async () => {
       try {
         const element = document.getElementById('gm-report-capture');
         if (!element) throw new Error("Capture element not found");
         
-        toast({ title: "Generating PDF", description: "Compiling High-Res GM Report..." });
+        toast({ title: "Generating PDF", description: "Compiling Multi-Page A4 Report..." });
         
         const canvas = await html2canvas(element, { 
-          scale: 2, 
+          scale: 3, // Razor sharp 3x scaling
           useCORS: true,
           logging: false,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          onclone: (clonedDoc) => {
+            // Ensure dark high-contrast fonts in the cloned DOM
+            clonedDoc.body.style.color = '#0f172a';
+          }
         });
         
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'px',
-          format: [canvas.width, canvas.height]
-        });
+        const imgData = canvas.toDataURL('image/png', 1.0);
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+        // A4 dimensions in pt: 595.28 x 841.89
+        const pageWidth = 595.28;
+        const pageHeight = 841.89;
+        const margin = 24; // 24pt margins
+        const imgWidth = pageWidth - margin * 2;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        let heightLeft = imgHeight;
+        let position = margin;
+        
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - margin * 2);
+        
+        while (heightLeft > 0) {
+          position -= (pageHeight - margin * 2);
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+          heightLeft -= (pageHeight - margin * 2);
+        }
+        
         pdf.save(`GM_Dispatch_Report_Week_${currentWeek}.pdf`);
-        
-        toast({ title: "Dispatch Complete", description: "PDF downloaded successfully." });
+        toast({ title: "Dispatch Complete", description: "Multi-page A4 PDF downloaded successfully." });
       } catch (err) {
         console.error(err);
         toast({ variant: "destructive", title: "Export Failed", description: "Could not generate PDF." });
       } finally {
         setIsGeneratingPDF(false);
       }
-    }, 500);
+    }, 800);
   };
 
   const metrics = useMemo(() => {
@@ -10020,82 +10036,96 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         </Card>
       </div>
 
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
-          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
-          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
-          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
-          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
-          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
-          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
-        </TabsList>
+      {isGeneratingPDF ? (
+        <div className="space-y-16 pt-8 bg-white text-slate-900 rounded-2xl p-8 border shadow-sm">
+          <div>
+            <div className="border-b-2 border-primary pb-3 mb-6">
+              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">1. Team Performance & Tactical Review</h2>
+            </div>
+            <div className="space-y-6">
+              {reportData.map((report) => (
+                <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} forceOpen={true} />
+              ))}
+            </div>
+          </div>
 
-        <TabsContent value="overview" className="space-y-4">
-          {reportData.map((report) => (
-            <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} />
-          ))}
-        </TabsContent>
+          <div className="pt-8">
+            <div className="border-b-2 border-primary pb-3 mb-6">
+              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">2. Group Success Plan (90-Day Milestones)</h2>
+            </div>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+              <OnboardingPlan userName="Corporate" planType="GROUP_90" />
+            </div>
+          </div>
 
-        <TabsContent value="group90" className="animate-in fade-in duration-500">
-           <OnboardingPlan userName="Corporate" planType="GROUP_90" />
-        </TabsContent>
+          <div className="pt-8">
+            <div className="border-b-2 border-primary pb-3 mb-6">
+              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">3. Corporate Strategy Blueprints</h2>
+            </div>
+            <StrategyTable data={teamPlans} />
+          </div>
 
-        <TabsContent value="strategy" className="space-y-6">
-           <Card className="border-none shadow-xl bg-white overflow-hidden">
-             <CardHeader className="bg-slate-900 text-white pb-6">
-                <CardTitle className="text-xl font-black uppercase flex items-center gap-3">
-                  <ShieldCheck className="w-6 h-6 text-accent" />
-                  Corporate Strategy Blueprints
-                </CardTitle>
-                <CardDescription className="text-slate-400">Standardized frameworks deployed by Sales Administration.</CardDescription>
-             </CardHeader>
-             <CardContent className="p-0">
-                <Table>
-                  <TableHeader className="bg-slate-50">
-                    <TableRow className="uppercase text-[9px] font-black">
-                      <TableHead className="pl-6">Blueprint Name</TableHead>
-                      <TableHead>Primary Objective</TableHead>
-                      <TableHead>Last Updated</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {teamPlans?.map(plan => (
-                      <TableRow key={plan.id}>
-                        <TableCell className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</TableCell>
-                        <TableCell className="text-xs font-medium italic">"{plan.objective}"</TableCell>
-                        <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">
-                          {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {(!teamPlans || teamPlans.length === 0) && (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center py-20 bg-slate-50/50">
-                          <PhoneCall className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-                          <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No strategic blueprints deployed.</p>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-             </CardContent>
-           </Card>
-        </TabsContent>
+          <div className="pt-8">
+            <div className="border-b-2 border-primary pb-3 mb-6">
+              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">4. Active Pipeline Opportunities</h2>
+            </div>
+            <OpportunitiesTable data={opportunities} />
+          </div>
 
-        <TabsContent value="opportunities"><OpportunitiesTable data={opportunities} /></TabsContent>
-        <TabsContent value="signed"><SignedPaperworkTable data={paperwork} /></TabsContent>
-        <TabsContent value="business"><NewBusinessTable data={newBusiness} /></TabsContent>
-      </Tabs>
+          <div className="pt-8">
+            <div className="border-b-2 border-primary pb-3 mb-6">
+              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">5. Signed Governance Work</h2>
+            </div>
+            <SignedPaperworkTable data={paperwork} />
+          </div>
+
+          <div className="pt-8">
+            <div className="border-b-2 border-primary pb-3 mb-6">
+              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">6. Live Freight & New Business</h2>
+            </div>
+            <NewBusinessTable data={newBusiness} />
+          </div>
+        </div>
+      ) : (
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+          <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
+            <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
+            <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
+            <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
+            <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
+            <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
+            <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            {reportData.map((report) => (
+              <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} />
+            ))}
+          </TabsContent>
+
+          <TabsContent value="group90" className="animate-in fade-in duration-500">
+             <OnboardingPlan userName="Corporate" planType="GROUP_90" />
+          </TabsContent>
+
+          <TabsContent value="strategy" className="space-y-6">
+             <StrategyTable data={teamPlans} />
+          </TabsContent>
+
+          <TabsContent value="opportunities"><OpportunitiesTable data={opportunities} /></TabsContent>
+          <TabsContent value="signed"><SignedPaperworkTable data={paperwork} /></TabsContent>
+          <TabsContent value="business"><NewBusinessTable data={newBusiness} /></TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }
 
-function BDMReportCard({ report, onSaveFeedback }: { report: BDMWeeklyReport; onSaveFeedback: (uid: string, f: string) => void }) {
+function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: BDMWeeklyReport; onSaveFeedback: (uid: string, f: string) => void; forceOpen?: boolean }) {
   const [feedback, setFeedback] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Card className="border-none shadow-lg bg-white overflow-hidden transition-all hover:shadow-xl">
+    <Card className="border-none shadow-lg bg-white overflow-hidden transition-all hover:shadow-xl border-slate-200/80">
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -10110,7 +10140,7 @@ function BDMReportCard({ report, onSaveFeedback }: { report: BDMWeeklyReport; on
               </div>
             </div>
           </div>
-          <Button variant="ghost" onClick={() => setIsOpen(!isOpen)} className="text-accent font-black text-[10px] uppercase">
+          <Button variant="ghost" onClick={() => setIsOpen(!isOpen)} data-html2canvas-ignore="true" className="text-accent font-black text-[10px] uppercase">
             <MessageSquare className="w-4 h-4 mr-2" /> {isOpen ? 'CLOSE FEEDBACK' : 'REVIEW NOTES'}
           </Button>
         </div>
@@ -10124,7 +10154,7 @@ function BDMReportCard({ report, onSaveFeedback }: { report: BDMWeeklyReport; on
           <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100"><p className="text-[9px] font-black text-orange-600 uppercase mb-1">New Biz</p><p className="text-xl font-black text-orange-900">{report.summary.newBusinessCount}</p></div>
         </div>
 
-        {isOpen && (
+        {(isOpen || forceOpen) && (
           <div className="mt-6 pt-6 border-t space-y-6 animate-in slide-in-from-top-4 duration-300">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-50 p-6 rounded-2xl border">
@@ -10158,7 +10188,7 @@ function BDMReportCard({ report, onSaveFeedback }: { report: BDMWeeklyReport; on
                   <p className="text-sm font-bold text-slate-800 leading-relaxed">"{report.gmFeedback}"</p>
                </div>
              )}
-             <div className="space-y-3">
+             <div data-html2canvas-ignore="true" className="space-y-3">
                 <p className="text-[10px] font-black uppercase text-primary">Provide Strategic Feedback</p>
                 <Textarea placeholder="Coach this team member on their weekly performance..." value={feedback} onChange={(e) => setFeedback(e.target.value)} className="min-h-[100px] rounded-2xl border-primary/20 bg-white" />
                 <Button onClick={() => onSaveFeedback(report.userId, feedback)} disabled={!feedback.trim()} className="w-full bg-accent font-black uppercase text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
@@ -10221,11 +10251,55 @@ function SignedPaperworkTable({ data }: { data: any[] }) {
 
 function NewBusinessTable({ data }: { data: any[] }) {
   return (
-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+    <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
       <CardContent className="p-0">
         <Table>
           <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead><TableHead>AE</TableHead></TableRow></TableHeader>
           <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell><TableCell className="text-[10px] font-bold uppercase">{b.assignedAE}</TableCell></TableRow>))}</TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StrategyTable({ data }: { data: any[] }) {
+  return (
+    <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
+      <CardHeader className="bg-slate-900 text-white pb-6">
+        <CardTitle className="text-xl font-black uppercase flex items-center gap-3">
+          <ShieldCheck className="w-6 h-6 text-accent" />
+          Corporate Strategy Blueprints
+        </CardTitle>
+        <CardDescription className="text-slate-400">Standardized frameworks deployed by Sales Administration.</CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-slate-50">
+            <TableRow className="uppercase text-[9px] font-black">
+              <TableHead className="pl-6">Blueprint Name</TableHead>
+              <TableHead>Primary Objective</TableHead>
+              <TableHead>Last Updated</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data?.map(plan => (
+              <TableRow key={plan.id}>
+                <TableCell className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</TableCell>
+                <TableCell className="text-xs font-medium italic">"{plan.objective}"</TableCell>
+                <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">
+                  {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
+                </TableCell>
+              </TableRow>
+            ))}
+            {(!data || data.length === 0) && (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-20 bg-slate-50/50">
+                  <PhoneCall className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No strategic blueprints deployed.</p>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
         </Table>
       </CardContent>
     </Card>
