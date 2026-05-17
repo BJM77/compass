@@ -1,6 +1,6 @@
 =================================================================================
   BDM COMPASS — FULL SITE BACKUP
-  Generated: Sun May 17 16:57:38 AWST 2026
+  Generated: Sun May 17 17:12:54 AWST 2026
   Project: teamglobalexp.lightning.force.com CRM Platform
 =================================================================================
 
@@ -2026,6 +2026,171 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  FILE: src/hooks/use-crm-summary.ts
+╚══════════════════════════════════════════════════════════════════════════════╝
+"use client";
+
+import { useMemo } from 'react';
+import { collection, query, where } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { getCurrentWeek } from '@/lib/utils';
+
+// ─── Active stages that qualify as an "Opportunity" row ──────────────────────
+const ACTIVE_STAGES = new Set([
+  'develop', 'propose', 'negotiating', 'finalise', 'pending trade',
+]);
+
+function isActive(stage: string): boolean {
+  return ACTIVE_STAGES.has((stage || '').trim().toLowerCase());
+}
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+export interface CRMUserSummary {
+  userId: string;
+  userName: string;
+  // Opportunity metrics (active stages only, deduped revenue)
+  opportunityCount: number;
+  opportunityValue: number;
+  oppYTDRevenueThisFY: number;
+  oppYTDRevenueLastFY: number;
+  // Account / Customer metrics (all rows, deduped by accountMasterCode)
+  customerCount: number;
+  custYTDRevenueThisFY: number;
+  custYTDRevenueLastFY: number;
+}
+
+export interface CRMTeamSummary {
+  byUser: CRMUserSummary[];       // per-BDM breakdown — only for leaders/GMs
+  team: CRMUserSummary;            // aggregate team totals (all roles)
+  myStats: CRMUserSummary | null;  // caller's own row
+  isLoading: boolean;
+}
+
+// ─── Helper: aggregate a list of pipeline records into a CRMUserSummary ──────
+function aggregateRecords(
+  records: any[],
+  userId: string,
+  userName: string
+): CRMUserSummary {
+  // Opportunity rows: active stage, not a bare account entry
+  const oppRows = records.filter(r => !r.isBareAccount && isActive(r.stage));
+
+  // Revenue maps keyed by accountMasterCode to prevent triple-counting
+  const oppRevFY  = new Map<string, number>();
+  const oppRevLY  = new Map<string, number>();
+  oppRows.forEach(r => {
+    const code = r.accountMasterCode || r.id;
+    if (!oppRevFY.has(code)) oppRevFY.set(code, Number(r.currentRevenue)  || 0);
+    if (!oppRevLY.has(code)) oppRevLY.set(code, Number(r.lastYearRevenue) || 0);
+  });
+
+  // Customer maps across ALL rows (opportunities + bare accounts)
+  const custRevFY = new Map<string, number>();
+  const custRevLY = new Map<string, number>();
+  records.forEach(r => {
+    const code = r.accountMasterCode || r.id;
+    if (!custRevFY.has(code)) custRevFY.set(code, Number(r.currentRevenue)  || 0);
+    if (!custRevLY.has(code)) custRevLY.set(code, Number(r.lastYearRevenue) || 0);
+  });
+
+  const sumMap = (m: Map<string, number>) =>
+    Array.from(m.values()).reduce((a, b) => a + b, 0);
+
+  return {
+    userId,
+    userName,
+    opportunityCount:     oppRows.length,
+    opportunityValue:     oppRows.reduce((s, r) => s + (Number(r.value) || 0), 0),
+    oppYTDRevenueThisFY:  sumMap(oppRevFY),
+    oppYTDRevenueLastFY:  sumMap(oppRevLY),
+    customerCount:        custRevFY.size,
+    custYTDRevenueThisFY: sumMap(custRevFY),
+    custYTDRevenueLastFY: sumMap(custRevLY),
+  };
+}
+
+export const EMPTY_SUMMARY: CRMUserSummary = {
+  userId: 'TEAM', userName: 'Team Total',
+  opportunityCount: 0, opportunityValue: 0,
+  oppYTDRevenueThisFY: 0, oppYTDRevenueLastFY: 0,
+  customerCount: 0, custYTDRevenueThisFY: 0, custYTDRevenueLastFY: 0,
+};
+
+function addSummaries(a: CRMUserSummary, b: CRMUserSummary): CRMUserSummary {
+  return {
+    userId: 'TEAM', userName: 'Team Total',
+    opportunityCount:     a.opportunityCount     + b.opportunityCount,
+    opportunityValue:     a.opportunityValue     + b.opportunityValue,
+    oppYTDRevenueThisFY:  a.oppYTDRevenueThisFY  + b.oppYTDRevenueThisFY,
+    oppYTDRevenueLastFY:  a.oppYTDRevenueLastFY  + b.oppYTDRevenueLastFY,
+    customerCount:        a.customerCount        + b.customerCount,
+    custYTDRevenueThisFY: a.custYTDRevenueThisFY + b.custYTDRevenueThisFY,
+    custYTDRevenueLastFY: a.custYTDRevenueLastFY + b.custYTDRevenueLastFY,
+  };
+}
+
+// ─── Hook ────────────────────────────────────────────────────────────────────
+/**
+ * useCRMSummary
+ *
+ * Always fetches the full team dataset for the current week so that:
+ * - Team totals are available to ALL roles (BDMs see the team total bar)
+ * - Leaders/GMs get the per-individual breakdown in byUser
+ *
+ * @param myUserId  The UID of the currently authenticated / simulated user.
+ * @param isLeader  Whether the caller has leader-level access.
+ */
+export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTeamSummary {
+  const db = useFirestore();
+  const currentWeek = getCurrentWeek();
+
+  // Fetch ALL team records for the week — needed by both BDMs (for team total)
+  // and leaders (for per-user breakdown).
+  const allQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'pipelineReviews'), where('week', '==', currentWeek));
+  }, [db, currentWeek]);
+
+  const { data: allRecords, isLoading } = useCollection(allQuery);
+
+  return useMemo<CRMTeamSummary>(() => {
+    const records = allRecords || [];
+
+    // Group records by userId
+    const byUserId = new Map<string, { name: string; rows: any[] }>();
+    records.forEach(r => {
+      if (!r.userId) return;
+      if (!byUserId.has(r.userId)) {
+        byUserId.set(r.userId, { name: r.userName || r.userId, rows: [] });
+      }
+      byUserId.get(r.userId)!.rows.push(r);
+    });
+
+    // Build per-user summaries sorted by name
+    const byUser = Array.from(byUserId.entries())
+      .map(([uid, { name, rows }]) => aggregateRecords(rows, uid, name))
+      .sort((a, b) => a.userName.localeCompare(b.userName));
+
+    // Team total = sum of all per-user summaries
+    const team = byUser.reduce(addSummaries, { ...EMPTY_SUMMARY });
+
+    // Caller's own row
+    const myStats = myUserId
+      ? (byUser.find(u => u.userId === myUserId) ?? { ...EMPTY_SUMMARY, userId: myUserId, userName: '' })
+      : null;
+
+    return {
+      // Only expose individual breakdown to leaders/GMs; BDMs get empty array
+      byUser: isLeader ? byUser : [],
+      team,
+      myStats,
+      isLoading,
+    };
+  }, [allRecords, myUserId, isLeader, isLoading]);
+}
 
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -7322,6 +7487,8 @@ import { format } from 'date-fns';
 import { jsPDF } from "jspdf";
 import { computeMomentum } from '@/lib/momentum';
 import { getCurrentWeek } from '@/lib/utils';
+import { useCRMSummary } from '@/hooks/use-crm-summary';
+import { CRMSummaryPanel } from './crm-summary-panel';
 
 interface BDMDashboardProps {
   simulatedUser?: {
@@ -7387,6 +7554,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       return sum + ((Number(deal.value) || 0) * weight);
     }, 0) ?? 0;
   }, [allDeals]);
+
+  const crmSummary = useCRMSummary(userId, false);
 
   const handleExportPdf = () => {
     if (!profile) return;
@@ -7496,6 +7665,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
           info="Live momentum tracking. Flagging deals based on stage duration." 
         />
       </div>
+
+      <CRMSummaryPanel summary={crmSummary} showAllUsers={false} currentWeek={currentWeek} />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
          <div className="xl:col-span-8 space-y-8">
@@ -9444,6 +9615,237 @@ export function CRMImporter() {
 
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
+║  FILE: src/components/dashboard/crm-summary-panel.tsx
+╚══════════════════════════════════════════════════════════════════════════════╝
+"use client";
+
+import { CRMUserSummary, CRMTeamSummary } from '@/hooks/use-crm-summary';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Briefcase, Users, DollarSign, TrendingUp, TrendingDown,
+  BarChart3, Loader2, ChevronRight
+} from 'lucide-react';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function fmt(val: number, decimals = 1): string {
+  if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(decimals)}M`;
+  if (val >= 1_000)     return `$${(val / 1_000).toFixed(0)}K`;
+  return `$${val.toFixed(0)}`;
+}
+
+function yoyBadge(thisFY: number, lastFY: number) {
+  if (!lastFY) return null;
+  const pct = ((thisFY - lastFY) / lastFY) * 100;
+  const positive = pct >= 0;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[8px] font-black px-1.5 py-0.5 rounded-full ${positive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+      {positive ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+      {positive ? '+' : ''}{pct.toFixed(1)}%
+    </span>
+  );
+}
+
+// ─── Summary Column (My / Team) ───────────────────────────────────────────────
+function SummaryColumn({
+  label, data, accent = false
+}: {
+  label: string;
+  data: CRMUserSummary;
+  accent?: boolean;
+}) {
+  return (
+    <div className={`flex-1 rounded-2xl p-4 space-y-4 ${accent ? 'bg-primary/5 border border-primary/10' : 'bg-slate-50 border border-slate-100'}`}>
+      <p className={`text-[9px] font-black uppercase tracking-widest ${accent ? 'text-primary' : 'text-slate-500'}`}>{label}</p>
+
+      {/* Opportunities */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5 mb-1">
+          <Briefcase className="w-3 h-3 text-accent" />
+          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Opportunities</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-slate-500 font-bold">Count</span>
+          <span className="text-sm font-black text-primary">{data.opportunityCount}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-slate-500 font-bold">Pipeline Value</span>
+          <span className="text-sm font-black text-primary">{fmt(data.opportunityValue)}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-slate-500 font-bold">YTD Rev FY</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-black">{fmt(data.oppYTDRevenueThisFY)}</span>
+            {yoyBadge(data.oppYTDRevenueThisFY, data.oppYTDRevenueLastFY)}
+          </div>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-slate-500 font-bold">YTD Rev LY</span>
+          <span className="text-xs font-bold text-slate-400">{fmt(data.oppYTDRevenueLastFY)}</span>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-200 pt-3 space-y-2">
+        <div className="flex items-center gap-1.5 mb-1">
+          <Users className="w-3 h-3 text-blue-500" />
+          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Accounts</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-slate-500 font-bold">Total Accounts</span>
+          <span className="text-sm font-black text-primary">{data.customerCount}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-slate-500 font-bold">YTD Rev FY</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-black">{fmt(data.custYTDRevenueThisFY)}</span>
+            {yoyBadge(data.custYTDRevenueThisFY, data.custYTDRevenueLastFY)}
+          </div>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-slate-500 font-bold">YTD Rev LY</span>
+          <span className="text-xs font-bold text-slate-400">{fmt(data.custYTDRevenueLastFY)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Per-user breakdown row (leaders only) ────────────────────────────────────
+function UserRow({ u }: { u: CRMUserSummary }) {
+  const yoy = u.custYTDRevenueLastFY
+    ? ((u.custYTDRevenueThisFY - u.custYTDRevenueLastFY) / u.custYTDRevenueLastFY) * 100
+    : null;
+
+  return (
+    <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+      <td className="px-4 py-3 font-black text-[10px] uppercase text-primary whitespace-nowrap">
+        {u.userName}
+      </td>
+      <td className="px-4 py-3 text-center text-xs font-bold">{u.opportunityCount}</td>
+      <td className="px-4 py-3 text-right text-xs font-bold">{fmt(u.opportunityValue)}</td>
+      <td className="px-4 py-3 text-center text-xs font-bold">{u.customerCount}</td>
+      <td className="px-4 py-3 text-right text-xs font-bold">{fmt(u.custYTDRevenueThisFY)}</td>
+      <td className="px-4 py-3 text-right text-xs font-bold text-slate-400">{fmt(u.custYTDRevenueLastFY)}</td>
+      <td className="px-4 py-3 text-right">
+        {yoy !== null ? (
+          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${yoy >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {yoy >= 0 ? '+' : ''}{yoy.toFixed(1)}%
+          </span>
+        ) : (
+          <span className="text-slate-300 text-[9px]">–</span>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
+interface CRMSummaryPanelProps {
+  summary: CRMTeamSummary;
+  showAllUsers?: boolean;   // true for leaders/GMs
+  currentWeek: string;
+}
+
+export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: CRMSummaryPanelProps) {
+  if (summary.isLoading) {
+    return (
+      <Card className="border-none shadow-xl bg-white">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const hasData = summary.team.opportunityCount > 0 || summary.team.customerCount > 0;
+
+  return (
+    <Card className="border-none shadow-xl bg-white overflow-hidden">
+      <CardHeader className="bg-slate-900 text-white pb-4 pt-5">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-accent/20 rounded-xl">
+              <BarChart3 className="w-4 h-4 text-accent" />
+            </div>
+            <div>
+              <CardTitle className="text-base font-black tracking-tight">CRM Performance Summary</CardTitle>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                Opportunities &amp; Account Management · Week {currentWeek.split('-')[1]}
+              </p>
+            </div>
+          </div>
+          {!hasData && (
+            <Badge className="bg-amber-500/20 text-amber-400 border-none text-[9px] font-black">
+              No CRM data imported yet
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-5 space-y-5">
+        {/* My + Team side-by-side columns */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {summary.myStats && (
+            <SummaryColumn label="My Performance" data={summary.myStats} accent />
+          )}
+          <SummaryColumn label="Team Combined" data={summary.team} />
+        </div>
+
+        {/* Per-user breakdown — leaders/GMs only */}
+        {showAllUsers && summary.byUser.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <ChevronRight className="w-3.5 h-3.5 text-accent" />
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Individual Breakdown</p>
+            </div>
+            <div className="rounded-2xl border border-slate-100 overflow-hidden">
+              <ScrollArea className="max-h-72">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-[8px] font-black uppercase tracking-widest border-b border-slate-100 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left">BDM / AM</th>
+                      <th className="px-4 py-2.5 text-center">Opps</th>
+                      <th className="px-4 py-2.5 text-right">Pipeline $</th>
+                      <th className="px-4 py-2.5 text-center">Accts</th>
+                      <th className="px-4 py-2.5 text-right">YTD FY</th>
+                      <th className="px-4 py-2.5 text-right">YTD LY</th>
+                      <th className="px-4 py-2.5 text-right">YoY</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.byUser.map(u => <UserRow key={u.userId} u={u} />)}
+                  </tbody>
+                  {/* Team total footer */}
+                  <tfoot className="bg-primary text-white text-[9px] font-black uppercase">
+                    <tr>
+                      <td className="px-4 py-3">TEAM TOTAL</td>
+                      <td className="px-4 py-3 text-center">{summary.team.opportunityCount}</td>
+                      <td className="px-4 py-3 text-right">{fmt(summary.team.opportunityValue)}</td>
+                      <td className="px-4 py-3 text-center">{summary.team.customerCount}</td>
+                      <td className="px-4 py-3 text-right">{fmt(summary.team.custYTDRevenueThisFY)}</td>
+                      <td className="px-4 py-3 text-right">{fmt(summary.team.custYTDRevenueLastFY)}</td>
+                      <td className="px-4 py-3 text-right">
+                        {summary.team.custYTDRevenueLastFY > 0 ? (
+                          <span>
+                            {((summary.team.custYTDRevenueThisFY - summary.team.custYTDRevenueLastFY) / summary.team.custYTDRevenueLastFY * 100).toFixed(1)}%
+                          </span>
+                        ) : '–'}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </ScrollArea>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
 ║  FILE: src/components/dashboard/duplicate-manager.tsx
 ╚══════════════════════════════════════════════════════════════════════════════╝
 "use client";
@@ -10797,6 +11199,8 @@ import { collection, doc, setDoc, serverTimestamp, query, where } from 'firebase
 import { format } from 'date-fns';
 import { computeMomentum } from '@/lib/momentum';
 import { openSalesforceSearch, getCurrentWeek } from '@/lib/utils';
+import { useCRMSummary } from '@/hooks/use-crm-summary';
+import { CRMSummaryPanel } from './crm-summary-panel';
 
 interface LeaderDashboardProps {
   onSimulate?: (userId: string) => void;
@@ -10814,6 +11218,8 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     return collection(db, 'bdmStats');
   }, [db]);
   const { data: teamStats, isLoading: isStatsLoading } = useCollection(bdmStatsQuery);
+
+  const crmSummary = useCRMSummary(profile?.uid ?? null, true);
 
   const activityQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -10925,6 +11331,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
         <TabsContent value="dashboard" className="space-y-6">
            <VelocityPulse teamStats={teamStats || []} teamActivity={teamActivity || []} />
+           <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
            <Card className="border-none shadow-2xl bg-white overflow-hidden">
               <CardHeader className="bg-slate-900 text-white pb-6">
                 <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
@@ -14549,6 +14956,6 @@ export const ai = genkit({
 
 
 =================================================================================
-  END OF BACKUP — 112 files captured
+  END OF BACKUP — 114 files captured
   Salesforce Org: teamglobalexp.lightning.force.com
 =================================================================================

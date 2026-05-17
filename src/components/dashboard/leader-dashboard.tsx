@@ -23,6 +23,8 @@ import { collection, doc, setDoc, serverTimestamp, query, where } from 'firebase
 import { format } from 'date-fns';
 import { computeMomentum } from '@/lib/momentum';
 import { openSalesforceSearch, getCurrentWeek } from '@/lib/utils';
+import { useCRMSummary } from '@/hooks/use-crm-summary';
+import { CRMSummaryPanel } from './crm-summary-panel';
 
 interface LeaderDashboardProps {
   onSimulate?: (userId: string) => void;
@@ -40,6 +42,8 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     return collection(db, 'bdmStats');
   }, [db]);
   const { data: teamStats, isLoading: isStatsLoading } = useCollection(bdmStatsQuery);
+
+  const crmSummary = useCRMSummary(profile?.uid ?? null, true);
 
   const activityQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -151,6 +155,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
         <TabsContent value="dashboard" className="space-y-6">
            <VelocityPulse teamStats={teamStats || []} teamActivity={teamActivity || []} />
+           <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
            <Card className="border-none shadow-2xl bg-white overflow-hidden">
               <CardHeader className="bg-slate-900 text-white pb-6">
                 <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">

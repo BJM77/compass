@@ -30,6 +30,8 @@ import { format } from 'date-fns';
 import { jsPDF } from "jspdf";
 import { computeMomentum } from '@/lib/momentum';
 import { getCurrentWeek } from '@/lib/utils';
+import { useCRMSummary } from '@/hooks/use-crm-summary';
+import { CRMSummaryPanel } from './crm-summary-panel';
 
 interface BDMDashboardProps {
   simulatedUser?: {
@@ -95,6 +97,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       return sum + ((Number(deal.value) || 0) * weight);
     }, 0) ?? 0;
   }, [allDeals]);
+
+  const crmSummary = useCRMSummary(userId, false);
 
   const handleExportPdf = () => {
     if (!profile) return;
@@ -204,6 +208,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
           info="Live momentum tracking. Flagging deals based on stage duration." 
         />
       </div>
+
+      <CRMSummaryPanel summary={crmSummary} showAllUsers={false} currentWeek={currentWeek} />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
          <div className="xl:col-span-8 space-y-8">
