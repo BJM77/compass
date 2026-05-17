@@ -18,16 +18,17 @@ export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
     return teamStats
       .filter(s => s.role === 'BDM' || s.role === 'ACCOUNT_MANAGER')
       .map(bdm => {
+        // weeklyProgress doc id is {userId}_{week} — match by userId field
         const activity = teamActivity?.find(a => a.userId === bdm.id);
         
-        // Calculate a rough velocity score (0-100) based on week targets
-        const callsTarget = activity?.kpiTargets?.callsToMake || 50;
-        const callsMade = activity?.actuals?.callsMade || 0;
-        const callsScore = Math.min(100, (callsMade / callsTarget) * 100) || 0;
+        // ActivityLogger writes flat fields: calls, apps, deals
+        const callsTarget = 50;
+        const callsMade  = Number(activity?.calls)  || 0;
+        const callsScore = Math.min(100, (callsMade / callsTarget) * 100);
         
-        const dealsTarget = activity?.kpiTargets?.dealsToClose || 2;
-        const dealsClosed = activity?.actuals?.dealsClosed || 0;
-        const dealsScore = Math.min(100, (dealsClosed / dealsTarget) * 100) || 0;
+        const dealsTarget  = 2;
+        const dealsClosed  = Number(activity?.deals) || 0;
+        const dealsScore   = Math.min(100, (dealsClosed / dealsTarget) * 100);
         
         const velocityScore = Math.round((callsScore * 0.4) + (dealsScore * 0.6));
         
@@ -39,7 +40,8 @@ export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
           callsMade,
           callsTarget,
           dealsClosed,
-          dealsTarget
+          dealsTarget,
+          apps: Number(activity?.apps) || 0,
         };
       })
       .sort((a, b) => b.velocityScore - a.velocityScore);
@@ -86,6 +88,7 @@ export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
                  </div>
                  <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-widest">
                     <span>Calls: {bdm.callsMade}/{bdm.callsTarget}</span>
+                    <span>Apps: {bdm.apps}</span>
                     <span>Deals: {bdm.dealsClosed}/{bdm.dealsTarget}</span>
                  </div>
               </div>

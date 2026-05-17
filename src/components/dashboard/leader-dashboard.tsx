@@ -45,9 +45,10 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
   const crmSummary = useCRMSummary(profile?.uid ?? null, true);
 
+  // BDMs log activity to weeklyProgress/{userId}_{week} via ActivityLogger
   const activityQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'weeklyActivity'), where('week', '==', currentWeek));
+    return query(collection(db, 'weeklyProgress'), where('week', '==', currentWeek));
   }, [db, currentWeek]);
   const { data: teamActivity } = useCollection(activityQuery);
 
@@ -81,7 +82,8 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   const activityTotals = useMemo(() => {
     if (!teamActivity) return { apps: 0, calls: 0 };
     return teamActivity.reduce((acc, act) => ({
-      apps: acc.apps + (Number(act.apps) || 0),
+      // ActivityLogger writes flat fields: calls, apps, deals
+      apps:  acc.apps  + (Number(act.apps)  || 0),
       calls: acc.calls + (Number(act.calls) || 0),
     }), { apps: 0, calls: 0 });
   }, [teamActivity]);
