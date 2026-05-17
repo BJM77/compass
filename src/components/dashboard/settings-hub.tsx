@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore } from '@/firebase';
-import { doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -402,10 +402,37 @@ export function SettingsHub() {
            <Input value={dangerConfirmText} onChange={e => setDangerConfirmText(e.target.value)} placeholder="Type confirmation phrase..." className="h-12 border-red-200" />
            <DialogFooter>
               <Button variant="ghost" onClick={() => setShowDangerConfirm(false)} className="font-black">CANCEL</Button>
-              <Button variant="destructive" disabled={dangerConfirmText !== 'DELETE CONFIRMED'} onClick={async () => {
-                 toast({ title: 'Purge feature disabled in demo' });
-                 setShowDangerConfirm(false);
-              }} className="font-black">PERMANENT PURGE</Button>
+              <Button variant="destructive" disabled={dangerConfirmText !== 'DELETE CONFIRMED' || isSaving} onClick={async () => {
+                 if (!db) return;
+                 setIsSaving(true);
+                 try {
+                   const snap = await getDocs(collection(db, 'pipelineReviews'));
+                   if (snap.empty) {
+                     toast({ title: 'Pipeline Already Empty' });
+                     setShowDangerConfirm(false);
+                     return;
+                   }
+                   const BATCH_SIZE = 400;
+                   let count = 0;
+                   for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
+                     const batch = writeBatch(db);
+                     const chunk = snap.docs.slice(i, i + BATCH_SIZE);
+                     chunk.forEach(d => batch.delete(d.ref));
+                     await batch.commit();
+                     count += chunk.length;
+                   }
+                   toast({ title: '✅ Pipeline Wiped', description: `Permanently deleted ${count} opportunities.` });
+                   setShowDangerConfirm(false);
+                   setDangerConfirmText('');
+                 } catch (e: any) {
+                   toast({ variant: 'destructive', title: 'Wipe Failed', description: e?.message });
+                 } finally {
+                   setIsSaving(false);
+                 }
+              }} className="font-black">
+                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                 PERMANENT PURGE
+              </Button>
            </DialogFooter>
         </DialogContent>
       </Dialog>

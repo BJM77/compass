@@ -3,15 +3,25 @@
 import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { getCurrentWeek } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Upload, CheckCircle2, AlertTriangle, Loader2, Database, FileUp, Info, X } from 'lucide-react';
+import { Upload, CheckCircle2, AlertTriangle, Loader2, Database, FileUp, Info, X, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 // ─── Stage Classification ────────────────────────────────────────────────────
 const ACTIVE_STAGES = new Set(['develop', 'propose', 'negotiating', 'finalise', 'pending trade']);
@@ -120,9 +130,43 @@ export function CRMImporter() {
   const [isImporting, setIsImporting] = useState(false);
   const [previewRecords, setPreviewRecords] = useState<ProcessedRecord[]>([]);
   const [stats, setStats] = useState<ImportStats | null>(null);
+  const [isPurging, setIsPurging] = useState(false);
 
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
+
+  // ── Purge Data ───────────────────────────────────────────────────────────
+  const handlePurge = async (scope: 'WEEK' | 'ALL') => {
+    if (!db) return;
+    setIsPurging(true);
+    try {
+      const colRef = collection(db, 'pipelineReviews');
+      const q = scope === 'WEEK' ? query(colRef, where('week', '==', currentWeek)) : colRef;
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        toast({ title: 'No Data to Purge', description: scope === 'WEEK' ? `No pipeline records found for week ${currentWeek}.` : 'Pipeline is already empty.' });
+        return;
+      }
+
+      const BATCH_SIZE = 400;
+      let deletedCount = 0;
+      for (let i = 0; i < snapshot.docs.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = snapshot.docs.slice(i, i + BATCH_SIZE);
+        chunk.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        deletedCount += chunk.length;
+      }
+
+      toast({ title: '✅ Data Purged', description: `Successfully deleted ${deletedCount} pipeline records (${scope === 'WEEK' ? `Week ${currentWeek}` : 'All History'}).` });
+    } catch (e: any) {
+      console.error('Purge error:', e);
+      toast({ variant: 'destructive', title: 'Purge Failed', description: e?.message });
+    } finally {
+      setIsPurging(false);
+    }
+  };
 
   // ── Process both files ───────────────────────────────────────────────────
   const handleProcess = useCallback(async () => {
@@ -387,16 +431,48 @@ export function CRMImporter() {
       {/* Header */}
       <Card className="border-none shadow-xl bg-white overflow-hidden">
         <CardHeader className="bg-slate-900 text-white pb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/20 rounded-xl">
-              <Database className="w-5 h-5 text-accent" />
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent/20 rounded-xl">
+                <Database className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-black tracking-tight">Salesforce CRM Sync</CardTitle>
+                <CardDescription className="text-slate-400 font-medium mt-0.5">
+                  Two-file import: Customers + Opportunities — merged by Customer ID
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-xl font-black tracking-tight">Salesforce CRM Sync</CardTitle>
-              <CardDescription className="text-slate-400 font-medium mt-0.5">
-                Two-file import: Customers + Opportunities — merged by Customer ID
-              </CardDescription>
-            </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={isPurging || isProcessing || isImporting} className="font-black uppercase text-xs h-10 px-5 rounded-xl shadow-lg bg-red-600 hover:bg-red-700 transition-all">
+                  {isPurging ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
+                  {isPurging ? 'Purging...' : 'Purge Data'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white border-slate-200 shadow-2xl rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-xl font-black uppercase text-red-600 flex items-center gap-2 tracking-tight">
+                    <AlertTriangle className="w-6 h-6 text-red-600" /> Purge Pipeline Data
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-slate-600 font-medium text-xs mt-1">
+                    Select whether to reset and delete accounts/opportunities for the current week or across the entire database. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="flex flex-col gap-3 py-4">
+                  <Button variant="outline" onClick={() => handlePurge('WEEK')} className="justify-start h-12 text-xs font-black uppercase text-slate-800 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all rounded-xl shadow-sm">
+                    <Trash2 className="w-4 h-4 mr-2 text-red-500" /> Purge Current Week ({currentWeek}) Only
+                  </Button>
+                  <Button variant="outline" onClick={() => handlePurge('ALL')} className="justify-start h-12 text-xs font-black uppercase text-red-600 border-red-200 hover:bg-red-600 hover:text-white transition-all rounded-xl shadow-sm">
+                    <AlertTriangle className="w-4 h-4 mr-2" /> Purge Entire Pipeline History (All Weeks)
+                  </Button>
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="font-black uppercase text-xs rounded-xl h-10 px-6">Cancel</AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardHeader>
 
