@@ -24,8 +24,9 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map
+  Loader2, Star, Sparkles, Map, Database
 } from 'lucide-react';
+import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -37,7 +38,7 @@ import { format } from 'date-fns';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'SETTINGS';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'SETTINGS';
 
 const NAV_ITEMS = [
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false },
@@ -50,6 +51,7 @@ const NAV_ITEMS = [
   { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true },
   { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true },
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true },
+  { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true },
   { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false },
 ];
 
@@ -84,6 +86,7 @@ export default function DashboardPage() {
     if (currentView === 'GM_REVIEW' && isLeader) return <div className="container mx-auto p-4 md:p-8"><GMWeeklyReview /></div>;
     if (currentView === 'WHITE_SPACE') return <div className="container mx-auto p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
     if (currentView === 'WHITESPACE_HISTORY') return <div className="container mx-auto p-4 md:p-8"><WhitespaceHistory userId={activeUserId || ''} /></div>;
+    if (currentView === 'UPLOAD' && isLeader) return <div className="container mx-auto p-4 md:p-8 max-w-5xl"><CRMImporter /></div>;
     if (currentView === 'SETTINGS') return <div className="container mx-auto p-4 md:p-8"><SettingsHub /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;

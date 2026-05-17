@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { KPICard } from './kpi-card';
 import { UserManagement } from './user-management';
 import { TeamComparison } from './team-comparison';
-import { CRMImporter } from './crm-importer';
 import { GMReportGenerator } from './gm-report-generator';
 import { VelocityPulse } from './velocity-pulse';
 import { 
@@ -112,7 +111,6 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleTeamSync} disabled={isSyncing} className="h-10 text-[10px] md:text-xs font-black"><Mail className="w-4 h-4 mr-2" /> TEAM NUDGE</Button>
-          <CRMImporter />
         </div>
       </header>
 
