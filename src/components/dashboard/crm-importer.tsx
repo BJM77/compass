@@ -3,14 +3,14 @@
 import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where, updateDoc } from 'firebase/firestore';
 import { getCurrentWeek } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Upload, CheckCircle2, AlertTriangle, Loader2, Database, FileUp, Info, X, Trash2 } from 'lucide-react';
+import { Upload, CheckCircle2, AlertTriangle, Loader2, Database, FileUp, Info, X, Trash2, RefreshCw, Phone, CalendarCheck, FileText, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -131,6 +131,10 @@ export function CRMImporter() {
   const [previewRecords, setPreviewRecords] = useState<ProcessedRecord[]>([]);
   const [stats, setStats] = useState<ImportStats | null>(null);
   const [isPurging, setIsPurging] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  // Detect if today is Saturday — show a reminder banner
+  const isSaturday = new Date().getDay() === 6;
 
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
@@ -165,6 +169,45 @@ export function CRMImporter() {
       toast({ variant: 'destructive', title: 'Purge Failed', description: e?.message });
     } finally {
       setIsPurging(false);
+    }
+  };
+
+  // ── Reset Weekly Activity (CALL / APP / OPP / WIN) ────────────────────────
+  const handleActivityReset = async (week: string) => {
+    if (!db) return;
+    setIsResetting(true);
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'weeklyProgress'), where('week', '==', week))
+      );
+
+      if (snap.empty) {
+        toast({ title: 'Nothing to Reset', description: `No activity records found for week ${week}.` });
+        return;
+      }
+
+      const BATCH_SIZE = 400;
+      let count = 0;
+      for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = snap.docs.slice(i, i + BATCH_SIZE);
+        chunk.forEach(d => batch.update(d.ref, {
+          calls: 0,
+          apps: 0,
+          proposals: 0,
+          deals: 0,
+          resetAt: serverTimestamp(),
+        }));
+        await batch.commit();
+        count += chunk.length;
+      }
+
+      toast({ title: '✅ Activity Reset', description: `Zeroed CALL/APP/OPP/WIN for ${count} users on week ${week}.` });
+    } catch (e: any) {
+      console.error('Activity reset error:', e);
+      toast({ variant: 'destructive', title: 'Reset Failed', description: e?.message });
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -651,6 +694,89 @@ export function CRMImporter() {
           </ScrollArea>
         </Card>
       )}
+
+      {/* ─── Activity Reset Card ──────────────────────────────────────── */}
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-800 text-white pb-5 pt-5">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-400/20 rounded-xl">
+                <RefreshCw className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-black tracking-tight">Activity Counter Reset</CardTitle>
+                <CardDescription className="text-slate-400 font-medium mt-0.5 text-xs">
+                  Zero out CALL · APP · OPP · WIN for all team members
+                </CardDescription>
+              </div>
+            </div>
+            {isSaturday && (
+              <Badge className="bg-amber-400/20 text-amber-400 border-none font-black text-[9px] uppercase animate-pulse">
+                ⚡ Saturday — Reset Recommended
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-5 space-y-5">
+          {/* What gets reset info */}
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { icon: Phone,         label: 'Calls',   color: 'bg-blue-50 text-blue-600 border-blue-100' },
+              { icon: CalendarCheck, label: 'Apps',    color: 'bg-green-50 text-green-600 border-green-100' },
+              { icon: FileText,      label: 'Opps',    color: 'bg-purple-50 text-purple-600 border-purple-100' },
+              { icon: Target,        label: 'Wins',    color: 'bg-orange-50 text-orange-600 border-orange-100' },
+            ].map(({ icon: Icon, label, color }) => (
+              <div key={label} className={`rounded-2xl border p-3 text-center ${color}`}>
+                <Icon className="w-5 h-5 mx-auto mb-1 opacity-70" />
+                <p className="text-[9px] font-black uppercase tracking-widest">{label}</p>
+                <p className="text-lg font-black mt-0.5">→ 0</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+            This zeroes all activity counters for the current week <strong className="text-slate-700">(Week {currentWeek.split('-')[1]})</strong> for every team member.
+            Use this every Saturday to ensure a clean slate before the new week begins on Monday.
+            The system automatically starts a new week document on Monday, but running this on Saturday ensures the leaderboard shows clean data over the weekend.
+          </p>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                disabled={isResetting || isPurging || isImporting}
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs rounded-xl shadow-lg transition-all"
+              >
+                {isResetting
+                  ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Resetting...</>
+                  : <><RefreshCw className="w-4 h-4 mr-2" /> Reset Current Week Activity (Week {currentWeek.split('-')[1]})</>}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-white border-slate-200 shadow-2xl rounded-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl font-black uppercase text-blue-700 flex items-center gap-2 tracking-tight">
+                  <RefreshCw className="w-6 h-6 text-blue-600" /> Reset Team Activity
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-slate-600 font-medium text-xs mt-1">
+                  This will set <strong>Calls, Apps, Opps and Wins to 0</strong> for all team members for Week {currentWeek.split('-')[1]}.
+                  Their historical records from prior weeks are not affected.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="py-2">
+                <Button
+                  onClick={() => handleActivityReset(currentWeek)}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs rounded-xl"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" /> Confirm Reset — Week {currentWeek.split('-')[1]}
+                </Button>
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="font-black uppercase text-xs rounded-xl h-10 px-6">Cancel</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
     </div>
   );
 }
