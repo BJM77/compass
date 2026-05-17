@@ -17,13 +17,14 @@ import {
 } from 'lucide-react';
 import { format, startOfWeek } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { getCurrentWeek } from '@/lib/utils';
 
 export function BDMWeeklySubmission({ userId, userName }: { userId: string; userName: string }) {
   const db = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const currentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-ww');
+  const currentWeek = getCurrentWeek();
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [signedDeals, setSignedDeals] = useState<any[]>([]);
@@ -159,9 +160,11 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         }
       }, { merge: true });
 
-      opportunities.forEach(o => batch.set(doc(collection(db, 'opportunities')), { ...o, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
-      signedDeals.forEach(s => batch.set(doc(collection(db, 'signedPaperwork')), { ...s, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
-      newBusiness.forEach(b => batch.set(doc(collection(db, 'newBusiness')), { ...b, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
+      // FIXED: Use item.id as Firestore doc key to prevent duplicates on re-save.
+      // merge:true ensures existing data (e.g. from prior loads) is preserved.
+      opportunities.forEach(o => batch.set(doc(db, 'opportunities', o.id), { ...o, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
+      signedDeals.forEach(s => batch.set(doc(db, 'signedPaperwork', s.id), { ...s, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
+      newBusiness.forEach(b => batch.set(doc(db, 'newBusiness', b.id), { ...b, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
 
       await batch.commit();
       toast({ title: "Draft Saved", description: "Your Friday Synthesis progress is safely saved." });
@@ -198,9 +201,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         }
       }, { merge: true });
 
-      opportunities.forEach(o => batch.set(doc(collection(db, 'opportunities')), { ...o, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
-      signedDeals.forEach(s => batch.set(doc(collection(db, 'signedPaperwork')), { ...s, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
-      newBusiness.forEach(b => batch.set(doc(collection(db, 'newBusiness')), { ...b, userId, userName, week: currentWeek, createdAt: serverTimestamp() }));
+      // FIXED: Use item.id as Firestore doc key to prevent duplicates on final submit.
+      opportunities.forEach(o => batch.set(doc(db, 'opportunities', o.id), { ...o, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
+      signedDeals.forEach(s => batch.set(doc(db, 'signedPaperwork', s.id), { ...s, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
+      newBusiness.forEach(b => batch.set(doc(db, 'newBusiness', b.id), { ...b, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
 
       await batch.commit();
       toast({ title: "Synthesis Dispatched", description: "Your weekly performance data is now live on the GM dashboard." });

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, deleteDoc, doc, query, orderBy, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,18 +10,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ShieldCheck, Trash2, AlertTriangle, CheckCircle2, Loader2, Database, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getCurrentWeek } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export function DuplicateManager() {
   const db = useFirestore();
   const { toast } = useToast();
+  const currentWeek = getCurrentWeek();
   const [isPurging, setIsPurging] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const allReviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'pipelineReviews'), orderBy('createdAt', 'desc'));
-  }, [db]);
+    // Scoped to current week to avoid expensive full-collection reads.
+    return query(collection(db, 'pipelineReviews'), where('week', '==', currentWeek), orderBy('createdAt', 'desc'));
+  }, [db, currentWeek]);
 
   const { data: allReviews, isLoading } = useCollection(allReviewsQuery);
 

@@ -8,21 +8,27 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Intelligent Salesforce Router
- * Reconfigured to use the Search Dispatcher protocol. 
- * This is the most robust method for Lightning as it forces Salesforce 
- * to handle the term (ID or Name) and redirect accordingly, avoiding "Page Not Found" 
- * errors caused by malformed direct record paths or incorrect object type assumptions.
+ * 
+ * Priority 1: If a Salesforce Record ID is provided, navigate directly to the record.
+ *   This is the most reliable method and should be used as BDMs populate SF IDs.
+ *   Format: https://[org].lightning.force.com/lightning/r/[ID]/view
+ * 
+ * Priority 2: Fall back to SOSL search by account/opportunity name.
+ *   Uses the stable UnifiedSearchResults endpoint which works across Lightning org versions.
  */
-export function openSalesforceSearch(term: string) {
+export function openSalesforceSearch(term: string, salesforceId?: string) {
   if (!term || term === 'TEAM CAMPAIGN') return;
-  
-  // Clean the term: strip parentheticals or secondary IDs to get the core searchable entity
-  // e.g. "AFGRI EQUIPMENT (UTAKARRA)" -> "AFGRI EQUIPMENT"
-  // e.g. "0012P000002MRmUQAW" -> stays as ID (SF Search natively resolves IDs to records)
+
+  // If a Salesforce Record ID is stored, open the exact record — most reliable
+  if (salesforceId && salesforceId.trim().length > 0) {
+    const recordUrl = `https://teamglobalexp.lightning.force.com/lightning/r/${salesforceId.trim()}/view`;
+    window.open(recordUrl, '_blank');
+    return;
+  }
+
+  // Fallback: search by name using the stable SOSL search endpoint
   const cleanTerm = term.split(' (')[0].split(' - ')[0].trim();
-  
-  // Lightning Global Search via Query Parameter - most reliable across org variations
-  const searchUrl = `https://teamglobalexp.lightning.force.com/lightning/globalSearch/searchTerm?q=${encodeURIComponent(cleanTerm)}`;
+  const searchUrl = `https://teamglobalexp.lightning.force.com/_ui/search/ui/UnifiedSearchResults?searchType=2&str=${encodeURIComponent(cleanTerm)}`;
   window.open(searchUrl, '_blank');
 }
 

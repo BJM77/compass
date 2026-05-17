@@ -223,7 +223,7 @@ export function AdminCallPlanning() {
                     </TableCell>
                     <TableCell>
                       <button 
-                        onClick={() => openSalesforceSearch(plan.accountName)}
+                        onClick={() => openSalesforceSearch(plan.accountName, plan.salesforceId)}
                         className="flex items-center gap-2 hover:text-accent transition-colors group/link"
                       >
                         <Target className="w-3 h-3 text-accent" />
@@ -252,7 +252,7 @@ export function AdminCallPlanning() {
                       <div className="flex justify-end gap-2">
                         {plan.userId !== 'TEAM_NODE' && (
                           <button 
-                            onClick={() => openSalesforceSearch(plan.accountName)}
+                            onClick={() => openSalesforceSearch(plan.accountName, plan.salesforceId)}
                             className="text-slate-300 hover:text-accent p-2"
                             title="Search in Salesforce"
                           >

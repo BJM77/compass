@@ -7,6 +7,9 @@ service cloud.firestore {
       return isSignedIn() && (
         request.auth.token.role == 'LEADER' || 
         request.auth.token.role == 'ADMIN' ||
+        // WARNING: Hardcoded UID below is a maintenance risk.
+        // If this account is ever deleted/recreated, admin access silently breaks.
+        // Prefer setting a Custom Claim (role: 'LEADER') on the user document instead.
         request.auth.uid == 'eFPAFC5wauPrnguvwzebKssdpSg2' || 
         request.auth.uid == 'admin-override'
       ); 
@@ -49,7 +52,9 @@ service cloud.firestore {
       allow read: if isSignedIn(); 
       allow create: if isSignedIn(); 
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow delete: if isAdmin();
+      // BUG FIX: Allow owners to delete — required for the Closed-Lost archiving flow
+      // where a BDM moves a deal to lostCustomers and removes it from pipelineReviews.
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     match /lostCustomers/{lostId} { 

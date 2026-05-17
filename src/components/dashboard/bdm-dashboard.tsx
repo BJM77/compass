@@ -100,14 +100,69 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     if (!profile) return;
     setIsExporting(true);
     try {
-      const doc = new jsPDF();
-      doc.setFontSize(22);
-      doc.setFont("helvetica", "bold");
-      doc.text("WEEKLY PERFORMANCE PACK", 20, 20);
-      doc.setFontSize(12);
-      doc.text(`BDM: ${profile.name} • ${profile.territory}`, 20, 30);
-      doc.text(`Revenue YTD: $${((stats?.revenueYTD || 0) / 1000000).toFixed(2)}M`, 20, 65);
-      doc.save(`${profile.name}_Weekly_Pack.pdf`);
+      const pdfDoc = new jsPDF();
+
+      // --- Header ---
+      pdfDoc.setFontSize(20);
+      pdfDoc.setFont("helvetica", "bold");
+      pdfDoc.text("WEEKLY PERFORMANCE PACK", 20, 20);
+      pdfDoc.setFontSize(10);
+      pdfDoc.setFont("helvetica", "normal");
+      pdfDoc.text(`${profile.name}  |  ${profile.territory?.replace(/_/g, ' ')}  |  Week ${currentWeek.split('-')[1]}`, 20, 28);
+      pdfDoc.setDrawColor(30, 58, 138);
+      pdfDoc.setLineWidth(0.5);
+      pdfDoc.line(20, 32, 190, 32);
+
+      // --- KPIs ---
+      pdfDoc.setFont("helvetica", "bold");
+      pdfDoc.setFontSize(9);
+      pdfDoc.text("KEY PERFORMANCE INDICATORS", 20, 40);
+      pdfDoc.setFont("helvetica", "normal");
+      pdfDoc.text(`Revenue YTD:`, 20, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${((stats?.revenueYTD || 0) / 1000000).toFixed(2)}M`, 60, 48);
+      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Target:`, 100, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${((stats?.target || 0) / 1000000).toFixed(2)}M`, 120, 48);
+      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Weighted Forecast:`, 20, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${(weightedForecast / 1000000).toFixed(2)}M`, 70, 55);
+      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Pipeline Total:`, 100, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${(pipelineTotal / 1000000).toFixed(2)}M`, 140, 55);
+
+      // --- Momentum ---
+      pdfDoc.setFont("helvetica", "bold");
+      pdfDoc.text("MOMENTUM BREAKDOWN", 20, 65);
+      pdfDoc.setFont("helvetica", "normal");
+      pdfDoc.text(`HOT: ${momentumCounts.HOT}   MOVING: ${momentumCounts.MOVING}   STALLING: ${momentumCounts.STALLING}   DEAD: ${momentumCounts.DEAD}`, 20, 72);
+      pdfDoc.line(20, 76, 190, 76);
+
+      // --- Pipeline Table ---
+      pdfDoc.setFont("helvetica", "bold");
+      pdfDoc.text("PIPELINE LEDGER", 20, 83);
+
+      let y = 91;
+      pdfDoc.setFontSize(8);
+      pdfDoc.setFont("helvetica", "bold");
+      pdfDoc.text("ACCOUNT / OPPORTUNITY", 20, y);
+      pdfDoc.text("VALUE", 115, y);
+      pdfDoc.text("STAGE", 138, y);
+      pdfDoc.text("MOMENTUM", 168, y);
+      y += 3;
+      pdfDoc.line(20, y, 190, y);
+      y += 5;
+
+      pdfDoc.setFont("helvetica", "normal");
+      const sortedDeals = [...(allDeals || [])].sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+      sortedDeals.forEach(deal => {
+        if (y > 275) { pdfDoc.addPage(); y = 20; }
+        const m = computeMomentum({
+          daysInStage: deal.daysInStage || 0,
+          rolloverCount: deal.rolloverCount || 0,
+          barrierText: deal.barriers || '',
+          lastBarrierText: deal.lastBarrierText || ''
+        });
+        pdfDoc.text((deal.pipeline || 'Unknown').substring(0, 38), 20, y);
+        pdfDoc.text(`$${((Number(deal.value) || 0) / 1000).toFixed(0)}K`, 115, y);
+        pdfDoc.text((deal.stage || '').substring(0, 12), 138, y);
+        pdfDoc.text(m.score, 168, y);
+        y += 7;
+      });
+
+      pdfDoc.save(`${profile.name.replace(/\s+/g, '_')}_Wk${currentWeek.split('-')[1]}_Performance_Pack.pdf`);
       toast({ title: "Weekly Pack Exported" });
     } catch (e) {
       toast({ variant: "destructive", title: "Export Failed" });

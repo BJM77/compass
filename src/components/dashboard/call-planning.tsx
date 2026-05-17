@@ -368,7 +368,7 @@ export function CallPlanning({ userId }: CallPlanningProps) {
                 </p>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                   <button 
-                    onClick={(e) => { e.stopPropagation(); openSalesforceSearch(plan.accountName); }}
+                    onClick={(e) => { e.stopPropagation(); openSalesforceSearch(plan.accountName, plan.salesforceId); }}
                     className="text-accent hover:text-accent/80 p-1"
                     title="View in Salesforce"
                   >

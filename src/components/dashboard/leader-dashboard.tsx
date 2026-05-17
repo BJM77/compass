@@ -189,7 +189,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
                                   </td>
                                   <td className="px-4 py-4">
                                      <button 
-                                       onClick={() => openSalesforceSearch(deal.pipeline)}
+                                       onClick={() => openSalesforceSearch(deal.pipeline, deal.salesforceId)}
                                        className="flex items-center gap-2 hover:text-accent transition-colors group/link text-left"
                                      >
                                        <span className="text-xs font-bold text-slate-800 uppercase leading-tight truncate max-w-[200px]">{deal.pipeline}</span>

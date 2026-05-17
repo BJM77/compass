@@ -120,7 +120,7 @@ export function FridayReviewHub() {
                       <div className="flex justify-between items-start">
                         <div className="space-y-0.5">
                           <button 
-                            onClick={() => openSalesforceSearch(review.pipeline)}
+                            onClick={() => openSalesforceSearch(review.pipeline, review.salesforceId)}
                             className="text-xs font-black text-primary uppercase tracking-tight line-clamp-1 hover:text-accent transition-colors flex items-center gap-1.5"
                           >
                             {review.pipeline || 'Untitled Deal'}

@@ -47,6 +47,19 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
     await updateDoc(doc(db, 'pipelineReviews', id), updatePayload); 
   };
 
+  const handleAddRow = async () => {
+    if (!db) return;
+    try {
+      await addDoc(collection(db, 'pipelineReviews'), {
+        userId, week: currentWeek, pipeline: '', value: 0,
+        stage: 'Discovery', salesforceId: '',
+        createdAt: serverTimestamp(), daysInStage: 0, rolloverCount: 0
+      });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Failed to add opportunity.' });
+    }
+  };
+
   const toggleSelection = async (row: any) => {
     if (readOnly) return;
     if (!row.isReviewSelected && selectedCount >= 8) {
@@ -102,9 +115,7 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
           </div>
           {!readOnly && (
             <Button 
-              onClick={() => addDoc(collection(db!, 'pipelineReviews'), { 
-                userId, week: currentWeek, pipeline: '', value: 0, stage: 'Discovery', createdAt: serverTimestamp(), daysInStage: 0, rolloverCount: 0 
-              })} 
+              onClick={handleAddRow}
               className="bg-primary font-black uppercase text-xs h-10 px-6"
             >
               <Plus className="w-4 h-4 mr-2" /> New Opp
@@ -161,8 +172,23 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Input className="text-xs font-black uppercase h-9 bg-transparent border-transparent focus:border-primary/20" value={row.pipeline} onChange={e => handleUpdate(row.id, 'pipeline', e.target.value)} readOnly={readOnly} />
-                          <button onClick={() => openSalesforceSearch(row.pipeline)} className="text-slate-300 hover:text-accent"><ExternalLink className="w-4 h-4" /></button>
+                          <div className="flex-1 space-y-1 min-w-0">
+                            <Input className="text-xs font-black uppercase h-9 bg-transparent border-transparent focus:border-primary/20" value={row.pipeline} onChange={e => handleUpdate(row.id, 'pipeline', e.target.value)} readOnly={readOnly} />
+                            <Input
+                              className="text-[9px] font-mono h-6 bg-transparent border-dashed border-slate-200 focus:border-accent/40 px-2 placeholder:text-slate-300 rounded"
+                              placeholder="Salesforce ID (optional)..."
+                              value={row.salesforceId || ''}
+                              onChange={e => handleUpdate(row.id, 'salesforceId', e.target.value.trim())}
+                              readOnly={readOnly}
+                            />
+                          </div>
+                          <button
+                            onClick={() => openSalesforceSearch(row.pipeline, row.salesforceId)}
+                            className={`shrink-0 transition-colors ${row.salesforceId ? 'text-accent hover:text-accent/80' : 'text-slate-300 hover:text-accent'}`}
+                            title={row.salesforceId ? 'Open Salesforce Record (ID)' : 'Search in Salesforce (by name)'}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </button>
                         </div>
                       </TableCell>
                       <TableCell>

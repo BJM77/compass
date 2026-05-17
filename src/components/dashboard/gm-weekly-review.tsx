@@ -127,7 +127,10 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const saveGMFeedback = async (userId: string, feedback: string) => {
     if (!db) return;
     try {
-      const reportId = `${userId}_${currentWeek}`;
+      // Use the actual doc ID from loaded state when available.
+      // Falls back to the canonical pattern if report wasn't loaded from Firestore yet.
+      const existingReport = reportData.find(r => r.userId === userId);
+      const reportId = existingReport?.id || `${userId}_${currentWeek}`;
       await updateDoc(doc(db, 'weeklyReports', reportId), {
         gmFeedback: feedback,
         status: 'REVIEWED',
@@ -334,7 +337,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             <div className="border-b-2 border-primary pb-3 mb-6">
               <h2 className="text-2xl font-black uppercase text-primary tracking-tight">3. Corporate Strategy Blueprints</h2>
             </div>
-            <StrategyTable data={teamPlans} />
+            <StrategyTable data={teamPlans ?? []} />
           </div>
 
           <div className="pt-8">
@@ -380,7 +383,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           </TabsContent>
 
           <TabsContent value="strategy" className="space-y-6">
-             <StrategyTable data={teamPlans} />
+             <StrategyTable data={teamPlans ?? []} />
           </TabsContent>
 
           <TabsContent value="opportunities"><OpportunitiesTable data={opportunities} /></TabsContent>
