@@ -52,8 +52,12 @@ export function KPIManagement() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Revenue YTD</Label><Input type="number" value={getEditValue(member.id, 'revenueYTD', member.revenueYTD || 0)} onChange={(e) => setEditValue(member.id, 'revenueYTD', parseFloat(e.target.value))}/></div>
-                <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Target</Label><Input type="number" value={getEditValue(member.id, 'target', member.target || 2000000)} onChange={(e) => setEditValue(member.id, 'target', parseFloat(e.target.value))}/></div>
+                <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Revenue YTD ($)</Label><Input type="number" value={getEditValue(member.id, 'revenueYTD', member.revenueYTD || 0)} onChange={(e) => setEditValue(member.id, 'revenueYTD', parseFloat(e.target.value))}/></div>
+                <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Target ($)</Label><Input type="number" value={getEditValue(member.id, 'target', member.target || 2000000)} onChange={(e) => setEditValue(member.id, 'target', parseFloat(e.target.value))}/></div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Activity Score (0-100)</Label><Input type="number" value={getEditValue(member.id, 'activityScore', member.activityScore || 0)} onChange={(e) => setEditValue(member.id, 'activityScore', parseFloat(e.target.value))}/></div>
+                <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Behaviour Score (%)</Label><Input type="number" value={getEditValue(member.id, 'behaviourScore', member.behaviourScore || 0)} onChange={(e) => setEditValue(member.id, 'behaviourScore', parseFloat(e.target.value))}/></div>
               </div>
               <div className="space-y-1">
                 <Label className="text-[10px] uppercase font-bold">Status</Label>

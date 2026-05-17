@@ -151,7 +151,6 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 inline-flex overflow-x-auto scrollbar-hide max-w-full">
           <TabsTrigger value="dashboard" className="font-black uppercase text-[10px] tracking-widest"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
           <TabsTrigger value="comparison" className="font-black uppercase text-[10px] tracking-widest">Index</TabsTrigger>
-          <TabsTrigger value="reporting" className="font-black uppercase text-[10px] tracking-widest"><FileText className="w-3.5 h-3.5 mr-1.5" /> GM Command</TabsTrigger>
           <TabsTrigger value="users" className="font-black uppercase text-[10px] tracking-widest"><Users className="w-3.5 h-3.5 mr-1.5" /> Users</TabsTrigger>
         </TabsList>
 
@@ -228,7 +227,6 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         <TabsContent value="comparison">
           <TeamComparison />
         </TabsContent>
-        <TabsContent value="reporting"><GMReportGenerator /></TabsContent>
         <TabsContent value="users"><UserManagement onSimulate={onSimulate} /></TabsContent>
       </Tabs>
     </div>
