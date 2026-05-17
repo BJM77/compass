@@ -173,7 +173,15 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 space-y-1 min-w-0">
-                            <Input className="text-xs font-black uppercase h-9 bg-transparent border-transparent focus:border-primary/20" value={row.pipeline} onChange={e => handleUpdate(row.id, 'pipeline', e.target.value)} readOnly={readOnly} />
+                            <div className="flex items-center gap-1.5">
+                              <Input className="text-xs font-black uppercase h-9 bg-transparent border-transparent focus:border-primary/20 flex-1" value={row.pipeline} onChange={e => handleUpdate(row.id, 'pipeline', e.target.value)} readOnly={readOnly} />
+                              {row.creditHold && (
+                                <span className="shrink-0 text-[7px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md border border-red-200">HOLD</span>
+                              )}
+                            </div>
+                            {row.opportunityName && (
+                              <p className="text-[9px] text-muted-foreground font-semibold italic truncate px-2">{row.opportunityName}</p>
+                            )}
                             <Input
                               className="text-[9px] font-mono h-6 bg-transparent border-dashed border-slate-200 focus:border-accent/40 px-2 placeholder:text-slate-300 rounded"
                               placeholder="Salesforce ID (optional)..."
@@ -192,7 +200,14 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" className="text-xs font-black h-9 pl-6 bg-transparent border-transparent focus:border-primary/20" value={row.value || 0} onChange={e => handleUpdate(row.id, 'value', parseFloat(e.target.value) || 0)} readOnly={readOnly} /></div>
+                        <div className="space-y-1">
+                          <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" className="text-xs font-black h-9 pl-6 bg-transparent border-transparent focus:border-primary/20" value={row.value || 0} onChange={e => handleUpdate(row.id, 'value', parseFloat(e.target.value) || 0)} readOnly={readOnly} /></div>
+                          {(row.closedWonValue > 0) && (
+                            <p className="text-[8px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-100 text-center">
+                              Won: ${Number(row.closedWonValue).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell><Input className="text-xs font-bold h-9 bg-transparent border-transparent focus:border-primary/20" value={row.stage} onChange={e => handleUpdate(row.id, 'stage', e.target.value)} readOnly={readOnly} /></TableCell>
                       <TableCell><Textarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.barriers} onChange={e => handleUpdate(row.id, 'barriers', e.target.value)} readOnly={readOnly} /></TableCell>

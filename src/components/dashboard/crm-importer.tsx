@@ -1,324 +1,580 @@
-
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Upload, CheckCircle2, Loader2, Database, RefreshCw, Trash2, Info, AlertTriangle, Users, Target } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { collection, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
 import { getCurrentWeek } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Upload, CheckCircle2, AlertTriangle, Loader2, Database, FileUp, Info, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-type ImportType = 'BDM' | 'AM' | null;
+// ─── Stage Classification ────────────────────────────────────────────────────
+const ACTIVE_STAGES = new Set(['develop', 'propose', 'negotiating', 'finalise', 'pending trade']);
+const CLOSED_WON_STAGES = new Set(['closed won']);
+// 'closed lost' → ignored entirely (not counted anywhere)
 
+function classifyStage(stage: string): 'ACTIVE' | 'CLOSED_WON' | 'IGNORE' {
+  const s = (stage || '').trim().toLowerCase();
+  if (ACTIVE_STAGES.has(s)) return 'ACTIVE';
+  if (CLOSED_WON_STAGES.has(s)) return 'CLOSED_WON';
+  return 'IGNORE';
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function parseMoney(val?: string | number): number {
+  if (!val) return 0;
+  return parseFloat(String(val).replace(/[^0-9.-]/g, '')) || 0;
+}
+
+function getField(row: any, ...candidates: string[]): string {
+  for (const c of candidates) {
+    const key = Object.keys(row).find(k => k.trim().toLowerCase() === c.toLowerCase());
+    if (key && row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
+      return String(row[key]).trim();
+    }
+  }
+  return '';
+}
+
+function matchUser(users: any[], ownerName: string): any | null {
+  if (!ownerName) return null;
+  const lower = ownerName.trim().toLowerCase();
+  // Exact match first
+  let found = users.find(u => (u.name || '').trim().toLowerCase() === lower);
+  if (found) return found;
+  // Partial match (first+last name subset)
+  found = users.find(u => {
+    const uname = (u.name || '').trim().toLowerCase();
+    return uname.includes(lower) || lower.includes(uname);
+  });
+  return found || null;
+}
+
+function parseCSV(file: File): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (r) => resolve(r.data as any[]),
+      error: reject,
+    });
+  });
+}
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface ProcessedRecord {
+  docId: string;
+  accountMasterCode: string;
+  salesforceId: string;
+  pipeline: string;
+  opportunityName: string;
+  stage: string;
+  value: number;
+  probability: number;
+  expectedDate: string;
+  businessUnit: string;
+  userId: string;
+  userName: string;
+  currentRevenue: number;
+  lastYearRevenue: number;
+  lastInvoiceDate: string;
+  lastActivity: string;
+  creditHold: boolean;
+  closedWonValue: number;
+  isBareAccount: boolean;
+}
+
+interface ImportStats {
+  totalRows: number;
+  activeOpportunities: number;
+  bareAccounts: number;
+  closedWonHidden: number;
+  closedLostIgnored: number;
+  unmatchedOwners: string[];
+  matchedBDMs: string[];
+}
+
+const STAGE_COLORS: Record<string, string> = {
+  'Develop':       'bg-blue-100 text-blue-800',
+  'Propose':       'bg-indigo-100 text-indigo-800',
+  'Negotiating':   'bg-purple-100 text-purple-800',
+  'Finalise':      'bg-orange-100 text-orange-800',
+  'Pending Trade': 'bg-amber-100 text-amber-800',
+  'Existing Customer': 'bg-slate-100 text-slate-600',
+};
+
+// ─── Component ───────────────────────────────────────────────────────────────
 export function CRMImporter() {
   const db = useFirestore();
   const { toast } = useToast();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isParsing, setIsParsing] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState(0);
-  const [parsedData, setParsedData] = useState<any[]>([]);
-  const [pasteData, setPasteData] = useState('');
-  const [importType, setImportType] = useState<ImportType>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const currentWeek = getCurrentWeek();
+
+  const [customersFile, setCustomersFile] = useState<File | null>(null);
+  const [opportunitiesFile, setOpportunitiesFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [previewRecords, setPreviewRecords] = useState<ProcessedRecord[]>([]);
+  const [stats, setStats] = useState<ImportStats | null>(null);
 
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
 
-  const processResults = (results: any) => {
-    setIsParsing(false);
-    
-    if (results.errors && results.errors.length > 0) {
-      toast({ variant: "destructive", title: "Parse Error", description: results.errors[0].message });
+  // ── Process both files ───────────────────────────────────────────────────
+  const handleProcess = useCallback(async () => {
+    if (!customersFile && !opportunitiesFile) {
+      toast({ variant: 'destructive', title: 'Upload at least one file' });
       return;
     }
-
-    const normalizedData = results.data.map((row: any) => {
-      const normalized: any = {};
-      Object.keys(row).forEach(key => {
-        const cleanKey = key.trim().replace(/^\ufeff/, "");
-        const value = row[key];
-        normalized[cleanKey] = typeof value === 'string' ? value.trim() : value;
-      });
-      return normalized;
-    });
-
-    const cleanData = normalizedData.filter((row: any) => 
-      row["Account Owner"] || row["Account Name"] || row["Master Customer / Billing Account"] || row["Actual YTD Revenue"]
-    );
-
-    if (cleanData.length === 0) {
-      toast({ 
-        variant: "destructive", 
-        title: "Mapping Failed", 
-        description: "Corporate headers not detected. Please verify CSV format." 
-      });
+    if (!users || users.length === 0) {
+      toast({ variant: 'destructive', title: 'No team users loaded from Firestore' });
       return;
     }
-
-    setParsedData(cleanData);
-    toast({ title: "Data Staged", description: `${cleanData.length} records verified for alignment.` });
-  };
-
-  const parseCurrency = (val: any): number => {
-    if (val === undefined || val === null) return 0;
-    if (typeof val === 'number') return val;
-    const str = String(val).replace(/[$, ]/g, '').replace(/[^0-9.-]+/g, '');
-    const num = parseFloat(str);
-    return isNaN(num) ? 0 : num;
-  };
-
-  const runImport = async () => {
-    if (!db || parsedData.length === 0 || !users || !importType) {
-      toast({ variant: "destructive", title: "Action Blocked", description: "Select Data Type (AM or BDM) to proceed." });
-      return;
-    }
-    
-    setIsImporting(true);
-    setImportProgress(10);
+    setIsProcessing(true);
+    setPreviewRecords([]);
+    setStats(null);
 
     try {
-      // 1. Fetch Existing Reviews for this week to preserve stages/manual data
-      const existingSnap = await getDocs(query(collection(db, 'pipelineReviews'), where('week', '==', currentWeek)));
-      const existingDataMap = new Map();
-      existingSnap.docs.forEach(d => existingDataMap.set(d.id, d.data()));
+      const [customerRows, opportunityRows] = await Promise.all([
+        customersFile ? parseCSV(customersFile) : Promise.resolve([]),
+        opportunitiesFile ? parseCSV(opportunitiesFile) : Promise.resolve([]),
+      ]);
 
-      const aggregatedDeals: Record<string, any> = {};
-      const statsByUser: Record<string, { rev: number; target: number; name: string; role: string; territory: string }> = {};
-      
-      parsedData.forEach(row => {
-        const ownerName = String(row["Account Owner"] || "").trim();
-        const owner = users.find(u => u.name.toLowerCase() === ownerName.toLowerCase());
-        if (!owner) return;
-        
-        if (importType === 'AM' && owner.role !== 'ACCOUNT_MANAGER') return;
-        if (importType === 'BDM' && owner.role !== 'BDM') return;
-
-        const rev = parseCurrency(row["Actual YTD Revenue"]);
-        const accountName = row["Account Name"] || 'Unknown Account';
-        const code = String(row["Master Customer / Billing Account"] || "").trim() || `ID_${accountName.replace(/\W/g, '')}`;
-        
-        const docId = `${owner.id}_${code.replace(/[^a-zA-Z0-9]/g, '_')}`;
-
-        if (!aggregatedDeals[docId]) {
-          const existing = existingDataMap.get(docId);
-          aggregatedDeals[docId] = {
-            userId: owner.id,
-            week: currentWeek,
-            accountMasterCode: code,
-            pipeline: accountName,
-            value: 0,
-            // PRESERVE STAGE: Only set default if it's a brand new record
-            stage: existing?.stage || (importType === 'AM' ? 'Portfolio' : 'Discovery'),
-            barriers: existing?.barriers || '',
-            actionsForBen: existing?.actionsForBen || '',
-            isReviewSelected: existing?.isReviewSelected || false
-          };
-        }
-        aggregatedDeals[docId].value += rev;
-
-        if (!statsByUser[owner.id]) {
-          statsByUser[owner.id] = { 
-            rev: 0, 
-            target: owner.target || 2500000,
-            name: owner.name,
-            role: owner.role,
-            territory: owner.territory || 'FLEX'
-          };
-        }
-        statsByUser[owner.id].rev += rev;
+      // Build customer map: customerId → row data
+      const customerMap = new Map<string, any>();
+      customerRows.forEach(row => {
+        const id = getField(row, 'Customer ID', 'customer id');
+        if (id) customerMap.set(id, row);
       });
 
-      const uniqueDocIds = Object.keys(aggregatedDeals);
-      const totalDocs = uniqueDocIds.length;
+      // Build per-customer opportunity lists
+      const oppsByCustomer = new Map<string, any[]>();
+      opportunityRows.forEach(row => {
+        const cid = getField(row, 'Customer ID', 'customer id');
+        if (!cid) return;
+        if (!oppsByCustomer.has(cid)) oppsByCustomer.set(cid, []);
+        oppsByCustomer.get(cid)!.push(row);
+      });
 
-      if (totalDocs === 0) {
-        toast({ variant: "destructive", title: "Zero Matches", description: "No CSV owners matched provisioned users." });
-        setIsImporting(false);
-        return;
-      }
+      // Pre-calculate closed-won totals per customer
+      const closedWonMap = new Map<string, number>();
+      let closedWonHidden = 0;
+      let closedLostIgnored = 0;
+      const unmatchedOwners = new Set<string>();
+      const matchedBDMSet = new Set<string>();
 
-      const CHUNK_SIZE = 400;
-      for (let i = 0; i < totalDocs; i += CHUNK_SIZE) {
-        const chunkIds = uniqueDocIds.slice(i, i + CHUNK_SIZE);
-        const batch = writeBatch(db);
-        
-        chunkIds.forEach(id => {
-          const deal = aggregatedDeals[id];
-          const docRef = doc(db, 'pipelineReviews', id);
-          batch.set(docRef, {
-            ...deal,
-            updatedAt: serverTimestamp()
-          }, { merge: true });
+      opportunityRows.forEach(row => {
+        const cid = getField(row, 'Customer ID', 'customer id');
+        const stage = getField(row, 'Sales Stage', 'sales stage');
+        const cls = classifyStage(stage);
+        if (cls === 'CLOSED_WON') {
+          closedWonMap.set(cid, (closedWonMap.get(cid) || 0) + parseMoney(getField(row, 'Amount', 'amount')));
+          closedWonHidden++;
+        }
+        if (cls === 'IGNORE') closedLostIgnored++;
+      });
+
+      const records: ProcessedRecord[] = [];
+      const processedOpportunityCustomers = new Set<string>(); // track which customers got opp rows
+
+      // PASS 1: Active opportunity rows
+      opportunityRows.forEach(row => {
+        const stage = getField(row, 'Sales Stage', 'sales stage');
+        if (classifyStage(stage) !== 'ACTIVE') return;
+
+        const customerId   = getField(row, 'Customer ID', 'customer id');
+        const opportunityId = getField(row, 'Opportunity ID', 'opportunity id');
+        const ownerName    = getField(row, 'Opportunity Owner', 'opportunity owner');
+        const matchedUser  = matchUser(users, ownerName);
+
+        if (!matchedUser) {
+          if (ownerName) unmatchedOwners.add(ownerName);
+          return;
+        }
+        matchedBDMSet.add(matchedUser.name);
+
+        const customer = customerMap.get(customerId);
+        const closedWonValue = closedWonMap.get(customerId) || 0;
+
+        records.push({
+          docId:            opportunityId || `opp_${crypto.randomUUID()}`,
+          accountMasterCode: customerId,
+          salesforceId:     opportunityId,
+          pipeline:         getField(row, 'Account Name', 'account name') || getField(customer || {}, 'Account Name', 'account name'),
+          opportunityName:  getField(row, 'Opportunity Name', 'opportunity name'),
+          stage:            stage,
+          value:            parseMoney(getField(row, 'Amount', 'amount')),
+          probability:      parseMoney(getField(row, 'Probability (%)', 'probability (%)', 'probability')),
+          expectedDate:     getField(row, 'Expected Trading Date', 'expected trading date'),
+          businessUnit:     getField(row, 'Business Unit', 'business unit') || getField(customer || {}, 'Business Unit', 'business unit'),
+          userId:           matchedUser.id,
+          userName:         matchedUser.name,
+          currentRevenue:   parseMoney(getField(customer || {}, 'YTD Revenue This FY', 'ytd revenue this fy', 'Actual YTD Revenue')),
+          lastYearRevenue:  parseMoney(getField(customer || {}, 'YTD Revenue Last FY', 'ytd revenue last fy')),
+          lastInvoiceDate:  getField(customer || {}, 'Last Invoice Date', 'last invoice date'),
+          lastActivity:     getField(customer || {}, 'Last Activity', 'last activity'),
+          creditHold:       getField(customer || {}, 'Credit Hold', 'credit hold').toLowerCase() === 'yes',
+          closedWonValue,
+          isBareAccount:    false,
         });
 
+        processedOpportunityCustomers.add(`${customerId}_${matchedUser.id}`);
+      });
+
+      // PASS 2: Bare accounts (customers with no active opportunities)
+      customerRows.forEach(row => {
+        const customerId = getField(row, 'Customer ID', 'customer id');
+        const ownerName  = getField(row, 'Account Owner', 'account owner');
+        const matchedUser = matchUser(users, ownerName);
+
+        if (!matchedUser) {
+          if (ownerName) unmatchedOwners.add(ownerName);
+          return;
+        }
+        matchedBDMSet.add(matchedUser.name);
+
+        // Skip if this customer already has active opportunity rows for this user
+        if (processedOpportunityCustomers.has(`${customerId}_${matchedUser.id}`)) return;
+
+        const closedWonValue = closedWonMap.get(customerId) || 0;
+
+        records.push({
+          docId:            `cust_${customerId}`,
+          accountMasterCode: customerId,
+          salesforceId:     '',
+          pipeline:         getField(row, 'Account Name', 'account name'),
+          opportunityName:  '',
+          stage:            'Existing Customer',
+          value:            0,
+          probability:      0,
+          expectedDate:     '',
+          businessUnit:     getField(row, 'Business Unit', 'business unit'),
+          userId:           matchedUser.id,
+          userName:         matchedUser.name,
+          currentRevenue:   parseMoney(getField(row, 'YTD Revenue This FY', 'ytd revenue this fy', 'Actual YTD Revenue')),
+          lastYearRevenue:  parseMoney(getField(row, 'YTD Revenue Last FY', 'ytd revenue last fy')),
+          lastInvoiceDate:  getField(row, 'Last Invoice Date', 'last invoice date'),
+          lastActivity:     getField(row, 'Last Activity', 'last activity'),
+          creditHold:       getField(row, 'Credit Hold', 'credit hold').toLowerCase() === 'yes',
+          closedWonValue,
+          isBareAccount:    true,
+        });
+      });
+
+      setPreviewRecords(records);
+      setStats({
+        totalRows:           customerRows.length + opportunityRows.length,
+        activeOpportunities: records.filter(r => !r.isBareAccount).length,
+        bareAccounts:        records.filter(r => r.isBareAccount).length,
+        closedWonHidden,
+        closedLostIgnored,
+        unmatchedOwners:     Array.from(unmatchedOwners),
+        matchedBDMs:         Array.from(matchedBDMSet),
+      });
+
+      toast({ title: `Preview Ready`, description: `${records.length} records to import.` });
+    } catch (e: any) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Processing Failed', description: e?.message });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [customersFile, opportunitiesFile, users, toast]);
+
+  // ── Write to Firestore ───────────────────────────────────────────────────
+  const handleImport = async () => {
+    if (!db || previewRecords.length === 0) return;
+    setIsImporting(true);
+    try {
+      // Firestore batch limit is 500 operations
+      const BATCH_SIZE = 400;
+      let count = 0;
+      for (let i = 0; i < previewRecords.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = previewRecords.slice(i, i + BATCH_SIZE);
+        chunk.forEach(record => {
+          const docRef = doc(db, 'pipelineReviews', record.docId);
+          batch.set(docRef, {
+            accountMasterCode: record.accountMasterCode,
+            salesforceId:      record.salesforceId,
+            pipeline:          record.pipeline,
+            opportunityName:   record.opportunityName,
+            stage:             record.stage,
+            value:             record.value,
+            probability:       record.probability,
+            expectedDate:      record.expectedDate,
+            businessUnit:      record.businessUnit,
+            userId:            record.userId,
+            userName:          record.userName,
+            currentRevenue:    record.currentRevenue,
+            lastYearRevenue:   record.lastYearRevenue,
+            lastInvoiceDate:   record.lastInvoiceDate,
+            lastActivity:      record.lastActivity,
+            creditHold:        record.creditHold,
+            closedWonValue:    record.closedWonValue,
+            isBareAccount:     record.isBareAccount,
+            week:              currentWeek,
+            importedFromSF:    true,
+            updatedAt:         serverTimestamp(),
+            // Preserved fields (only set on first create, merge keeps existing values):
+            // barriers, actionsForBen, notes, isReviewSelected, daysInStage, rolloverCount
+          }, { merge: true });
+          count++;
+        });
         await batch.commit();
-        setImportProgress(Math.min(95, 30 + Math.round(((i + chunkIds.length) / totalDocs) * 60)));
       }
 
-      const statsBatch = writeBatch(db);
-      Object.entries(statsByUser).forEach(([uid, s]) => {
-        statsBatch.set(doc(db, 'bdmStats', uid), { 
-          id: uid,
-          revenueYTD: s.rev, 
-          target: s.target, 
-          name: s.name,
-          role: s.role,
-          territory: s.territory,
-          updatedAt: serverTimestamp() 
-        }, { merge: true });
-      });
-      await statsBatch.commit();
-
-      setImportProgress(100);
-      toast({ title: "Territory Synchronised", description: `Updated ${totalDocs} unique ${importType} nodes.` });
-      setIsOpen(false);
-      setParsedData([]);
-      setPasteData('');
-      setImportType(null);
+      toast({ title: '✅ Import Complete', description: `${count} records synced to Firestore.` });
+      setPreviewRecords([]);
+      setStats(null);
+      setCustomersFile(null);
+      setOpportunitiesFile(null);
     } catch (e: any) {
-      console.error("Sync Failure:", e);
-      toast({ variant: "destructive", title: "Sync Exception", description: e.message || 'Batch commit failed.' });
-    } finally { 
-      setIsImporting(false); 
-      setImportProgress(0);
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Import Failed', description: e?.message });
+    } finally {
+      setIsImporting(false);
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild><Button variant="outline" className="h-10 text-[10px] md:text-xs font-black"><RefreshCw className="w-4 h-4 mr-2" /> MASTER SYNC</Button></DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[95vh] flex flex-col p-6 rounded-3xl overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 uppercase font-black text-2xl tracking-tighter text-primary">
-            <Database className="w-6 h-6 text-accent" /> Master Territory Sync
-          </DialogTitle>
-          <DialogDescription className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
-            Governance Node: Manual updates to Stage and Barriers are preserved during CRM synchronisation.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto flex flex-col gap-6 py-4 pr-2">
-          <div className="grid grid-cols-2 gap-4">
-             <Button 
-               variant={importType === 'AM' ? 'default' : 'outline'}
-               onClick={() => setImportType('AM')}
-               className={`h-20 rounded-2xl flex flex-col gap-1 transition-all ${importType === 'AM' ? 'bg-primary shadow-xl scale-[1.02]' : 'hover:border-primary'}`}
-             >
-                <Users className="w-5 h-5" />
-                <span className="font-black text-xs uppercase">Account Management Data</span>
-                <span className="text-[8px] opacity-70 uppercase tracking-widest">Portfolio Revenue</span>
-             </Button>
-             <Button 
-               variant={importType === 'BDM' ? 'default' : 'outline'}
-               onClick={() => setImportType('BDM')}
-               className={`h-20 rounded-2xl flex flex-col gap-1 transition-all ${importType === 'BDM' ? 'bg-accent text-white shadow-xl scale-[1.02]' : 'hover:border-accent'}`}
-             >
-                <Target className="w-5 h-5" />
-                <span className="font-black text-xs uppercase">BDM Acquisition Data</span>
-                <span className="text-[8px] opacity-70 uppercase tracking-widest">Pipeline Revenue</span>
-             </Button>
-          </div>
-
-          <Alert className="bg-slate-50 border-slate-200 rounded-2xl">
-            <Info className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-[10px] font-black uppercase tracking-tight">Preservation Protocol</AlertTitle>
-            <AlertDescription className="text-[9px] font-bold text-muted-foreground uppercase leading-relaxed mt-1">
-              Existing doc stages and barriers will <span className="text-primary">NOT</span> be overwritten. Required Headers: <span className="text-primary">Account Owner</span> • <span className="text-primary">Account Name</span> • <span className="text-primary">Actual YTD Revenue</span> • <span className="text-primary">Master Customer / Billing Account</span>
-            </AlertDescription>
-          </Alert>
-
-          <Tabs defaultValue="upload" className="flex-1 flex flex-col gap-4">
-            <TabsList className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl h-10">
-              <TabsTrigger value="upload" className="font-black text-[10px] uppercase">UPLOAD FILE</TabsTrigger>
-              <TabsTrigger value="paste" className="font-black text-[10px] uppercase">PASTE DATA</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="upload" className="flex-1 mt-0">
-              <div 
-                className="h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed rounded-3xl cursor-pointer hover:bg-slate-50 transition-colors border-slate-200 group"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="w-10 h-10 text-slate-300 mb-2 group-hover:text-accent transition-colors" />
-                <p className="font-black text-xs uppercase tracking-tight text-slate-500">Drop {importType || 'Corporate'} CSV Here</p>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept=".csv"
-                  onChange={e => { 
-                    const f = e.target.files?.[0]; 
-                    if (f) {
-                      setIsParsing(true);
-                      Papa.parse(f, { 
-                        header: true, 
-                        skipEmptyLines: true,
-                        complete: processResults,
-                        error: (err) => { setIsParsing(false); toast({ variant: "destructive", title: "Load Error", description: err.message }); }
-                      }); 
-                      e.target.value = '';
-                    }
-                  }} 
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="paste" className="flex-1 flex flex-col gap-2 mt-0">
-              <Textarea 
-                placeholder="Paste account owner data here..."
-                className="flex-1 font-mono text-[9px] bg-slate-50 border-slate-200 rounded-2xl resize-none p-3 min-h-[120px]" 
-                value={pasteData} 
-                onChange={e => setPasteData(e.target.value)} 
-              />
-              <Button 
-                onClick={() => { 
-                  setIsParsing(true); 
-                  Papa.parse(pasteData, { 
-                    header: true, 
-                    skipEmptyLines: true,
-                    complete: processResults,
-                    error: (err: any) => { setIsParsing(false); toast({ variant: "destructive", title: "Parse Error", description: err.message }); }
-                  }); 
-                }} 
-                className="bg-accent font-black h-10 uppercase rounded-xl text-[10px]"
-                disabled={!pasteData.trim() || isParsing}
-              >
-                {isParsing ? <Loader2 className="animate-spin" /> : "PARSE SELECTION"}
-              </Button>
-            </TabsContent>
-          </Tabs>
+  // ── File Drop Zone ───────────────────────────────────────────────────────
+  const FileZone = ({
+    label, hint, file, onFile, accept = '.csv'
+  }: {
+    label: string; hint: string; file: File | null;
+    onFile: (f: File | null) => void; accept?: string;
+  }) => (
+    <div className={`relative rounded-2xl border-2 border-dashed p-6 transition-all cursor-pointer
+      ${file ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-accent/50 bg-white'}`}
+      onClick={() => document.getElementById(`file-${label.replace(/\s/g, '')}`)?.click()}
+    >
+      <input
+        id={`file-${label.replace(/\s/g, '')}`}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={e => onFile(e.target.files?.[0] || null)}
+      />
+      <div className="flex items-center gap-4">
+        <div className={`p-3 rounded-xl ${file ? 'bg-accent text-white' : 'bg-slate-100 text-slate-400'}`}>
+          {file ? <CheckCircle2 className="w-6 h-6" /> : <FileUp className="w-6 h-6" />}
         </div>
-
-        {isImporting && (
-          <div className="space-y-2 py-4">
-            <div className="flex justify-between text-[10px] font-black uppercase">
-              <span>Synchronising {importType} Stream...</span>
-              <span>{importProgress}%</span>
-            </div>
-            <Progress value={importProgress} className="h-2" />
-          </div>
-        )}
-
-        <DialogFooter className="gap-2 pt-2 border-t mt-4">
-          <Button 
-            onClick={runImport} 
-            disabled={parsedData.length === 0 || isImporting || !importType} 
-            className="w-full bg-primary font-black h-14 uppercase text-sm rounded-xl shadow-xl shadow-primary/20"
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-black uppercase text-primary">{label}</p>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">{hint}</p>
+          {file && (
+            <p className="text-[10px] text-accent font-bold mt-1 truncate">{file.name}</p>
+          )}
+        </div>
+        {file && (
+          <button
+            onClick={e => { e.stopPropagation(); onFile(null); }}
+            className="text-slate-400 hover:text-red-500 transition-colors p-1"
           >
-            {isImporting ? <Loader2 className="animate-spin mr-2 w-5 h-5" /> : <CheckCircle2 className="mr-2 w-5 h-5" />} 
-            COMMIT {importType} SYNCHRONISATION
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-900 text-white pb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-accent/20 rounded-xl">
+              <Database className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-black tracking-tight">Salesforce CRM Sync</CardTitle>
+              <CardDescription className="text-slate-400 font-medium mt-0.5">
+                Two-file import: Customers + Opportunities — merged by Customer ID
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-6 space-y-6">
+          {/* Stage Rules Legend */}
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
+              <Info className="w-3 h-3" /> Stage Import Rules
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {['Develop', 'Propose', 'Negotiating', 'Finalise', 'Pending Trade'].map(s => (
+                <Badge key={s} className="bg-green-100 text-green-800 font-bold text-[9px] border-none">
+                  ✓ {s}
+                </Badge>
+              ))}
+              <Badge className="bg-amber-100 text-amber-800 font-bold text-[9px] border-none">
+                $ Closed Won (value summed, row hidden)
+              </Badge>
+              <Badge className="bg-red-100 text-red-800 font-bold text-[9px] border-none">
+                ✕ Closed Lost (ignored)
+              </Badge>
+            </div>
+          </div>
+
+          {/* File Upload Zones */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FileZone
+              label="Customers Export"
+              hint="Customer ID · Account Owner · YTD Revenue · Credit Hold"
+              file={customersFile}
+              onFile={setCustomersFile}
+            />
+            <FileZone
+              label="Opportunities Export"
+              hint="Opportunity ID · Customer ID · Sales Stage · Amount"
+              file={opportunitiesFile}
+              onFile={setOpportunitiesFile}
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleProcess}
+              disabled={isProcessing || isImporting || (!customersFile && !opportunitiesFile)}
+              className="bg-slate-900 text-white font-black uppercase text-xs h-12 px-8 rounded-xl"
+            >
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+              Preview Import
+            </Button>
+            {previewRecords.length > 0 && (
+              <Button
+                onClick={handleImport}
+                disabled={isImporting || isProcessing}
+                className="bg-accent text-white font-black uppercase text-xs h-12 px-8 rounded-xl shadow-lg"
+              >
+                {isImporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                Commit {previewRecords.length} Records to Week {currentWeek.split('-')[1]}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Panel */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { label: 'Active Opps', value: stats.activeOpportunities, color: 'text-green-700 bg-green-50 border-green-100' },
+            { label: 'Bare Accounts', value: stats.bareAccounts, color: 'text-blue-700 bg-blue-50 border-blue-100' },
+            { label: 'Closed Won (hidden)', value: stats.closedWonHidden, color: 'text-amber-700 bg-amber-50 border-amber-100' },
+            { label: 'Closed Lost (ignored)', value: stats.closedLostIgnored, color: 'text-red-700 bg-red-50 border-red-100' },
+            { label: 'Total Pipeline Rows', value: previewRecords.length, color: 'text-primary bg-slate-50 border-slate-200' },
+          ].map(s => (
+            <div key={s.label} className={`rounded-2xl p-4 border ${s.color} text-center`}>
+              <p className="text-2xl font-black">{s.value}</p>
+              <p className="text-[9px] font-black uppercase tracking-widest mt-1 opacity-70">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Unmatched Owners Warning */}
+      {stats && stats.unmatchedOwners.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-black text-orange-800 uppercase">Unmatched Opportunity Owners</p>
+            <p className="text-[11px] text-orange-700 mt-1">
+              These names in the CSV don't match any Compass user — their records were skipped:
+            </p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {stats.unmatchedOwners.map(n => (
+                <Badge key={n} className="bg-orange-100 text-orange-800 font-bold text-[10px] border-none">{n}</Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Matched BDMs */}
+      {stats && stats.matchedBDMs.length > 0 && (
+        <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-black text-green-800 uppercase">Matched BDMs</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {stats.matchedBDMs.map(n => (
+                <Badge key={n} className="bg-green-100 text-green-800 font-bold text-[10px] border-none">{n}</Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Table */}
+      {previewRecords.length > 0 && (
+        <Card className="border-none shadow-xl bg-white overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b py-4 px-6">
+            <CardTitle className="text-sm font-black uppercase tracking-tight">
+              Preview — {previewRecords.length} Records for Week {currentWeek.split('-')[1]}
+            </CardTitle>
+          </CardHeader>
+          <ScrollArea className="h-[500px]">
+            <Table>
+              <TableHeader className="bg-slate-50 sticky top-0 z-10">
+                <TableRow className="text-[9px] font-black uppercase tracking-widest">
+                  <TableHead className="pl-6">BDM</TableHead>
+                  <TableHead>Account</TableHead>
+                  <TableHead>Opportunity</TableHead>
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Won $</TableHead>
+                  <TableHead>Credit Hold</TableHead>
+                  <TableHead>Customer ID</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {previewRecords.map((r, i) => (
+                  <TableRow key={i} className="hover:bg-slate-50">
+                    <TableCell className="pl-6 py-3">
+                      <p className="text-[10px] font-black uppercase text-primary">{r.userName}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[10px] font-bold uppercase">{r.pipeline}</p>
+                      <p className="text-[9px] text-muted-foreground font-mono">{r.accountMasterCode}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[10px] text-slate-600">{r.opportunityName || '—'}</p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`text-[8px] font-black border-none ${STAGE_COLORS[r.stage] || 'bg-slate-100 text-slate-600'}`}>
+                        {r.stage}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[10px] font-black">{r.value > 0 ? `$${r.value.toLocaleString()}` : '—'}</p>
+                    </TableCell>
+                    <TableCell>
+                      {r.closedWonValue > 0 ? (
+                        <p className="text-[10px] font-black text-green-700">${r.closedWonValue.toLocaleString()}</p>
+                      ) : <span className="text-slate-300">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      {r.creditHold ? (
+                        <Badge className="bg-red-100 text-red-700 text-[8px] font-black border-none">HOLD</Badge>
+                      ) : <span className="text-slate-300 text-[9px]">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[9px] font-mono text-slate-400">{r.accountMasterCode}</p>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </Card>
+      )}
+    </div>
   );
 }
