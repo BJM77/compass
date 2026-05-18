@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CRMUserSummary, CRMTeamSummary } from '@/hooks/use-crm-summary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +17,7 @@ import {
 import { Table as UiTable, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Briefcase, Users, DollarSign, TrendingUp, TrendingDown,
-  BarChart3, Loader2, ChevronRight, Eye
+  BarChart3, Loader2, ChevronRight, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -38,6 +40,8 @@ function yoyBadge(thisFY: number, lastFY: number) {
 }
 
 // ─── Records Inspection Modal ────────────────────────────────────────────────
+type SortField = 'account' | 'owner' | 'stage' | 'pipeline' | 'revFY' | 'revLY';
+
 function RecordsModal({
   isOpen,
   onClose,
@@ -53,75 +57,160 @@ function RecordsModal({
   records: any[];
   type: 'OPP' | 'CUST' | 'USER';
 }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField>('revFY');
+  const [sortAsc, setSortAsc] = useState(false);
+
+  // Reset filter & sort when modal opens with new data
+  useMemo(() => {
+    setSearchQuery('');
+    setSortField(type === 'OPP' ? 'pipeline' : 'revFY');
+    setSortAsc(false);
+  }, [isOpen, type]);
+
+  const filteredRecords = useMemo(() => {
+    return records.filter(r => {
+      const q = searchQuery.toLowerCase();
+      const acct = (r.pipeline || r.accountName || r.accountMasterCode || '').toLowerCase();
+      const owner = (r.userName || r.userId || '').toLowerCase();
+      const oppName = (r.opportunityName || '').toLowerCase();
+      const stage = (r.stage || '').toLowerCase();
+      return acct.includes(q) || owner.includes(q) || oppName.includes(q) || stage.includes(q);
+    }).sort((a, b) => {
+      let cmp = 0;
+      if (sortField === 'account') {
+        const nameA = (a.pipeline || a.accountName || a.accountMasterCode || '').toLowerCase();
+        const nameB = (b.pipeline || b.accountName || b.accountMasterCode || '').toLowerCase();
+        cmp = nameA.localeCompare(nameB);
+      } else if (sortField === 'owner') {
+        const ownerA = (a.userName || a.userId || '').toLowerCase();
+        const ownerB = (b.userName || b.userId || '').toLowerCase();
+        cmp = ownerA.localeCompare(ownerB);
+      } else if (sortField === 'stage') {
+        cmp = (a.stage || '').localeCompare(b.stage || '');
+      } else if (sortField === 'pipeline') {
+        cmp = (Number(a.value) || 0) - (Number(b.value) || 0);
+      } else if (sortField === 'revFY') {
+        cmp = (Number(a.currentRevenue) || 0) - (Number(b.currentRevenue) || 0);
+      } else if (sortField === 'revLY') {
+        cmp = (Number(a.lastYearRevenue) || 0) - (Number(b.lastYearRevenue) || 0);
+      }
+      return sortAsc ? cmp : -cmp;
+    });
+  }, [records, searchQuery, sortField, sortAsc]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(false); // Default descending for numbers
+    }
+  };
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 ml-1 inline opacity-30 group-hover:opacity-100 transition-opacity" />;
+    return sortAsc ? <ArrowUp className="w-3 h-3 ml-1 inline text-accent font-black" /> : <ArrowDown className="w-3 h-3 ml-1 inline text-accent font-black" />;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-white border-slate-200 shadow-2xl rounded-3xl h-[75vh] max-h-[75vh] flex flex-col p-6 overflow-hidden">
-        <DialogHeader className="border-b pb-4 shrink-0">
-          <DialogTitle className="text-xl font-black text-primary tracking-tight flex items-center gap-2 uppercase">
-            {type === 'OPP' ? <Briefcase className="w-5 h-5 text-accent" /> : <Users className="w-5 h-5 text-blue-500" />}
-            {title} ({records.length})
-          </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">
-            {subtitle}
-          </DialogDescription>
+      <DialogContent className="max-w-4xl bg-white border-slate-200 shadow-2xl rounded-3xl h-[80vh] max-h-[80vh] flex flex-col p-6 overflow-hidden">
+        <DialogHeader className="border-b pb-4 shrink-0 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <DialogTitle className="text-xl font-black text-primary tracking-tight flex items-center gap-2 uppercase">
+                {type === 'OPP' ? <Briefcase className="w-5 h-5 text-accent" /> : <Users className="w-5 h-5 text-blue-500" />}
+                {title} ({filteredRecords.length}{filteredRecords.length !== records.length ? ` of ${records.length}` : ''})
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">
+                {subtitle}
+              </DialogDescription>
+            </div>
+            <div className="relative w-64">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Filter by account, owner, stage..."
+                className="pl-8 h-8 text-xs font-medium rounded-full bg-slate-50 border-slate-200 focus-visible:ring-primary"
+              />
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 relative overflow-hidden my-2">
           <ScrollArea className="h-full w-full pr-4">
             <UiTable className="text-xs">
-            <TableHeader>
-              <TableRow className="uppercase text-[9px] font-black tracking-widest bg-slate-50 sticky top-0 z-10">
-                <TableHead>Account / Customer</TableHead>
-                <TableHead>Owner</TableHead>
-                {type !== 'CUST' && <TableHead>Opportunity / Stage</TableHead>}
-                {type !== 'CUST' && <TableHead className="text-right">Pipeline $</TableHead>}
-                <TableHead className="text-right">YTD Rev FY</TableHead>
-                <TableHead className="text-right">YTD Rev LY</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r, idx) => (
-                <TableRow key={r.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                  <TableCell className="font-black text-primary">
-                    <div>{r.pipeline || r.accountName || r.accountMasterCode}</div>
-                    <div className="text-[10px] text-muted-foreground font-medium">{r.businessUnit || r.accountMasterCode}</div>
-                  </TableCell>
-                  <TableCell className="font-bold text-slate-600">{r.userName || r.userId}</TableCell>
+              <TableHeader>
+                <TableRow className="uppercase text-[9px] font-black tracking-widest bg-slate-50 sticky top-0 z-10 select-none">
+                  <TableHead onClick={() => handleSort('account')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                    Account / Customer {renderSortIcon('account')}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('owner')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                    Owner {renderSortIcon('owner')}
+                  </TableHead>
                   {type !== 'CUST' && (
-                    <TableCell>
-                      <div className="font-bold text-slate-800 truncate max-w-[200px]">{r.opportunityName || '—'}</div>
-                      <Badge variant="outline" className="text-[8px] uppercase font-black bg-slate-100 text-slate-700 mt-0.5">
-                        {r.stage || '—'}
-                      </Badge>
-                    </TableCell>
+                    <TableHead onClick={() => handleSort('stage')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      Opportunity / Stage {renderSortIcon('stage')}
+                    </TableHead>
                   )}
                   {type !== 'CUST' && (
-                    <TableCell className="text-right font-black text-accent">
-                      {fmt(Number(r.value) || 0)}
-                    </TableCell>
+                    <TableHead onClick={() => handleSort('pipeline')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      Pipeline $ {renderSortIcon('pipeline')}
+                    </TableHead>
                   )}
-                  <TableCell className="text-right font-black text-emerald-600">
-                    {fmt(Number(r.currentRevenue) || 0)}
-                  </TableCell>
-                  <TableCell className="text-right font-bold text-slate-400">
-                    {fmt(Number(r.lastYearRevenue) || 0)}
-                  </TableCell>
+                  <TableHead onClick={() => handleSort('revFY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                    YTD Rev FY {renderSortIcon('revFY')}
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('revLY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                    YTD Rev LY {renderSortIcon('revLY')}
+                  </TableHead>
                 </TableRow>
-              ))}
-              {records.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={type === 'CUST' ? 4 : 6} className="text-center py-12 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                    No matching records available for inspection.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </UiTable>
-        </ScrollArea>
-      </div>
-    </DialogContent>
-  </Dialog>
-);
+              </TableHeader>
+              <TableBody>
+                {filteredRecords.map((r, idx) => (
+                  <TableRow key={r.id || idx} className="hover:bg-slate-50/80 transition-colors font-medium">
+                    <TableCell className="font-black text-primary">
+                      <div>{r.pipeline || r.accountName || r.accountMasterCode}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium">{r.businessUnit || r.accountMasterCode}</div>
+                    </TableCell>
+                    <TableCell className="font-bold text-slate-600">{r.userName || r.userId}</TableCell>
+                    {type !== 'CUST' && (
+                      <TableCell>
+                        <div className="font-bold text-slate-800 truncate max-w-[200px]">{r.opportunityName || '—'}</div>
+                        <Badge variant="outline" className="text-[8px] uppercase font-black bg-slate-100 text-slate-700 mt-0.5">
+                          {r.stage || '—'}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    {type !== 'CUST' && (
+                      <TableCell className="text-right font-black text-accent">
+                        {fmt(Number(r.value) || 0)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right font-black text-emerald-600">
+                      {fmt(Number(r.currentRevenue) || 0)}
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-slate-400">
+                      {fmt(Number(r.lastYearRevenue) || 0)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredRecords.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={type === 'CUST' ? 4 : 6} className="text-center py-16 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                      {records.length > 0 ? 'No matching records found for filter criteria.' : 'No matching records available for inspection.'}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </UiTable>
+          </ScrollArea>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 // ─── Summary Column (My / Team) ───────────────────────────────────────────────
