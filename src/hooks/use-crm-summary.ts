@@ -23,10 +23,12 @@ export interface CRMUserSummary {
   opportunityValue: number;
   oppYTDRevenueThisFY: number;
   oppYTDRevenueLastFY: number;
+  oppRecords: any[]; // Raw active opportunity records
   // Account / Customer metrics (all rows, deduped by accountMasterCode)
   customerCount: number;
   custYTDRevenueThisFY: number;
   custYTDRevenueLastFY: number;
+  custRecords: any[]; // Raw unique customer records
 }
 
 export interface CRMTeamSummary {
@@ -57,10 +59,12 @@ function aggregateRecords(
   // Customer maps across ALL rows (opportunities + bare accounts)
   const custRevFY = new Map<string, number>();
   const custRevLY = new Map<string, number>();
+  const uniqueCustMap = new Map<string, any>();
   records.forEach(r => {
     const code = r.accountMasterCode || r.id;
     if (!custRevFY.has(code)) custRevFY.set(code, Number(r.currentRevenue)  || 0);
     if (!custRevLY.has(code)) custRevLY.set(code, Number(r.lastYearRevenue) || 0);
+    if (!uniqueCustMap.has(code)) uniqueCustMap.set(code, r);
   });
 
   const sumMap = (m: Map<string, number>) =>
@@ -73,9 +77,11 @@ function aggregateRecords(
     opportunityValue:     oppRows.reduce((s, r) => s + (Number(r.value) || 0), 0),
     oppYTDRevenueThisFY:  sumMap(oppRevFY),
     oppYTDRevenueLastFY:  sumMap(oppRevLY),
+    oppRecords:           oppRows,
     customerCount:        custRevFY.size,
     custYTDRevenueThisFY: sumMap(custRevFY),
     custYTDRevenueLastFY: sumMap(custRevLY),
+    custRecords:          Array.from(uniqueCustMap.values()),
   };
 }
 
@@ -83,7 +89,9 @@ export const EMPTY_SUMMARY: CRMUserSummary = {
   userId: 'TEAM', userName: 'Team Total',
   opportunityCount: 0, opportunityValue: 0,
   oppYTDRevenueThisFY: 0, oppYTDRevenueLastFY: 0,
+  oppRecords: [],
   customerCount: 0, custYTDRevenueThisFY: 0, custYTDRevenueLastFY: 0,
+  custRecords: [],
 };
 
 function addSummaries(a: CRMUserSummary, b: CRMUserSummary): CRMUserSummary {
@@ -93,9 +101,11 @@ function addSummaries(a: CRMUserSummary, b: CRMUserSummary): CRMUserSummary {
     opportunityValue:     a.opportunityValue     + b.opportunityValue,
     oppYTDRevenueThisFY:  a.oppYTDRevenueThisFY  + b.oppYTDRevenueThisFY,
     oppYTDRevenueLastFY:  a.oppYTDRevenueLastFY  + b.oppYTDRevenueLastFY,
+    oppRecords:           [...a.oppRecords, ...b.oppRecords],
     customerCount:        a.customerCount        + b.customerCount,
     custYTDRevenueThisFY: a.custYTDRevenueThisFY + b.custYTDRevenueThisFY,
     custYTDRevenueLastFY: a.custYTDRevenueLastFY + b.custYTDRevenueLastFY,
+    custRecords:          [...a.custRecords, ...b.custRecords],
   };
 }
 

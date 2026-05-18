@@ -374,10 +374,29 @@ export function CRMImporter() {
 
   // ── Write to Firestore ───────────────────────────────────────────────────
   const handleImport = async () => {
-    if (!db || previewRecords.length === 0) return;
+    if (!db || previewRecords.length === 0 || !users) return;
     setIsImporting(true);
     try {
-      // Firestore batch limit is 500 operations
+      // 1. Calculate per-user YTD revenue deduplicating by accountMasterCode
+      const userRevMap = new Map<string, Map<string, number>>();
+      previewRecords.forEach(r => {
+        if (!r.userId) return;
+        if (!userRevMap.has(r.userId)) userRevMap.set(r.userId, new Map());
+        const code = r.accountMasterCode || r.docId;
+        if (!userRevMap.get(r.userId)!.has(code)) {
+          userRevMap.get(r.userId)!.set(code, Number(r.currentRevenue) || 0);
+        }
+      });
+
+      // Calculate total YTD revenue sum per user
+      const userRevenueTotals = new Map<string, number>();
+      userRevMap.forEach((acctMap, uid) => {
+        let sum = 0;
+        acctMap.forEach(v => sum += v);
+        userRevenueTotals.set(uid, sum);
+      });
+
+      // 2. Batch commit pipeline records
       const BATCH_SIZE = 400;
       let count = 0;
       for (let i = 0; i < previewRecords.length; i += BATCH_SIZE) {
@@ -407,15 +426,31 @@ export function CRMImporter() {
             week:              currentWeek,
             importedFromSF:    true,
             updatedAt:         serverTimestamp(),
-            // Preserved fields (only set on first create, merge keeps existing values):
-            // barriers, actionsForBen, notes, isReviewSelected, daysInStage, rolloverCount
           }, { merge: true });
           count++;
         });
         await batch.commit();
       }
 
-      toast({ title: '✅ Import Complete', description: `${count} records synced to Firestore.` });
+      // 3. Batch commit bdmStats updates so Governance Command and Matrices are populated
+      const statsBatch = writeBatch(db);
+      users.forEach(u => {
+        if (u.role === 'LEADER') return;
+        const rev = userRevenueTotals.get(u.id) || 0;
+        const statRef = doc(db, 'bdmStats', u.id);
+        statsBatch.set(statRef, {
+          id: u.id,
+          name: u.name,
+          role: u.role,
+          territory: u.territory || 'FLEX',
+          target: Number(u.target) || 2500000,
+          revenueYTD: rev,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      });
+      await statsBatch.commit();
+
+      toast({ title: '✅ Import Complete', description: `${count} records & BDM stats synced to Firestore.` });
       setPreviewRecords([]);
       setStats(null);
       setCustomersFile(null);
