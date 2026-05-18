@@ -119,7 +119,21 @@ export default function DashboardPage() {
           <Sidebar collapsible="icon">
             <SidebarHeader className="p-4 flex items-center gap-2"><Compass className="w-6 h-6 text-primary" /><span className="font-bold text-lg text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></SidebarHeader>
             <SidebarContent>
-              <SidebarMenu className="px-2">
+              <SidebarMenu className="px-2 space-y-1">
+                {simulationUid && isLeader && (
+                  <SidebarMenuItem>
+                    <button
+                      onClick={() => {
+                        setSimulationUid(null);
+                        setCurrentView('TEAM'); // Return to Governance/Users page
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all font-black text-xs uppercase tracking-wider border border-amber-500/20 mb-2 group"
+                    >
+                      <XCircle className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
+                      <span>Return to Governance</span>
+                    </button>
+                  </SidebarMenuItem>
+                )}
                 {NAV_ITEMS.filter(item => item.adminOnly ? isLeader : true).map(nav => (
                   <SidebarMenuItem key={nav.view}>
                     <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
@@ -133,7 +147,34 @@ export default function DashboardPage() {
             <SidebarFooter className="p-4 border-t"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
           </Sidebar>
           <SidebarInset className="bg-[#F7F6F8]">
-            <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-6 shadow-sm"><SidebarTrigger /><div className="flex-1" /><div className="flex items-center gap-3"><div className="text-right"><p className="text-xs font-bold leading-none">{profile?.name || user?.email?.split('@')[0] || 'User'}</p><p className="text-[9px] text-muted-foreground uppercase mt-0.5 tracking-widest">{profile?.role || 'Loading...'}</p></div><div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white font-bold text-xs shadow-md border-2 border-white">{profile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || '?'}</div></div></header>
+            <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-6 shadow-sm">
+              <SidebarTrigger />
+              {simulationUid && isLeader && (
+                <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-amber-800 text-xs font-bold animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                  <span>Simulating: <strong className="font-black">{simulatedUserProfile?.name || simulationUid}</strong></span>
+                  <button
+                    onClick={() => {
+                      setSimulationUid(null);
+                      setCurrentView('TEAM');
+                    }}
+                    className="ml-2 underline font-black hover:text-amber-950 uppercase text-[10px] tracking-wider"
+                  >
+                    Exit &amp; Return
+                  </button>
+                </div>
+              )}
+              <div className="flex-1" />
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-xs font-bold leading-none">{profile?.name || user?.email?.split('@')[0] || 'User'}</p>
+                  <p className="text-[9px] text-muted-foreground uppercase mt-0.5 tracking-widest">{profile?.role || 'Loading...'}</p>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white font-bold text-xs shadow-md border-2 border-white">
+                  {profile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+              </div>
+            </header>
             <main className="min-h-screen">{renderContent()}</main>
           </SidebarInset>
         </SidebarProvider>
