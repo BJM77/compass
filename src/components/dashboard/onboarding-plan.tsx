@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardList, Calendar, CheckCircle2, Loader2, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface Task {
   id: string;
@@ -16,6 +16,7 @@ interface Task {
 }
 
 interface OnboardingPlanProps {
+  userId: string;
   userName: string;
   planType?: string;
 }
@@ -43,10 +44,13 @@ const defaultTasks: Record<string, any> = {
   }
 };
 
-export function OnboardingPlan({ userName, planType = "BDM_NORTH_90" }: OnboardingPlanProps) {
+export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: OnboardingPlanProps) {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'strategyConfig', 'onboardingPlans') : null, [db]);
-  const { data: config, isLoading } = useDoc(configRef);
+  const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
+
+  const progressRef = useMemoFirebase(() => db ? doc(db, 'onboardingProgress', `${userId}_${planType}`) : null, [db, userId, planType]);
+  const { data: savedProgress, isLoading: isProgressLoading } = useDoc(progressRef);
 
   const [activePlan, setActivePlan] = useState<any>(null);
   const [tasks, setTasks] = useState<Record<number, Task[]>>({});
@@ -57,24 +61,43 @@ export function OnboardingPlan({ userName, planType = "BDM_NORTH_90" }: Onboardi
     setActivePlan(plan);
 
     const initialTasks: Record<number, Task[]> = {};
+    const savedState = savedProgress?.tasks || {};
+
     [30, 60, 90].forEach(phase => {
-      initialTasks[phase] = (plan[phase]?.tasks || []).map((t: string, i: number) => ({
-        id: `${phase}-${i}`,
-        title: t,
-        completed: false
-      }));
+      initialTasks[phase] = (plan[phase]?.tasks || []).map((t: string, i: number) => {
+        const id = `${phase}-${i}`;
+        return {
+          id,
+          title: t,
+          completed: savedState[id] === true
+        };
+      });
     });
     setTasks(initialTasks);
-  }, [config, planType]);
+  }, [config, planType, savedProgress]);
 
-  const toggleTask = (phase: number, id: string) => {
-    setTasks(prev => ({
-      ...prev,
-      [phase]: prev[phase].map(t => t.id === id ? { ...t, completed: !t.completed } : t)
-    }));
+  const toggleTask = async (phase: number, id: string) => {
+    const newTasks = {
+      ...tasks,
+      [phase]: tasks[phase].map(t => t.id === id ? { ...t, completed: !t.completed } : t)
+    };
+    setTasks(newTasks);
+
+    if (db && userId) {
+      // Build a flat object of checked states to save
+      const checkedState: Record<string, boolean> = {};
+      Object.values(newTasks).flat().forEach(t => {
+        if (t.completed) checkedState[t.id] = true;
+      });
+      
+      await setDoc(doc(db, 'onboardingProgress', `${userId}_${planType}`), {
+        tasks: checkedState,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
   };
 
-  if (isLoading || !activePlan) return (
+  if (isConfigLoading || isProgressLoading || !activePlan) return (
     <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-dashed">
       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
     </div>

@@ -145,6 +145,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Strategy & Progress
+    match /onboardingProgress/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
     // System Config
     match /systemAnnouncements/{docId} { 
       allow read: if true; 

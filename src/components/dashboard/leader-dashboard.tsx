@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { KPICard } from './kpi-card';
 import { UserManagement } from './user-management';
+import { TerritoryPlaybook } from './territory-playbook';
 import { PlanMetrics } from './plan-metrics';
+import { OnboardingPlan } from './onboarding-plan';
 import { GMReportGenerator } from './gm-report-generator';
 import { VelocityPulse } from './velocity-pulse';
 import { 
@@ -151,6 +153,11 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 inline-flex overflow-x-auto scrollbar-hide max-w-full">
           <TabsTrigger value="dashboard" className="font-black uppercase text-[10px] tracking-widest"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
           <TabsTrigger value="activity-metrics" className="font-black uppercase text-[10px] tracking-widest"><Activity className="w-3.5 h-3.5 mr-1.5" /> Plan Metrics</TabsTrigger>
+          <TabsTrigger value="group-90" className="font-black uppercase text-[10px] tracking-widest">Group 90</TabsTrigger>
+          <TabsTrigger value="bdm-north" className="font-black uppercase text-[10px] tracking-widest">BDM North</TabsTrigger>
+          <TabsTrigger value="bdm-south" className="font-black uppercase text-[10px] tracking-widest">BDM South</TabsTrigger>
+          <TabsTrigger value="am-90" className="font-black uppercase text-[10px] tracking-widest">AM 90</TabsTrigger>
+          <TabsTrigger value="playbooks" className="font-black uppercase text-[10px] tracking-widest">Playbooks</TabsTrigger>
           <TabsTrigger value="users" className="font-black uppercase text-[10px] tracking-widest"><Users className="w-3.5 h-3.5 mr-1.5" /> Users</TabsTrigger>
         </TabsList>
 
@@ -226,6 +233,24 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
         <TabsContent value="activity-metrics">
           <PlanMetrics />
+        </TabsContent>
+        <TabsContent value="group-90">
+          <OnboardingPlan userId={profile?.uid || 'LEADER'} userName={profile?.name || 'Leader'} planType="GROUP_90" />
+        </TabsContent>
+        <TabsContent value="bdm-north">
+          <OnboardingPlan userId={profile?.uid || 'LEADER'} userName={profile?.name || 'Leader'} planType="BDM_NORTH_90" />
+        </TabsContent>
+        <TabsContent value="bdm-south">
+          <OnboardingPlan userId={profile?.uid || 'LEADER'} userName={profile?.name || 'Leader'} planType="BDM_SOUTH_90" />
+        </TabsContent>
+        <TabsContent value="am-90">
+          <OnboardingPlan userId={profile?.uid || 'LEADER'} userName={profile?.name || 'Leader'} planType="AM_90" />
+        </TabsContent>
+        <TabsContent value="playbooks">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <TerritoryPlaybook territory="METRO_NORTH" zones={['Osborne Park', 'Malaga', 'Wangara', 'Gnangara', 'Neerabup', 'Bayswater']} />
+            <TerritoryPlaybook territory="METRO_SOUTH" zones={['Kewdale', 'Welshpool', 'Forrestfield', 'Canning Vale', 'Maddington', 'Bibra Lake']} />
+          </div>
         </TabsContent>
         <TabsContent value="users"><UserManagement onSimulate={onSimulate} /></TabsContent>
       </Tabs>

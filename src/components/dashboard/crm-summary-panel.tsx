@@ -215,19 +215,21 @@ function RecordsModal({
 
 // ─── Summary Column (My / Team) ───────────────────────────────────────────────
 function SummaryColumn({
-  label, data, accent = false, onInspect
+  label, data, accent = false, onInspect, large = false
 }: {
   label: string;
   data: CRMUserSummary;
   accent?: boolean;
   onInspect: (type: 'OPP' | 'CUST', title: string, subtitle: string, records: any[]) => void;
+  large?: boolean;
 }) {
   return (
-    <div className={`flex-1 rounded-2xl p-4 space-y-4 ${accent ? 'bg-primary/5 border border-primary/10' : 'bg-slate-50 border border-slate-100'}`}>
-      <p className={`text-[9px] font-black uppercase tracking-widest ${accent ? 'text-primary' : 'text-slate-500'}`}>{label}</p>
+    <div className={`flex-1 rounded-2xl ${large ? 'p-6' : 'p-4'} space-y-4 ${accent ? 'bg-primary/5 border border-primary/10' : 'bg-slate-50 border border-slate-100'}`}>
+      <p className={`font-black uppercase tracking-widest ${large ? 'text-xs mb-4' : 'text-[9px]'} ${accent ? 'text-primary' : 'text-slate-500'}`}>{label}</p>
 
+      <div className={large ? "grid grid-cols-2 gap-8" : ""}>
       {/* Opportunities */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
             <Briefcase className="w-3 h-3 text-accent" />
@@ -261,12 +263,13 @@ function SummaryColumn({
           </div>
         </div>
         <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] text-slate-500 font-bold">YTD Rev LY</span>
-          <span className="text-xs font-bold text-slate-400">{fmt(data.oppYTDRevenueLastFY)}</span>
+          <span className={`${large ? 'text-xs' : 'text-[10px]'} text-slate-500 font-bold`}>YTD Rev LY</span>
+          <span className={`${large ? 'text-sm' : 'text-xs'} font-bold text-slate-400`}>{fmt(data.oppYTDRevenueLastFY)}</span>
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-3 space-y-2">
+      {/* Accounts */}
+      <div className={`${!large ? 'border-t border-slate-200 pt-3' : ''} space-y-3`}>
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
             <Users className="w-3 h-3 text-blue-500" />
@@ -296,9 +299,10 @@ function SummaryColumn({
           </div>
         </div>
         <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] text-slate-500 font-bold">YTD Rev LY</span>
-          <span className="text-xs font-bold text-slate-400">{fmt(data.custYTDRevenueLastFY)}</span>
+          <span className={`${large ? 'text-xs' : 'text-[10px]'} text-slate-500 font-bold`}>YTD Rev LY</span>
+          <span className={`${large ? 'text-sm' : 'text-xs'} font-bold text-slate-400`}>{fmt(data.custYTDRevenueLastFY)}</span>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -434,12 +438,11 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
         </CardHeader>
 
         <CardContent className="p-5 space-y-5">
-          {/* My + Team side-by-side columns */}
           <div className="flex flex-col sm:flex-row gap-4">
-            {summary.myStats && (
+            {!showAllUsers && summary.myStats && (
               <SummaryColumn label="My Performance" data={summary.myStats} accent onInspect={handleInspectCol} />
             )}
-            <SummaryColumn label="Team Combined" data={summary.team} onInspect={handleInspectCol} />
+            <SummaryColumn label="Team Combined" data={summary.team} onInspect={handleInspectCol} large={showAllUsers} />
           </div>
 
           {/* Per-user breakdown — leaders/GMs only */}

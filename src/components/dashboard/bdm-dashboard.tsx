@@ -277,7 +277,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
               <TabsContent value="pipeline"><PipelineReviewTable userId={userId || ''} /></TabsContent>
               <TabsContent value="submission"><BDMWeeklySubmission userId={userId || ''} userName={profile?.name || 'BDM'} /></TabsContent>
               <TabsContent value="prep"><CallPlanning userId={userId || ''} /></TabsContent>
-              <TabsContent value="reset"><OnboardingPlan userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} /></TabsContent>
+              <TabsContent value="reset"><OnboardingPlan userId={userId || 'BDM'} userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} /></TabsContent>
             </Tabs>
          </div>
          <div className="xl:col-span-4"><BehaviorAlerts stats={stats} /></div>
