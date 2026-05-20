@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { KPICard } from './kpi-card';
 import { UserManagement } from './user-management';
-import { TeamComparison } from './team-comparison';
+import { PlanMetrics } from './plan-metrics';
 import { GMReportGenerator } from './gm-report-generator';
 import { VelocityPulse } from './velocity-pulse';
 import { 
@@ -73,11 +73,11 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     }) || [];
 
     return {
-      totalRevenue: filteredStats.reduce((sum, b) => sum + (Number(b.revenueYTD) || 0), 0),
+      totalRevenue: crmSummary.team.custYTDRevenueThisFY || 0,
       totalTarget: filteredStats.reduce((sum, b) => sum + (Number(b.target) || 0), 0),
       risks: riskDeals.length
     };
-  }, [teamStats, allDeals]);
+  }, [teamStats, allDeals, crmSummary.team.custYTDRevenueThisFY]);
 
   const activityTotals = useMemo(() => {
     if (!teamActivity) return { apps: 0, calls: 0 };
@@ -150,7 +150,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
       <Tabs defaultValue="dashboard" className="w-full space-y-6">
         <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 inline-flex overflow-x-auto scrollbar-hide max-w-full">
           <TabsTrigger value="dashboard" className="font-black uppercase text-[10px] tracking-widest"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
-          <TabsTrigger value="comparison" className="font-black uppercase text-[10px] tracking-widest">Index</TabsTrigger>
+          <TabsTrigger value="activity-metrics" className="font-black uppercase text-[10px] tracking-widest"><Activity className="w-3.5 h-3.5 mr-1.5" /> Plan Metrics</TabsTrigger>
           <TabsTrigger value="users" className="font-black uppercase text-[10px] tracking-widest"><Users className="w-3.5 h-3.5 mr-1.5" /> Users</TabsTrigger>
         </TabsList>
 
@@ -224,8 +224,8 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
            </Card>
         </TabsContent>
 
-        <TabsContent value="comparison">
-          <TeamComparison />
+        <TabsContent value="activity-metrics">
+          <PlanMetrics />
         </TabsContent>
         <TabsContent value="users"><UserManagement onSimulate={onSimulate} /></TabsContent>
       </Tabs>

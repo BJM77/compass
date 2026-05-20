@@ -32,13 +32,13 @@ interface ServiceConfig {
   state: ServiceState;
   priority: Priority;
   rationale: string;
-  currentSpend: number;
-  totalWallet: number;
+  currentSpend: number | '';
+  totalWallet: number | '';
 }
 
 const INITIAL_SERVICE_CONFIG = SERVICES.reduce((acc, service) => ({
   ...acc,
-  [service]: { state: 'WHITE_SPACE', priority: 'LOW', rationale: '', currentSpend: 0, totalWallet: 0 }
+  [service]: { state: 'WHITE_SPACE', priority: 'LOW', rationale: '', currentSpend: '', totalWallet: '' }
 }), {});
 
 export function WhitespaceAnalysis({ userId }: { userId: string }) {
@@ -83,13 +83,15 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
       let y = 45;
       SERVICES.forEach(service => {
         const config = serviceConfigs[service];
-        const share = config.totalWallet > 0 ? (config.currentSpend / config.totalWallet) * 100 : 0;
+        const spend = Number(config.currentSpend) || 0;
+        const wallet = Number(config.totalWallet) || 0;
+        const share = wallet > 0 ? (spend / wallet) * 100 : 0;
         pdf.setFontSize(10); pdf.setFont("helvetica", "bold");
         pdf.text(`${service.toUpperCase()}: ${config.state} (${config.priority} PRIORITY)`, 20, y);
         y += 5; pdf.setFont("helvetica", "normal");
-        pdf.text(`Current: $${config.currentSpend.toLocaleString()} | Total Wallet: $${config.totalWallet.toLocaleString()} | Share: ${share.toFixed(1)}%`, 20, y);
+        pdf.text(`Current: $${spend.toLocaleString()} | Total Wallet: $${wallet.toLocaleString()} | Share: ${share.toFixed(1)}%`, 20, y);
         y += 5;
-        pdf.text(`Available Expansion: $${Math.max(0, config.totalWallet - config.currentSpend).toLocaleString()}`, 20, y);
+        pdf.text(`Available Expansion: $${Math.max(0, wallet - spend).toLocaleString()}`, 20, y);
         y += 5;
         const lines = pdf.splitTextToSize(config.rationale || "No rationale provided.", 170);
         pdf.text(lines, 20, y);
@@ -153,7 +155,9 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {SERVICES.map(service => {
           const config = serviceConfigs[service];
-          const sharePct = config.totalWallet > 0 ? (config.currentSpend / config.totalWallet) * 100 : 0;
+          const spend = Number(config.currentSpend) || 0;
+          const wallet = Number(config.totalWallet) || 0;
+          const sharePct = wallet > 0 ? (spend / wallet) * 100 : 0;
           return (
             <Card key={service} className="border shadow-sm p-6 space-y-4 bg-white hover:shadow-md transition-shadow">
               <div className="text-center space-y-2">
@@ -182,13 +186,13 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
                     <Label className="text-[9px] font-black uppercase text-slate-400 flex items-center gap-1.5">
                       <DollarSign className="w-2.5 h-2.5" /> Current Spend
                     </Label>
-                    <Input type="number" value={config.currentSpend === 0 ? '0' : config.currentSpend || ''} onChange={(e) => updateService(service, 'currentSpend', parseFloat(e.target.value) || 0)} className="h-8 text-[10px] font-black" placeholder="$" />
+                    <Input type="number" value={config.currentSpend} onChange={(e) => updateService(service, 'currentSpend', e.target.value === '' ? '' : parseFloat(e.target.value))} className="h-8 text-[10px] font-black" placeholder="$" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[9px] font-black uppercase text-slate-400 flex items-center gap-1.5">
                       <Box className="w-2.5 h-2.5" /> Total Wallet
                     </Label>
-                    <Input type="number" value={config.totalWallet === 0 ? '0' : config.totalWallet || ''} onChange={(e) => updateService(service, 'totalWallet', parseFloat(e.target.value) || 0)} className="h-8 text-[10px] font-black" placeholder="$" />
+                    <Input type="number" value={config.totalWallet} onChange={(e) => updateService(service, 'totalWallet', e.target.value === '' ? '' : parseFloat(e.target.value))} className="h-8 text-[10px] font-black" placeholder="$" />
                   </div>
                 </div>
 
@@ -201,7 +205,7 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
                     <div className="bg-accent h-full transition-all duration-500" style={{ width: `${Math.min(100, sharePct)}%` }} />
                   </div>
                   <p className="text-[8px] font-black text-slate-400 mt-1 uppercase text-right">
-                    Gap: ${Math.max(0, config.totalWallet - config.currentSpend).toLocaleString()}
+                    Gap: ${Math.max(0, wallet - spend).toLocaleString()}
                   </p>
                 </div>
               </div>
