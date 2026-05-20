@@ -39,10 +39,16 @@ export function SmartGoalsView({ userId }: { userId: string }) {
     async function loadGoals() {
       if (!db || !userId) return;
       try {
+        // Clear existing state when loading a new user
+        setSmartGoals([]);
+        setIsLoading(true);
+
         const planRef = doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`);
         const snap = await getDoc(planRef);
         if (snap.exists()) {
           setSmartGoals(snap.data().smartGoals || []);
+        } else {
+          setSmartGoals([]);
         }
       } finally {
         setIsLoading(false);

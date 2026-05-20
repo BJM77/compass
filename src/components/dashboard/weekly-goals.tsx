@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { doc, setDoc, getDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import {
   Target, Rocket, Shield, Trash2, Plus, AlertTriangle, LifeBuoy
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfWeek } from 'date-fns';
+import { format, startOfWeek, addWeeks } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FocusAccount {
@@ -47,7 +47,12 @@ const ACTION_TYPES = [
 export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; userRole?: 'BDM' | 'AM' }) {
   const db = useFirestore();
   const { toast } = useToast();
-  const currentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-ww');
+  const [weekOffset, setWeekOffset] = useState(0);
+  const targetDate = addWeeks(new Date(), weekOffset);
+  const currentWeek = format(startOfWeek(targetDate, { weekStartsOn: 1 }), 'yyyy-ww');
+  
+  const now = new Date();
+  const canPlanNextWeek = (now.getDay() === 5 && now.getHours() >= 12) || now.getDay() === 6 || now.getDay() === 0;
   
   const [focusAccounts, setFocusAccounts] = useState<FocusAccount[]>([]);
   const [kpiTargets, setKpiTargets] = useState<KPITargets>({
@@ -64,14 +69,23 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasExistingPlan, setHasExistingPlan] = useState(false);
 
   useEffect(() => {
     async function loadPlan() {
-      if (!db || !userId) return;
+      // Reset form state while loading
+      setFocusAccounts([]);
+      setActionPlan(['', '', '', '', '']);
+      setRoadblocks('');
+      setSupportNeeded('');
+      setHasExistingPlan(false);
+
       const planRef = doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`);
       const snap = await getDoc(planRef);
       let loadedFocus: FocusAccount[] = [];
       if (snap.exists()) {
+        setHasExistingPlan(true);
         const data = snap.data();
         loadedFocus = (data.focusAccounts || []).map((acc: any) => ({
           ...acc,
@@ -183,15 +197,30 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
       }, { merge: true });
       toast({ title: "Weekly Strategy Locked", description: "Your tactical commitments are now live on the governance node." });
       
-      // Clear form ready for next week
+      setHasExistingPlan(true);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Failed" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!db || !userId) return;
+    if (!confirm("Are you sure you want to delete this weekly plan? This cannot be undone.")) return;
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`));
+      toast({ title: "Plan Deleted", description: "Weekly plan has been removed." });
+      setHasExistingPlan(false);
       setFocusAccounts([]);
       setActionPlan(['', '', '', '', '']);
       setRoadblocks('');
       setSupportNeeded('');
     } catch (e) {
-      toast({ variant: "destructive", title: "Save Failed" });
+      toast({ variant: "destructive", title: "Delete Failed" });
     } finally {
-      setIsSaving(false);
+      setIsDeleting(false);
     }
   };
 
@@ -203,14 +232,33 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
             <Target className="w-8 h-8 text-primary" />
             Monday Planning Node
           </h1>
-          <p className="text-muted-foreground text-sm mt-1 uppercase font-bold tracking-widest">Week {currentWeek.split('-')[1]} • Strategic Alignment Mode</p>
+          <div className="flex items-center gap-4 mt-1">
+            <p className="text-muted-foreground text-sm uppercase font-bold tracking-widest">
+              Week {currentWeek.split('-')[1]} • Strategic Alignment Mode {weekOffset > 0 ? '(Next Week)' : ''}
+            </p>
+            {canPlanNextWeek && weekOffset === 0 && (
+              <Button size="sm" variant="outline" onClick={() => setWeekOffset(1)} className="h-7 text-[10px] font-black uppercase bg-accent/10 text-accent border-accent/20 hover:bg-accent/20">
+                Plan Next Week
+              </Button>
+            )}
+            {weekOffset > 0 && (
+              <Button size="sm" variant="outline" onClick={() => setWeekOffset(0)} className="h-7 text-[10px] font-black uppercase bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200">
+                Back to This Week
+              </Button>
+            )}
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {hasExistingPlan && (
+            <Button variant="outline" onClick={handleDelete} disabled={isDeleting} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-red-200 text-red-500 hover:bg-red-50">
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          )}
           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSaving} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-primary/20 text-primary">
             {isSavingDraft ? 'Saving Draft...' : 'Save Draft'}
           </Button>
           <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-black h-12 px-8 uppercase shadow-xl gap-2 text-white">
-            {isSaving ? 'Synchronising...' : 'Commit Weekly Plan'}
+            {isSaving ? 'Synchronising...' : hasExistingPlan ? 'Update Plan' : 'Commit Weekly Plan'}
           </Button>
         </div>
       </header>

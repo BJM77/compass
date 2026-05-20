@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { openSalesforceSearch, getCurrentWeek } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import FreightSpinGuide from './freight-spin-guide';
 
 interface CallPlanningProps {
   userId: string;
@@ -34,6 +35,7 @@ export function CallPlanning({ userId }: CallPlanningProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPlanId, setSelectedBPlanId] = useState<string | null>(null);
   const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
+  const [spinGuideOpen, setSpinGuideOpen] = useState(false);
   const [outcomeData, setOutcomeData] = useState({ outcome: '', notes: '' });
 
   const [formData, setFormData] = useState({
@@ -170,9 +172,14 @@ export function CallPlanning({ userId }: CallPlanningProps) {
           <PhoneCall className="w-6 h-6 md:w-8 md:h-8 text-accent" />
           Call Planning Center
         </h1>
-        <Button onClick={handleNewPlan} className="bg-primary hover:bg-primary/90 text-white font-black h-11 px-6 uppercase text-xs shadow-lg gap-2">
-          <Plus className="w-4 h-4" /> NEW PREP
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button onClick={() => setSpinGuideOpen(true)} className="bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 font-black h-11 px-6 uppercase text-xs shadow-lg gap-2">
+            <Sparkles className="w-4 h-4" /> SPIN GUIDE
+          </Button>
+          <Button onClick={handleNewPlan} className="bg-primary hover:bg-primary/90 text-white font-black h-11 px-6 uppercase text-xs shadow-lg gap-2">
+            <Plus className="w-4 h-4" /> NEW PREP
+          </Button>
+        </div>
       </header>
 
       <Card className="border-none shadow-2xl bg-white overflow-hidden print:shadow-none print:border-2">
@@ -446,6 +453,13 @@ export function CallPlanning({ userId }: CallPlanningProps) {
           <DialogFooter>
              <Button onClick={handleLogOutcome} className="w-full bg-primary font-black h-12 rounded-xl">SAVE PERFORMANCE DATA</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={spinGuideOpen} onOpenChange={setSpinGuideOpen}>
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-[#0f0f13] border-slate-800">
+          <DialogTitle className="sr-only">Freight SPIN Guide</DialogTitle>
+          <FreightSpinGuide />
         </DialogContent>
       </Dialog>
     </div>
