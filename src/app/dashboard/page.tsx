@@ -43,17 +43,17 @@ type DashboardView =
 
 const NAV_ITEMS = [
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false },
-  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false },
-  { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true },
-  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false },
-  { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false },
-  { view: 'BRIEFS' as DashboardView,            label: 'Briefs',            icon: Sparkles,         adminOnly: true },
+  { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false },
   { view: 'TEAM_GOALS' as DashboardView,        label: 'Team Goals',        icon: Star,             adminOnly: true },
+  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false },
+  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false },
+  { view: 'BRIEFS' as DashboardView,            label: 'Briefs',            icon: Sparkles,         adminOnly: true },
   { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true },
   { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true },
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true },
+  { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true },
+  { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false },
   { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true },
-  { view: 'ARCHIVE' as DashboardView,            label: 'Archive',           icon: Archive,          adminOnly: false },
   { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false },
 ];
 

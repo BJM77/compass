@@ -11,6 +11,7 @@ import { TerritoryPlaybook } from './territory-playbook';
 import { PlanMetrics } from './plan-metrics';
 import { OnboardingPlan } from './onboarding-plan';
 import { GMReportGenerator } from './gm-report-generator';
+import { AiReportGenerator } from './ai-report-generator';
 import { VelocityPulse } from './velocity-pulse';
 import { 
   Users, TrendingUp, AlertTriangle, BarChart3, 
@@ -158,6 +159,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
           <TabsTrigger value="bdm-south" className="font-black uppercase text-[10px] tracking-widest">BDM South</TabsTrigger>
           <TabsTrigger value="am-90" className="font-black uppercase text-[10px] tracking-widest">AM 90</TabsTrigger>
           <TabsTrigger value="playbooks" className="font-black uppercase text-[10px] tracking-widest">Playbooks</TabsTrigger>
+          <TabsTrigger value="ai-report" className="font-black uppercase text-[10px] tracking-widest bg-accent/10 text-accent">AI Report</TabsTrigger>
           <TabsTrigger value="users" className="font-black uppercase text-[10px] tracking-widest"><Users className="w-3.5 h-3.5 mr-1.5" /> Users</TabsTrigger>
         </TabsList>
 
@@ -251,6 +253,9 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
             <TerritoryPlaybook territory="METRO_NORTH" zones={['Osborne Park', 'Malaga', 'Wangara', 'Gnangara', 'Neerabup', 'Bayswater']} />
             <TerritoryPlaybook territory="METRO_SOUTH" zones={['Kewdale', 'Welshpool', 'Forrestfield', 'Canning Vale', 'Maddington', 'Bibra Lake']} />
           </div>
+        </TabsContent>
+        <TabsContent value="ai-report">
+          <AiReportGenerator />
         </TabsContent>
         <TabsContent value="users"><UserManagement onSimulate={onSimulate} /></TabsContent>
       </Tabs>
