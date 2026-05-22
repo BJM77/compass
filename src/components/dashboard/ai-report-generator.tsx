@@ -25,9 +25,12 @@ export function AiReportGenerator() {
 
   // Fetch Group 90 Day Plan
   const groupPlanRef = useMemoFirebase(() => {
-    if (!db || !profile?.uid) return null;
-    return doc(db, 'onboardingProgress', `${profile.uid}_GROUP_90`);
-  }, [db, profile?.uid]);
+    // Use the currently authenticated user's UID (profile.uid or auth.uid).
+    // Guard against undefined values to prevent Firestore permission errors.
+    const uid = profile?.uid || user?.uid;
+    if (!db || !uid) return null;
+    return doc(db, 'onboardingProgress', `${uid}_GROUP_90`);
+  }, [db, profile?.uid, user?.uid]);
   const { data: groupPlanDoc } = useDoc(groupPlanRef);
 
   // Fetch Pipeline Data
