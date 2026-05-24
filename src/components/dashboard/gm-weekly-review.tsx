@@ -166,10 +166,10 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     toast({ title: "Export Complete" });
   };
 
-  const handleDispatchToGM = async () => {
+  const handleDispatchToGM = async (isBW = false) => {
     setIsGeneratingPDF(true);
     
-    // Slight delay to allow DOM to render the unrolled layout fully
+    // Delay to allow DOM to render the unrolled layout fully and animations to finish
     setTimeout(async () => {
       try {
         const element = document.getElementById('gm-report-capture');
@@ -184,41 +184,46 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           backgroundColor: '#ffffff',
           onclone: (clonedDoc) => {
             const style = clonedDoc.createElement('style');
-            style.innerHTML = `
+            let css = `
               * { 
                 -webkit-print-color-adjust: exact !important;
                 color-adjust: exact !important;
                 transition: none !important;
-              }
-              /* Force all text to be high-contrast dark slate/black */
-              p, span, h1, h2, h3, h4, th, td, div { 
-                color: #0f172a !important; 
-                opacity: 1 !important;
-              }
-              /* Exceptions for badges/accents to keep some branding but ensure they are dark */
-              .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
-                color: #1e293b !important;
-                font-weight: 900 !important;
-              }
-              .text-muted-foreground, .text-slate-400 {
-                color: #475569 !important;
-                opacity: 1 !important;
-              }
-              /* Ensure backgrounds are solid and visible */
-              .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 {
-                background-color: #f8fafc !important;
-                opacity: 1 !important;
-              }
-              /* Remove shadows and blurs which can cause artifacts in html2canvas */
-              .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur {
-                box-shadow: none !important;
-                backdrop-filter: none !important;
-              }
-              /* Ensure borders are crisp */
-              .border, .border-b, .border-t {
-                border-color: #e2e8f0 !important;
+                animation: none !important;
               }
             `;
+            if (isBW) {
+              css += `
+                /* Force all text to be high-contrast dark slate/black */
+                p, span, h1, h2, h3, h4, th, td, div { 
+                  color: #0f172a !important; 
+                }
+                /* Exceptions for badges/accents to keep some branding but ensure they are dark */
+                .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
+                  color: #1e293b !important;
+                  font-weight: 900 !important;
+                }
+                .text-muted-foreground, .text-slate-400 {
+                  color: #475569 !important;
+                  opacity: 1 !important;
+                }
+                /* Ensure backgrounds are solid and visible */
+                .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 {
+                  background-color: #f8fafc !important;
+                  opacity: 1 !important;
+                }
+                /* Remove shadows and blurs which can cause artifacts in html2canvas */
+                .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur {
+                  box-shadow: none !important;
+                  backdrop-filter: none !important;
+                }
+                /* Ensure borders are crisp */
+                .border, .border-b, .border-t {
+                  border-color: #e2e8f0 !important;
+                }
+              `;
+            }
+            style.innerHTML = css;
             clonedDoc.head.appendChild(style);
           }
         });
@@ -246,7 +251,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           heightLeft -= (pageHeight - margin * 2);
         }
         
-        pdf.save(`GM_Dispatch_Report_Week_${currentWeek}.pdf`);
+        const fileName = isBW ? `GM_Dispatch_Report_BW_Week_${currentWeek}.pdf` : `GM_Dispatch_Report_Week_${currentWeek}.pdf`;
+        pdf.save(fileName);
         toast({ title: "Dispatch Complete", description: "Multi-page A4 PDF downloaded successfully." });
       } catch (err) {
         console.error(err);
@@ -254,7 +260,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       } finally {
         setIsGeneratingPDF(false);
       }
-    }, 800);
+    }, 1000); // 1s delay to ensure all CSS animations complete
   };
 
   const metrics = useMemo(() => {
@@ -296,7 +302,11 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-white">
             <Download className="w-4 h-4 mr-2" /> EXPORT CSV
           </Button>
-          <Button onClick={handleDispatchToGM} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-primary/20">
+          <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-slate-800 hover:bg-slate-700 font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-slate-800/20">
+            {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
+            {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH (B&W)'}
+          </Button>
+          <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-primary/20">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />} 
             {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH TO GM'}
           </Button>

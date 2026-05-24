@@ -28,7 +28,7 @@ export function AiReportGenerator() {
     // Use the currently authenticated user's UID (profile.uid or auth.uid).
     // Guard against undefined values to prevent Firestore permission errors.
     const uid = profile?.uid || user?.uid;
-    if (!db || !uid) return null;
+    if (!db || !uid || uid === 'undefined' || uid === 'null') return null;
     return doc(db, 'onboardingProgress', `${uid}_GROUP_90`);
   }, [db, profile?.uid, user?.uid]);
   const { data: groupPlanDoc } = useDoc(groupPlanRef);
