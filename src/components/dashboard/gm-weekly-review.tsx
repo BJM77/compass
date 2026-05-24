@@ -178,13 +178,48 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         toast({ title: "Generating PDF", description: "Compiling Multi-Page A4 Report..." });
         
         const canvas = await html2canvas(element, { 
-          scale: 3, // Razor sharp 3x scaling
+          scale: 4, // Increased to 4x for extreme clarity
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
           onclone: (clonedDoc) => {
-            // Ensure dark high-contrast fonts in the cloned DOM
-            clonedDoc.body.style.color = '#0f172a';
+            const style = clonedDoc.createElement('style');
+            style.innerHTML = `
+              * { 
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                transition: none !important;
+              }
+              /* Force all text to be high-contrast dark slate/black */
+              p, span, h1, h2, h3, h4, th, td, div { 
+                color: #0f172a !important; 
+                opacity: 1 !important;
+              }
+              /* Exceptions for badges/accents to keep some branding but ensure they are dark */
+              .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
+                color: #1e293b !important;
+                font-weight: 900 !important;
+              }
+              .text-muted-foreground, .text-slate-400 {
+                color: #475569 !important;
+                opacity: 1 !important;
+              }
+              /* Ensure backgrounds are solid and visible */
+              .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 {
+                background-color: #f8fafc !important;
+                opacity: 1 !important;
+              }
+              /* Remove shadows and blurs which can cause artifacts in html2canvas */
+              .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur {
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+              }
+              /* Ensure borders are crisp */
+              .border, .border-b, .border-t {
+                border-color: #e2e8f0 !important;
+              }
+            `;
+            clonedDoc.head.appendChild(style);
           }
         });
         
@@ -329,7 +364,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
               <h2 className="text-2xl font-black uppercase text-primary tracking-tight">2. Group Success Plan (90-Day Milestones)</h2>
             </div>
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-              <OnboardingPlan userName="Corporate" planType="GROUP_90" />
+              <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />
             </div>
           </div>
 
@@ -379,7 +414,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           </TabsContent>
 
           <TabsContent value="group90" className="animate-in fade-in duration-500">
-             <OnboardingPlan userName="Corporate" planType="GROUP_90" />
+             <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />
           </TabsContent>
 
           <TabsContent value="strategy" className="space-y-6">
@@ -434,22 +469,34 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-50 p-6 rounded-2xl border">
                   <p className="text-[10px] font-black uppercase text-muted-foreground mb-3 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5" /> High-Level Summary (Friday)</p>
-                  <p className="text-sm font-medium text-slate-700 leading-relaxed italic">"{report.weeklyNotes || 'No summary notes submitted.'}"</p>
+                  <div className="max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
+                    <p className="text-sm font-medium text-slate-700 leading-relaxed italic whitespace-pre-line">
+                      "{report.weeklyNotes || 'No summary notes submitted.'}"
+                    </p>
+                  </div>
                 </div>
                 <div className="bg-red-50/50 p-6 rounded-2xl border border-red-100">
                   <p className="text-[10px] font-black uppercase text-red-600 mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
-                  <p className="text-sm font-bold text-red-800 leading-relaxed italic">"{report.roadblocks || 'None reported.'}"</p>
+                  <div className="max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
+                    <p className="text-sm font-bold text-red-800 leading-relaxed italic whitespace-pre-line">
+                      "{report.roadblocks || 'None reported.'}"
+                    </p>
+                  </div>
                 </div>
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
                   <p className="text-[10px] font-black uppercase text-blue-600 mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
-                  <p className="text-sm font-bold text-blue-800 leading-relaxed italic">"{report.supportNeeded || 'None requested.'}"</p>
+                  <div className="max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
+                    <p className="text-sm font-bold text-blue-800 leading-relaxed italic whitespace-pre-line">
+                      "{report.supportNeeded || 'None requested.'}"
+                    </p>
+                  </div>
                 </div>
                 <div className="bg-green-50/50 p-6 rounded-2xl border border-green-100">
                   <p className="text-[10px] font-black uppercase text-green-600 mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
-                  <div className="bg-white p-3 rounded-xl border border-green-100 shadow-inner">
+                  <div className="bg-white p-3 rounded-xl border border-green-100 shadow-inner max-h-[200px] overflow-y-auto scrollbar-thin">
                     <p className="text-[11px] font-bold text-green-800 leading-relaxed whitespace-pre-line">
                       {report.nextWeekCommitments || 'No tactical commitments set.'}
                     </p>
@@ -460,7 +507,9 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
              {report.gmFeedback && (
                <div className="bg-accent/5 p-6 rounded-2xl border border-accent/20">
                   <p className="text-[10px] font-black uppercase text-accent mb-2">Historical GM Feedback</p>
-                  <p className="text-sm font-bold text-slate-800 leading-relaxed">"{report.gmFeedback}"</p>
+                  <div className="max-h-[150px] overflow-y-auto pr-2 scrollbar-thin">
+                    <p className="text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-line">"{report.gmFeedback}"</p>
+                  </div>
                </div>
              )}
              <div data-html2canvas-ignore="true" className="space-y-3">

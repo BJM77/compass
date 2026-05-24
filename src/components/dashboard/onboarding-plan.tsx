@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardList, Calendar, CheckCircle2, Loader2, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useAuth } from '@/contexts/auth-context';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface Task {
@@ -46,10 +47,11 @@ const defaultTasks: Record<string, any> = {
 
 export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: OnboardingPlanProps) {
   const db = useFirestore();
-  const configRef = useMemoFirebase(() => db ? doc(db, 'strategyConfig', 'onboardingPlans') : null, [db]);
+  const { user } = useAuth();
+  const configRef = useMemoFirebase(() => (db && user) ? doc(db, 'strategyConfig', 'onboardingPlans') : null, [db, user]);
   const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
 
-  const progressRef = useMemoFirebase(() => db ? doc(db, 'onboardingProgress', `${userId}_${planType}`) : null, [db, userId, planType]);
+  const progressRef = useMemoFirebase(() => (db && user) ? doc(db, 'onboardingProgress', `${userId}_${planType}`) : null, [db, user, userId, planType]);
   const { data: savedProgress, isLoading: isProgressLoading } = useDoc(progressRef);
 
   const [activePlan, setActivePlan] = useState<any>(null);

@@ -282,7 +282,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                  <div key={w.id} className="p-4 bg-slate-50 rounded-2xl border space-y-3 relative group hover:border-amber-200 transition-colors">
                     <Input placeholder="Account..." value={w.accountName} onChange={e => { const n = [...stillWorking]; n[idx].accountName = e.target.value.toUpperCase(); setStillWorking(n); }} className="h-9 text-xs font-bold bg-white" />
                     <div className="flex gap-2">
-                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={w.eav} onChange={e => { const n = [...stillWorking]; n[idx].eav = e.target.value; setStillWorking(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
+                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={w.eav} onChange={e => { const n = [...stillWorking]; n[idx].eav = Number(e.target.value) || 0; setStillWorking(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
                       <Button variant="ghost" size="icon" onClick={() => setStillWorking(stillWorking.filter(x => x.id !== w.id))} className="text-red-300 hover:text-red-600 h-9 w-9"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                     <div className="flex items-center gap-1 pt-2 border-t border-slate-200/60 justify-between">
@@ -306,8 +306,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                  <div key={o.id} className="p-4 bg-slate-50 rounded-2xl border space-y-3 relative group">
                     <Input placeholder="Account..." value={o.accountName} onChange={e => { const n = [...opportunities]; n[idx].accountName = e.target.value.toUpperCase(); setOpportunities(n); }} className="h-9 text-xs font-bold bg-white" />
                     <div className="flex gap-2">
-                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={o.eav} onChange={e => { const n = [...opportunities]; n[idx].eav = e.target.value; setOpportunities(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
-                      <div className="w-20"><Input type="number" placeholder="%" value={o.probability} onChange={e => { const n = [...opportunities]; n[idx].probability = e.target.value; setOpportunities(n); }} className="h-9 text-xs font-bold bg-white" /></div>
+                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={o.eav} onChange={e => { const n = [...opportunities]; n[idx].eav = Number(e.target.value) || 0; setOpportunities(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
+                      <div className="w-20"><Input type="number" placeholder="%" value={o.probability} onChange={e => { const n = [...opportunities]; n[idx].probability = Number(e.target.value) || 0; setOpportunities(n); }} className="h-9 text-xs font-bold bg-white" /></div>
                       <Button variant="ghost" size="icon" onClick={() => setOpportunities(opportunities.filter(x => x.id !== o.id))} className="text-red-300 h-9 w-9"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                  </div>
@@ -323,7 +323,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                  <div key={s.id} className="p-4 bg-slate-50 rounded-2xl border space-y-3 relative group">
                     <Input placeholder="Account..." value={s.accountName} onChange={e => { const n = [...signedDeals]; n[idx].accountName = e.target.value.toUpperCase(); setSignedDeals(n); }} className="h-9 text-xs font-bold bg-white" />
                     <div className="flex gap-2">
-                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={s.eav} onChange={e => { const n = [...signedDeals]; n[idx].eav = e.target.value; setSignedDeals(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
+                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={s.eav} onChange={e => { const n = [...signedDeals]; n[idx].eav = Number(e.target.value) || 0; setSignedDeals(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
                       <Button variant="ghost" size="icon" onClick={() => setSignedDeals(signedDeals.filter(x => x.id !== s.id))} className="text-red-300 h-9 w-9"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                  </div>
@@ -339,7 +339,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                  <div key={b.id} className="p-4 bg-slate-50 rounded-2xl border space-y-3 relative group">
                     <Input placeholder="Account..." value={b.accountName} onChange={e => { const n = [...newBusiness]; n[idx].accountName = e.target.value.toUpperCase(); setNewBusiness(n); }} className="h-9 text-xs font-bold bg-white" />
                     <div className="flex gap-2">
-                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={b.eav} onChange={e => { const n = [...newBusiness]; n[idx].eav = e.target.value; setNewBusiness(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
+                      <div className="relative flex-1"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" placeholder="EAV" value={b.eav} onChange={e => { const n = [...newBusiness]; n[idx].eav = Number(e.target.value) || 0; setNewBusiness(n); }} className="h-9 pl-6 text-xs font-bold bg-white" /></div>
                       <Button variant="ghost" size="icon" onClick={() => setNewBusiness(newBusiness.filter(x => x.id !== b.id))} className="text-red-300 h-9 w-9"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                  </div>
@@ -351,13 +351,23 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       </div>
 
       <div className="space-y-4">
-         <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 px-2"><Award className="w-3.5 h-3.5" /> Performance Narrative (The Week That Was)</Label>
+         <div className="flex justify-between items-center px-2">
+           <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
+             <Award className="w-3.5 h-3.5" /> Performance Narrative (The Week That Was)
+           </Label>
+           <span className={cn("text-[9px] font-bold", notes.length > 4000 ? "text-red-500" : "text-muted-foreground")}>
+             {notes.length} / 5000 characters
+           </span>
+         </div>
          <Textarea 
            placeholder="Document high-level wins and strategic shifts achieved this week..." 
            value={notes} 
-           onChange={e => setNotes(e.target.value)} 
-           className="min-h-[160px] rounded-[2rem] border-slate-200 bg-white p-8 shadow-inner text-sm font-medium leading-relaxed" 
+           onChange={e => setNotes(e.target.value.substring(0, 5000))} 
+           className="min-h-[200px] rounded-[2rem] border-slate-200 bg-white p-8 shadow-inner text-sm font-medium leading-relaxed" 
          />
+         <p className="text-[9px] text-muted-foreground px-4 italic font-medium">
+           * Note: For best results in the GM Command Hub, keep narratives under 10-15 lines. Data is stored securely regardless of length.
+         </p>
       </div>
     </div>
   );

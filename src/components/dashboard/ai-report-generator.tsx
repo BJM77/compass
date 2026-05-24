@@ -17,7 +17,7 @@ import { useAuth } from '@/contexts/auth-context';
 export function AiReportGenerator() {
   const db = useFirestore();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [report, setReport] = useState<AiReportOutput | null>(null);
