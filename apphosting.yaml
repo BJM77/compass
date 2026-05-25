@@ -5,3 +5,18 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+env:
+  - variable: GEMINI_API_KEY
+    secret: GEMINI_API_KEY
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: studio-5306701288-d19b1
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:581796544364:web:5c577736cc62792dc8fd49
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyD8eWxEjK57tndLBXYFxGCswYF47aHo080
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: studio-5306701288-d19b1.firebaseapp.com
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: studio-5306701288-d19b1.firebasestorage.app
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: 581796544364
