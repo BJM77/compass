@@ -24,7 +24,7 @@ import {
 import { format } from 'date-fns';
 import { cn, getCurrentWeek } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { OnboardingPlan } from './onboarding-plan';
+import { useAuth } from '@/contexts/auth-context';
 
 interface BDMWeeklyReport {
   id?: string;
@@ -53,6 +53,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const { toast } = useToast();
   const currentWeek = propWeek || getCurrentWeek();
   
+  const [selectedWeek, setSelectedWeek] = useState(currentWeek);
+  const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
   const [reportData, setReportData] = useState<BDMWeeklyReport[]>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [paperwork, setPaperwork] = useState<any[]>([]);
@@ -71,16 +73,26 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const { data: teamPlans } = useCollection(teamPlansQuery);
 
   useEffect(() => {
+    async function fetchMetadata() {
+      if (!db) return;
+      const snap = await getDocs(collection(db, 'weeklyReports'));
+      const weeks = Array.from(new Set(snap.docs.map(d => d.data().week))).sort().reverse();
+      setAvailableWeeks(weeks);
+    }
+    fetchMetadata();
+  }, [db]);
+
+  useEffect(() => {
     async function fetchReports() {
       if (!db || !users) return;
       setIsLoading(true);
       try {
         const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap] = await Promise.all([
-          getDocs(query(collection(db, 'weeklyReports'), where('week', '==', currentWeek))),
-          getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', currentWeek))),
-          getDocs(query(collection(db, 'opportunities'), where('week', '==', currentWeek))),
-          getDocs(query(collection(db, 'signedPaperwork'), where('week', '==', currentWeek))),
-          getDocs(query(collection(db, 'newBusiness'), where('week', '==', currentWeek)))
+          getDocs(query(collection(db, 'weeklyReports'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'opportunities'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'signedPaperwork'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'newBusiness'), where('week', '==', selectedWeek)))
         ]);
 
         const bdms = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
@@ -101,7 +113,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             id: reportDoc?.id,
             userId: bdm.id,
             userName: bdm.name,
-            week: currentWeek,
+            week: selectedWeek,
             summary: reportData?.summary || { totalEAV: 0, newOpportunitiesCount: 0, signedPaperworkCount: 0, newBusinessCount: 0, callsMade: 0, meetingsHeld: 0 },
             weeklyNotes: reportData?.weeklyNotes || '',
             roadblocks: commitData?.roadblocks || '',
@@ -122,7 +134,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       }
     }
     fetchReports();
-  }, [db, users, currentWeek]);
+  }, [db, users, selectedWeek]);
 
   const saveGMFeedback = async (userId: string, feedback: string) => {
     if (!db) return;
@@ -130,7 +142,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       // Use the actual doc ID from loaded state when available.
       // Falls back to the canonical pattern if report wasn't loaded from Firestore yet.
       const existingReport = reportData.find(r => r.userId === userId);
-      const reportId = existingReport?.id || `${userId}_${currentWeek}`;
+      const reportId = existingReport?.id || `${userId}_${selectedWeek}`;
       await updateDoc(doc(db, 'weeklyReports', reportId), {
         gmFeedback: feedback,
         status: 'REVIEWED',
@@ -161,7 +173,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `TGE_GM_Review_${currentWeek}.csv`;
+    a.download = `TGE_GM_Review_${selectedWeek}.csv`;
     a.click();
     toast({ title: "Export Complete" });
   };
@@ -251,7 +263,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           heightLeft -= (pageHeight - margin * 2);
         }
         
-        const fileName = isBW ? `GM_Dispatch_Report_BW_Week_${currentWeek}.pdf` : `GM_Dispatch_Report_Week_${currentWeek}.pdf`;
+        const fileName = isBW ? `GM_Dispatch_Report_BW_Week_${selectedWeek}.pdf` : `GM_Dispatch_Report_Week_${selectedWeek}.pdf`;
         pdf.save(fileName);
         toast({ title: "Dispatch Complete", description: "Multi-page A4 PDF downloaded successfully." });
       } catch (err) {
@@ -296,7 +308,14 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             <Shield className="w-8 h-8 text-accent" />
             GM Weekly Performance Node
           </h1>
-          <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">Week {currentWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
+          <div className="flex items-center gap-4 mt-2">
+            <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
+            <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+              {(availableWeeks.length > 0 ? availableWeeks : [selectedWeek]).map(w => (
+                <option key={w} value={w}>{w}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="flex gap-2" data-html2canvas-ignore="true">
           <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-white">
@@ -374,7 +393,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
               <h2 className="text-2xl font-black uppercase text-primary tracking-tight">2. Group Success Plan (90-Day Milestones)</h2>
             </div>
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-              <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />
+              {user && <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />}
             </div>
           </div>
 
