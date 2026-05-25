@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { cn, getCurrentWeek } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
+import { OnboardingPlan } from './onboarding-plan';
 
 interface BDMWeeklyReport {
   id?: string;
@@ -51,6 +52,7 @@ interface BDMWeeklyReport {
 export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const db = useFirestore();
   const { toast } = useToast();
+  const { user } = useAuth();
   const currentWeek = propWeek || getCurrentWeek();
   
   const [selectedWeek, setSelectedWeek] = useState(currentWeek);
@@ -443,7 +445,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           </TabsContent>
 
           <TabsContent value="group90" className="animate-in fade-in duration-500">
-             <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />
+             {user && <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />}
           </TabsContent>
 
           <TabsContent value="strategy" className="space-y-6">
