@@ -178,7 +178,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         toast({ title: "Generating PDF", description: "Compiling Multi-Page A4 Report..." });
         
         const canvas = await html2canvas(element, { 
-          scale: 4, // Increased to 4x for extreme clarity
+          scale: 2, // 2x provides excellent clarity without exceeding JS string limits
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
