@@ -40,3 +40,23 @@ export function openSalesforceSearch(term: string, salesforceId?: string) {
 export function getCurrentWeek(): string {
   return format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-ww');
 }
+
+/**
+ * Dynamically formats currency amounts (EAV):
+ * - If < $1,000, returns raw value: e.g., "$500"
+ * - If >= $1,000 and < $1,000,000, formats in thousands: e.g., "$15k", "$200k"
+ * - If >= $1,000,000, formats in millions: e.g., "$1.2M", "$12.0M"
+ */
+export function formatEAV(val: number): string {
+  const absoluteValue = Math.abs(val);
+  if (absoluteValue >= 1000000) {
+    const formatted = (val / 1000000).toFixed(1);
+    // Remove trailing .0 if present
+    return `$${formatted.endsWith('.0') ? formatted.slice(0, -2) : formatted}M`;
+  }
+  if (absoluteValue >= 1000) {
+    return `$${(val / 1000).toFixed(0)}K`;
+  }
+  return `$${val.toFixed(0)}`;
+}
+

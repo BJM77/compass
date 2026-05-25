@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { format, startOfWeek } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, formatEAV } from '@/lib/utils';
 
 export function BDMWeeklySubmission({ userId, userName }: { userId: string; userName: string }) {
   const db = useFirestore();
@@ -234,7 +234,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full lg:w-auto justify-end">
            <div className="text-right hidden sm:block mr-2">
               <p className="text-[10px] font-black text-accent uppercase tracking-widest">Total Combined EAV</p>
-              <p className="text-3xl font-black">${(totalEAV / 1000).toFixed(0)}K</p>
+              <p className="text-3xl font-black">{formatEAV(totalEAV)}</p>
            </div>
            <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSubmitting} className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs w-full sm:w-auto">
              {isSavingDraft ? <Loader2 className="animate-spin w-5 h-5" /> : 'SAVE DRAFT'}

@@ -22,7 +22,7 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getCurrentWeek } from '@/lib/utils';
+import { cn, getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
@@ -492,7 +492,7 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p><p className="text-xl font-black text-primary">{report.summary.callsMade || 0}</p></div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-emerald-600 uppercase mb-1">Apps</p><p className="text-xl font-black text-primary">{report.summary.meetingsHeld || 0}</p></div>
-          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">${(report.summary.totalEAV / 1000).toFixed(0)}K</p></div>
+          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">{formatEAV(report.summary.totalEAV)}</p></div>
           <div className="bg-green-50 p-4 rounded-2xl border border-green-100"><p className="text-[9px] font-black text-green-600 uppercase mb-1">New Opps</p><p className="text-xl font-black text-green-900">{report.summary.newOpportunitiesCount}</p></div>
           <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100"><p className="text-[9px] font-black text-purple-600 uppercase mb-1">Signed</p><p className="text-xl font-black text-purple-900">{report.summary.signedPaperworkCount}</p></div>
           <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100"><p className="text-[9px] font-black text-orange-600 uppercase mb-1">New Biz</p><p className="text-xl font-black text-orange-900">{report.summary.newBusinessCount}</p></div>
