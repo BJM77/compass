@@ -76,6 +76,11 @@ const generateAiReportFlow = ai.defineFlow(
 
 export async function generateAiReport(
   input: AiReportInput
-): Promise<AiReportOutput> {
-  return generateAiReportFlow(input);
+): Promise<AiReportOutput | null> {
+  try {
+    return await generateAiReportFlow(input);
+  } catch (err) {
+    console.error('[AI] generateAiReport failed:', err);
+    return null;
+  }
 }

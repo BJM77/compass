@@ -89,6 +89,11 @@ const generateExecutiveTeamSummaryFlow = ai.defineFlow(
 
 export async function generateExecutiveTeamSummary(
   input: ExecutiveTeamSummaryInput
-): Promise<ExecutiveTeamSummaryOutput> {
-  return generateExecutiveTeamSummaryFlow(input);
+): Promise<ExecutiveTeamSummaryOutput | null> {
+  try {
+    return await generateExecutiveTeamSummaryFlow(input);
+  } catch (err) {
+    console.error('[AI] generateExecutiveTeamSummary failed:', err);
+    return null;
+  }
 }

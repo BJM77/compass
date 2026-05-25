@@ -50,6 +50,11 @@ export function AISummaryView({ input, userId }: AISummaryViewProps) {
         }
 
         const result = await generatePersonalScorecardSummary(input);
+        if (!result) {
+          console.warn('[AI] Scorecard summary returned null — AI may be unavailable.');
+          setLoading(false);
+          return;
+        }
         setAnalysis(result);
         
         const briefRef = collection(db, 'aiBriefs');

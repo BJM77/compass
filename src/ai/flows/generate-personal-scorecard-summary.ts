@@ -97,6 +97,11 @@ const generatePersonalScorecardSummaryFlow = ai.defineFlow(
   }
 );
 
-export async function generatePersonalScorecardSummary(input: GeneratePersonalScorecardSummaryInput): Promise<GeneratePersonalScorecardSummaryOutput> {
-  return generatePersonalScorecardSummaryFlow(input);
+export async function generatePersonalScorecardSummary(input: GeneratePersonalScorecardSummaryInput): Promise<GeneratePersonalScorecardSummaryOutput | null> {
+  try {
+    return await generatePersonalScorecardSummaryFlow(input);
+  } catch (err) {
+    console.error('[AI] generatePersonalScorecardSummary failed:', err);
+    return null;
+  }
 }
