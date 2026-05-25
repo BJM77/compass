@@ -334,43 +334,43 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <MetricCard title="Pipeline EAV" value={`$${(metrics.totalEAV / 1000000).toFixed(1)}M`} sub="Target Achievement" icon={<DollarSign className="w-5 h-5" />} color="blue" />
-        <MetricCard title="New Opps" value={metrics.totalNewOpps} sub="Weekly Growth" icon={<Target className="w-5 h-5" />} color="green" />
-        <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-5 h-5" />} color="purple" />
-        <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-5 h-5" />} color="orange" />
-        <MetricCard title="Team Calls" value={metrics.totalCalls} sub="Customer Touch" icon={<Phone className="w-5 h-5" />} color="blue" />
-        <MetricCard title="Team Apps" value={metrics.totalApps} sub="Face to Face" icon={<CalendarCheck className="w-5 h-5" />} color="green" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <MetricCard title="Pipeline EAV" value={`$${(metrics.totalEAV / 1000000).toFixed(1)}M`} sub="Target Achievement" icon={<DollarSign className="w-4 h-4" />} color="blue" />
+        <MetricCard title="New Opps" value={metrics.totalNewOpps} sub="Weekly Growth" icon={<Target className="w-4 h-4" />} color="green" />
+        <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-4 h-4" />} color="purple" />
+        <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-4 h-4" />} color="orange" />
+        <MetricCard title="Team Calls" value={metrics.totalCalls} sub="Customer Touch" icon={<Phone className="w-4 h-4" />} color="blue" />
+        <MetricCard title="Team Apps" value={metrics.totalApps} sub="Face to Face" icon={<CalendarCheck className="w-4 h-4" />} color="green" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-none shadow-xl bg-white overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b"><CardTitle className="text-sm font-black uppercase">Activity & Achievement Index</CardTitle></CardHeader>
-          <CardContent className="h-80 pt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-none shadow-md bg-white overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Activity & Achievement Index</CardTitle></CardHeader>
+          <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={performanceData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" fontSize={10} fontWeight="bold" />
-                <YAxis fontSize={10} fontWeight="bold" />
+                <XAxis dataKey="name" fontSize={9} fontWeight="bold" />
+                <YAxis fontSize={9} fontWeight="bold" />
                 <Tooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} />
-                <Bar dataKey="eav" fill="#3b82f6" name="EAV ($K)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="calls" fill="#6366f1" name="Calls" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="deals" fill="#10b981" name="Deals" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="eav" fill="#3b82f6" name="EAV ($K)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="calls" fill="#6366f1" name="Calls" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="deals" fill="#10b981" name="Deals" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-xl bg-white overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b"><CardTitle className="text-sm font-black uppercase">Pipeline Distribution</CardTitle></CardHeader>
-          <CardContent className="h-80 pt-6">
+        <Card className="border-none shadow-md bg-white overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Pipeline Distribution</CardTitle></CardHeader>
+          <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pipelineStatusData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                <Pie data={pipelineStatusData} cx="50%" cy="50%" innerRadius={45} outerRadius={60} paddingAngle={4} dataKey="value">
                   {pipelineStatusData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                 </Pie>
                 <Tooltip />
-                <Legend iconType="circle" wrapperStyle={{fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase'}} />
+                <Legend iconType="circle" wrapperStyle={{fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase'}} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -378,51 +378,54 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       </div>
 
       {isGeneratingPDF ? (
-        <div className="space-y-16 pt-8 bg-white text-slate-900 rounded-2xl p-8 border shadow-sm">
-          <div>
-            <div className="border-b-2 border-primary pb-3 mb-6">
-              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">1. Team Performance & Tactical Review</h2>
+        <div className="space-y-12 bg-white text-slate-900 rounded-2xl p-6 border shadow-sm">
+          {/* Section 1: Team Performance & Tactical Review (BDM notes start on a new page) */}
+          <div className="pt-4 border-t border-slate-200">
+            <div className="border-b-2 border-primary pb-2 mb-6">
+              <h2 className="text-xl font-black uppercase text-primary tracking-tight">1. Team Performance & Tactical Review</h2>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-12">
               {reportData.map((report) => (
-                <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} forceOpen={true} />
+                <div key={report.userId} className="pdf-page-break-before pt-6 border-t first:border-t-0 first:pt-0">
+                  <BDMReportCard report={report} onSaveFeedback={saveGMFeedback} forceOpen={true} />
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="pt-8">
-            <div className="border-b-2 border-primary pb-3 mb-6">
-              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">2. Group Success Plan (90-Day Milestones)</h2>
+          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
+            <div className="border-b-2 border-primary pb-2 mb-6">
+              <h2 className="text-xl font-black uppercase text-primary tracking-tight">2. Group Success Plan (30-60-90 Day Success Plan)</h2>
             </div>
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
               {user && <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />}
             </div>
           </div>
 
-          <div className="pt-8">
-            <div className="border-b-2 border-primary pb-3 mb-6">
-              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">3. Corporate Strategy Blueprints</h2>
+          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
+            <div className="border-b-2 border-primary pb-2 mb-6">
+              <h2 className="text-xl font-black uppercase text-primary tracking-tight">3. Corporate Strategy Blueprints</h2>
             </div>
             <StrategyTable data={teamPlans ?? []} />
           </div>
 
-          <div className="pt-8">
-            <div className="border-b-2 border-primary pb-3 mb-6">
-              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">4. Active Pipeline Opportunities</h2>
+          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
+            <div className="border-b-2 border-primary pb-2 mb-6">
+              <h2 className="text-xl font-black uppercase text-primary tracking-tight">4. Active Pipeline Opportunities</h2>
             </div>
             <OpportunitiesTable data={opportunities} />
           </div>
 
-          <div className="pt-8">
-            <div className="border-b-2 border-primary pb-3 mb-6">
-              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">5. Signed Governance Work</h2>
+          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
+            <div className="border-b-2 border-primary pb-2 mb-6">
+              <h2 className="text-xl font-black uppercase text-primary tracking-tight">5. Signed Governance Work</h2>
             </div>
             <SignedPaperworkTable data={paperwork} />
           </div>
 
-          <div className="pt-8">
-            <div className="border-b-2 border-primary pb-3 mb-6">
-              <h2 className="text-2xl font-black uppercase text-primary tracking-tight">6. Live Freight & New Business</h2>
+          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
+            <div className="border-b-2 border-primary pb-2 mb-6">
+              <h2 className="text-xl font-black uppercase text-primary tracking-tight">6. Live Freight & New Business</h2>
             </div>
             <NewBusinessTable data={newBusiness} />
           </div>
@@ -497,38 +500,39 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
 
         {(isOpen || forceOpen) && (
           <div className="mt-6 pt-6 border-t space-y-6 animate-in slide-in-from-top-4 duration-300">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-slate-50 p-6 rounded-2xl border">
+             {/* 1x4 stack layout to show sections cleanly, no text truncation/clipping */}
+             <div className="grid grid-cols-1 gap-6 bdm-text-fields-grid">
+                <div className="bg-slate-50 p-6 rounded-2xl border min-h-[100px] h-auto text-field-container">
                   <p className="text-[10px] font-black uppercase text-muted-foreground mb-3 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5" /> High-Level Summary (Friday)</p>
-                  <div className="max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
-                    <p className="text-sm font-medium text-slate-700 leading-relaxed italic whitespace-pre-line">
+                  <div className="h-auto w-full pr-2 text-field-container">
+                    <p className="text-sm font-medium text-slate-700 leading-relaxed italic whitespace-pre-line break-words">
                       "{report.weeklyNotes || 'No summary notes submitted.'}"
                     </p>
                   </div>
                 </div>
-                <div className="bg-red-50/50 p-6 rounded-2xl border border-red-100">
+                
+                <div className="bg-red-50/50 p-6 rounded-2xl border border-red-100 min-h-[100px] h-auto text-field-container">
                   <p className="text-[10px] font-black uppercase text-red-600 mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
-                  <div className="max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
-                    <p className="text-sm font-bold text-red-800 leading-relaxed italic whitespace-pre-line">
+                  <div className="h-auto w-full pr-2 text-field-container">
+                    <p className="text-sm font-bold text-red-800 leading-relaxed italic whitespace-pre-line break-words">
                       "{report.roadblocks || 'None reported.'}"
                     </p>
                   </div>
                 </div>
-             </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 min-h-[100px] h-auto text-field-container">
                   <p className="text-[10px] font-black uppercase text-blue-600 mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
-                  <div className="max-h-[200px] overflow-y-auto pr-2 scrollbar-thin">
-                    <p className="text-sm font-bold text-blue-800 leading-relaxed italic whitespace-pre-line">
+                  <div className="h-auto w-full pr-2 text-field-container">
+                    <p className="text-sm font-bold text-blue-800 leading-relaxed italic whitespace-pre-line break-words">
                       "{report.supportNeeded || 'None requested.'}"
                     </p>
                   </div>
                 </div>
-                <div className="bg-green-50/50 p-6 rounded-2xl border border-green-100">
+
+                <div className="bg-green-50/50 p-6 rounded-2xl border border-green-100 min-h-[100px] h-auto text-field-container">
                   <p className="text-[10px] font-black uppercase text-green-600 mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
-                  <div className="bg-white p-3 rounded-xl border border-green-100 shadow-inner max-h-[200px] overflow-y-auto scrollbar-thin">
-                    <p className="text-[11px] font-bold text-green-800 leading-relaxed whitespace-pre-line">
+                  <div className="bg-white p-4 rounded-xl border border-green-100 shadow-inner h-auto w-full text-field-container">
+                    <p className="text-[11px] font-bold text-green-800 leading-relaxed whitespace-pre-line break-words">
                       {report.nextWeekCommitments || 'No tactical commitments set.'}
                     </p>
                   </div>
@@ -536,10 +540,10 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
              </div>
 
              {report.gmFeedback && (
-               <div className="bg-accent/5 p-6 rounded-2xl border border-accent/20">
+               <div className="bg-accent/5 p-6 rounded-2xl border border-accent/20 h-auto text-field-container">
                   <p className="text-[10px] font-black uppercase text-accent mb-2">Historical GM Feedback</p>
-                  <div className="max-h-[150px] overflow-y-auto pr-2 scrollbar-thin">
-                    <p className="text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-line">"{report.gmFeedback}"</p>
+                  <div className="h-auto pr-2 text-field-container">
+                    <p className="text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-line break-words">"{report.gmFeedback}"</p>
                   </div>
                </div>
              )}

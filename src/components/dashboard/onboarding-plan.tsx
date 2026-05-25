@@ -110,8 +110,8 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return (
-    <Card className="border-none shadow-md bg-white">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+    <Card className="border-none shadow-md bg-white onboarding-plan-card">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="space-y-1">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             {planType === 'GROUP_90' ? <Users className="w-5 h-5 text-accent" /> : <Calendar className="w-5 h-5 text-accent" />}
@@ -124,61 +124,104 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
           <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Complete</div>
         </div>
       </CardHeader>
-      <CardContent>
-        <Progress value={progress} className="h-2 mb-6" />
+      <CardContent className="space-y-6">
+        <Progress value={progress} className="h-2 mb-2" />
         
-        <Tabs defaultValue="30">
-          <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/20">
-            <TabsTrigger value="30" className="font-bold">First 30</TabsTrigger>
-            <TabsTrigger value="60" className="font-bold">Day 31-60</TabsTrigger>
-            <TabsTrigger value="90" className="font-bold">Day 61-90</TabsTrigger>
-          </TabsList>
-          
-          {[30, 60, 90].map(phase => (
-            <TabsContent key={phase} value={phase.toString()} className="space-y-4 animate-in fade-in duration-300">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <div className="md:col-span-8 bg-muted/30 rounded-xl p-6 border border-border/50">
-                  <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-primary">
-                    <ClipboardList className="w-4 h-4 text-accent" />
-                    Focus: {activePlan[phase]?.focus}
-                  </h4>
-                  <div className="space-y-3">
-                    {tasks[phase]?.map(task => (
-                      <div key={task.id} className="flex items-start gap-3 p-3 hover:bg-white/50 rounded-lg transition-colors group">
-                        <Checkbox 
-                          id={task.id} 
-                          checked={task.completed} 
-                          onCheckedChange={() => toggleTask(phase, task.id)}
-                          className="mt-0.5 border-accent data-[state=checked]:bg-accent"
-                        />
-                        <label 
-                          htmlFor={task.id} 
-                          className={`text-sm leading-tight cursor-pointer transition-all font-medium ${task.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}
-                        >
-                          {task.title}
-                        </label>
-                      </div>
-                    ))}
+        {/* On-screen tabbed view: hidden in print capture */}
+        <div className="gm-print-hidden">
+          <Tabs defaultValue="30">
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/20">
+              <TabsTrigger value="30" className="font-bold">First 30</TabsTrigger>
+              <TabsTrigger value="60" className="font-bold">Day 31-60</TabsTrigger>
+              <TabsTrigger value="90" className="font-bold">Day 61-90</TabsTrigger>
+            </TabsList>
+            
+            {[30, 60, 90].map(phase => (
+              <TabsContent key={phase} value={phase.toString()} className="space-y-4 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                  <div className="md:col-span-8 bg-muted/30 rounded-xl p-6 border border-border/50">
+                    <h4 className="text-sm font-bold flex items-center gap-2 mb-4 text-primary">
+                      <ClipboardList className="w-4 h-4 text-accent" />
+                      Focus: {activePlan[phase]?.focus}
+                    </h4>
+                    <div className="space-y-3">
+                      {tasks[phase]?.map(task => (
+                        <div key={task.id} className="flex items-start gap-3 p-3 hover:bg-white/50 rounded-lg transition-colors group">
+                          <Checkbox 
+                            id={task.id} 
+                            checked={task.completed} 
+                            onCheckedChange={() => toggleTask(phase, task.id)}
+                            className="mt-0.5 border-accent data-[state=checked]:bg-accent"
+                          />
+                          <label 
+                            htmlFor={task.id} 
+                            className={`text-sm leading-tight cursor-pointer transition-all font-medium ${task.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}
+                          >
+                            {task.title}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="md:col-span-4 bg-primary/5 rounded-xl p-6 border border-primary/10">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Success Markers
+                    </h4>
+                    <ul className="space-y-3">
+                      {activePlan[phase]?.markers?.map((marker: string, i: number) => (
+                        <li key={i} className="text-[11px] font-bold text-muted-foreground flex items-center gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                          {marker}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-                <div className="md:col-span-4 bg-primary/5 rounded-xl p-6 border border-primary/10">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Success Markers
-                  </h4>
-                  <ul className="space-y-3">
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+
+        {/* Flat unrolled view: completely optimized for printing/PDF with correct checkboxes */}
+        <div className="gm-print-only hidden space-y-6">
+          {[30, 60, 90].map(phase => (
+            <div key={phase} className="border-t pt-4 first:border-t-0 first:pt-0">
+              <h3 className="font-black text-xs uppercase text-accent tracking-widest mb-3">
+                {phase === 30 ? 'Phase 1: First 30 Days' : phase === 60 ? 'Phase 2: Days 31-60' : 'Phase 3: Days 61-90'} ({activePlan[phase]?.focus})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div className="md:col-span-8 space-y-2">
+                  {tasks[phase]?.map(task => (
+                    <div key={task.id} className="flex items-start gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 shrink-0 ${task.completed ? 'bg-accent border-accent text-white' : 'border-slate-300'}`}>
+                        {task.completed && (
+                          <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 20 20">
+                            <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
+                          </svg>
+                        )}
+                      </div>
+                      <span className={`text-xs leading-normal font-medium ${task.completed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                        {task.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="md:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <h4 className="text-[9px] font-black uppercase tracking-wider text-slate-500 mb-2">Success Markers</h4>
+                  <ul className="space-y-1.5">
                     {activePlan[phase]?.markers?.map((marker: string, i: number) => (
-                      <li key={i} className="text-[11px] font-bold text-muted-foreground flex items-center gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                        {marker}
+                      <li key={i} className="text-[10px] font-medium text-slate-600 flex items-start gap-2">
+                        <span className="text-accent mt-1 shrink-0">•</span>
+                        <span>{marker}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
-            </TabsContent>
+            </div>
           ))}
-        </Tabs>
+        </div>
       </CardContent>
     </Card>
   );
