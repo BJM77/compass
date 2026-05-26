@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -180,101 +180,112 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     toast({ title: "Export Complete" });
   };
 
+  const pdfBdmIds = reportData.map(r => `gm-pdf-bdm-${r.userId}`);
+
   const handleDispatchToGM = async (isBW = false) => {
     setIsGeneratingPDF(true);
-    
-    // Delay to allow DOM to render the unrolled layout fully and animations to finish
+
     setTimeout(async () => {
       try {
-        const element = document.getElementById('gm-report-capture');
-        if (!element) throw new Error("Capture element not found");
-        
         toast({ title: "Generating PDF", description: "Compiling Multi-Page A4 Report..." });
-        
-        const canvas = await html2canvas(element, { 
-          scale: 2, // 2x provides excellent clarity without exceeding JS string limits
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          onclone: (clonedDoc) => {
-            const style = clonedDoc.createElement('style');
-            let css = `
-              * { 
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-                transition: none !important;
-                animation: none !important;
-              }
-            `;
-            if (isBW) {
-              css += `
-                /* Force all text to be high-contrast dark slate/black */
-                p, span, h1, h2, h3, h4, th, td, div { 
-                  color: #0f172a !important; 
-                }
-                /* Exceptions for badges/accents to keep some branding but ensure they are dark */
-                .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
-                  color: #1e293b !important;
-                  font-weight: 900 !important;
-                }
-                .text-muted-foreground, .text-slate-400 {
-                  color: #475569 !important;
-                  opacity: 1 !important;
-                }
-                /* Ensure backgrounds are solid and visible */
-                .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 {
-                  background-color: #f8fafc !important;
-                  opacity: 1 !important;
-                }
-                /* Remove shadows and blurs which can cause artifacts in html2canvas */
-                .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur {
-                  box-shadow: none !important;
-                  backdrop-filter: none !important;
-                }
-                /* Ensure borders are crisp */
-                .border, .border-b, .border-t {
-                  border-color: #e2e8f0 !important;
-                }
-              `;
+
+        const baseCanvasOptions = (doc: Document) => {
+          const style = doc.createElement('style');
+          let css = `
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              transition: none !important;
+              animation: none !important;
             }
-            style.innerHTML = css;
-            clonedDoc.head.appendChild(style);
+          `;
+          if (isBW) {
+            css += `
+              p, span, h1, h2, h3, h4, th, td, div { color: #0f172a !important; }
+              .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
+                color: #1e293b !important; font-weight: 900 !important;
+              }
+              .text-muted-foreground, .text-slate-400 { color: #475569 !important; opacity: 1 !important; }
+              .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 { background-color: #f8fafc !important; }
+              .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur { box-shadow: none !important; backdrop-filter: none !important; }
+              .border, .border-b, .border-t { border-color: #e2e8f0 !important; }
+            `;
           }
-        });
-        
-        const imgData = canvas.toDataURL('image/png', 1.0);
-        
-        // A4 dimensions in pt: 595.28 x 841.89
+          style.innerHTML = css;
+          doc.head.appendChild(style);
+        };
+
         const pageWidth = 595.28;
         const pageHeight = 841.89;
-        const margin = 24; // 24pt margins
-        const imgWidth = pageWidth - margin * 2;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
+        const margin = 28;
+        const usableWidth = pageWidth - margin * 2;
+        const usableHeight = pageHeight - margin * 2;
+
         const pdf = new jsPDF('p', 'pt', 'a4');
-        let heightLeft = imgHeight;
-        let position = margin;
-        
-        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-        heightLeft -= (pageHeight - margin * 2);
-        
-        while (heightLeft > 0) {
-          position -= (pageHeight - margin * 2);
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-          heightLeft -= (pageHeight - margin * 2);
+
+        // ── PAGE 1: Cover / Summary Page ──────────────────────────────────────
+        const coverEl = document.getElementById('gm-pdf-cover');
+        if (coverEl) {
+          const coverCanvas = await html2canvas(coverEl, {
+            scale: 1.5,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            onclone: (d) => baseCanvasOptions(d),
+          });
+          const coverImg = coverCanvas.toDataURL('image/jpeg', 0.88);
+          const coverHeight = (coverCanvas.height * usableWidth) / coverCanvas.width;
+          let pos = margin;
+          let left = coverHeight;
+          pdf.addImage(coverImg, 'JPEG', margin, pos, usableWidth, coverHeight);
+          left -= usableHeight;
+          while (left > 0) {
+            pos -= usableHeight;
+            pdf.addPage();
+            pdf.addImage(coverImg, 'JPEG', margin, pos, usableWidth, coverHeight);
+            left -= usableHeight;
+          }
         }
-        
-        const fileName = isBW ? `GM_Dispatch_Report_BW_Week_${selectedWeek}.pdf` : `GM_Dispatch_Report_Week_${selectedWeek}.pdf`;
+
+        // ── PAGE 2+: One page per BDM ──────────────────────────────────────────
+        const extraSections = [...pdfBdmIds, 'gm-pdf-group90-p1', 'gm-pdf-group90-p2', 'gm-pdf-group90-p3', 'gm-pdf-opps', 'gm-pdf-signed', 'gm-pdf-newbiz'];
+        for (const sectionId of extraSections) {
+          const sectionEl = document.getElementById(sectionId);
+          if (!sectionEl) continue;
+          const sectionCanvas = await html2canvas(sectionEl, {
+            scale: 1.5,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            onclone: (d) => baseCanvasOptions(d),
+          });
+          const sectionImg = sectionCanvas.toDataURL('image/jpeg', 0.88);
+          const sectionHeight = (sectionCanvas.height * usableWidth) / sectionCanvas.width;
+          let pos = margin;
+          let left = sectionHeight;
+          pdf.addPage();
+          pdf.addImage(sectionImg, 'JPEG', margin, pos, usableWidth, sectionHeight);
+          left -= usableHeight;
+          while (left > 0) {
+            pos -= usableHeight;
+            pdf.addPage();
+            pdf.addImage(sectionImg, 'JPEG', margin, pos, usableWidth, sectionHeight);
+            left -= usableHeight;
+          }
+        }
+
+        const fileName = isBW
+          ? `GM_Dispatch_Report_BW_Week_${selectedWeek}.pdf`
+          : `GM_Dispatch_Report_Week_${selectedWeek}.pdf`;
         pdf.save(fileName);
-        toast({ title: "Dispatch Complete", description: "Multi-page A4 PDF downloaded successfully." });
+        toast({ title: "Dispatch Complete", description: "Multi-page A4 PDF downloaded." });
       } catch (err) {
         console.error(err);
         toast({ variant: "destructive", title: "Export Failed", description: "Could not generate PDF." });
       } finally {
         setIsGeneratingPDF(false);
       }
-    }, 1000); // 1s delay to ensure all CSS animations complete
+    }, 1200);
   };
 
   const metrics = useMemo(() => {
@@ -377,89 +388,176 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         </Card>
       </div>
 
-      {isGeneratingPDF ? (
-        <div className="space-y-12 bg-white text-slate-900 rounded-2xl p-6 border shadow-sm">
-          {/* Section 1: Team Performance & Tactical Review (BDM notes start on a new page) */}
-          <div className="pt-4 border-t border-slate-200">
-            <div className="border-b-2 border-primary pb-2 mb-6">
-              <h2 className="text-xl font-black uppercase text-primary tracking-tight">1. Team Performance & Tactical Review</h2>
+      {/* ── PDF CAPTURE ZONES (hidden from screen, shown only when generating) ── */}
+      {isGeneratingPDF && (
+        <div className="fixed left-[-9999px] top-0 z-[-1]">
+
+          {/* ZONE 1: Cover Page */}
+          <div id="gm-pdf-cover" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
+            {/* Header Band */}
+            <div style={{background: '#f1f5f9', borderRadius: '16px', padding: '36px 40px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+              <div>
+                <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px'}}>
+                  <div style={{width: '8px', height: '44px', background: '#f59e0b', borderRadius: '4px'}} />
+                  <div>
+                    <div style={{color: '#0f172a', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.5px', textTransform: 'uppercase'}}>GM Weekly Performance Node</div>
+                    <div style={{color: '#475569', fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginTop: '4px'}}>Week {selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</div>
+                  </div>
+                </div>
+              </div>
+              <div style={{textAlign: 'right'}}>
+                <div style={{color: '#64748b', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px'}}>Report Generated</div>
+                <div style={{color: '#0f172a', fontSize: '13px', fontWeight: 700, marginTop: '2px'}}>{new Date().toLocaleDateString('en-AU', {day: '2-digit', month: 'long', year: 'numeric'})}</div>
+                <div style={{color: '#64748b', fontSize: '10px', marginTop: '2px', fontWeight: 600}}>TGE Freight • Confidential</div>
+              </div>
             </div>
-            <div className="space-y-12">
-              {reportData.map((report) => (
-                <div key={report.userId} className="pdf-page-break-before pt-6 border-t first:border-t-0 first:pt-0">
-                  <BDMReportCard report={report} onSaveFeedback={saveGMFeedback} forceOpen={true} />
+
+            {/* Team Member Avatars Row */}
+            <div style={{display: 'flex', gap: '12px', marginBottom: '28px', alignItems: 'center'}}>
+              <div style={{fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap'}}>Sales Team</div>
+              <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
+                {reportData.map((r) => (
+                  <div key={r.userId} style={{display: 'flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', borderRadius: '20px', padding: '4px 12px 4px 4px', border: '1px solid #e2e8f0'}}>
+                    <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px'}}>{r.userName.charAt(0)}</div>
+                    <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>{r.userName.split(' ')[0]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* KPI Cards: 6 across */}
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '24px'}}>
+              {([
+                {label: 'Pipeline EAV', value: `$${(metrics.totalEAV/1000000).toFixed(1)}M`, sub: 'Target Achievement', color: '#1d4ed8', bg: '#eff6ff'},
+                {label: 'New Opps', value: metrics.totalNewOpps, sub: 'Weekly Growth', color: '#059669', bg: '#f0fdf4'},
+                {label: 'Signed Paperwork', value: metrics.totalSigned, sub: 'Governance Win', color: '#7c3aed', bg: '#f5f3ff'},
+                {label: 'New Biz Started', value: metrics.totalNewBiz, sub: 'Live Freight', color: '#d97706', bg: '#fffbeb'},
+                {label: 'Team Calls', value: metrics.totalCalls, sub: 'Customer Touch', color: '#1d4ed8', bg: '#eff6ff'},
+                {label: 'Team Apps', value: metrics.totalApps, sub: 'Face to Face', color: '#059669', bg: '#f0fdf4'},
+              ] as {label:string;value:string|number;sub:string;color:string;bg:string}[]).map((m) => (
+                <div key={m.label} style={{background: m.bg, border: `1px solid ${m.color}22`, borderRadius: '12px', padding: '14px 12px', textAlign: 'center'}}>
+                  <div style={{fontSize: '9px', fontWeight: 800, color: m.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px', lineHeight: '1.2'}}>{m.label}</div>
+                  <div style={{fontSize: '26px', fontWeight: 900, color: '#0f172a', lineHeight: '1'}}>{m.value}</div>
+                  <div style={{fontSize: '8px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginTop: '4px'}}>{m.sub}</div>
                 </div>
               ))}
             </div>
+
+            {/* Charts Row */}
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'}}>
+              <div style={{background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px'}}>
+                <div style={{fontSize: '10px', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px'}}>Activity & Achievement Index</div>
+                <div style={{height: '200px'}}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={performanceData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" fontSize={9} fontWeight="bold" />
+                      <YAxis fontSize={9} fontWeight="bold" />
+                      <Tooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} />
+                      <Bar dataKey="eav" fill="#3b82f6" name="EAV ($K)" radius={[3,3,0,0]} />
+                      <Bar dataKey="calls" fill="#6366f1" name="Calls" radius={[3,3,0,0]} />
+                      <Bar dataKey="deals" fill="#10b981" name="Deals" radius={[3,3,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div style={{background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px'}}>
+                <div style={{fontSize: '10px', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px'}}>Pipeline Distribution</div>
+                <div style={{height: '200px'}}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pipelineStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={4} dataKey="value">
+                        {pipelineStatusData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip />
+                      <Legend iconType="circle" wrapperStyle={{fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase'}} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{marginTop: '28px', paddingTop: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <div style={{fontSize: '9px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px'}}>TGE Freight Group — Confidential Management Report</div>
+              <div style={{fontSize: '9px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px'}}>Page 1</div>
+            </div>
           </div>
 
-          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
-            <div className="border-b-2 border-primary pb-2 mb-6">
-              <h2 className="text-xl font-black uppercase text-primary tracking-tight">2. Group Success Plan (30-60-90 Day Success Plan)</h2>
-            </div>
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-              {user && <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />}
-            </div>
-          </div>
+          {/* ZONES 2+: One polished page per BDM */}
+          {reportData.map((report, idx) => (
+            <BDMPdfPage
+              key={report.userId}
+              report={report}
+              pageNum={idx + 2}
+              weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]}
+            />
+          ))}
 
-          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
-            <div className="border-b-2 border-primary pb-2 mb-6">
-              <h2 className="text-xl font-black uppercase text-primary tracking-tight">3. Corporate Strategy Blueprints</h2>
-            </div>
-            <StrategyTable data={teamPlans ?? []} />
-          </div>
+          {/* ZONES 3a/3b/3c: Group Success Plan — one page per phase */}
+          <Group90PdfPhase phase={30} phaseIndex={1} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
+          <Group90PdfPhase phase={60} phaseIndex={2} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
+          <Group90PdfPhase phase={90} phaseIndex={3} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
 
-          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
-            <div className="border-b-2 border-primary pb-2 mb-6">
-              <h2 className="text-xl font-black uppercase text-primary tracking-tight">4. Active Pipeline Opportunities</h2>
+          {/* ZONE 4: Opportunities */}
+          <div id="gm-pdf-opps" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
+            <div style={{borderBottom: '3px solid #0f172a', paddingBottom: '12px', marginBottom: '28px'}}>
+              <div style={{fontSize: '8px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px'}}>Section 3</div>
+              <div style={{fontSize: '20px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase'}}>Active Pipeline Opportunities</div>
             </div>
             <OpportunitiesTable data={opportunities} />
           </div>
 
-          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
-            <div className="border-b-2 border-primary pb-2 mb-6">
-              <h2 className="text-xl font-black uppercase text-primary tracking-tight">5. Signed Governance Work</h2>
+          {/* ZONE 5: Signed */}
+          <div id="gm-pdf-signed" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
+            <div style={{borderBottom: '3px solid #0f172a', paddingBottom: '12px', marginBottom: '28px'}}>
+              <div style={{fontSize: '8px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px'}}>Section 4</div>
+              <div style={{fontSize: '20px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase'}}>Signed Governance Work</div>
             </div>
             <SignedPaperworkTable data={paperwork} />
           </div>
 
-          <div className="pt-8 border-t border-slate-200 pdf-page-break-before">
-            <div className="border-b-2 border-primary pb-2 mb-6">
-              <h2 className="text-xl font-black uppercase text-primary tracking-tight">6. Live Freight & New Business</h2>
+          {/* ZONE 6: New Business */}
+          <div id="gm-pdf-newbiz" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
+            <div style={{borderBottom: '3px solid #0f172a', paddingBottom: '12px', marginBottom: '28px'}}>
+              <div style={{fontSize: '8px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px'}}>Section 5</div>
+              <div style={{fontSize: '20px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase'}}>Live Freight & New Business</div>
             </div>
             <NewBusinessTable data={newBusiness} />
           </div>
+
         </div>
-      ) : (
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
-            <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
-            <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
-            <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
-            <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
-            <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
-            <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            {reportData.map((report) => (
-              <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} />
-            ))}
-          </TabsContent>
-
-          <TabsContent value="group90" className="animate-in fade-in duration-500">
-             {user && <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />}
-          </TabsContent>
-
-          <TabsContent value="strategy" className="space-y-6">
-             <StrategyTable data={teamPlans ?? []} />
-          </TabsContent>
-
-          <TabsContent value="opportunities"><OpportunitiesTable data={opportunities} /></TabsContent>
-          <TabsContent value="signed"><SignedPaperworkTable data={paperwork} /></TabsContent>
-          <TabsContent value="business"><NewBusinessTable data={newBusiness} /></TabsContent>
-        </Tabs>
       )}
+
+      {/* ── INTERACTIVE TAB VIEW (screen only) ─────────────────────────────── */}
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
+          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
+          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
+          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
+          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
+          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
+          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          {reportData.map((report) => (
+            <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} />
+          ))}
+        </TabsContent>
+
+        <TabsContent value="group90" className="animate-in fade-in duration-500">
+          {user && <OnboardingPlan userId="CORPORATE_NODE" userName="Corporate" planType="GROUP_90" />}
+        </TabsContent>
+
+        <TabsContent value="strategy" className="space-y-6">
+          <StrategyTable data={teamPlans ?? []} />
+        </TabsContent>
+
+        <TabsContent value="opportunities"><OpportunitiesTable data={opportunities} /></TabsContent>
+        <TabsContent value="signed"><SignedPaperworkTable data={paperwork} /></TabsContent>
+        <TabsContent value="business"><NewBusinessTable data={newBusiness} /></TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -559,6 +657,219 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
   );
 }
 
+const GROUP_90_DEFAULT: Record<number, { focus: string; tasks: string[]; markers: string[] }> = {
+  30: { focus: "Team Alignment & Grounding", tasks: ["Initial team integration to new office and services.", "Review shared territory goals.", "Establish Salesforce cadence. Allow for a reset.", "Review Non-Trading Accounts. (TGE Thursdays)", "Review under-performing accounts.", "Implement rules and processes around White Space reviews for all accounts over 100k.", "Start focusing & canvassing designated areas.", "Increase Urgency & Accountability throughout the team.", "Update Linked-In Profiles", "Review local pricing and ensure a competitive solution can be offered to SME", "Discuss WA Pricing and design WA Rate card for Parcel and small bulk.", "Discuss and Implement 'Sales & Account Management Tier / Top 10'", "Implement sales process utilising the Spin Selling Model."], markers: ["Culture fit verified.", "Salesforce cadence locked in.", "Completion of reviews for non-trading and under-performing accounts.", "BDM and AMs booking in meetings with customers.", "White Space plans completed before each call over 100k.", "16 New Business Opportunities in each zone. (North, South and AMs)", "Linked-In profile updated.", "Competitive Rate schedule created.", "Weekly review and alignment to Sales & Account Management."] },
+  60: { focus: "Group Momentum", tasks: ["Run cross-territory campaigns.", "Share best practices across teams."], markers: ["Internal collaboration active."] },
+  90: { focus: "Standardised Scale", tasks: ["Finalise group performance audit.", "Lock quarterly objectives."], markers: ["Elite standard achieved."] },
+};
+
+const phaseLabels: Record<number, string> = {
+  30: "Phase 1: First 30 Days",
+  60: "Phase 2: Days 31–60",
+  90: "Phase 3: Days 61–90",
+};
+const phaseIds: Record<number, string> = { 30: 'gm-pdf-group90-p1', 60: 'gm-pdf-group90-p2', 90: 'gm-pdf-group90-p3' };
+
+function Group90PdfPhase({ phase, phaseIndex, weekLabel }: { phase: 30 | 60 | 90; phaseIndex: number; weekLabel: string }) {
+  const db = useFirestore();
+  const { user } = useAuth();
+  const configRef = useMemoFirebase(() => (db && user) ? doc(db, 'strategyConfig', 'onboardingPlans') : null, [db, user]);
+  const { data: config } = useDoc(configRef);
+  const progressRef = useMemoFirebase(() => (db && user) ? doc(db, 'onboardingProgress', 'SHARED_GROUP_90') : null, [db, user]);
+  const { data: savedProgress } = useDoc(progressRef);
+
+  const plans = config?.data || { GROUP_90: GROUP_90_DEFAULT };
+  const plan = plans.GROUP_90 || GROUP_90_DEFAULT;
+  const phaseData = plan[phase] || GROUP_90_DEFAULT[phase];
+  const savedState = savedProgress?.tasks || {};
+
+  const tasks = (phaseData?.tasks || []).map((title: string, i: number) => ({
+    id: `${phase}-${i}`,
+    title,
+    completed: savedState[`${phase}-${i}`] === true,
+  }));
+
+  const completedCount = tasks.filter((t: any) => t.completed).length;
+
+  return (
+    <div
+      id={phaseIds[phase]}
+      style={{ width: '794px', background: '#fff', padding: '36px 40px 32px', fontFamily: 'Inter, system-ui, sans-serif', boxSizing: 'border-box' }}
+    >
+      {/* Header */}
+      <div style={{ background: '#f1f5f9', borderRadius: '14px', padding: '24px 28px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ color: '#f59e0b', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '6px' }}>Section 2 — Group Success Plan (30-60-90 Day)</div>
+          <div style={{ color: '#0f172a', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.3px' }}>{phaseLabels[phase]}</div>
+          <div style={{ color: '#475569', fontSize: '12px', fontWeight: 700, marginTop: '4px' }}>Focus: {phaseData?.focus}</div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ color: '#64748b', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Week {weekLabel} • TGE Freight</div>
+          <div style={{ marginTop: '8px', background: 'rgba(0,0,0,0.05)', borderRadius: '8px', padding: '6px 12px', textAlign: 'center' }}>
+            <div style={{ color: '#0f172a', fontSize: '18px', fontWeight: 900 }}>{completedCount}/{tasks.length}</div>
+            <div style={{ color: '#475569', fontSize: '8px', fontWeight: 700, textTransform: 'uppercase' }}>Tasks Done</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Two-column layout: tasks left, markers right */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px' }}>
+        {/* Tasks */}
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '8px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '14px' }}>Action Items & Tasks</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {tasks.map((task: any) => (
+              <div key={task.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '8px 10px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: task.completed ? 'none' : '1.5px solid #cbd5e1', background: task.completed ? '#10b981' : 'transparent', flexShrink: 0, marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {task.completed && <svg width="10" height="10" viewBox="0 0 20 20" fill="white"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/></svg>}
+                </div>
+                <div style={{ fontSize: '11px', color: task.completed ? '#94a3b8' : '#1e293b', lineHeight: '1.5', textDecoration: task.completed ? 'line-through' : 'none', fontWeight: task.completed ? 400 : 500 }}>{task.title}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Success Markers */}
+        <div style={{ background: '#f1f5f9', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '8px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '14px' }}>✦ Success Markers</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {(phaseData?.markers || []).map((marker: string, i: number) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981', flexShrink: 0, marginTop: '4px' }} />
+                <div style={{ fontSize: '11px', color: '#1e293b', lineHeight: '1.5', fontWeight: 500 }}>{marker}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: '20px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: '8px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>TGE Freight Group — Confidential Management Report</div>
+        <div style={{ fontSize: '8px', color: '#94a3b8', fontWeight: 700 }}>{phaseLabels[phase]}</div>
+      </div>
+    </div>
+  );
+}
+
+function BDMPdfPage({ report, pageNum, weekLabel }: { report: BDMWeeklyReport; pageNum: number; weekLabel: string }) {
+  const statusColor = report.status === 'REVIEWED' ? '#059669' : '#d97706';
+  const s = report.summary;
+  return (
+    <div
+      id={`gm-pdf-bdm-${report.userId}`}
+      style={{ width: '794px', background: '#fff', padding: '36px 40px 32px', fontFamily: 'Inter, system-ui, sans-serif', boxSizing: 'border-box' }}
+    >
+      {/* ── Header ── */}
+      <div style={{ background: '#f1f5f9', borderRadius: '14px', padding: '24px 28px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: '#1e40af', border: '3px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '22px', flexShrink: 0 }}>
+            {report.userName.charAt(0)}
+          </div>
+          <div>
+            <div style={{ color: '#0f172a', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.3px', lineHeight: 1 }}>{report.userName}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+              <span style={{ background: statusColor, color: '#fff', fontSize: '8px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{report.status}</span>
+              {report.submittedAt && (
+                <span style={{ color: '#475569', fontSize: '10px', fontWeight: 700 }}>
+                  Submitted: {format(report.submittedAt.toDate(), 'MMM d, h:mm a')}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ color: '#64748b', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Team Performance & Tactical Review</div>
+          <div style={{ color: '#94a3b8', fontSize: '10px', fontWeight: 700, marginTop: '2px' }}>Week {weekLabel} • TGE Freight</div>
+        </div>
+      </div>
+
+      {/* ── KPI Pills ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', marginBottom: '22px' }}>
+        {([
+          { label: 'Calls', value: s.callsMade || 0, color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+          { label: 'Apps', value: s.meetingsHeld || 0, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
+          { label: 'Total EAV', value: formatEAV(s.totalEAV), color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+          { label: 'New Opps', value: s.newOpportunitiesCount, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
+          { label: 'Signed', value: s.signedPaperworkCount, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+          { label: 'New Biz', value: s.newBusinessCount, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+        ] as {label:string;value:string|number;color:string;bg:string;border:string}[]).map((m) => (
+          <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: '10px', padding: '12px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '8px', fontWeight: 800, color: m.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{m.label}</div>
+            <div style={{ fontSize: '22px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>{m.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Text Sections: 2x2 grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        {/* High-Level Summary */}
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <div style={{ width: '3px', height: '14px', background: '#64748b', borderRadius: '2px' }} />
+            <div style={{ fontSize: '8px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '1.5px' }}>High-Level Summary (Friday)</div>
+          </div>
+          <div style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.7', fontStyle: 'italic', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            "{report.weeklyNotes || 'No summary notes submitted.'}"
+          </div>
+        </div>
+
+        {/* Roadblocks */}
+        <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: '10px', padding: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <div style={{ width: '3px', height: '14px', background: '#dc2626', borderRadius: '2px' }} />
+            <div style={{ fontSize: '8px', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Roadblocks & Account Barriers</div>
+          </div>
+          <div style={{ fontSize: '12px', color: '#7f1d1d', lineHeight: '1.7', fontStyle: 'italic', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            "{report.roadblocks || 'None reported.'}"
+          </div>
+        </div>
+
+        {/* Management Support */}
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '10px', padding: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <div style={{ width: '3px', height: '14px', background: '#0284c7', borderRadius: '2px' }} />
+            <div style={{ fontSize: '8px', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Management Support Needed</div>
+          </div>
+          <div style={{ fontSize: '12px', color: '#0c4a6e', lineHeight: '1.7', fontStyle: 'italic', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            "{report.supportNeeded || 'None requested.'}"
+          </div>
+        </div>
+
+        {/* Commitments */}
+        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '16px', gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <div style={{ width: '3px', height: '14px', background: '#16a34a', borderRadius: '2px' }} />
+            <div style={{ fontSize: '8px', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Commitments for Week Ahead</div>
+          </div>
+          <div style={{ fontSize: '12px', color: '#14532d', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {report.nextWeekCommitments || 'No tactical commitments set.'}
+          </div>
+        </div>
+
+        {/* GM Feedback (if present) */}
+        {report.gmFeedback && (
+          <div style={{ background: '#fdf4ff', border: '1px solid #e9d5ff', borderRadius: '10px', padding: '16px', gridColumn: '1 / -1' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+              <div style={{ width: '3px', height: '14px', background: '#9333ea', borderRadius: '2px' }} />
+              <div style={{ fontSize: '8px', fontWeight: 800, color: '#9333ea', textTransform: 'uppercase', letterSpacing: '1.5px' }}>GM Feedback</div>
+            </div>
+            <div style={{ fontSize: '12px', color: '#581c87', lineHeight: '1.7', fontStyle: 'italic', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              "{report.gmFeedback}"
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Footer ── */}
+      <div style={{ marginTop: '20px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: '8px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>TGE Freight Group — Confidential Management Report</div>
+        <div style={{ fontSize: '8px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Page {pageNum}</div>
+      </div>
+    </div>
+  );
+}
+
 function MetricCard({ title, value, sub, icon, color }: any) {
   const gradients: any = {
     blue: 'from-blue-500 to-blue-700',
@@ -587,8 +898,8 @@ function OpportunitiesTable({ data }: { data: any[] }) {
     <Card className="border-none shadow-xl bg-white overflow-hidden">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Prob (%)</TableHead><TableHead>Stage</TableHead><TableHead>Expected Close</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell className="font-bold text-xs">{o.probability}%</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge></TableCell><TableCell className="text-[9px] font-bold text-muted-foreground uppercase">{o.expectedCloseDate?.toDate ? format(o.expectedCloseDate.toDate(), 'MMM d') : 'TBC'}</TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Stage</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge></TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -613,8 +924,8 @@ function NewBusinessTable({ data }: { data: any[] }) {
     <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead><TableHead>AE</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell><TableCell className="text-[10px] font-bold uppercase">{b.assignedAE}</TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>

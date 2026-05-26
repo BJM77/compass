@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { format, startOfWeek } from "date-fns"
+import { format, startOfWeek, differenceInCalendarWeeks, isBefore } from "date-fns"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -38,7 +38,28 @@ export function openSalesforceSearch(term: string, salesforceId?: string) {
  * Monday Planning, Friday Synthesis, and GM Report aggregation.
  */
 export function getCurrentWeek(): string {
-  return format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-ww');
+  const now = new Date();
+  let currentYear = now.getFullYear();
+  
+  // Find first Monday of April for current year
+  let firstMondayOfApril = new Date(currentYear, 3, 1);
+  while (firstMondayOfApril.getDay() !== 1) {
+    firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+  }
+  
+  // If we are before the first Monday of April this year, 
+  // we belong to the previous financial year.
+  if (isBefore(now, firstMondayOfApril)) {
+    currentYear -= 1;
+    firstMondayOfApril = new Date(currentYear, 3, 1);
+    while (firstMondayOfApril.getDay() !== 1) {
+      firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+    }
+  }
+  
+  const weekNumber = differenceInCalendarWeeks(now, firstMondayOfApril, { weekStartsOn: 1 }) + 1;
+  const paddedWeek = weekNumber.toString().padStart(2, '0');
+  return `${currentYear}-${paddedWeek}`;
 }
 
 /**
