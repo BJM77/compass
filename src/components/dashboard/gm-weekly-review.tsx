@@ -89,12 +89,13 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       if (!db || !users) return;
       setIsLoading(true);
       try {
-        const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap] = await Promise.all([
+        const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap, progressSnap] = await Promise.all([
           getDocs(query(collection(db, 'weeklyReports'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'opportunities'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'signedPaperwork'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'newBusiness'), where('week', '==', selectedWeek)))
+          getDocs(query(collection(db, 'newBusiness'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek)))
         ]);
 
         const bdms = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
@@ -102,21 +103,33 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         const reports = bdms.map(bdm => {
           const reportDoc = reportsSnap.docs.find(d => d.data().userId === bdm.id);
           const commitmentDoc = commitmentsSnap.docs.find(d => d.data().userId === bdm.id);
+          const progressDoc = progressSnap.docs.find(d => d.data().userId === bdm.id);
           
           const reportData = reportDoc?.data();
           const commitData = commitmentDoc?.data();
+          const progressData = progressDoc?.data();
 
           // Join actionPlan array into a single string for display
           const joinedCommitments = commitData?.actionPlan?.length > 0 
             ? commitData?.actionPlan?.map((a: string, i: number) => a.trim() ? `${i+1}. ${a}` : '').filter((a: string) => a).join('\n')
             : commitData?.nextWeekCommitments || '';
 
+          const summary = reportData?.summary || { totalEAV: 0, newOpportunitiesCount: 0, signedPaperworkCount: 0, newBusinessCount: 0, callsMade: 0, meetingsHeld: 0 };
+          
+          // Override or fallback callsMade and meetingsHeld from progressData
+          const callsMade = progressData?.calls !== undefined ? progressData.calls : (summary.callsMade || 0);
+          const meetingsHeld = progressData?.apps !== undefined ? progressData.apps : (summary.meetingsHeld || 0);
+
           return {
             id: reportDoc?.id,
             userId: bdm.id,
             userName: bdm.name,
             week: selectedWeek,
-            summary: reportData?.summary || { totalEAV: 0, newOpportunitiesCount: 0, signedPaperworkCount: 0, newBusinessCount: 0, callsMade: 0, meetingsHeld: 0 },
+            summary: {
+              ...summary,
+              callsMade,
+              meetingsHeld
+            },
             weeklyNotes: reportData?.weeklyNotes || '',
             roadblocks: commitData?.roadblocks || '',
             supportNeeded: commitData?.supportNeeded || '',
@@ -419,7 +432,10 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
                 {reportData.map((r) => (
                   <div key={r.userId} style={{display: 'flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', borderRadius: '20px', padding: '4px 12px 4px 4px', border: '1px solid #e2e8f0'}}>
                     <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px'}}>{r.userName.charAt(0)}</div>
-                    <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>{r.userName.split(' ')[0]}</span>
+                    <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>
+                      {r.userName.split(' ')[0]}
+                      <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.callsMade || 0} · A:{r.summary.meetingsHeld || 0})</span>
+                    </span>
                   </div>
                 ))}
               </div>

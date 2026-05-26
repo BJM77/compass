@@ -51,7 +51,8 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
   const configRef = useMemoFirebase(() => (db && user) ? doc(db, 'strategyConfig', 'onboardingPlans') : null, [db, user]);
   const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
 
-  const progressRef = useMemoFirebase(() => (db && user && userId && userId !== 'undefined' && userId !== 'null') ? doc(db, 'onboardingProgress', `${userId}_${planType}`) : null, [db, user, userId, planType]);
+  const progressDocId = planType === 'GROUP_90' ? 'SHARED_GROUP_90' : `${userId}_${planType}`;
+  const progressRef = useMemoFirebase(() => (db && user && userId && userId !== 'undefined' && userId !== 'null') ? doc(db, 'onboardingProgress', progressDocId) : null, [db, user, userId, planType, progressDocId]);
   const { data: savedProgress, isLoading: isProgressLoading } = useDoc(progressRef);
 
   const [activePlan, setActivePlan] = useState<any>(null);
@@ -92,7 +93,7 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
         if (t.completed) checkedState[t.id] = true;
       });
       
-      await setDoc(doc(db, 'onboardingProgress', `${userId}_${planType}`), {
+      await setDoc(doc(db, 'onboardingProgress', progressDocId), {
         tasks: checkedState,
         updatedAt: serverTimestamp()
       }, { merge: true });

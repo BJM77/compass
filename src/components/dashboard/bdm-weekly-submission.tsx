@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { format, startOfWeek } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, formatEAV } from '@/lib/utils';
+import { getCurrentWeek, formatEAV, cn } from '@/lib/utils';
 
 export function BDMWeeklySubmission({ userId, userName }: { userId: string; userName: string }) {
   const db = useFirestore();

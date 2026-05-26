@@ -3,8 +3,9 @@
 import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where, updateDoc } from 'firebase/firestore';
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where, updateDoc, getDoc } from 'firebase/firestore';
 import { getCurrentWeek } from '@/lib/utils';
+import { differenceInCalendarWeeks, isBefore } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -76,6 +77,58 @@ function parseCSV(file: File): Promise<any[]> {
   });
 }
 
+function parseAustralianDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  const cleanStr = dateStr.trim();
+  const [datePart] = cleanStr.split(' ');
+  const parts = datePart.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // 0-indexed
+    let year = parseInt(parts[2], 10);
+    if (parts[2].length === 2) {
+      year += 2000;
+    }
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) return d;
+  }
+  const d = new Date(cleanStr);
+  if (!isNaN(d.getTime())) return d;
+  return null;
+}
+
+function getWeekForDate(date: Date): string {
+  let currentYear = date.getFullYear();
+  let firstMondayOfApril = new Date(currentYear, 3, 1);
+  while (firstMondayOfApril.getDay() !== 1) {
+    firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+  }
+  if (isBefore(date, firstMondayOfApril)) {
+    currentYear -= 1;
+    firstMondayOfApril = new Date(currentYear, 3, 1);
+    while (firstMondayOfApril.getDay() !== 1) {
+      firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+    }
+  }
+  const weekNumber = differenceInCalendarWeeks(date, firstMondayOfApril, { weekStartsOn: 1 }) + 1;
+  const paddedWeek = weekNumber.toString().padStart(2, '0');
+  return `${currentYear}-${paddedWeek}`;
+}
+
+function classifyActivity(row: any): 'CALL' | 'APP' {
+  const activityType = getField(row, 'Activity Type', 'activity type').toLowerCase();
+  const subject = getField(row, 'Subject', 'subject').toLowerCase();
+  const recordType = getField(row, 'Task/Event Record Type', 'task/event record type').toLowerCase();
+
+  const isMeeting = 
+    activityType.includes('meeting') || activityType.includes('appointment') || activityType.includes('app') || activityType.includes('visit') || activityType.includes('f2f') ||
+    subject.includes('meeting') || subject.includes('appointment') || subject.includes('app') || subject.includes('visit') || subject.includes('f2f') || subject.includes('? m') ||
+    recordType.includes('event') || recordType.includes('meeting');
+
+  if (isMeeting) return 'APP';
+  return 'CALL';
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ProcessedRecord {
   docId: string;
@@ -107,6 +160,19 @@ interface ImportStats {
   closedLostIgnored: number;
   unmatchedOwners: string[];
   matchedBDMs: string[];
+  totalActivityRows?: number;
+  completedCalls?: number;
+  completedApps?: number;
+  unmatchedActivityOwners?: string[];
+  matchedActivityBDMs?: string[];
+}
+
+interface ProcessedActivityRecord {
+  userId: string;
+  userName: string;
+  week: string;
+  calls: number;
+  apps: number;
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -126,9 +192,11 @@ export function CRMImporter() {
 
   const [customersFile, setCustomersFile] = useState<File | null>(null);
   const [opportunitiesFile, setOpportunitiesFile] = useState<File | null>(null);
+  const [activityFile, setActivityFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [previewRecords, setPreviewRecords] = useState<ProcessedRecord[]>([]);
+  const [previewActivityRecords, setPreviewActivityRecords] = useState<ProcessedActivityRecord[]>([]);
   const [stats, setStats] = useState<ImportStats | null>(null);
   const [isPurging, setIsPurging] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -211,9 +279,9 @@ export function CRMImporter() {
     }
   };
 
-  // ── Process both files ───────────────────────────────────────────────────
+  // ── Process all files ───────────────────────────────────────────────────
   const handleProcess = useCallback(async () => {
-    if (!customersFile && !opportunitiesFile) {
+    if (!customersFile && !opportunitiesFile && !activityFile) {
       toast({ variant: 'destructive', title: 'Upload at least one file' });
       return;
     }
@@ -223,12 +291,14 @@ export function CRMImporter() {
     }
     setIsProcessing(true);
     setPreviewRecords([]);
+    setPreviewActivityRecords([]);
     setStats(null);
 
     try {
-      const [customerRows, opportunityRows] = await Promise.all([
+      const [customerRows, opportunityRows, activityRows] = await Promise.all([
         customersFile ? parseCSV(customersFile) : Promise.resolve([]),
         opportunitiesFile ? parseCSV(opportunitiesFile) : Promise.resolve([]),
+        activityFile ? parseCSV(activityFile) : Promise.resolve([]),
       ]);
 
       // Build customer map: customerId → row data
@@ -352,109 +422,252 @@ export function CRMImporter() {
         });
       });
 
+      // PASS 3: Activity CSV Rows
+      const activityMap = new Map<string, { calls: number; apps: number }>();
+      const unmatchedActivityOwners = new Set<string>();
+      const matchedActivityBDMSet = new Set<string>();
+
+      activityRows.forEach(row => {
+        const status = getField(row, 'Status', 'status').toLowerCase();
+        const completedDateStr = getField(row, 'Completed Date/Time', 'completed date/time') || getField(row, 'Date', 'date');
+        const assignedName = getField(row, 'Assigned', 'assigned');
+
+        // Check if completed: either status is 'completed' or completed date/time is provided
+        const isCompleted = status === 'completed' || !!getField(row, 'Completed Date/Time', 'completed date/time');
+        if (!isCompleted || !assignedName || !completedDateStr) return;
+
+        const matchedUser = matchUser(users, assignedName);
+        if (!matchedUser) {
+          unmatchedActivityOwners.add(assignedName);
+          return;
+        }
+        matchedActivityBDMSet.add(matchedUser.name);
+
+        const date = parseAustralianDate(completedDateStr);
+        if (!date) return;
+
+        const week = getWeekForDate(date);
+        const key = `${matchedUser.id}_${week}`;
+
+        const type = classifyActivity(row);
+        if (!activityMap.has(key)) {
+          activityMap.set(key, { calls: 0, apps: 0 });
+        }
+
+        const counts = activityMap.get(key)!;
+        if (type === 'CALL') {
+          counts.calls += 1;
+        } else if (type === 'APP') {
+          counts.apps += 1;
+        }
+      });
+
+      const actRecords: ProcessedActivityRecord[] = [];
+      let completedCalls = 0;
+      let completedApps = 0;
+      activityMap.forEach((counts, key) => {
+        const [uid, w] = key.split('_');
+        const u = users.find(x => x.id === uid);
+        actRecords.push({
+          userId: uid,
+          userName: u ? u.name : 'Unknown',
+          week: w,
+          calls: counts.calls,
+          apps: counts.apps
+        });
+        completedCalls += counts.calls;
+        completedApps += counts.apps;
+      });
+
+      // Sort activity preview records by week desc, then user name
+      actRecords.sort((a, b) => b.week.localeCompare(a.week) || a.userName.localeCompare(b.userName));
+
       setPreviewRecords(records);
+      setPreviewActivityRecords(actRecords);
       setStats({
-        totalRows:           customerRows.length + opportunityRows.length,
+        totalRows:           customerRows.length + opportunityRows.length + activityRows.length,
         activeOpportunities: records.filter(r => !r.isBareAccount).length,
         bareAccounts:        records.filter(r => r.isBareAccount).length,
         closedWonHidden,
         closedLostIgnored,
         unmatchedOwners:     Array.from(unmatchedOwners),
         matchedBDMs:         Array.from(matchedBDMSet),
+        totalActivityRows:   activityRows.length,
+        completedCalls,
+        completedApps,
+        unmatchedActivityOwners: Array.from(unmatchedActivityOwners),
+        matchedActivityBDMs: Array.from(matchedActivityBDMSet),
       });
 
-      toast({ title: `Preview Ready`, description: `${records.length} records to import.` });
+      const pipelineMsg = records.length > 0 ? `${records.length} pipeline records` : '';
+      const activityMsg = actRecords.length > 0 ? `${actRecords.length} activity entries` : '';
+      const and = records.length > 0 && actRecords.length > 0 ? ' & ' : '';
+      toast({ title: `Preview Ready`, description: `Processed ${pipelineMsg}${and}${activityMsg}.` });
     } catch (e: any) {
       console.error(e);
       toast({ variant: 'destructive', title: 'Processing Failed', description: e?.message });
     } finally {
       setIsProcessing(false);
     }
-  }, [customersFile, opportunitiesFile, users, toast]);
+  }, [customersFile, opportunitiesFile, activityFile, users, toast]);
 
   // ── Write to Firestore ───────────────────────────────────────────────────
   const handleImport = async () => {
-    if (!db || previewRecords.length === 0 || !users) return;
+    if (!db || !users) return;
+    if (previewRecords.length === 0 && previewActivityRecords.length === 0) {
+      toast({ variant: 'destructive', title: 'No records to import' });
+      return;
+    }
     setIsImporting(true);
     try {
-      // 1. Calculate per-user YTD revenue deduplicating by accountMasterCode
-      const userRevMap = new Map<string, Map<string, number>>();
-      previewRecords.forEach(r => {
-        if (!r.userId) return;
-        if (!userRevMap.has(r.userId)) userRevMap.set(r.userId, new Map());
-        const code = r.accountMasterCode || r.docId;
-        if (!userRevMap.get(r.userId)!.has(code)) {
-          userRevMap.get(r.userId)!.set(code, Number(r.currentRevenue) || 0);
-        }
-      });
-
-      // Calculate total YTD revenue sum per user
-      const userRevenueTotals = new Map<string, number>();
-      userRevMap.forEach((acctMap, uid) => {
-        let sum = 0;
-        acctMap.forEach(v => sum += v);
-        userRevenueTotals.set(uid, sum);
-      });
-
-      // 2. Batch commit pipeline records
-      const BATCH_SIZE = 400;
       let count = 0;
-      for (let i = 0; i < previewRecords.length; i += BATCH_SIZE) {
-        const batch = writeBatch(db);
-        const chunk = previewRecords.slice(i, i + BATCH_SIZE);
-        chunk.forEach(record => {
-          const docRef = doc(db, 'pipelineReviews', record.docId);
-          batch.set(docRef, {
-            accountMasterCode: record.accountMasterCode,
-            salesforceId:      record.salesforceId,
-            pipeline:          record.pipeline,
-            opportunityName:   record.opportunityName,
-            stage:             record.stage,
-            value:             record.value,
-            probability:       record.probability,
-            expectedDate:      record.expectedDate,
-            businessUnit:      record.businessUnit,
-            userId:            record.userId,
-            userName:          record.userName,
-            currentRevenue:    record.currentRevenue,
-            lastYearRevenue:   record.lastYearRevenue,
-            lastInvoiceDate:   record.lastInvoiceDate,
-            lastActivity:      record.lastActivity,
-            creditHold:        record.creditHold,
-            closedWonValue:    record.closedWonValue,
-            isBareAccount:     record.isBareAccount,
-            week:              currentWeek,
-            importedFromSF:    true,
-            updatedAt:         serverTimestamp(),
-          }, { merge: true });
-          count++;
+      
+      // 1. Process pipeline imports if available
+      if (previewRecords.length > 0) {
+        // Calculate per-user YTD revenue deduplicating by accountMasterCode
+        const userRevMap = new Map<string, Map<string, number>>();
+        previewRecords.forEach(r => {
+          if (!r.userId) return;
+          if (!userRevMap.has(r.userId)) userRevMap.set(r.userId, new Map());
+          const code = r.accountMasterCode || r.docId;
+          if (!userRevMap.get(r.userId)!.has(code)) {
+            userRevMap.get(r.userId)!.set(code, Number(r.currentRevenue) || 0);
+          }
         });
-        await batch.commit();
+
+        // Calculate total YTD revenue sum per user
+        const userRevenueTotals = new Map<string, number>();
+        userRevMap.forEach((acctMap, uid) => {
+          let sum = 0;
+          acctMap.forEach(v => sum += v);
+          userRevenueTotals.set(uid, sum);
+        });
+
+        // Batch commit pipeline records
+        const BATCH_SIZE = 400;
+        for (let i = 0; i < previewRecords.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const chunk = previewRecords.slice(i, i + BATCH_SIZE);
+          chunk.forEach(record => {
+            const docRef = doc(db, 'pipelineReviews', record.docId);
+            batch.set(docRef, {
+              accountMasterCode: record.accountMasterCode,
+              salesforceId:      record.salesforceId,
+              pipeline:          record.pipeline,
+              opportunityName:   record.opportunityName,
+              stage:             record.stage,
+              value:             record.value,
+              probability:       record.probability,
+              expectedDate:      record.expectedDate,
+              businessUnit:      record.businessUnit,
+              userId:            record.userId,
+              userName:          record.userName,
+              currentRevenue:    record.currentRevenue,
+              lastYearRevenue:   record.lastYearRevenue,
+              lastInvoiceDate:   record.lastInvoiceDate,
+              lastActivity:      record.lastActivity,
+              creditHold:        record.creditHold,
+              closedWonValue:    record.closedWonValue,
+              isBareAccount:     record.isBareAccount,
+              week:              currentWeek,
+              importedFromSF:    true,
+              updatedAt:         serverTimestamp(),
+            }, { merge: true });
+            count++;
+          });
+          await batch.commit();
+        }
+
+        // Batch commit bdmStats updates so Governance Command and Matrices are populated
+        const statsBatch = writeBatch(db);
+        users.forEach(u => {
+          if (u.role === 'LEADER') return;
+          const rev = userRevenueTotals.get(u.id) || 0;
+          const statRef = doc(db, 'bdmStats', u.id);
+          statsBatch.set(statRef, {
+            id: u.id,
+            name: u.name,
+            role: u.role,
+            territory: u.territory || 'FLEX',
+            target: Number(u.target) || 2500000,
+            revenueYTD: rev,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        });
+        await statsBatch.commit();
       }
 
-      // 3. Batch commit bdmStats updates so Governance Command and Matrices are populated
-      const statsBatch = writeBatch(db);
-      users.forEach(u => {
-        if (u.role === 'LEADER') return;
-        const rev = userRevenueTotals.get(u.id) || 0;
-        const statRef = doc(db, 'bdmStats', u.id);
-        statsBatch.set(statRef, {
-          id: u.id,
-          name: u.name,
-          role: u.role,
-          territory: u.territory || 'FLEX',
-          target: Number(u.target) || 2500000,
-          revenueYTD: rev,
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-      });
-      await statsBatch.commit();
+      // 2. Process activity imports if available
+      let activityImportCount = 0;
+      if (previewActivityRecords.length > 0) {
+        const BATCH_SIZE = 400;
+        for (let i = 0; i < previewActivityRecords.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const chunk = previewActivityRecords.slice(i, i + BATCH_SIZE);
+          
+          chunk.forEach(record => {
+            const docId = `${record.userId}_${record.week}`;
+            const progressRef = doc(db, 'weeklyProgress', docId);
+            batch.set(progressRef, {
+              userId: record.userId,
+              week: record.week,
+              calls: record.calls,
+              apps: record.apps,
+              updatedAt: serverTimestamp(),
+            }, { merge: true });
+            activityImportCount++;
+          });
+          await batch.commit();
+        }
 
-      toast({ title: '✅ Import Complete', description: `${count} records & BDM stats synced to Firestore.` });
+        // Fetch and merge into existing weeklyReports summaries in bulk for unique weeks
+        const uniqueWeeks = Array.from(new Set(previewActivityRecords.map(r => r.week)));
+        if (uniqueWeeks.length > 0) {
+          const reportsSnap = await getDocs(
+            query(collection(db, 'weeklyReports'), where('week', 'in', uniqueWeeks))
+          );
+          
+          if (!reportsSnap.empty) {
+            const reportsBatch = writeBatch(db);
+            let reportsUpdatedCount = 0;
+            
+            reportsSnap.docs.forEach(docSnap => {
+              const data = docSnap.data();
+              const userId = data.userId;
+              const week = data.week;
+              
+              const actRecord = previewActivityRecords.find(r => r.userId === userId && r.week === week);
+              if (actRecord) {
+                const summary = data.summary || {};
+                reportsBatch.set(docSnap.ref, {
+                  summary: {
+                    ...summary,
+                    callsMade: actRecord.calls,
+                    meetingsHeld: actRecord.apps
+                  }
+                }, { merge: true });
+                reportsUpdatedCount++;
+              }
+            });
+            
+            if (reportsUpdatedCount > 0) {
+              await reportsBatch.commit();
+            }
+          }
+        }
+      }
+
+      const pipelineMsg = count > 0 ? `${count} pipeline records` : '';
+      const activityMsg = activityImportCount > 0 ? `${activityImportCount} activity aggregates` : '';
+      const and = count > 0 && activityImportCount > 0 ? ' & ' : '';
+      toast({ title: '✅ Import Complete', description: `Successfully synced ${pipelineMsg}${and}${activityMsg} to Firestore.` });
+
       setPreviewRecords([]);
+      setPreviewActivityRecords([]);
       setStats(null);
       setCustomersFile(null);
       setOpportunitiesFile(null);
+      setActivityFile(null);
     } catch (e: any) {
       console.error(e);
       toast({ variant: 'destructive', title: 'Import Failed', description: e?.message });
@@ -517,7 +730,7 @@ export function CRMImporter() {
               <div>
                 <CardTitle className="text-xl font-black tracking-tight">Salesforce CRM Sync</CardTitle>
                 <CardDescription className="text-slate-400 font-medium mt-0.5">
-                  Two-file import: Customers + Opportunities — merged by Customer ID
+                  Three-file import: Customers, Opportunities, and Activities — merged and aggregated
                 </CardDescription>
               </div>
             </div>
@@ -576,7 +789,7 @@ export function CRMImporter() {
           </div>
 
           {/* File Upload Zones */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FileZone
               label="Customers Export"
               hint="Customer ID · Account Owner · YTD Revenue · Credit Hold"
@@ -589,34 +802,40 @@ export function CRMImporter() {
               file={opportunitiesFile}
               onFile={setOpportunitiesFile}
             />
+            <FileZone
+              label="Activity Export"
+              hint="Assigned · Completed Date · Subject · Status"
+              file={activityFile}
+              onFile={setActivityFile}
+            />
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
             <Button
               onClick={handleProcess}
-              disabled={isProcessing || isImporting || (!customersFile && !opportunitiesFile)}
+              disabled={isProcessing || isImporting || (!customersFile && !opportunitiesFile && !activityFile)}
               className="bg-slate-900 text-white font-black uppercase text-xs h-12 px-8 rounded-xl"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
               Preview Import
             </Button>
-            {previewRecords.length > 0 && (
+            {(previewRecords.length > 0 || previewActivityRecords.length > 0) && (
               <Button
                 onClick={handleImport}
                 disabled={isImporting || isProcessing}
                 className="bg-accent text-white font-black uppercase text-xs h-12 px-8 rounded-xl shadow-lg"
               >
                 {isImporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                Commit {previewRecords.length} Records to Week {currentWeek.split('-')[1]}
+                Commit {previewRecords.length + previewActivityRecords.length} Records to Week {currentWeek.split('-')[1]}
               </Button>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats Panel */}
-      {stats && (
+      {/* Pipeline Stats Panel */}
+      {stats && previewRecords.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
             { label: 'Active Opps', value: stats.activeOpportunities, color: 'text-green-700 bg-green-50 border-green-100' },
@@ -624,6 +843,23 @@ export function CRMImporter() {
             { label: 'Closed Won (hidden)', value: stats.closedWonHidden, color: 'text-amber-700 bg-amber-50 border-amber-100' },
             { label: 'Closed Lost (ignored)', value: stats.closedLostIgnored, color: 'text-red-700 bg-red-50 border-red-100' },
             { label: 'Total Pipeline Rows', value: previewRecords.length, color: 'text-primary bg-slate-50 border-slate-200' },
+          ].map(s => (
+            <div key={s.label} className={`rounded-2xl p-4 border ${s.color} text-center`}>
+              <p className="text-2xl font-black">{s.value}</p>
+              <p className="text-[9px] font-black uppercase tracking-widest mt-1 opacity-70">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Activity Stats Panel */}
+      {stats && previewActivityRecords.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: 'Total Activity Rows', value: stats.totalActivityRows, color: 'text-slate-700 bg-slate-50 border-slate-200' },
+            { label: 'Completed Calls', value: stats.completedCalls, color: 'text-blue-700 bg-blue-50 border-blue-100' },
+            { label: 'Completed Meetings', value: stats.completedApps, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
+            { label: 'Unique BDM-Weeks', value: previewActivityRecords.length, color: 'text-purple-700 bg-purple-50 border-purple-100' },
           ].map(s => (
             <div key={s.label} className={`rounded-2xl p-4 border ${s.color} text-center`}>
               <p className="text-2xl font-black">{s.value}</p>
@@ -644,6 +880,24 @@ export function CRMImporter() {
             </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {stats.unmatchedOwners.map(n => (
+                <Badge key={n} className="bg-orange-100 text-orange-800 font-bold text-[10px] border-none">{n}</Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unmatched Activity Owners Warning */}
+      {stats && stats.unmatchedActivityOwners && stats.unmatchedActivityOwners.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-black text-orange-800 uppercase">Unmatched Activity Owners</p>
+            <p className="text-[11px] text-orange-700 mt-1">
+              These names in the Activity CSV don't match any Compass user — their activity counts were skipped:
+            </p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {stats.unmatchedActivityOwners.map(n => (
                 <Badge key={n} className="bg-orange-100 text-orange-800 font-bold text-[10px] border-none">{n}</Badge>
               ))}
             </div>
@@ -721,6 +975,51 @@ export function CRMImporter() {
                     </TableCell>
                     <TableCell>
                       <p className="text-[9px] font-mono text-slate-400">{r.accountMasterCode}</p>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </Card>
+      )}
+
+      {/* Activity Preview Table */}
+      {previewActivityRecords.length > 0 && (
+        <Card className="border-none shadow-xl bg-white overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b py-4 px-6">
+            <CardTitle className="text-sm font-black uppercase tracking-tight">
+              Preview — {previewActivityRecords.length} Activity Aggregations by Week
+            </CardTitle>
+          </CardHeader>
+          <ScrollArea className="h-[300px]">
+            <Table>
+              <TableHeader className="bg-slate-50 sticky top-0 z-10">
+                <TableRow className="text-[9px] font-black uppercase tracking-widest">
+                  <TableHead className="pl-6">BDM</TableHead>
+                  <TableHead>Financial Week</TableHead>
+                  <TableHead>Completed Calls</TableHead>
+                  <TableHead>Completed Apps (Meetings)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {previewActivityRecords.map((r, i) => (
+                  <TableRow key={i} className="hover:bg-slate-50">
+                    <TableCell className="pl-6 py-3">
+                      <p className="text-[10px] font-black uppercase text-primary">{r.userName}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[10px] font-bold">Week {r.week.split('-')[1]} ({r.week})</p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className="text-[10px] font-black bg-blue-100 text-blue-800 border-none px-3 py-1">
+                        {r.calls} Calls
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className="text-[10px] font-black bg-emerald-100 text-emerald-800 border-none px-3 py-1">
+                        {r.apps} Meetings
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 ))}
