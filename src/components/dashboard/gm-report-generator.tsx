@@ -100,6 +100,10 @@ export function GMReportGenerator() {
         teamGoals: goalsData
       });
 
+      if (!result) {
+        throw new Error("AI failed to generate report.");
+      }
+
       setAiAnalysis(result);
 
       await addDocumentNonBlocking(collection(db, 'teamReports'), {

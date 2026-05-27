@@ -54,6 +54,8 @@ interface ArchivedWeek {
   // Activity
   calls: number;
   apps: number;
+  crmCalls?: number;
+  crmApps?: number;
   proposals: number;
   deals: number;
   // Opportunities / Wins / New Business
@@ -68,18 +70,23 @@ const EMPTY_ARCHIVE: ArchivedWeek = {
   actionPlan: [], roadblocks: '', supportNeeded: '',
   fridayStatus: '', weeklyNotes: '', summary: null,
   stillWorkingAccounts: [], gmFeedback: '',
-  calls: 0, apps: 0, proposals: 0, deals: 0,
+  calls: 0, apps: 0, crmCalls: 0, crmApps: 0, proposals: 0, deals: 0,
   opportunities: [], signedPaperwork: [], newBusiness: [],
 };
 
 // ─── Stat Pill ────────────────────────────────────────────────────────────────
-function StatPill({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) {
+function StatPill({ icon: Icon, label, value, subValue, color }: { icon: any; label: string; value: string | number; subValue?: string | null; color: string }) {
   return (
     <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${color}`}>
       <Icon className="w-3.5 h-3.5 opacity-60" />
       <div>
         <p className="text-[8px] font-black uppercase tracking-widest opacity-60">{label}</p>
-        <p className="text-sm font-black">{value}</p>
+        <div className="flex items-baseline gap-1.5">
+          <p className="text-sm font-black">{value}</p>
+          {subValue && (
+            <p className="text-[8px] font-black opacity-60 tracking-wider">{subValue}</p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -116,8 +123,8 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
         <div className="flex items-center gap-4">
           {/* Quick stats */}
           <div className="hidden md:flex items-center gap-3 text-[9px] font-black text-slate-400 uppercase">
-            <span><Phone className="w-3 h-3 inline mr-0.5" /> {data.calls}</span>
-            <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> {data.apps}</span>
+            <span><Phone className="w-3 h-3 inline mr-0.5" /> {data.calls}{data.crmCalls !== undefined ? `/${data.crmCalls}` : ''}</span>
+            <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> {data.apps}{data.crmApps !== undefined ? `/${data.crmApps}` : ''}</span>
             <span><FileText className="w-3 h-3 inline mr-0.5" /> {data.proposals}</span>
             <span><Award className="w-3 h-3 inline mr-0.5" /> {data.deals}</span>
           </div>
@@ -130,8 +137,8 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
         <CardContent className="px-5 pb-6 pt-0 space-y-6 border-t border-slate-100">
           {/* Activity Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
-            <StatPill icon={Phone} label="Calls" value={data.calls} color="bg-blue-50 text-blue-600 border-blue-100" />
-            <StatPill icon={CalendarCheck} label="Apps" value={data.apps} color="bg-green-50 text-green-600 border-green-100" />
+            <StatPill icon={Phone} label="Calls" value={data.calls} subValue={data.crmCalls !== undefined ? `CRM: ${data.crmCalls}` : null} color="bg-blue-50 text-blue-600 border-blue-100" />
+            <StatPill icon={CalendarCheck} label="Apps" value={data.apps} subValue={data.crmApps !== undefined ? `CRM: ${data.crmApps}` : null} color="bg-green-50 text-green-600 border-green-100" />
             <StatPill icon={FileText} label="Opps" value={data.proposals} color="bg-purple-50 text-purple-600 border-purple-100" />
             <StatPill icon={Award} label="Wins" value={data.deals} color="bg-orange-50 text-orange-600 border-orange-100" />
           </div>
@@ -310,6 +317,9 @@ export function WeeklyArchive() {
           const userPaperwork = paperworkSnap.docs.filter(d => d.data().userId === u.id).map(d => d.data());
           const userBusiness = businessSnap.docs.filter(d => d.data().userId === u.id).map(d => d.data());
 
+          const crmCalls = progress?.crmCalls !== undefined ? progress.crmCalls : (report?.summary?.crmCalls || 0);
+          const crmApps = progress?.crmApps !== undefined ? progress.crmApps : (report?.summary?.crmApps || 0);
+
           return {
             userId: u.id,
             userName: u.name || u.id,
@@ -329,6 +339,8 @@ export function WeeklyArchive() {
             // Activity
             calls: Number(progress?.calls) || 0,
             apps: Number(progress?.apps) || 0,
+            crmCalls,
+            crmApps,
             proposals: Number(progress?.proposals) || 0,
             deals: Number(progress?.deals) || 0,
             // Collections
@@ -365,12 +377,14 @@ export function WeeklyArchive() {
       (acc, d) => ({
         calls: acc.calls + d.calls,
         apps: acc.apps + d.apps,
+        crmCalls: acc.crmCalls + (d.crmCalls || 0),
+        crmApps: acc.crmApps + (d.crmApps || 0),
         proposals: acc.proposals + d.proposals,
         deals: acc.deals + d.deals,
         mondaySubmitted: acc.mondaySubmitted + (d.mondayStatus === 'SUBMITTED' ? 1 : 0),
         fridaySubmitted: acc.fridaySubmitted + (d.fridayStatus === 'SUBMITTED' || d.fridayStatus === 'REVIEWED' ? 1 : 0),
       }),
-      { calls: 0, apps: 0, proposals: 0, deals: 0, mondaySubmitted: 0, fridaySubmitted: 0 }
+      { calls: 0, apps: 0, crmCalls: 0, crmApps: 0, proposals: 0, deals: 0, mondaySubmitted: 0, fridaySubmitted: 0 }
     );
   }, [archiveData]);
 
@@ -432,11 +446,11 @@ export function WeeklyArchive() {
               <div className="flex flex-wrap gap-3 text-xs font-black">
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.calls}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Calls</p>
+                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Calls {teamTotals.crmCalls > 0 ? `(CRM: ${teamTotals.crmCalls})` : ''}</p>
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.apps}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Apps</p>
+                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Apps {teamTotals.crmApps > 0 ? `(CRM: ${teamTotals.crmApps})` : ''}</p>
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.proposals}</p>

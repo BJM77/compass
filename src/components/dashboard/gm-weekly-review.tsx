@@ -39,6 +39,8 @@ interface BDMWeeklyReport {
     newBusinessCount: number;
     callsMade?: number;
     meetingsHeld?: number;
+    crmCalls?: number;
+    crmApps?: number;
   };
   weeklyNotes: string;
   roadblocks?: string;
@@ -114,11 +116,15 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             ? commitData?.actionPlan?.map((a: string, i: number) => a.trim() ? `${i+1}. ${a}` : '').filter((a: string) => a).join('\n')
             : commitData?.nextWeekCommitments || '';
 
-          const summary = reportData?.summary || { totalEAV: 0, newOpportunitiesCount: 0, signedPaperworkCount: 0, newBusinessCount: 0, callsMade: 0, meetingsHeld: 0 };
+          const summary = reportData?.summary || { totalEAV: 0, newOpportunitiesCount: 0, signedPaperworkCount: 0, newBusinessCount: 0, callsMade: 0, meetingsHeld: 0, crmCalls: 0, crmApps: 0 };
           
-          // Override or fallback callsMade and meetingsHeld from progressData
+          // Override or fallback callsMade and meetingsHeld from progressData (manual entries)
           const callsMade = progressData?.calls !== undefined ? progressData.calls : (summary.callsMade || 0);
           const meetingsHeld = progressData?.apps !== undefined ? progressData.apps : (summary.meetingsHeld || 0);
+
+          // Retrieve or fallback crmCalls and crmApps (imported CRM entries)
+          const crmCalls = progressData?.crmCalls !== undefined ? progressData.crmCalls : (summary.crmCalls || 0);
+          const crmApps = progressData?.crmApps !== undefined ? progressData.crmApps : (summary.crmApps || 0);
 
           return {
             id: reportDoc?.id,
@@ -128,7 +134,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             summary: {
               ...summary,
               callsMade,
-              meetingsHeld
+              meetingsHeld,
+              crmCalls,
+              crmApps
             },
             weeklyNotes: reportData?.weeklyNotes || '',
             roadblocks: commitData?.roadblocks || '',
@@ -308,7 +316,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     const totalNewBiz = newBusiness.length;
     const totalCalls = reportData.reduce((sum, r) => sum + (r.summary.callsMade || 0), 0);
     const totalApps = reportData.reduce((sum, r) => sum + (r.summary.meetingsHeld || 0), 0);
-    return { totalEAV, totalNewOpps, totalSigned, totalNewBiz, totalCalls, totalApps };
+    const totalCrmCalls = reportData.reduce((sum, r) => sum + (r.summary.crmCalls || 0), 0);
+    const totalCrmApps = reportData.reduce((sum, r) => sum + (r.summary.crmApps || 0), 0);
+    return { totalEAV, totalNewOpps, totalSigned, totalNewBiz, totalCalls, totalApps, totalCrmCalls, totalCrmApps };
   }, [reportData, opportunities, paperwork, newBusiness]);
 
   const performanceData = reportData.map(r => ({
@@ -363,8 +373,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         <MetricCard title="New Opps" value={metrics.totalNewOpps} sub="Weekly Growth" icon={<Target className="w-4 h-4" />} color="green" />
         <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-4 h-4" />} color="purple" />
         <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-4 h-4" />} color="orange" />
-        <MetricCard title="Team Calls" value={metrics.totalCalls} sub="Customer Touch" icon={<Phone className="w-4 h-4" />} color="blue" />
-        <MetricCard title="Team Apps" value={metrics.totalApps} sub="Face to Face" icon={<CalendarCheck className="w-4 h-4" />} color="green" />
+        <MetricCard title="Team Calls" value={metrics.totalCalls} sub={`CRM: ${metrics.totalCrmCalls} completed`} icon={<Phone className="w-4 h-4" />} color="blue" />
+        <MetricCard title="Team Apps" value={metrics.totalApps} sub={`CRM: ${metrics.totalCrmApps} completed`} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -427,14 +437,14 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
 
             {/* Team Member Avatars Row */}
             <div style={{display: 'flex', gap: '12px', marginBottom: '28px', alignItems: 'center'}}>
-              <div style={{fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap'}}>Sales Team</div>
+              <div style={{fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap'}}>Sales Team (Manual/CRM)</div>
               <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
                 {reportData.map((r) => (
                   <div key={r.userId} style={{display: 'flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', borderRadius: '20px', padding: '4px 12px 4px 4px', border: '1px solid #e2e8f0'}}>
                     <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px'}}>{r.userName.charAt(0)}</div>
                     <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>
                       {r.userName.split(' ')[0]}
-                      <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.callsMade || 0} · A:{r.summary.meetingsHeld || 0})</span>
+                      <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.callsMade || 0}/{r.summary.crmCalls || 0} · A:{r.summary.meetingsHeld || 0}/{r.summary.crmApps || 0})</span>
                     </span>
                   </div>
                 ))}
@@ -448,8 +458,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
                 {label: 'New Opps', value: metrics.totalNewOpps, sub: 'Weekly Growth', color: '#059669', bg: '#f0fdf4'},
                 {label: 'Signed Paperwork', value: metrics.totalSigned, sub: 'Governance Win', color: '#7c3aed', bg: '#f5f3ff'},
                 {label: 'New Biz Started', value: metrics.totalNewBiz, sub: 'Live Freight', color: '#d97706', bg: '#fffbeb'},
-                {label: 'Team Calls', value: metrics.totalCalls, sub: 'Customer Touch', color: '#1d4ed8', bg: '#eff6ff'},
-                {label: 'Team Apps', value: metrics.totalApps, sub: 'Face to Face', color: '#059669', bg: '#f0fdf4'},
+                {label: 'Team Calls', value: metrics.totalCalls, sub: `CRM: ${metrics.totalCrmCalls} Touch`, color: '#1d4ed8', bg: '#eff6ff'},
+                {label: 'Team Apps', value: metrics.totalApps, sub: `CRM: ${metrics.totalCrmApps} F2F`, color: '#059669', bg: '#f0fdf4'},
               ] as {label:string;value:string|number;sub:string;color:string;bg:string}[]).map((m) => (
                 <div key={m.label} style={{background: m.bg, border: `1px solid ${m.color}22`, borderRadius: '12px', padding: '14px 12px', textAlign: 'center'}}>
                   <div style={{fontSize: '9px', fontWeight: 800, color: m.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px', lineHeight: '1.2'}}>{m.label}</div>
@@ -604,8 +614,16 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p><p className="text-xl font-black text-primary">{report.summary.callsMade || 0}</p></div>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-emerald-600 uppercase mb-1">Apps</p><p className="text-xl font-black text-primary">{report.summary.meetingsHeld || 0}</p></div>
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p>
+            <p className="text-xl font-black text-primary">{report.summary.callsMade || 0}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">CRM: {report.summary.crmCalls || 0}</p>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <p className="text-[9px] font-black text-emerald-600 uppercase mb-1">Apps</p>
+            <p className="text-xl font-black text-primary">{report.summary.meetingsHeld || 0}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">CRM: {report.summary.crmApps || 0}</p>
+          </div>
           <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">{formatEAV(report.summary.totalEAV)}</p></div>
           <div className="bg-green-50 p-4 rounded-2xl border border-green-100"><p className="text-[9px] font-black text-green-600 uppercase mb-1">New Opps</p><p className="text-xl font-black text-green-900">{report.summary.newOpportunitiesCount}</p></div>
           <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100"><p className="text-[9px] font-black text-purple-600 uppercase mb-1">Signed</p><p className="text-xl font-black text-purple-900">{report.summary.signedPaperworkCount}</p></div>
@@ -803,16 +821,19 @@ function BDMPdfPage({ report, pageNum, weekLabel }: { report: BDMWeeklyReport; p
       {/* ── KPI Pills ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', marginBottom: '22px' }}>
         {([
-          { label: 'Calls', value: s.callsMade || 0, color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
-          { label: 'Apps', value: s.meetingsHeld || 0, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
+          { label: 'Calls', value: s.callsMade || 0, subValue: s.crmCalls !== undefined ? `CRM: ${s.crmCalls}` : null, color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+          { label: 'Apps', value: s.meetingsHeld || 0, subValue: s.crmApps !== undefined ? `CRM: ${s.crmApps}` : null, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
           { label: 'Total EAV', value: formatEAV(s.totalEAV), color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
           { label: 'New Opps', value: s.newOpportunitiesCount, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
           { label: 'Signed', value: s.signedPaperworkCount, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
           { label: 'New Biz', value: s.newBusinessCount, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-        ] as {label:string;value:string|number;color:string;bg:string;border:string}[]).map((m) => (
-          <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: '10px', padding: '12px 8px', textAlign: 'center' }}>
+        ] as {label:string;value:string|number;subValue?:string|null;color:string;bg:string;border:string}[]).map((m) => (
+          <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: '10px', padding: '12px 8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '8px', fontWeight: 800, color: m.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{m.label}</div>
-            <div style={{ fontSize: '22px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>{m.value}</div>
+            <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>{m.value}</div>
+            {m.subValue && (
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', marginTop: '4px', letterSpacing: '0.5px' }}>{m.subValue}</div>
+            )}
           </div>
         ))}
       </div>

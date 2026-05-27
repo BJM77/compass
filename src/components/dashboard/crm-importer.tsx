@@ -611,8 +611,8 @@ export function CRMImporter() {
             batch.set(progressRef, {
               userId: record.userId,
               week: record.week,
-              calls: record.calls,
-              apps: record.apps,
+              crmCalls: record.calls,
+              crmApps: record.apps,
               updatedAt: serverTimestamp(),
             }, { merge: true });
             activityImportCount++;
@@ -642,8 +642,8 @@ export function CRMImporter() {
                 reportsBatch.set(docSnap.ref, {
                   summary: {
                     ...summary,
-                    callsMade: actRecord.calls,
-                    meetingsHeld: actRecord.apps
+                    crmCalls: actRecord.calls,
+                    crmApps: actRecord.apps
                   }
                 }, { merge: true });
                 reportsUpdatedCount++;
@@ -989,7 +989,7 @@ export function CRMImporter() {
         <Card className="border-none shadow-xl bg-white overflow-hidden">
           <CardHeader className="bg-slate-50 border-b py-4 px-6">
             <CardTitle className="text-sm font-black uppercase tracking-tight">
-              Preview — {previewActivityRecords.length} Activity Aggregations by Week
+              Preview — {previewActivityRecords.length} CRM Activity Aggregations by Week
             </CardTitle>
           </CardHeader>
           <ScrollArea className="h-[300px]">
@@ -998,8 +998,8 @@ export function CRMImporter() {
                 <TableRow className="text-[9px] font-black uppercase tracking-widest">
                   <TableHead className="pl-6">BDM</TableHead>
                   <TableHead>Financial Week</TableHead>
-                  <TableHead>Completed Calls</TableHead>
-                  <TableHead>Completed Apps (Meetings)</TableHead>
+                  <TableHead>Completed CRM Calls</TableHead>
+                  <TableHead>Completed CRM Meetings (Apps)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1013,12 +1013,12 @@ export function CRMImporter() {
                     </TableCell>
                     <TableCell>
                       <Badge className="text-[10px] font-black bg-blue-100 text-blue-800 border-none px-3 py-1">
-                        {r.calls} Calls
+                        {r.calls} CRM Calls
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className="text-[10px] font-black bg-emerald-100 text-emerald-800 border-none px-3 py-1">
-                        {r.apps} Meetings
+                        {r.apps} CRM Meetings
                       </Badge>
                     </TableCell>
                   </TableRow>

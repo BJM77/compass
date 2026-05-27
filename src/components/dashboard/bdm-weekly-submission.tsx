@@ -141,6 +141,11 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       const batch = writeBatch(db);
       const reportRef = doc(db, 'weeklyReports', `${userId}_${currentWeek}`);
       
+      const reportSnap = await getDoc(reportRef);
+      const existingSummary = (reportSnap.exists() ? reportSnap.data()?.summary : null) || {};
+      const crmCalls = progress?.crmCalls !== undefined ? progress.crmCalls : (existingSummary.crmCalls || 0);
+      const crmApps = progress?.crmApps !== undefined ? progress.crmApps : (existingSummary.crmApps || 0);
+
       batch.set(reportRef, {
         userId, 
         userName, 
@@ -156,7 +161,9 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
           newBusinessCount: newBusiness.length,
           stillWorkingCount: stillWorking.length,
           callsMade: progress?.calls || 0,
-          meetingsHeld: progress?.apps || 0
+          meetingsHeld: progress?.apps || 0,
+          crmCalls,
+          crmApps
         }
       }, { merge: true });
 
@@ -182,6 +189,11 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       const batch = writeBatch(db);
       const reportRef = doc(db, 'weeklyReports', `${userId}_${currentWeek}`);
       
+      const reportSnap = await getDoc(reportRef);
+      const existingSummary = (reportSnap.exists() ? reportSnap.data()?.summary : null) || {};
+      const crmCalls = progress?.crmCalls !== undefined ? progress.crmCalls : (existingSummary.crmCalls || 0);
+      const crmApps = progress?.crmApps !== undefined ? progress.crmApps : (existingSummary.crmApps || 0);
+
       batch.set(reportRef, {
         userId, 
         userName, 
@@ -197,7 +209,9 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
           newBusinessCount: newBusiness.length,
           stillWorkingCount: stillWorking.length,
           callsMade: progress?.calls || 0,
-          meetingsHeld: progress?.apps || 0
+          meetingsHeld: progress?.apps || 0,
+          crmCalls,
+          crmApps
         }
       }, { merge: true });
 
