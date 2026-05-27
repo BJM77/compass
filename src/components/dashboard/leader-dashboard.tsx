@@ -13,6 +13,7 @@ import { OnboardingPlan } from './onboarding-plan';
 import { GMReportGenerator } from './gm-report-generator';
 import { AiReportGenerator } from './ai-report-generator';
 import { VelocityPulse } from './velocity-pulse';
+import { HistoricalActivity } from './historical-activity';
 import { 
   Users, TrendingUp, AlertTriangle, BarChart3, 
   ShieldCheck, Mail, Compass, FileText, Loader2, 
@@ -25,7 +26,7 @@ import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { computeMomentum } from '@/lib/momentum';
-import { openSalesforceSearch, getCurrentWeek } from '@/lib/utils';
+import { openSalesforceSearch, getCurrentWeek, getCurrentMonthWeeks } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 
@@ -55,6 +56,13 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   }, [db, currentWeek]);
   const { data: teamActivity } = useCollection(activityQuery);
 
+  const currentMonthWeeks = useMemo(() => getCurrentMonthWeeks(), []);
+  const mtdActivityQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'weeklyProgress'), where('week', 'in', currentMonthWeeks));
+  }, [db, currentMonthWeeks]);
+  const { data: teamMtdActivity } = useCollection(mtdActivityQuery);
+
   const allDealsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'pipelineReviews'), where('week', '==', currentWeek));
@@ -83,15 +91,28 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   }, [teamStats, allDeals, crmSummary.team.custYTDRevenueThisFY]);
 
   const activityTotals = useMemo(() => {
-    if (!teamActivity) return { apps: 0, calls: 0, crmApps: 0, crmCalls: 0 };
-    return teamActivity.reduce((acc, act) => ({
-      // ActivityLogger writes flat fields: calls, apps, deals
-      apps:  acc.apps  + (Number(act.apps)  || 0),
-      calls: acc.calls + (Number(act.calls) || 0),
-      crmApps: acc.crmApps + (Number(act.crmApps) || 0),
-      crmCalls: acc.crmCalls + (Number(act.crmCalls) || 0),
-    }), { apps: 0, calls: 0, crmApps: 0, crmCalls: 0 });
-  }, [teamActivity]);
+    const live = { apps: 0, calls: 0, crmApps: 0, crmCalls: 0 };
+    if (teamActivity) {
+      teamActivity.forEach(act => {
+        live.apps += Number(act.apps) || 0;
+        live.calls += Number(act.calls) || 0;
+        live.crmApps += Number(act.crmApps) || 0;
+        live.crmCalls += Number(act.crmCalls) || 0;
+      });
+    }
+
+    const mtd = { apps: 0, calls: 0, crmApps: 0, crmCalls: 0 };
+    if (teamMtdActivity) {
+      teamMtdActivity.forEach(act => {
+        mtd.apps += Number(act.apps) || 0;
+        mtd.calls += Number(act.calls) || 0;
+        mtd.crmApps += Number(act.crmApps) || 0;
+        mtd.crmCalls += Number(act.crmCalls) || 0;
+      });
+    }
+
+    return { live, mtd };
+  }, [teamActivity, teamMtdActivity]);
 
   const handleTeamSync = async () => {
     if (!db) return;
@@ -134,14 +155,24 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         />
         <KPICard 
           title="Team Apps" 
-          value={activityTotals.apps} 
-          subtitle={activityTotals.crmApps > 0 ? `CRM: ${activityTotals.crmApps} completed` : "Live for the week"}
+          value={activityTotals.live.crmApps} 
+          subtitle={
+            <div className="flex flex-col gap-0.5 mt-1">
+              <span>Manual (Live): {activityTotals.live.apps}</span>
+              <span className="opacity-75">MTD CRM: {activityTotals.mtd.crmApps} | Manual: {activityTotals.mtd.apps}</span>
+            </div>
+          }
           icon={<Calendar className="w-4 h-4 text-blue-500" />} 
         />
         <KPICard 
           title="Team Calls" 
-          value={activityTotals.calls} 
-          subtitle={activityTotals.crmCalls > 0 ? `CRM: ${activityTotals.crmCalls} completed` : "Live for the week"}
+          value={activityTotals.live.crmCalls} 
+          subtitle={
+            <div className="flex flex-col gap-0.5 mt-1">
+              <span>Manual (Live): {activityTotals.live.calls}</span>
+              <span className="opacity-75">MTD CRM: {activityTotals.mtd.crmCalls} | Manual: {activityTotals.mtd.calls}</span>
+            </div>
+          }
           icon={<Phone className="w-4 h-4 text-green-500" />} 
         />
         <KPICard 
@@ -167,6 +198,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
         <TabsContent value="dashboard" className="space-y-6">
            <VelocityPulse teamStats={teamStats || []} teamActivity={teamActivity || []} onSimulate={onSimulate} />
+           <HistoricalActivity />
            <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
            <Card className="border-none shadow-2xl bg-white overflow-hidden">
               <CardHeader className="bg-slate-900 text-white pb-6">

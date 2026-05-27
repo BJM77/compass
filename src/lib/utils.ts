@@ -37,9 +37,8 @@ export function openSalesforceSearch(term: string, salesforceId?: string) {
  * Uses Monday as week start for consistent alignment across 
  * Monday Planning, Friday Synthesis, and GM Report aggregation.
  */
-export function getCurrentWeek(): string {
-  const now = new Date();
-  let currentYear = now.getFullYear();
+export function getWeekForDate(date: Date): string {
+  let currentYear = date.getFullYear();
   
   // Find first Monday of April for current year
   let firstMondayOfApril = new Date(currentYear, 3, 1);
@@ -49,7 +48,7 @@ export function getCurrentWeek(): string {
   
   // If we are before the first Monday of April this year, 
   // we belong to the previous financial year.
-  if (isBefore(now, firstMondayOfApril)) {
+  if (isBefore(date, firstMondayOfApril)) {
     currentYear -= 1;
     firstMondayOfApril = new Date(currentYear, 3, 1);
     while (firstMondayOfApril.getDay() !== 1) {
@@ -57,9 +56,34 @@ export function getCurrentWeek(): string {
     }
   }
   
-  const weekNumber = differenceInCalendarWeeks(now, firstMondayOfApril, { weekStartsOn: 1 }) + 1;
+  const weekNumber = differenceInCalendarWeeks(date, firstMondayOfApril, { weekStartsOn: 1 }) + 1;
   const paddedWeek = weekNumber.toString().padStart(2, '0');
   return `${currentYear}-${paddedWeek}`;
+}
+
+/**
+ * Canonical week key for all Firestore weekly documents.
+ */
+export function getCurrentWeek(): string {
+  return getWeekForDate(new Date());
+}
+
+/**
+ * Returns all financial week keys that fall within the current calendar month.
+ */
+export function getCurrentMonthWeeks(): string[] {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const weeks = new Set<string>();
+  
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let i = 1; i <= daysInMonth; i++) {
+    const d = new Date(year, month, i);
+    weeks.add(getWeekForDate(d));
+  }
+  
+  return Array.from(weeks);
 }
 
 /**

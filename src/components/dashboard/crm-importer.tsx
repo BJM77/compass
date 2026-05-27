@@ -118,7 +118,6 @@ function getWeekForDate(date: Date): string {
 function classifyActivity(row: any): 'CALL' | 'APP' {
   const activityType = getField(row, 'Activity Type', 'activity type').trim().toLowerCase();
   const subject = getField(row, 'Subject', 'subject').toLowerCase();
-  const recordType = getField(row, 'Task/Event Record Type', 'task/event record type').toLowerCase();
 
   // 1. Explicit Activity Type Checks (User's Exact Mapping):
   if (activityType === 'call') return 'CALL';
@@ -126,11 +125,10 @@ function classifyActivity(row: any): 'CALL' | 'APP' {
   if (activityType === 'face to face visit' || activityType.includes('face to face') || activityType.includes('visit')) return 'APP';
   if (activityType === 'video / conference call' || activityType.includes('video') || activityType.includes('conference')) return 'APP';
 
-  // 2. Generic/Fallback Checks on Activity Type, Subject, and Record Type:
+  // 2. Generic/Fallback Checks on Activity Type and Subject:
   const isMeeting = 
     activityType.includes('meeting') || activityType.includes('appointment') || activityType.includes('app') || activityType.includes('f2f') ||
-    subject.includes('meeting') || subject.includes('appointment') || subject.includes('app') || subject.includes('visit') || subject.includes('f2f') || subject.includes('? m') ||
-    recordType.includes('event') || recordType.includes('meeting');
+    subject.includes('meeting') || subject.includes('appointment') || subject.includes('app') || subject.includes('visit') || subject.includes('f2f') || subject.includes('? m');
 
   if (isMeeting) return 'APP';
   return 'CALL';
@@ -435,12 +433,13 @@ export function CRMImporter() {
       const matchedActivityBDMSet = new Set<string>();
 
       activityRows.forEach(row => {
-        const status = getField(row, 'Status', 'status').toLowerCase();
-        const completedDateStr = getField(row, 'Completed Date/Time', 'completed date/time') || getField(row, 'Date', 'date');
+        const completedFlag = getField(row, 'Completed?', 'completed');
+        const completedDateStr = getField(row, 'Date', 'date');
         const assignedName = getField(row, 'Assigned', 'assigned');
 
-        // Check if completed: either status is 'completed' or completed date/time is provided
-        const isCompleted = status === 'completed' || !!getField(row, 'Completed Date/Time', 'completed date/time');
+        // Check if completed: completed flag is '1' or 'true' or 'yes'
+        const isCompleted = completedFlag === '1' || completedFlag.toLowerCase() === 'true' || completedFlag.toLowerCase() === 'yes';
+        
         if (!isCompleted || !assignedName || !completedDateStr) return;
 
         const matchedUser = matchUser(users, assignedName);

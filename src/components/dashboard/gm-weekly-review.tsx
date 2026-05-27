@@ -179,6 +179,39 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     }
   };
 
+  const [execReview, setExecReview] = useState<string>('');
+  const [showReviewArea, setShowReviewArea] = useState(false);
+
+  const generateExecutiveReview = () => {
+    // Aggregation calculations
+    const teamOppsCount = opportunities.length;
+    const teamSignedCount = paperwork.length;
+    const teamNewBizCount = newBusiness.length;
+    
+    // Appointments (CRM/Man)
+    const crmApps = metrics.totalCrmApps;
+    const manApps = metrics.totalApps;
+    
+    // Calls (CRM/Man)
+    const crmCalls = metrics.totalCrmCalls;
+    const manCalls = metrics.totalCalls;
+
+    // Estimate EAV
+    const totalEAVStr = (metrics.totalEAV / 1000000).toFixed(2);
+
+    const summaryDraft = `EXECUTIVE PERFORMANCE SUMMARY - WEEK ${selectedWeek.split('-')[1]}
+- Appointments: ${crmApps} completed via CRM (Manual logs show ${manApps} meetings).
+- Client Calls: ${crmCalls} logged in CRM (Manual: ${manCalls} calls total).
+- Opportunities: ${teamOppsCount} new active opportunities valued at $${totalEAVStr}M in pipeline.
+- New Trading Accounts / New Business: ${teamNewBizCount} accounts successfully started trading live freight.
+- Governance Wins: ${teamSignedCount} agreements signed and verified this week.
+The team demonstrates strong pipeline momentum with steady transition from prospecting to active trading.`;
+    
+    setExecReview(summaryDraft);
+    setShowReviewArea(true);
+    toast({ title: "Review Created", description: "Executive summary drafted. Review and edit below before dispatching." });
+  };
+
   const exportReport = () => {
     const headers = ['Identity', 'Calls', 'Apps', 'Total EAV', 'New Opps', 'Signed Deals', 'New Business', 'Status'];
     const rows = reportData.map(r => [
@@ -354,12 +387,15 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           </div>
         </div>
         <div className="flex gap-2" data-html2canvas-ignore="true">
+          <Button variant="outline" onClick={generateExecutiveReview} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase h-10 shadow-lg shadow-amber-500/20">
+            <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
+          </Button>
           <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-white">
             <Download className="w-4 h-4 mr-2" /> EXPORT CSV
           </Button>
           <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-slate-800 hover:bg-slate-700 font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-slate-800/20">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
-            {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH (B&W)'}
+            {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH(B&W)'}
           </Button>
           <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-primary/20">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />} 
@@ -368,13 +404,27 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         </div>
       </header>
 
+      {showReviewArea && (
+        <Card className="border-none shadow-md bg-white overflow-hidden p-6 animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-black uppercase text-primary">Edit Executive Summary Draft (8-10 Lines max)</h3>
+            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-none font-bold text-[9px] uppercase px-2 py-0.5">Editable Draft</Badge>
+          </div>
+          <Textarea 
+            className="w-full text-xs font-medium leading-relaxed font-sans border-primary/20 bg-slate-50/50 p-4 rounded-xl min-h-[160px]" 
+            value={execReview} 
+            onChange={(e) => setExecReview(e.target.value)} 
+          />
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <MetricCard title="Pipeline EAV" value={`$${(metrics.totalEAV / 1000000).toFixed(1)}M`} sub="Target Achievement" icon={<DollarSign className="w-4 h-4" />} color="blue" />
         <MetricCard title="New Opps" value={metrics.totalNewOpps} sub="Weekly Growth" icon={<Target className="w-4 h-4" />} color="green" />
         <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-4 h-4" />} color="purple" />
         <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-4 h-4" />} color="orange" />
-        <MetricCard title="Team Calls" value={metrics.totalCalls} sub={`CRM: ${metrics.totalCrmCalls} completed`} icon={<Phone className="w-4 h-4" />} color="blue" />
-        <MetricCard title="Team Apps" value={metrics.totalApps} sub={`CRM: ${metrics.totalCrmApps} completed`} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
+        <MetricCard title="Team Calls" value={metrics.totalCrmCalls} sub={`Man: ${metrics.totalCalls} completed`} icon={<Phone className="w-4 h-4" />} color="blue" />
+        <MetricCard title="Team Apps" value={metrics.totalCrmApps} sub={`Man: ${metrics.totalApps} completed`} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -616,13 +666,13 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p>
-            <p className="text-xl font-black text-primary">{report.summary.callsMade || 0}</p>
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">CRM: {report.summary.crmCalls || 0}</p>
+            <p className="text-xl font-black text-primary">{report.summary.crmCalls || 0}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Man: {report.summary.callsMade || 0}</p>
           </div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <p className="text-[9px] font-black text-emerald-600 uppercase mb-1">Apps</p>
-            <p className="text-xl font-black text-primary">{report.summary.meetingsHeld || 0}</p>
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">CRM: {report.summary.crmApps || 0}</p>
+            <p className="text-xl font-black text-primary">{report.summary.crmApps || 0}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Man: {report.summary.meetingsHeld || 0}</p>
           </div>
           <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">{formatEAV(report.summary.totalEAV)}</p></div>
           <div className="bg-green-50 p-4 rounded-2xl border border-green-100"><p className="text-[9px] font-black text-green-600 uppercase mb-1">New Opps</p><p className="text-xl font-black text-green-900">{report.summary.newOpportunitiesCount}</p></div>

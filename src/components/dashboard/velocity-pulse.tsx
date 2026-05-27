@@ -99,8 +99,8 @@ export function VelocityPulse({ teamStats, teamActivity, onSimulate }: VelocityP
                     />
                  </div>
                  <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-widest gap-2">
-                    <span className="truncate">Calls: {bdm.callsMade}/{bdm.callsTarget} {bdm.crmCalls > 0 ? `(CRM: ${bdm.crmCalls})` : ''}</span>
-                    <span className="truncate">Apps: {bdm.apps} {bdm.crmApps > 0 ? `(CRM: ${bdm.crmApps})` : ''}</span>
+                    <span className="truncate">Calls: {bdm.crmCalls} <span className="text-[7px] opacity-75">(Man: {bdm.callsMade})</span></span>
+                    <span className="truncate">Apps: {bdm.crmApps} <span className="text-[7px] opacity-75">(Man: {bdm.apps})</span></span>
                     <span className="truncate">Deals: {bdm.dealsClosed}/{bdm.dealsTarget}</span>
                  </div>
               </div>

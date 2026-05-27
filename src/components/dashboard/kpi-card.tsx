@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface KPICardProps {
   title: string;
   value: string | number;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   status?: 'ON_TRACK' | 'RECOVERING' | 'AT_RISK';
   icon?: React.ReactNode;
   info?: string;
@@ -54,9 +54,9 @@ export function KPICard({ title, value, subtitle, status, icon, info, className,
       <CardContent className="p-3 md:p-4 pt-0 md:pt-0 flex-1 flex flex-col justify-end">
         <div className="text-lg md:text-2xl font-black font-headline tracking-tighter text-primary truncate">{value}</div>
         {subtitle && (
-          <p className="text-[8px] md:text-[10px] text-muted-foreground mt-0.5 font-bold uppercase tracking-tight truncate">
+          <div className="text-[8px] md:text-[10px] text-muted-foreground mt-0.5 font-bold uppercase tracking-tight truncate">
             {subtitle}
-          </p>
+          </div>
         )}
         {status && (
           <div className="mt-2 md:mt-3 overflow-hidden">

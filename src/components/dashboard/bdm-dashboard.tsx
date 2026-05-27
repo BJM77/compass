@@ -13,6 +13,7 @@ import { CallPlanning } from './call-planning';
 import { BehaviorAlerts } from './behavior-alerts';
 import { BDMWeeklySubmission } from './bdm-weekly-submission';
 import { VoiceActionLogger } from './voice-action-logger';
+import { HistoricalActivity } from './historical-activity';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -267,6 +268,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                   <div className="space-y-6 flex flex-col">
                     <VoiceActionLogger userId={userId || ''} userName={profile?.name || 'BDM'} />
                     <ActivityLogger userId={userId || ''} />
+                    <HistoricalActivity userId={userId || ''} />
                   </div>
                   <div className="md:col-span-1 xl:col-span-2">
                     <TerritoryPlaybook territory={profile?.territory || 'FLEX'} zones={profile?.zones || []} />
