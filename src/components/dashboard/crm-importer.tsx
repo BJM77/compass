@@ -116,12 +116,19 @@ function getWeekForDate(date: Date): string {
 }
 
 function classifyActivity(row: any): 'CALL' | 'APP' {
-  const activityType = getField(row, 'Activity Type', 'activity type').toLowerCase();
+  const activityType = getField(row, 'Activity Type', 'activity type').trim().toLowerCase();
   const subject = getField(row, 'Subject', 'subject').toLowerCase();
   const recordType = getField(row, 'Task/Event Record Type', 'task/event record type').toLowerCase();
 
+  // 1. Explicit Activity Type Checks (User's Exact Mapping):
+  if (activityType === 'call') return 'CALL';
+  if (activityType === 'email') return 'CALL';
+  if (activityType === 'face to face visit' || activityType.includes('face to face') || activityType.includes('visit')) return 'APP';
+  if (activityType === 'video / conference call' || activityType.includes('video') || activityType.includes('conference')) return 'APP';
+
+  // 2. Generic/Fallback Checks on Activity Type, Subject, and Record Type:
   const isMeeting = 
-    activityType.includes('meeting') || activityType.includes('appointment') || activityType.includes('app') || activityType.includes('visit') || activityType.includes('f2f') ||
+    activityType.includes('meeting') || activityType.includes('appointment') || activityType.includes('app') || activityType.includes('f2f') ||
     subject.includes('meeting') || subject.includes('appointment') || subject.includes('app') || subject.includes('visit') || subject.includes('f2f') || subject.includes('? m') ||
     recordType.includes('event') || recordType.includes('meeting');
 
