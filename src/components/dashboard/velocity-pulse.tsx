@@ -77,20 +77,20 @@ export function VelocityPulse({ teamStats, teamActivity, onSimulate }: VelocityP
           {leaderboard.length === 0 ? (
             <div className="text-center py-8 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Awaiting Weekly Activity Data...</div>
           ) : leaderboard.map((bdm, idx) => (
-            <div key={bdm.id} className="flex items-center gap-4 group">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs transition-all duration-300 ${idx === 0 ? 'bg-orange-100 text-orange-600 scale-110 shadow-lg shadow-orange-200/50' : idx === 1 ? 'bg-slate-100 text-slate-600' : idx === 2 ? 'bg-slate-50/80 text-slate-500/80' : 'bg-slate-50 text-slate-400'}`}>
+            <div 
+              key={bdm.id} 
+              className={`flex items-center gap-4 group rounded-xl p-2 transition-colors ${onSimulate ? 'hover:bg-slate-50 cursor-pointer' : ''}`}
+              onClick={() => onSimulate?.(bdm.id)}
+            >
+              <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-black text-xs transition-all duration-300 ${idx === 0 ? 'bg-orange-100 text-orange-600 scale-110 shadow-lg shadow-orange-200/50' : idx === 1 ? 'bg-slate-100 text-slate-600' : idx === 2 ? 'bg-slate-50/80 text-slate-500/80' : 'bg-slate-50 text-slate-400'}`}>
                 {idx === 0 ? <Trophy className="w-4 h-4" /> : `#${idx + 1}`}
               </div>
-              <div className="flex-1 space-y-1.5">
-                 <div className="flex justify-between items-end">
-                    <button
-                      onClick={() => onSimulate?.(bdm.id)}
-                      disabled={!onSimulate}
-                      className={`text-xs font-black uppercase transition-colors text-left ${onSimulate ? 'hover:text-accent hover:underline cursor-pointer' : 'text-slate-800'}`}
-                    >
+              <div className="flex-1 space-y-1.5 min-w-0">
+                 <div className="flex justify-between items-end gap-2">
+                    <div className={`text-xs font-black uppercase truncate transition-colors ${onSimulate ? 'group-hover:text-accent' : 'text-slate-800'}`}>
                       {bdm.name} <span className="text-[9px] font-bold text-slate-400 ml-1">{bdm.territory}</span>
-                    </button>
-                    <p className={`text-[10px] font-black uppercase ${idx === 0 ? 'text-orange-600' : 'text-accent'}`}>{bdm.velocityScore} PTS</p>
+                    </div>
+                    <p className={`text-[10px] font-black uppercase shrink-0 ${idx === 0 ? 'text-orange-600' : 'text-accent'}`}>{bdm.velocityScore} PTS</p>
                  </div>
                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
                     <div 
@@ -98,10 +98,10 @@ export function VelocityPulse({ teamStats, teamActivity, onSimulate }: VelocityP
                       style={{ width: `${Math.max(2, bdm.velocityScore)}%` }} 
                     />
                  </div>
-                 <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-widest">
-                    <span>Calls: {bdm.callsMade}/{bdm.callsTarget} {bdm.crmCalls > 0 ? `(CRM: ${bdm.crmCalls})` : ''}</span>
-                    <span>Apps: {bdm.apps} {bdm.crmApps > 0 ? `(CRM: ${bdm.crmApps})` : ''}</span>
-                    <span>Deals: {bdm.dealsClosed}/{bdm.dealsTarget}</span>
+                 <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-widest gap-2">
+                    <span className="truncate">Calls: {bdm.callsMade}/{bdm.callsTarget} {bdm.crmCalls > 0 ? `(CRM: ${bdm.crmCalls})` : ''}</span>
+                    <span className="truncate">Apps: {bdm.apps} {bdm.crmApps > 0 ? `(CRM: ${bdm.crmApps})` : ''}</span>
+                    <span className="truncate">Deals: {bdm.dealsClosed}/{bdm.dealsTarget}</span>
                  </div>
               </div>
             </div>
