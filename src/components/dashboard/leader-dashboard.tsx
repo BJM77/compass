@@ -166,7 +166,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
-           <VelocityPulse teamStats={teamStats || []} teamActivity={teamActivity || []} />
+           <VelocityPulse teamStats={teamStats || []} teamActivity={teamActivity || []} onSimulate={onSimulate} />
            <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
            <Card className="border-none shadow-2xl bg-white overflow-hidden">
               <CardHeader className="bg-slate-900 text-white pb-6">

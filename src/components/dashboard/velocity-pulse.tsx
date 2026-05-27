@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 interface VelocityPulseProps {
   teamStats: any[];
   teamActivity: any[];
+  onSimulate?: (userId: string) => void;
 }
 
-export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
+export function VelocityPulse({ teamStats, teamActivity, onSimulate }: VelocityPulseProps) {
   
   const leaderboard = useMemo(() => {
     if (!teamStats) return [];
@@ -82,7 +83,13 @@ export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
               </div>
               <div className="flex-1 space-y-1.5">
                  <div className="flex justify-between items-end">
-                    <p className="text-xs font-black uppercase text-slate-800">{bdm.name} <span className="text-[9px] font-bold text-slate-400 ml-1">{bdm.territory}</span></p>
+                    <button
+                      onClick={() => onSimulate?.(bdm.id)}
+                      disabled={!onSimulate}
+                      className={`text-xs font-black uppercase transition-colors text-left ${onSimulate ? 'hover:text-accent hover:underline cursor-pointer' : 'text-slate-800'}`}
+                    >
+                      {bdm.name} <span className="text-[9px] font-bold text-slate-400 ml-1">{bdm.territory}</span>
+                    </button>
                     <p className={`text-[10px] font-black uppercase ${idx === 0 ? 'text-orange-600' : 'text-accent'}`}>{bdm.velocityScore} PTS</p>
                  </div>
                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
