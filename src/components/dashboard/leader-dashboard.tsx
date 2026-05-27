@@ -83,12 +83,14 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   }, [teamStats, allDeals, crmSummary.team.custYTDRevenueThisFY]);
 
   const activityTotals = useMemo(() => {
-    if (!teamActivity) return { apps: 0, calls: 0 };
+    if (!teamActivity) return { apps: 0, calls: 0, crmApps: 0, crmCalls: 0 };
     return teamActivity.reduce((acc, act) => ({
       // ActivityLogger writes flat fields: calls, apps, deals
       apps:  acc.apps  + (Number(act.apps)  || 0),
       calls: acc.calls + (Number(act.calls) || 0),
-    }), { apps: 0, calls: 0 });
+      crmApps: acc.crmApps + (Number(act.crmApps) || 0),
+      crmCalls: acc.crmCalls + (Number(act.crmCalls) || 0),
+    }), { apps: 0, calls: 0, crmApps: 0, crmCalls: 0 });
   }, [teamActivity]);
 
   const handleTeamSync = async () => {
@@ -133,13 +135,13 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         <KPICard 
           title="Team Apps" 
           value={activityTotals.apps} 
-          subtitle="Live for the week"
+          subtitle={activityTotals.crmApps > 0 ? `CRM: ${activityTotals.crmApps} completed` : "Live for the week"}
           icon={<Calendar className="w-4 h-4 text-blue-500" />} 
         />
         <KPICard 
           title="Team Calls" 
           value={activityTotals.calls} 
-          subtitle="Live for the week"
+          subtitle={activityTotals.crmCalls > 0 ? `CRM: ${activityTotals.crmCalls} completed` : "Live for the week"}
           icon={<Phone className="w-4 h-4 text-green-500" />} 
         />
         <KPICard 

@@ -32,6 +32,9 @@ export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
         
         const velocityScore = Math.round((callsScore * 0.4) + (dealsScore * 0.6));
         
+        const crmCalls = Number(activity?.crmCalls) || 0;
+        const crmApps  = Number(activity?.crmApps)  || 0;
+        
         return {
           id: bdm.id,
           name: bdm.name || 'Unknown',
@@ -42,6 +45,8 @@ export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
           dealsClosed,
           dealsTarget,
           apps: Number(activity?.apps) || 0,
+          crmCalls,
+          crmApps,
         };
       })
       .sort((a, b) => b.velocityScore - a.velocityScore);
@@ -87,8 +92,8 @@ export function VelocityPulse({ teamStats, teamActivity }: VelocityPulseProps) {
                     />
                  </div>
                  <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-widest">
-                    <span>Calls: {bdm.callsMade}/{bdm.callsTarget}</span>
-                    <span>Apps: {bdm.apps}</span>
+                    <span>Calls: {bdm.callsMade}/{bdm.callsTarget} {bdm.crmCalls > 0 ? `(CRM: ${bdm.crmCalls})` : ''}</span>
+                    <span>Apps: {bdm.apps} {bdm.crmApps > 0 ? `(CRM: ${bdm.crmApps})` : ''}</span>
                     <span>Deals: {bdm.dealsClosed}/{bdm.dealsTarget}</span>
                  </div>
               </div>
