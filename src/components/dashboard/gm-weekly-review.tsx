@@ -473,7 +473,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px'}}>
                   <div style={{width: '8px', height: '44px', background: '#f59e0b', borderRadius: '4px'}} />
                   <div>
-                    <div style={{color: '#0f172a', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.5px', textTransform: 'uppercase'}}>GM Weekly Performance Node</div>
+                    <div style={{color: '#0f172a', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.5px', textTransform: 'uppercase'}}>WA Parcels Performance Review</div>
                     <div style={{color: '#475569', fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginTop: '4px'}}>Week {selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</div>
                   </div>
                 </div>
@@ -485,20 +485,27 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
               </div>
             </div>
 
-            {/* Team Member Avatars Row */}
-            <div style={{display: 'flex', gap: '12px', marginBottom: '28px', alignItems: 'center'}}>
-              <div style={{fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap'}}>Sales Team (Manual/CRM)</div>
-              <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
-                {reportData.map((r) => (
-                  <div key={r.userId} style={{display: 'flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', borderRadius: '20px', padding: '4px 12px 4px 4px', border: '1px solid #e2e8f0'}}>
-                    <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px'}}>{r.userName.charAt(0)}</div>
-                    <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>
-                      {r.userName.split(' ')[0]}
-                      <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.callsMade || 0}/{r.summary.crmCalls || 0} · A:{r.summary.meetingsHeld || 0}/{r.summary.crmApps || 0})</span>
-                    </span>
-                  </div>
-                ))}
+            {/* Executive Summary Review */}
+            {execReview && execReview.trim() && (
+              <div style={{background: '#f8fafc', borderLeft: '4px solid #1e40af', padding: '16px 20px', marginBottom: '28px', borderRadius: '0 8px 8px 0'}}>
+                <div style={{fontSize: '10px', fontWeight: 800, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px'}}>Executive Summary</div>
+                <div style={{fontSize: '12px', fontWeight: 500, color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-wrap'}}>
+                  {execReview}
+                </div>
               </div>
+            )}
+
+            {/* Team Member Avatars Row */}
+            <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '28px', alignItems: 'center', justifyContent: 'center'}}>
+              {reportData.map((r) => (
+                <div key={r.userId} style={{display: 'flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', borderRadius: '20px', padding: '4px 12px 4px 4px', border: '1px solid #e2e8f0'}}>
+                  <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px'}}>{r.userName.charAt(0)}</div>
+                  <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>
+                    {r.userName.split(' ')[0]}
+                    <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.callsMade || 0}/{r.summary.crmCalls || 0} · A:{r.summary.meetingsHeld || 0}/{r.summary.crmApps || 0})</span>
+                  </span>
+                </div>
+              ))}
             </div>
 
             {/* KPI Cards: 6 across */}

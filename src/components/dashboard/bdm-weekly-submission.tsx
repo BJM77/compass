@@ -13,7 +13,7 @@ import {
   Plus, Trash2, FileCheck, 
   Rocket, Loader2, Award, TrendingUp, 
   ClipboardCheck, Phone, CalendarCheck, Target,
-  Clock, ArrowRight
+  Clock, ArrowRight, AlertTriangle, LifeBuoy, CheckCircle2, XCircle
 } from 'lucide-react';
 import { format, startOfWeek } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,12 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   
   // High-Level Narrative (Week That Was)
   const [notes, setNotes] = useState('');
+
+  // Monday Planning carry-over
+  const [roadblocks, setRoadblocks] = useState('');
+  const [supportNeeded, setSupportNeeded] = useState('');
+  const [commitments, setCommitments] = useState<any[]>([]);
+  const [focusAccounts, setFocusAccounts] = useState<any[]>([]);
 
   // Fetch current week's activity counts
   const progressRef = useMemoFirebase(() => {
@@ -56,11 +62,47 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       const reportRef = doc(db, 'weeklyReports', `${userId}_${currentWeek}`);
       const snap = await getDoc(reportRef);
       let loadedWorking: any[] = [];
+      let mondayData: any = null;
+
+      try {
+        const commitRef = doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`);
+        const commitSnap = await getDoc(commitRef);
+        if (commitSnap.exists()) {
+          mondayData = commitSnap.data();
+        }
+      } catch (err) {
+        console.error("Failed to load Monday commitments", err);
+      }
+
       if (snap.exists()) {
         const data = snap.data();
         setNotes(data.weeklyNotes || '');
+        setRoadblocks(data.roadblocks !== undefined ? data.roadblocks : (mondayData?.roadblocks || ''));
+        setSupportNeeded(data.supportNeeded !== undefined ? data.supportNeeded : (mondayData?.supportNeeded || ''));
+        
+        if (data.commitments) setCommitments(data.commitments);
+        else if (mondayData?.actionPlan) {
+          setCommitments(mondayData.actionPlan.filter((a: string) => a.trim()).map((a: string) => ({ id: crypto.randomUUID(), text: a, status: '', reason: '' })));
+        }
+
+        if (data.focusAccounts) setFocusAccounts(data.focusAccounts);
+        else if (mondayData?.focusAccounts) {
+          setFocusAccounts(mondayData.focusAccounts.map((f: any) => ({ ...f, status: '' })));
+        }
+
         if (Array.isArray(data.stillWorkingAccounts)) {
           loadedWorking = data.stillWorkingAccounts;
+        }
+      } else {
+        if (mondayData) {
+          setRoadblocks(mondayData.roadblocks || '');
+          setSupportNeeded(mondayData.supportNeeded || '');
+          if (mondayData.actionPlan) {
+            setCommitments(mondayData.actionPlan.filter((a: string) => a.trim()).map((a: string) => ({ id: crypto.randomUUID(), text: a, status: '', reason: '' })));
+          }
+          if (mondayData.focusAccounts) {
+            setFocusAccounts(mondayData.focusAccounts.map((f: any) => ({ ...f, status: '' })));
+          }
         }
       }
       
@@ -75,36 +117,6 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       const businessSnap = await getDocs(query(collection(db, 'newBusiness'), where('userId', '==', userId), where('week', '==', currentWeek)));
       const businessData = businessSnap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any));
       setNewBusiness(businessData);
-
-      // Query Monday's commitments if stillWorking not previously saved or empty
-      if (loadedWorking.length === 0) {
-        try {
-          const commitRef = doc(db, 'weeklyCommitments', `${userId}_${currentWeek}`);
-          const commitSnap = await getDoc(commitRef);
-          if (commitSnap.exists()) {
-            const mondayFocus = commitSnap.data().focusAccounts || [];
-            mondayFocus.forEach((focus: any) => {
-              const accName = (focus.accountName || '').toUpperCase().trim();
-              if (
-                accName &&
-                !loadedWorking.some(w => w.accountName.toUpperCase().trim() === accName) &&
-                !oppsData.some(o => o.accountName.toUpperCase().trim() === accName) &&
-                !signedData.some(s => s.accountName.toUpperCase().trim() === accName) &&
-                !businessData.some(b => b.accountName.toUpperCase().trim() === accName)
-              ) {
-                loadedWorking.push({
-                  id: focus.accountId || crypto.randomUUID(),
-                  accountName: accName,
-                  eav: parseFloat(focus.eav) || 0,
-                  notes: focus.aboutAccount || ''
-                });
-              }
-            });
-          }
-        } catch (err) {
-          console.error("Failed to load Monday commitments", err);
-        }
-      }
 
       setStillWorking(loadedWorking);
     }
@@ -152,6 +164,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         week: currentWeek, 
         weeklyNotes: notes, 
         stillWorkingAccounts: stillWorking,
+        roadblocks,
+        supportNeeded,
+        commitments,
+        focusAccounts,
         status: 'DRAFT', 
         submittedAt: serverTimestamp(),
         summary: { 
@@ -200,6 +216,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         week: currentWeek, 
         weeklyNotes: notes, 
         stillWorkingAccounts: stillWorking,
+        roadblocks,
+        supportNeeded,
+        commitments,
+        focusAccounts,
         status: 'SUBMITTED', 
         submittedAt: serverTimestamp(),
         summary: { 
@@ -215,6 +235,46 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         }
       }, { merge: true });
 
+      // Handle carry-over logic for next week
+      const notCompletedCommitments = commitments.filter(c => c.status === 'NOT_COMPLETED').map(c => c.text + (c.reason ? ` (Reason: ${c.reason})` : ''));
+      const stillWorkingFocusAccounts = focusAccounts.filter(f => f.status === 'STILL_WORKING').map(f => ({
+        accountId: f.accountId || crypto.randomUUID(),
+        accountName: f.accountName,
+        actionType: f.actionType,
+        eav: f.eav,
+        aboutAccount: f.aboutAccount
+      }));
+
+      if (notCompletedCommitments.length > 0 || stillWorkingFocusAccounts.length > 0) {
+        // Calculate next week string format "yyyy-ww"
+        const [yearStr, weekStr] = currentWeek.split('-');
+        let nextYear = parseInt(yearStr);
+        let nextWeek = parseInt(weekStr) + 1;
+        if (nextWeek > 52) { nextWeek = 1; nextYear++; }
+        const nextWeekStr = `${nextYear}-${nextWeek.toString().padStart(2, '0')}`;
+        
+        const nextWeekCommitRef = doc(db, 'weeklyCommitments', `${userId}_${nextWeekStr}`);
+        const nextWeekSnap = await getDoc(nextWeekCommitRef);
+        
+        let newActionPlan = [...notCompletedCommitments];
+        let newFocusAccounts = [...stillWorkingFocusAccounts];
+        
+        if (nextWeekSnap.exists()) {
+           const existingData = nextWeekSnap.data();
+           if (existingData.actionPlan) newActionPlan = [...existingData.actionPlan, ...newActionPlan];
+           if (existingData.focusAccounts) newFocusAccounts = [...existingData.focusAccounts, ...newFocusAccounts];
+        }
+
+        batch.set(nextWeekCommitRef, {
+           userId,
+           week: nextWeekStr,
+           status: nextWeekSnap.exists() ? nextWeekSnap.data()?.status : 'DRAFT',
+           actionPlan: newActionPlan,
+           focusAccounts: newFocusAccounts,
+           updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+
       // FIXED: Use item.id as Firestore doc key to prevent duplicates on final submit.
       opportunities.forEach(o => batch.set(doc(db, 'opportunities', o.id), { ...o, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
       signedDeals.forEach(s => batch.set(doc(db, 'signedPaperwork', s.id), { ...s, userId, userName, week: currentWeek, updatedAt: serverTimestamp() }, { merge: true }));
@@ -228,6 +288,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       setSignedDeals([]);
       setNewBusiness([]);
       setStillWorking([]);
+      setCommitments([]);
+      setFocusAccounts([]);
+      setRoadblocks('');
+      setSupportNeeded('');
       setNotes('');
     } catch (e) {
       toast({ variant: "destructive", title: "Submission Failed" });
@@ -282,6 +346,94 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* MONDAY PLANNING CARRY-OVER SECTION */}
+      <div className="space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-200">
+        <div className="flex items-center gap-2 mb-4">
+          <Award className="w-5 h-5 text-indigo-600" />
+          <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Monday Planning Review</h3>
+        </div>
+
+        {/* Roadblocks & Support */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Roadblocks & Account Barriers
+            </Label>
+            <Textarea 
+              placeholder="Any roadblocks to highlight?" 
+              value={roadblocks} 
+              onChange={e => setRoadblocks(e.target.value)} 
+              className="min-h-[100px] rounded-2xl border-slate-200 bg-white p-4 shadow-sm text-xs" 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
+              <LifeBuoy className="w-3.5 h-3.5 text-blue-500" /> Additional Management Support
+            </Label>
+            <Textarea 
+              placeholder="What support is needed?" 
+              value={supportNeeded} 
+              onChange={e => setSupportNeeded(e.target.value)} 
+              className="min-h-[100px] rounded-2xl border-slate-200 bg-white p-4 shadow-sm text-xs" 
+            />
+          </div>
+        </div>
+
+        {/* Commitments Review */}
+        {commitments.length > 0 && (
+          <div className="space-y-4 pt-4">
+            <Label className="text-[10px] font-black uppercase text-muted-foreground">Commitments for the Week Ahead</Label>
+            <div className="space-y-3">
+              {commitments.map((c, idx) => (
+                <div key={c.id} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm font-bold text-slate-700 flex-1">{c.text}</p>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant={c.status === 'COMPLETED' ? 'default' : 'outline'} className={cn("h-8 rounded-xl text-[10px] font-black", c.status === 'COMPLETED' && 'bg-emerald-600 hover:bg-emerald-700')} onClick={() => { const n = [...commitments]; n[idx].status = 'COMPLETED'; setCommitments(n); }}>
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Completed
+                      </Button>
+                      <Button size="sm" variant={c.status === 'NOT_COMPLETED' ? 'default' : 'outline'} className={cn("h-8 rounded-xl text-[10px] font-black", c.status === 'NOT_COMPLETED' && 'bg-red-600 hover:bg-red-700')} onClick={() => { const n = [...commitments]; n[idx].status = 'NOT_COMPLETED'; setCommitments(n); }}>
+                        <XCircle className="w-3 h-3 mr-1" /> Not Completed
+                      </Button>
+                    </div>
+                  </div>
+                  {c.status === 'NOT_COMPLETED' && (
+                    <div className="pt-2">
+                      <Input placeholder="Reason for not completing (will carry over to next week)..." value={c.reason} onChange={e => { const n = [...commitments]; n[idx].reason = e.target.value; setCommitments(n); }} className="h-9 text-xs font-medium bg-red-50/50 border-red-200" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Focus Accounts Review */}
+        {focusAccounts.length > 0 && (
+          <div className="space-y-4 pt-4">
+            <Label className="text-[10px] font-black uppercase text-muted-foreground">Focus Accounts</Label>
+            <div className="space-y-3">
+              {focusAccounts.map((f, idx) => (
+                <div key={f.accountId || idx} className="p-4 bg-white rounded-2xl border shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">{f.accountName}</p>
+                    {f.aboutAccount && <p className="text-xs text-slate-500 mt-1 line-clamp-1">{f.aboutAccount}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Button size="sm" variant={f.status === 'COMPLETED' ? 'default' : 'outline'} className={cn("h-8 flex-1 sm:flex-none rounded-xl text-[10px] font-black", f.status === 'COMPLETED' && 'bg-emerald-600 hover:bg-emerald-700')} onClick={() => { const n = [...focusAccounts]; n[idx].status = 'COMPLETED'; setFocusAccounts(n); }}>
+                      <CheckCircle2 className="w-3 h-3 mr-1" /> Completed
+                    </Button>
+                    <Button size="sm" variant={f.status === 'STILL_WORKING' ? 'default' : 'outline'} className={cn("h-8 flex-1 sm:flex-none rounded-xl text-[10px] font-black", f.status === 'STILL_WORKING' && 'bg-amber-500 hover:bg-amber-600')} onClick={() => { const n = [...focusAccounts]; n[idx].status = 'STILL_WORKING'; setFocusAccounts(n); }}>
+                      <Clock className="w-3 h-3 mr-1" /> Still Working
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
