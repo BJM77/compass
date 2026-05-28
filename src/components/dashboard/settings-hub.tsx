@@ -22,7 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import {
   User, Bell, Sparkles, BarChart3, Link2,
   ShieldCheck, Lock, Trash2, Save,
-  Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe
+  Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe, Users, Activity
 } from 'lucide-react';
 
 interface AppSettings {
@@ -96,6 +96,7 @@ const SECTIONS = [
   { id: 'scoring',      label: 'Scoring Weights',  icon: BarChart3,  leaderOnly: true  },
   { id: 'governance',   label: 'Data Governance',  icon: ShieldCheck,leaderOnly: true  },
   { id: 'api',          label: 'API Access',       icon: Link2,      leaderOnly: true  },
+  { id: 'login-log',    label: 'Login Log',        icon: Users,      leaderOnly: true  },
   { id: 'danger',       label: 'Danger Zone',      icon: Trash2,     leaderOnly: true  },
 ];
 
@@ -156,6 +157,16 @@ export function SettingsHub() {
   const [showDangerConfirm, setShowDangerConfirm] = useState(false);
   const [dangerConfirmText, setDangerConfirmText] = useState('');
   const [logs, setLogs] = useState<any[]>([]);
+  const [userLogs, setUserLogs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (activeSection === 'login-log' && isLeader && db) {
+      getDocs(collection(db, 'users')).then(snap => {
+        const ul = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setUserLogs(ul);
+      });
+    }
+  }, [activeSection, isLeader, db]);
 
   useEffect(() => {
     async function load() {
@@ -377,6 +388,48 @@ export function SettingsHub() {
                      <Switch disabled />
                   </SettingRow>
                </div>
+            </SectionCard>
+          )}
+
+          {activeSection === 'login-log' && isLeader && (
+            <SectionCard title="Active User Sessions" icon={Users} description="View last login timestamps for all users.">
+              <div className="space-y-4">
+                 <div className="flex items-center justify-between p-4 bg-slate-50 border rounded-xl mb-4">
+                   <div className="flex items-center gap-3">
+                     <Activity className="w-5 h-5 text-indigo-500" />
+                     <div>
+                       <p className="text-xs font-black uppercase text-slate-800">Session Monitor</p>
+                       <p className="text-[10px] text-slate-500">Real-time authentication log</p>
+                     </div>
+                   </div>
+                 </div>
+                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                   {userLogs.sort((a, b) => ((b.lastLoginAt?.toMillis?.() || 0) - (a.lastLoginAt?.toMillis?.() || 0))).map(u => (
+                     <div key={u.id} className="flex items-center justify-between p-4 bg-white border shadow-sm rounded-xl">
+                       <div className="flex items-center gap-3">
+                         <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400">
+                           {u.name?.charAt(0) || u.email?.charAt(0) || '?'}
+                         </div>
+                         <div>
+                           <p className="text-sm font-bold text-slate-800">{u.name || u.email}</p>
+                           <p className="text-[10px] uppercase font-bold text-slate-500">{u.role || 'User'}</p>
+                         </div>
+                       </div>
+                       <div className="text-right">
+                         <p className="text-xs font-black text-slate-700">
+                           {u.lastLoginAt ? new Date(u.lastLoginAt.toMillis()).toLocaleString('en-AU') : 'Never Logged In'}
+                         </p>
+                         {u.isOnline && <Badge className="mt-1 text-[9px] bg-emerald-100 text-emerald-700 border-emerald-200">Online Recently</Badge>}
+                       </div>
+                     </div>
+                   ))}
+                   {userLogs.length === 0 && (
+                     <div className="p-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+                       No user data found
+                     </div>
+                   )}
+                 </div>
+              </div>
             </SectionCard>
           )}
 

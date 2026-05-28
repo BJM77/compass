@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { useAuth as useFirebaseAuth } from '@/firebase';
+import { useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const auth = useFirebaseAuth();
   const { setMockAuth } = useContextAuth();
   const { toast } = useToast();
+  const db = useFirestore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +33,20 @@ export default function LoginPage() {
     setError('');
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Record login time
+      if (db && cred.user) {
+        try {
+          await setDoc(doc(db, 'users', cred.user.uid), {
+            lastLoginAt: serverTimestamp(),
+            isOnline: true
+          }, { merge: true });
+        } catch (e) {
+          console.warn("Could not log login time", e);
+        }
+      }
+
       router.push('/dashboard');
     } catch (err: any) {
       console.error("Auth error:", err);
