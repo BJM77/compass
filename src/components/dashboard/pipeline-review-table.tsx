@@ -19,7 +19,7 @@ import { openSalesforceSearch } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { computeMomentum } from '@/lib/momentum';
-import { cn } from '@/lib/utils';
+import { cn, getCurrentWeek, getWeekForDate } from '@/lib/utils';
 
 export function PipelineReviewTable({ userId, readOnly }: { userId: string, readOnly?: boolean }) {
   const { isLeader } = useAuth();
@@ -30,7 +30,7 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
   const isWithinGracePeriod = [5, 6].includes(now.getDay());
   const canPerformFridayActions = isWithinGracePeriod || isLeader;
   
-  const currentWeek = format(now, 'yyyy-ww');
+  const currentWeek = getCurrentWeek();
 
   const reviewsQuery = useMemoFirebase(() => db ? query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', currentWeek)) : null, [db, userId, currentWeek]);
   const { data: reviews, isLoading } = useCollection(reviewsQuery);
@@ -73,7 +73,7 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
     if (!db || readOnly || !canPerformFridayActions) return;
     
     try {
-      const nextWeek = format(addWeeks(now, 1), 'yyyy-ww');
+      const nextWeek = getWeekForDate(addWeeks(now, 1));
       const rolloverCount = (row.rolloverCount || 0) + 1;
       
       await addDoc(collection(db, 'pipelineReviews'), { 

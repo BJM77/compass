@@ -15,9 +15,9 @@ import {
   ClipboardCheck, Phone, CalendarCheck, Target,
   Clock, ArrowRight, AlertTriangle, LifeBuoy, CheckCircle2, XCircle
 } from 'lucide-react';
-import { format, startOfWeek } from 'date-fns';
+import { format, addWeeks } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, formatEAV, cn } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, formatEAV, cn } from '@/lib/utils';
 
 export function BDMWeeklySubmission({ userId, userName }: { userId: string; userName: string }) {
   const db = useFirestore();
@@ -247,11 +247,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
 
       if (notCompletedCommitments.length > 0 || stillWorkingFocusAccounts.length > 0) {
         // Calculate next week string format "yyyy-ww"
-        const [yearStr, weekStr] = currentWeek.split('-');
-        let nextYear = parseInt(yearStr);
-        let nextWeek = parseInt(weekStr) + 1;
-        if (nextWeek > 52) { nextWeek = 1; nextYear++; }
-        const nextWeekStr = `${nextYear}-${nextWeek.toString().padStart(2, '0')}`;
+        const nextWeekStr = getWeekForDate(addWeeks(new Date(), 1));
         
         const nextWeekCommitRef = doc(db, 'weeklyCommitments', `${userId}_${nextWeekStr}`);
         const nextWeekSnap = await getDoc(nextWeekCommitRef);

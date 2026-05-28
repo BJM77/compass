@@ -11,7 +11,7 @@ import { startOfWeek, format } from 'date-fns';
 
 export function PlanMetrics() {
   const db = useFirestore();
-  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
+  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 0 }), []);
   
   // Fetch users to display names instead of IDs
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);

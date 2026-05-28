@@ -6,16 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Star, Users, Loader2, Target, CheckCircle2, AlertTriangle, ArrowRight, ClipboardList } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { format, startOfWeek } from 'date-fns';
+import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/auth-context';
 import { SmartGoalsView } from './smart-goals-view';
+import { getCurrentWeek } from '@/lib/utils';
 
 export function SmartGoalsAudit() {
   const db = useFirestore();
   const { isLeader } = useAuth();
   const [selectedBdmId, setSelectedBdmId] = useState<string | null>(null);
-  const currentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-ww');
+  const currentWeek = getCurrentWeek();
 
   // 1. Fetch All Users for the selector
   const usersQuery = useMemoFirebase(() => {

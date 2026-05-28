@@ -34,29 +34,30 @@ export function openSalesforceSearch(term: string, salesforceId?: string) {
 
 /**
  * Canonical week key for all Firestore weekly documents.
- * Uses Monday as week start for consistent alignment across 
+ * Uses Sunday as week start for consistent alignment across 
  * Monday Planning, Friday Synthesis, and GM Report aggregation.
+ * Aligns with April to March Financial Year.
  */
 export function getWeekForDate(date: Date): string {
   let currentYear = date.getFullYear();
   
-  // Find first Monday of April for current year
-  let firstMondayOfApril = new Date(currentYear, 3, 1);
-  while (firstMondayOfApril.getDay() !== 1) {
-    firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+  // Find first Sunday of April for current year
+  let firstSundayOfApril = new Date(currentYear, 3, 1);
+  while (firstSundayOfApril.getDay() !== 0) {
+    firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
   }
   
-  // If we are before the first Monday of April this year, 
+  // If we are before the first Sunday of April this year, 
   // we belong to the previous financial year.
-  if (isBefore(date, firstMondayOfApril)) {
+  if (isBefore(date, firstSundayOfApril)) {
     currentYear -= 1;
-    firstMondayOfApril = new Date(currentYear, 3, 1);
-    while (firstMondayOfApril.getDay() !== 1) {
-      firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+    firstSundayOfApril = new Date(currentYear, 3, 1);
+    while (firstSundayOfApril.getDay() !== 0) {
+      firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
     }
   }
   
-  const weekNumber = differenceInCalendarWeeks(date, firstMondayOfApril, { weekStartsOn: 1 }) + 1;
+  const weekNumber = differenceInCalendarWeeks(date, firstSundayOfApril, { weekStartsOn: 0 }) + 1;
   const paddedWeek = weekNumber.toString().padStart(2, '0');
   return `${currentYear}-${paddedWeek}`;
 }

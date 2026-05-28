@@ -5,6 +5,7 @@ import { useFirestore } from '@/firebase';
 import { doc, setDoc, getDoc, serverTimestamp, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { cn, getWeekForDate } from '@/lib/utils';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ import {
   Target, Rocket, Shield, Trash2, Plus, AlertTriangle, LifeBuoy
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfWeek, addWeeks } from 'date-fns';
+import { format, addWeeks } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FocusAccount {
@@ -49,7 +50,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
   const { toast } = useToast();
   const [weekOffset, setWeekOffset] = useState(0);
   const targetDate = addWeeks(new Date(), weekOffset);
-  const currentWeek = format(startOfWeek(targetDate, { weekStartsOn: 1 }), 'yyyy-ww');
+  const currentWeek = getWeekForDate(targetDate);
   
   const now = new Date();
   const canPlanNextWeek = (now.getDay() === 5 && now.getHours() >= 12) || now.getDay() === 6 || now.getDay() === 0;

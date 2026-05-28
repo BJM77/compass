@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthGuard } from '@/components/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
 import { BDMDashboard } from '@/components/dashboard/bdm-dashboard';
@@ -31,7 +31,7 @@ import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { collection } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
@@ -74,6 +74,8 @@ export default function DashboardPage() {
 
   const handleSignOut = async () => { if (auth) { await signOut(auth); router.push('/login'); } };
   const handleSimulate = (uid: string) => { setSimulationUid(uid); setCurrentView('DASHBOARD'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+
 
   const renderContent = () => {
     // DEFENSIVE: Block rendering if activeUserId is not yet resolved

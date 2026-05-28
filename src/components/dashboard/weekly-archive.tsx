@@ -15,16 +15,16 @@ import {
   Loader2, AlertTriangle, LifeBuoy, Briefcase, Users, Clock
 } from 'lucide-react';
 import { format, startOfWeek, subWeeks, addDays } from 'date-fns';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate } from '@/lib/utils';
 
 // ─── Generate last N weeks as selectable options ──────────────────────────────
 function generateWeekOptions(count: number) {
   const options: { value: string; label: string; range: string }[] = [];
   const now = new Date();
   for (let i = 0; i < count; i++) {
-    const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 });
-    const weekEnd = addDays(weekStart, 4); // Friday
-    const weekKey = format(weekStart, 'yyyy-ww');
+    const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 0 }); // Sunday
+    const weekEnd = addDays(weekStart, 6); // Saturday
+    const weekKey = getWeekForDate(weekStart);
     options.push({
       value: weekKey,
       label: `Week ${weekKey.split('-')[1]}`,
@@ -282,6 +282,8 @@ export function WeeklyArchive() {
   const [isLoading, setIsLoading] = useState(false);
   const [archiveData, setArchiveData] = useState<ArchivedWeek[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+
 
   const canViewAll = isLeader || isGM;
 

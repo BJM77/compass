@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Star, Info, Lightbulb, Trash2, Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfWeek } from 'date-fns';
+import { getCurrentWeek } from '@/lib/utils';
 
 interface SMARTGoal {
   id: string;
@@ -28,7 +28,7 @@ interface SMARTGoal {
 export function SmartGoalsView({ userId }: { userId: string }) {
   const db = useFirestore();
   const { toast } = useToast();
-  const currentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-ww');
+  const currentWeek = getCurrentWeek();
   
   const [smartGoals, setSmartGoals] = useState<SMARTGoal[]>([]);
   const [showSmartHelp, setShowSmartHelp] = useState(false);

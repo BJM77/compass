@@ -6,7 +6,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { History, Phone, CalendarCheck } from 'lucide-react';
 import { format, subWeeks, startOfWeek } from 'date-fns';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 interface HistoricalActivityProps {
@@ -22,8 +22,8 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
     const weeks = [];
     const now = new Date();
     for (let i = 0; i < 4; i++) {
-      const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 });
-      weeks.push(format(weekStart, 'yyyy-ww'));
+      const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 0 }); // Sunday
+      weeks.push(getWeekForDate(weekStart));
     }
     return weeks; // e.g. ['2026-22', '2026-21', '2026-20', '2026-19']
   }, []);
