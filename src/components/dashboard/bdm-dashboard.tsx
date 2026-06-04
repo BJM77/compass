@@ -261,8 +261,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide">
           <TabsTrigger value="overview" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Dashboard</TabsTrigger>
           <TabsTrigger value="monday" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-primary/5 text-primary">Monday Planning</TabsTrigger>
-          <TabsTrigger value="accounts" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-emerald-50/50 text-emerald-600">Accounts</TabsTrigger>
-          <TabsTrigger value="pipeline" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">{isAM ? 'Portfolio' : 'Opportunities'}</TabsTrigger>
+          <TabsTrigger value="accounts" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-emerald-50/50 text-emerald-600">Customers</TabsTrigger>
+          <TabsTrigger value="pipeline" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Opportunities</TabsTrigger>
           <TabsTrigger value="submission" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-accent/5 text-accent"><Send className="w-3 h-3 mr-1" /> Friday Synthesis</TabsTrigger>
           <TabsTrigger value="prep" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Call Prep</TabsTrigger>
           <TabsTrigger value="reset" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Success Plan</TabsTrigger>

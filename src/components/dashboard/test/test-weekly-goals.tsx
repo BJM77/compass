@@ -323,6 +323,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
     
     if (pipelineData) {
       pipelineData.forEach(item => {
+        if (item.isBareAccount) return;
         const stage = item.stage || '--None--';
         if (groups[stage]) {
           groups[stage].push(item);
