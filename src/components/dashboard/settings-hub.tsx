@@ -22,8 +22,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import {
   User, Bell, Sparkles, BarChart3, Link2,
   ShieldCheck, Lock, Trash2, Save,
-  Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe, Users, Activity
+  Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe, Users, Activity, LayoutDashboard
 } from 'lucide-react';
+
+import { ReportingToolsSettings, ReportLayout } from './reporting-tools-settings';
 
 interface AppSettings {
   displayName: string;
@@ -55,6 +57,7 @@ interface AppSettings {
   uiDensity: string;
   dateFormat: string;
   sessionTimeoutMinutes: number;
+  customReports: ReportLayout[];
 }
 
 const DEFAULTS: AppSettings = {
@@ -87,11 +90,13 @@ const DEFAULTS: AppSettings = {
   uiDensity: 'comfortable',
   dateFormat: 'yyyy-MM-dd',
   sessionTimeoutMinutes: 480,
+  customReports: [],
 };
 
 const SECTIONS = [
   { id: 'profile',      label: 'My Profile',       icon: User,       leaderOnly: false },
   { id: 'notifications',label: 'Notifications',    icon: Bell,       leaderOnly: false },
+  { id: 'reporting',    label: 'Reporting Tools',  icon: LayoutDashboard, leaderOnly: true  },
   { id: 'ai',           label: 'AI & Intelligence', icon: Sparkles,  leaderOnly: true  },
   { id: 'scoring',      label: 'Scoring Weights',  icon: BarChart3,  leaderOnly: true  },
   { id: 'governance',   label: 'Data Governance',  icon: ShieldCheck,leaderOnly: true  },
@@ -231,7 +236,7 @@ export function SettingsHub() {
       await setDoc(doc(db, 'appSettings', user.uid), { ...personal, updatedAt: serverTimestamp() }, { merge: true });
 
       if (isLeader) {
-        const globalKeys: (keyof AppSettings)[] = ['escalationAlertsEnabled', 'escalationWeeksThreshold', 'leaderPulseEnabled', 'aiModel', 'briefCacheTTLDays', 'promptTone', 'aiUsageLoggingEnabled', 'autoGenerateBriefs', 'stallingDaysThreshold', 'deadRolloverCount', 'gracePeriodDays', 'velocityAuditDays', 'weightRevenue', 'weightActivity', 'weightBehaviour', 'salesforceOrgUrl', 'crmSyncSchedule', 'duplicateDetectionMode', 'autoPurgeEnabled'];
+        const globalKeys: (keyof AppSettings)[] = ['escalationAlertsEnabled', 'escalationWeeksThreshold', 'leaderPulseEnabled', 'aiModel', 'briefCacheTTLDays', 'promptTone', 'aiUsageLoggingEnabled', 'autoGenerateBriefs', 'stallingDaysThreshold', 'deadRolloverCount', 'gracePeriodDays', 'velocityAuditDays', 'weightRevenue', 'weightActivity', 'weightBehaviour', 'salesforceOrgUrl', 'crmSyncSchedule', 'duplicateDetectionMode', 'autoPurgeEnabled', 'customReports'];
         const global: Partial<AppSettings> = {};
         globalKeys.forEach(k => { (global as any)[k] = settings[k]; });
         await setDoc(doc(db, 'appSettings', 'global'), { ...global, updatedAt: serverTimestamp() }, { merge: true });
@@ -316,6 +321,13 @@ export function SettingsHub() {
                 <Switch checked={settings.escalationAlertsEnabled} onCheckedChange={v => set('escalationAlertsEnabled', v)} />
               </SettingRow>
             </SectionCard>
+          )}
+
+          {activeSection === 'reporting' && isLeader && (
+            <ReportingToolsSettings 
+              customReports={settings.customReports}
+              onChange={(reports) => set('customReports', reports)}
+            />
           )}
 
           {activeSection === 'ai' && isLeader && (
