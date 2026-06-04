@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { generateExecutiveTeamSummary, ExecutiveTeamSummaryOutput } from '@/ai/flows/generate-executive-team-summary';
 import { jsPDF } from "jspdf";
 
-export function GMReportGenerator() {
+export function TestGMReportGenerator() {
   const db = useFirestore();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);

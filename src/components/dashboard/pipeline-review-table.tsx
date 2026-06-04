@@ -21,7 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { computeMomentum } from '@/lib/momentum';
 import { cn, getCurrentWeek, getWeekForDate } from '@/lib/utils';
 
-export function PipelineReviewTable({ userId, readOnly }: { userId: string, readOnly?: boolean }) {
+export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunities' }: { userId: string, readOnly?: boolean, filterType?: 'opportunities' | 'accounts' | 'all' }) {
   const { isLeader } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
@@ -33,7 +33,18 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
   const currentWeek = getCurrentWeek();
 
   const reviewsQuery = useMemoFirebase(() => db ? query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', currentWeek)) : null, [db, userId, currentWeek]);
-  const { data: reviews, isLoading } = useCollection(reviewsQuery);
+  const { data: rawReviews, isLoading } = useCollection(reviewsQuery);
+
+  const reviews = useMemo(() => {
+    if (!rawReviews) return [];
+    if (filterType === 'accounts') {
+      return rawReviews.filter(r => r.isBareAccount);
+    }
+    if (filterType === 'opportunities') {
+      return rawReviews.filter(r => !r.isBareAccount);
+    }
+    return rawReviews;
+  }, [rawReviews, filterType]);
 
   const selectedCount = useMemo(() => reviews?.filter(r => r.isReviewSelected).length || 0, [reviews]);
 
@@ -53,10 +64,11 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
       await addDoc(collection(db, 'pipelineReviews'), {
         userId, week: currentWeek, pipeline: '', value: 0,
         stage: 'Discovery', salesforceId: '',
-        createdAt: serverTimestamp(), daysInStage: 0, rolloverCount: 0
+        createdAt: serverTimestamp(), daysInStage: 0, rolloverCount: 0,
+        isBareAccount: filterType === 'accounts'
       });
     } catch (e) {
-      toast({ variant: 'destructive', title: 'Failed to add opportunity.' });
+      toast({ variant: 'destructive', title: filterType === 'accounts' ? 'Failed to add account.' : 'Failed to add opportunity.' });
     }
   };
 
@@ -101,7 +113,7 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
         <CardHeader className="bg-primary/5 p-6 flex flex-row items-center justify-between">
           <div className="space-y-1">
             <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-accent" /> Strategy Ledger
+              <ClipboardList className="w-5 h-5 text-accent" /> {filterType === 'accounts' ? 'Accounts Ledger' : 'Strategy Ledger'}
             </CardTitle>
             <div className="flex items-center gap-3">
               <p className="text-[10px] font-black uppercase text-accent tracking-widest">
@@ -118,7 +130,7 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
               onClick={handleAddRow}
               className="bg-primary font-black uppercase text-xs h-10 px-6"
             >
-              <Plus className="w-4 h-4 mr-2" /> New Opp
+              <Plus className="w-4 h-4 mr-2" /> {filterType === 'accounts' ? 'New Account' : 'New Opp'}
             </Button>
           )}
         </CardHeader>
@@ -179,11 +191,30 @@ export function PipelineReviewTable({ userId, readOnly }: { userId: string, read
                                 <span className="shrink-0 text-[7px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md border border-red-200">HOLD</span>
                               )}
                             </div>
-                            {row.opportunityName && (
-                              <p className="text-[9px] text-muted-foreground font-semibold italic truncate px-2">{row.opportunityName}</p>
-                            )}
+                            <div className="flex flex-col gap-0.5 px-2">
+                              {row.pipeline && (
+                                <a 
+                                  href="#" 
+                                  onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.pipeline); }}
+                                  className="text-[8px] text-accent font-black hover:underline tracking-wider uppercase block w-fit"
+                                  title="Open Account in Salesforce"
+                                >
+                                  SF Account Link
+                                </a>
+                              )}
+                              {row.opportunityName && (
+                                <a 
+                                  href="#"
+                                  onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName, row.salesforceId); }}
+                                  className="text-[9px] text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate block w-fit"
+                                  title="Open Opportunity in Salesforce"
+                                >
+                                  {row.opportunityName}
+                                </a>
+                              )}
+                            </div>
                             <Input
-                              className="text-[9px] font-mono h-6 bg-transparent border-dashed border-slate-200 focus:border-accent/40 px-2 placeholder:text-slate-300 rounded"
+                              className="text-[9px] font-mono h-6 bg-transparent border-dashed border-slate-200 focus:border-accent/40 px-2 placeholder:text-slate-300 rounded mt-1"
                               placeholder="Salesforce ID (optional)..."
                               value={row.salesforceId || ''}
                               onChange={e => handleUpdate(row.id, 'salesforceId', e.target.value.trim())}

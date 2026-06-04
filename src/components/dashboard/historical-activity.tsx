@@ -65,10 +65,10 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
 
             return (
               <div key={week} className="min-w-[120px] bg-slate-50 border border-slate-100 rounded-xl p-3 shrink-0 flex flex-col items-center justify-center">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1">
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1">
                   Wk {week.split('-')[1]}
                   {week === currentWeek && <Badge className="text-[7px] px-1 py-0 h-4 bg-accent/10 text-accent border-none ml-1">LIVE</Badge>}
-                </p>
+                </div>
                 <div className="flex items-center gap-4 w-full justify-around">
                   <div className="text-center">
                     <Phone className="w-3.5 h-3.5 text-blue-500 mx-auto mb-1" />

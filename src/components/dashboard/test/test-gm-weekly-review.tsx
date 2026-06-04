@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { cn, getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
-import { OnboardingPlan } from './onboarding-plan';
+import { OnboardingPlan } from '../onboarding-plan';
 
 interface BDMWeeklyReport {
   id?: string;
@@ -53,7 +53,7 @@ interface BDMWeeklyReport {
   callPlanCount?: number;
 }
 
-export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
+export function TestGMWeeklyReview({ week: propWeek }: { week?: string }) {
   const db = useFirestore();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -168,7 +168,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   }, [db, users, selectedWeek]);
 
   const saveGMFeedback = async (userId: string, feedback: string) => {
-
+    toast({ title: "Test Mode", description: "Writes are disabled in test mode." }); return;
     if (!db) return;
     try {
       // Use the actual doc ID from loaded state when available.

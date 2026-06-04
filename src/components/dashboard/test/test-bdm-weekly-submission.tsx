@@ -30,7 +30,7 @@ const SALES_STAGES = [
   "Closed Lost"
 ];
 
-export function BDMWeeklySubmission({ userId, userName }: { userId: string; userName: string }) {
+export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; userName: string }) {
   const db = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,10 +66,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   const { data: pipelineData } = useCollection(pipelineQuery);
 
   const totalEAV = useMemo(() => {
-    const opps = opportunities.reduce((s: number, i: any) => s + (parseFloat(i.eav) || 0), 0);
-    const signed = signedDeals.reduce((s: number, i: any) => s + (parseFloat(i.eav) || 0), 0);
-    const business = newBusiness.reduce((s: number, i: any) => s + (parseFloat(i.eav) || 0), 0);
-    const working = stillWorking.reduce((s: number, i: any) => s + (parseFloat(i.eav) || 0), 0);
+    const opps = opportunities.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
+    const signed = signedDeals.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
+    const business = newBusiness.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
+    const working = stillWorking.reduce((s, i) => s + (parseFloat(i.eav) || 0), 0);
     return opps + signed + business + working;
   }, [opportunities, signedDeals, newBusiness, stillWorking]);
 
@@ -147,19 +147,19 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   const addBusiness = () => setNewBusiness([...newBusiness, { id: crypto.randomUUID(), accountName: '', eav: 0, assignedAE: '' }]);
 
   const moveToOpp = (item: any) => {
-    setStillWorking(stillWorking.filter((w: any) => w.id !== item.id));
+    setStillWorking(stillWorking.filter(w => w.id !== item.id));
     setOpportunities([...opportunities, { id: item.id, accountName: item.accountName, eav: item.eav, stage: 'PROPOSAL', probability: 20 }]);
     toast({ title: "Moved to New Opps" });
   };
 
   const moveToWin = (item: any) => {
-    setStillWorking(stillWorking.filter((w: any) => w.id !== item.id));
+    setStillWorking(stillWorking.filter(w => w.id !== item.id));
     setSignedDeals([...signedDeals, { id: item.id, accountName: item.accountName, eav: item.eav, termMonths: 12 }]);
     toast({ title: "Moved to Signed Win" });
   };
 
   const moveToLive = (item: any) => {
-    setStillWorking(stillWorking.filter((w: any) => w.id !== item.id));
+    setStillWorking(stillWorking.filter(w => w.id !== item.id));
     setNewBusiness([...newBusiness, { id: item.id, accountName: item.accountName, eav: item.eav, assignedAE: '' }]);
     toast({ title: "Moved to Live Trading" });
   };
@@ -320,17 +320,17 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   // Quick action: append data to weekly report narrative notes
   const appendToReportNotes = (text: string) => {
     const divider = notes ? "\n" : "";
-    setNotes((prev: string) => prev + divider + text);
+    setNotes(prev => prev + divider + text);
     toast({ title: "Added to Narrative Notes", description: "Summary logged." });
   };
 
   // Segregate Salesforce accounts (bare accounts) vs active opportunities
   const crmAccounts = useMemo(() => {
-    return pipelineData?.filter((r: any) => r.isBareAccount) || [];
+    return pipelineData?.filter(r => r.isBareAccount) || [];
   }, [pipelineData]);
 
   const crmOpportunities = useMemo(() => {
-    return pipelineData?.filter((r: any) => !r.isBareAccount) || [];
+    return pipelineData?.filter(r => !r.isBareAccount) || [];
   }, [pipelineData]);
 
   return (
@@ -418,7 +418,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
           <div className="space-y-4 pt-4 border-t border-slate-200">
             <Label className="text-[10px] font-black uppercase text-muted-foreground">Commitments for the Week Ahead</Label>
             <div className="space-y-3">
-              {commitments.map((c: any, idx: number) => {
+              {commitments.map((c, idx) => {
                 const isCompleted = c.status === 'COMPLETED';
                 return (
                   <div key={c.id} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
@@ -464,7 +464,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
           <div className="space-y-4 pt-4 border-t border-slate-200">
             <Label className="text-[10px] font-black uppercase text-muted-foreground">Focus Accounts Review</Label>
             <div className="space-y-3">
-              {focusAccounts.map((f: any, idx: number) => {
+              {focusAccounts.map((f, idx) => {
                 const isCompleted = f.status === 'COMPLETED';
                 return (
                   <div key={f.accountId || idx} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
@@ -482,7 +482,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                       />
                       <div className="flex-1 space-y-2">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <label htmlFor={`focus-check-${f.accountId || idx}`} className="text-sm font-bold text-slate-700 cursor-pointer block select-none">
+                          <label htmlFor={`focus-check-${f.accountId || idx}`} className="text-sm font-bold text-slate-700 cursor-pointer block select-none font-sans">
                             {f.accountName}
                           </label>
                           <div className="flex items-center gap-2">

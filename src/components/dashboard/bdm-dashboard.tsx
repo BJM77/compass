@@ -253,37 +253,39 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                   </CardContent>
                </Card>
             </div>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
-                <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Dashboard</TabsTrigger>
-                <TabsTrigger value="monday" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-primary/5 text-primary">Monday Planning</TabsTrigger>
-                <TabsTrigger value="pipeline" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">{isAM ? 'Portfolio' : 'Pipeline'}</TabsTrigger>
-                <TabsTrigger value="submission" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-accent/5 text-accent"><Send className="w-3 h-3 mr-1" /> Friday Synthesis</TabsTrigger>
-                <TabsTrigger value="prep" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Call Prep</TabsTrigger>
-                <TabsTrigger value="reset" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Success Plan</TabsTrigger>
-              </TabsList>
-              <TabsContent value="overview" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  <div className="space-y-6 flex flex-col">
-                    <VoiceActionLogger userId={userId || ''} userName={profile?.name || 'BDM'} />
-                    <ActivityLogger userId={userId || ''} />
-                    <HistoricalActivity userId={userId || ''} />
-                  </div>
-                  <div className="md:col-span-1 xl:col-span-2">
-                    <TerritoryPlaybook territory={profile?.territory || 'FLEX'} zones={profile?.zones || []} />
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="monday"><WeeklyGoals userId={userId || ''} /></TabsContent>
-              <TabsContent value="pipeline"><PipelineReviewTable userId={userId || ''} /></TabsContent>
-              <TabsContent value="submission"><BDMWeeklySubmission userId={userId || ''} userName={profile?.name || 'BDM'} /></TabsContent>
-              <TabsContent value="prep"><CallPlanning userId={userId || ''} /></TabsContent>
-              <TabsContent value="reset"><OnboardingPlan userId={userId || 'BDM'} userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} /></TabsContent>
-            </Tabs>
          </div>
          <div className="xl:col-span-4"><BehaviorAlerts stats={stats} /></div>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide">
+          <TabsTrigger value="overview" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Dashboard</TabsTrigger>
+          <TabsTrigger value="monday" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-primary/5 text-primary">Monday Planning</TabsTrigger>
+          <TabsTrigger value="accounts" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-emerald-50/50 text-emerald-600">Accounts</TabsTrigger>
+          <TabsTrigger value="pipeline" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">{isAM ? 'Portfolio' : 'Opportunities'}</TabsTrigger>
+          <TabsTrigger value="submission" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest bg-accent/5 text-accent"><Send className="w-3 h-3 mr-1" /> Friday Synthesis</TabsTrigger>
+          <TabsTrigger value="prep" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Call Prep</TabsTrigger>
+          <TabsTrigger value="reset" className="flex-1 text-center rounded-lg px-6 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest">Success Plan</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="space-y-6 flex flex-col">
+              <VoiceActionLogger userId={userId || ''} userName={profile?.name || 'BDM'} />
+              <ActivityLogger userId={userId || ''} />
+              <HistoricalActivity userId={userId || ''} />
+            </div>
+            <div className="md:col-span-1 xl:col-span-2">
+              <TerritoryPlaybook territory={profile?.territory || 'FLEX'} zones={profile?.zones || []} />
+            </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="monday"><WeeklyGoals userId={userId || ''} /></TabsContent>
+        <TabsContent value="accounts"><PipelineReviewTable userId={userId || ''} filterType="accounts" /></TabsContent>
+        <TabsContent value="pipeline"><PipelineReviewTable userId={userId || ''} filterType="opportunities" /></TabsContent>
+        <TabsContent value="submission"><BDMWeeklySubmission userId={userId || ''} userName={profile?.name || 'BDM'} /></TabsContent>
+        <TabsContent value="prep"><CallPlanning userId={userId || ''} /></TabsContent>
+        <TabsContent value="reset"><OnboardingPlan userId={userId || 'BDM'} userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} /></TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -55,7 +55,7 @@ const SALES_STAGES = [
   "Closed Lost"
 ];
 
-export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; userRole?: 'BDM' | 'AM' }) {
+export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; userRole?: 'BDM' | 'AM' }) {
   const db = useFirestore();
   const { toast } = useToast();
   const [weekOffset, setWeekOffset] = useState(0);
@@ -203,7 +203,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
     loadPlanAndGoals();
   }, [db, userId, currentWeek]);
 
-  // Handle mock writes for SMART Goal
+  // Handle writes for SMART Goal
   const handleSaveSmartGoal = async () => {
     if (!db || !userId) return;
     setSubmittingGoal(true);
