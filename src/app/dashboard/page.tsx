@@ -17,6 +17,7 @@ import { WhitespaceAnalysis } from '@/components/dashboard/whitespace-analysis';
 import { WhitespaceHistory } from '@/components/dashboard/whitespace-history';
 import { SmartGoalsAudit } from '@/components/dashboard/smart-goals-audit';
 import { WeeklyArchive } from '@/components/dashboard/weekly-archive';
+import { BIReportsViewer } from '@/components/dashboard/bi-reports-viewer';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -25,7 +26,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database
+  Loader2, Star, Sparkles, Map, Database, BarChart4
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -39,7 +40,7 @@ import { format } from 'date-fns';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS';
 
 const NAV_ITEMS = [
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false },
@@ -53,6 +54,7 @@ const NAV_ITEMS = [
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true },
   { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true },
   { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false },
+  { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false },
   { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true },
   { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false },
 ];
@@ -72,7 +74,13 @@ export default function DashboardPage() {
   const activeUserId = simulationUid || user?.uid || null;
   const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);
 
-  const handleSignOut = async () => { if (auth) { await signOut(auth); router.push('/login'); } };
+  const handleSignOut = async () => { 
+    if (auth) { 
+      await signOut(auth); 
+      document.cookie = "auth_status=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      router.push('/login'); 
+    } 
+  };
   const handleSimulate = (uid: string) => { setSimulationUid(uid); setCurrentView('DASHBOARD'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
 
@@ -90,6 +98,7 @@ export default function DashboardPage() {
     if (currentView === 'GM_REVIEW' && isLeader) return <div className="container mx-auto p-4 md:p-8"><GMWeeklyReview /></div>;
     if (currentView === 'WHITE_SPACE') return <div className="container mx-auto p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
     if (currentView === 'WHITESPACE_HISTORY') return <div className="container mx-auto p-4 md:p-8"><WhitespaceHistory userId={activeUserId || ''} /></div>;
+    if (currentView === 'REPORTS') return <div className="container mx-auto p-4 md:p-8 max-w-[1600px]"><BIReportsViewer /></div>;
     if (currentView === 'UPLOAD' && isLeader) return <div className="container mx-auto p-4 md:p-8 max-w-5xl"><CRMImporter /></div>;
     if (currentView === 'ARCHIVE') return <div className="container mx-auto p-4 md:p-8"><WeeklyArchive /></div>;
     if (currentView === 'SETTINGS') return <div className="container mx-auto p-4 md:p-8"><SettingsHub /></div>;

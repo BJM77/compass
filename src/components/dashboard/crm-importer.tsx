@@ -559,6 +559,7 @@ export function CRMImporter() {
 
         // Batch commit pipeline records
         const BATCH_SIZE = 400;
+        let committedCount = 0;
         for (let i = 0; i < previewRecords.length; i += BATCH_SIZE) {
           const batch = writeBatch(db);
           const chunk = previewRecords.slice(i, i + BATCH_SIZE);
@@ -587,9 +588,15 @@ export function CRMImporter() {
               importedFromSF:    true,
               updatedAt:         serverTimestamp(),
             }, { merge: true });
-            count++;
           });
-          await batch.commit();
+          
+          try {
+            await batch.commit();
+            committedCount += chunk.length;
+            count = committedCount; // Sync the outer count
+          } catch (err: any) {
+            throw new Error(`Pipeline batch commit failed after writing ${committedCount} records. Error: ${err.message}`);
+          }
         }
 
         // Batch commit bdmStats updates so Governance Command and Matrices are populated
@@ -615,6 +622,7 @@ export function CRMImporter() {
       let activityImportCount = 0;
       if (previewActivityRecords.length > 0) {
         const BATCH_SIZE = 400;
+        let committedActivityCount = 0;
         for (let i = 0; i < previewActivityRecords.length; i += BATCH_SIZE) {
           const batch = writeBatch(db);
           const chunk = previewActivityRecords.slice(i, i + BATCH_SIZE);
@@ -629,9 +637,15 @@ export function CRMImporter() {
               crmApps: record.apps,
               updatedAt: serverTimestamp(),
             }, { merge: true });
-            activityImportCount++;
           });
-          await batch.commit();
+
+          try {
+            await batch.commit();
+            committedActivityCount += chunk.length;
+            activityImportCount = committedActivityCount;
+          } catch (err: any) {
+             throw new Error(`Activity batch commit failed after writing ${committedActivityCount} records. Error: ${err.message}`);
+          }
         }
 
         // Fetch and merge into existing weeklyReports summaries in bulk for unique weeks

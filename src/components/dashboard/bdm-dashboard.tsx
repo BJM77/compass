@@ -14,6 +14,7 @@ import { BehaviorAlerts } from './behavior-alerts';
 import { BDMWeeklySubmission } from './bdm-weekly-submission';
 import { VoiceActionLogger } from './voice-action-logger';
 import { HistoricalActivity } from './historical-activity';
+import { AIDealWhisperer } from './ai-deal-whisperer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -281,7 +282,10 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         </TabsContent>
         <TabsContent value="monday"><WeeklyGoals userId={userId || ''} /></TabsContent>
         <TabsContent value="accounts"><PipelineReviewTable userId={userId || ''} filterType="accounts" /></TabsContent>
-        <TabsContent value="pipeline"><PipelineReviewTable userId={userId || ''} filterType="opportunities" /></TabsContent>
+        <TabsContent value="pipeline" className="space-y-6">
+          <AIDealWhisperer deals={allDeals || []} />
+          <PipelineReviewTable userId={userId || ''} filterType="opportunities" />
+        </TabsContent>
         <TabsContent value="submission"><BDMWeeklySubmission userId={userId || ''} userName={profile?.name || 'BDM'} /></TabsContent>
         <TabsContent value="prep"><CallPlanning userId={userId || ''} /></TabsContent>
         <TabsContent value="reset"><OnboardingPlan userId={userId || 'BDM'} userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} /></TabsContent>

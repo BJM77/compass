@@ -47,6 +47,9 @@ export default function LoginPage() {
         }
       }
 
+      // Set cookie for middleware
+      document.cookie = "auth_status=1; path=/; max-age=86400";
+
       router.push('/dashboard');
     } catch (err: any) {
       console.error("Auth error:", err);
@@ -94,6 +97,8 @@ export default function LoginPage() {
       specialisation: 'Strategic Operations',
       isMock: true
     });
+    // Set cookie for middleware
+    document.cookie = "auth_status=1; path=/; max-age=86400";
     router.push('/dashboard');
   };
 

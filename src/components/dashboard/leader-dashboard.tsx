@@ -12,6 +12,7 @@ import { PlanMetrics } from './plan-metrics';
 import { OnboardingPlan } from './onboarding-plan';
 import { GMReportGenerator } from './gm-report-generator';
 import { AiReportGenerator } from './ai-report-generator';
+import { AIDealWhisperer } from './ai-deal-whisperer';
 import { VelocityPulse } from './velocity-pulse';
 import { HistoricalActivity } from './historical-activity';
 import { 
@@ -183,6 +184,14 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         />
       </div>
 
+      <div className="w-full flex justify-center py-4">
+        <img 
+          src="/network-map.png" 
+          alt="Team Global Express Parcel Network Western Australia" 
+          className="w-full max-w-5xl rounded-xl shadow-lg border"
+        />
+      </div>
+
       <Tabs defaultValue="dashboard" className="w-full space-y-6">
         <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 inline-flex overflow-x-auto scrollbar-hide max-w-full">
           <TabsTrigger value="dashboard" className="font-black uppercase text-[10px] tracking-widest"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
@@ -198,6 +207,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
         <TabsContent value="dashboard" className="space-y-6">
            <VelocityPulse teamStats={teamStats || []} teamActivity={teamActivity || []} onSimulate={onSimulate} />
+           <AIDealWhisperer deals={allDeals || []} />
            <HistoricalActivity />
            <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
            <Card className="border-none shadow-2xl bg-white overflow-hidden">
