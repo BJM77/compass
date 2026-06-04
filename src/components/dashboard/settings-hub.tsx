@@ -25,7 +25,7 @@ import {
   Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe, Users, Activity, LayoutDashboard
 } from 'lucide-react';
 
-import { ReportingToolsSettings, ReportLayout } from './reporting-tools-settings';
+import { ReportingToolsSettings, CustomDashboard, ReportWidget } from './reporting-tools-settings';
 
 interface AppSettings {
   displayName: string;
@@ -57,7 +57,8 @@ interface AppSettings {
   uiDensity: string;
   dateFormat: string;
   sessionTimeoutMinutes: number;
-  customReports: ReportLayout[];
+  customDashboards: CustomDashboard[];
+  reportWidgets: ReportWidget[];
 }
 
 const DEFAULTS: AppSettings = {
@@ -90,7 +91,8 @@ const DEFAULTS: AppSettings = {
   uiDensity: 'comfortable',
   dateFormat: 'yyyy-MM-dd',
   sessionTimeoutMinutes: 480,
-  customReports: [],
+  customDashboards: [],
+  reportWidgets: [],
 };
 
 const SECTIONS = [
@@ -236,7 +238,7 @@ export function SettingsHub() {
       await setDoc(doc(db, 'appSettings', user.uid), { ...personal, updatedAt: serverTimestamp() }, { merge: true });
 
       if (isLeader) {
-        const globalKeys: (keyof AppSettings)[] = ['escalationAlertsEnabled', 'escalationWeeksThreshold', 'leaderPulseEnabled', 'aiModel', 'briefCacheTTLDays', 'promptTone', 'aiUsageLoggingEnabled', 'autoGenerateBriefs', 'stallingDaysThreshold', 'deadRolloverCount', 'gracePeriodDays', 'velocityAuditDays', 'weightRevenue', 'weightActivity', 'weightBehaviour', 'salesforceOrgUrl', 'crmSyncSchedule', 'duplicateDetectionMode', 'autoPurgeEnabled', 'customReports'];
+        const globalKeys: (keyof AppSettings)[] = ['escalationAlertsEnabled', 'escalationWeeksThreshold', 'leaderPulseEnabled', 'aiModel', 'briefCacheTTLDays', 'promptTone', 'aiUsageLoggingEnabled', 'autoGenerateBriefs', 'stallingDaysThreshold', 'deadRolloverCount', 'gracePeriodDays', 'velocityAuditDays', 'weightRevenue', 'weightActivity', 'weightBehaviour', 'salesforceOrgUrl', 'crmSyncSchedule', 'duplicateDetectionMode', 'autoPurgeEnabled', 'customDashboards', 'reportWidgets'];
         const global: Partial<AppSettings> = {};
         globalKeys.forEach(k => { (global as any)[k] = settings[k]; });
         await setDoc(doc(db, 'appSettings', 'global'), { ...global, updatedAt: serverTimestamp() }, { merge: true });
@@ -325,8 +327,10 @@ export function SettingsHub() {
 
           {activeSection === 'reporting' && isLeader && (
             <ReportingToolsSettings 
-              customReports={settings.customReports}
-              onChange={(reports) => set('customReports', reports)}
+              dashboards={settings.customDashboards}
+              widgets={settings.reportWidgets}
+              onDashboardsChange={(d) => set('customDashboards', d)}
+              onWidgetsChange={(w) => set('reportWidgets', w)}
             />
           )}
 
