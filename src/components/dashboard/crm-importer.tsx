@@ -433,12 +433,15 @@ export function CRMImporter() {
       const matchedActivityBDMSet = new Set<string>();
 
       activityRows.forEach(row => {
-        const completedFlag = getField(row, 'Completed?', 'completed');
-        const completedDateStr = getField(row, 'Date', 'date');
-        const assignedName = getField(row, 'Assigned', 'assigned');
+        const completedFlag = getField(row, 'Completed?', 'completed', 'Status');
+        const completedDateStr = getField(row, 'Date', 'date', 'Created Date');
+        const assignedName = getField(row, 'Assigned', 'assigned', 'Created By: Full Name', 'Created By', 'Owner');
 
-        // Check if completed: completed flag is '1' or 'true' or 'yes'
-        const isCompleted = completedFlag === '1' || completedFlag.toLowerCase() === 'true' || completedFlag.toLowerCase() === 'yes';
+        // Check if completed: completed flag is '1' or 'true' or 'yes', or if Status is 'Completed'
+        const isCompleted = completedFlag === '1' || 
+                            completedFlag.toLowerCase() === 'true' || 
+                            completedFlag.toLowerCase() === 'yes' || 
+                            completedFlag.toLowerCase() === 'completed';
         
         if (!isCompleted || !assignedName || !completedDateStr) return;
 

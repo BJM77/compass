@@ -36,7 +36,7 @@ const DATA_SOURCES = [
 const DICTIONARY: Record<string, string[]> = {
   customers: ['Customer ID', 'Account Owner', 'Account Name', 'YTD Revenue This FY', 'Credit Hold', 'Business Unit', 'YTD Revenue Last FY', 'Last Activity'],
   opportunities: ['Customer ID', 'Opportunity ID', 'Opportunity Owner', 'Sales Stage', 'Amount', 'Probability (%)', 'Expected Trading Date', 'Opportunity Name'],
-  activities: ['Assigned', 'Completed?', 'Date', 'Activity Type', 'Subject']
+  activities: ['Created By: Full Name', 'Completed?', 'Date', 'Status', 'Subject', 'Comments', 'Created Date']
 };
 
 export function ReportingToolsSettings({ 
