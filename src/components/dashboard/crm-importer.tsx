@@ -505,10 +505,15 @@ export function CRMImporter() {
         matchedActivityBDMs: Array.from(matchedActivityBDMSet),
       });
 
-      const pipelineMsg = records.length > 0 ? `${records.length} pipeline records` : '';
-      const activityMsg = actRecords.length > 0 ? `${actRecords.length} activity entries` : '';
-      const and = records.length > 0 && actRecords.length > 0 ? ' & ' : '';
-      toast({ title: `Preview Ready`, description: `Processed ${pipelineMsg}${and}${activityMsg}.` });
+      const pipelineMsg = records.length > 0 ? `${records.length} pipeline records` : '0 pipeline records';
+      const activityMsg = actRecords.length > 0 ? `${actRecords.length} activity entries` : '0 activity entries';
+      const and = ' & ';
+      
+      if (records.length === 0 && actRecords.length === 0) {
+        toast({ title: `Import Parsed, but No Data Found`, description: `We couldn't find any valid rows. Please check that your CSV files include the expected headers.`, variant: 'destructive' });
+      } else {
+        toast({ title: `Preview Ready`, description: `Processed ${pipelineMsg}${and}${activityMsg}.` });
+      }
     } catch (e: any) {
       console.error(e);
       toast({ variant: 'destructive', title: 'Processing Failed', description: e?.message });
@@ -841,7 +846,7 @@ export function CRMImporter() {
       </Card>
 
       {/* Pipeline Stats Panel */}
-      {stats && previewRecords.length > 0 && (
+      {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
             { label: 'Active Opps', value: stats.activeOpportunities, color: 'text-green-700 bg-green-50 border-green-100' },
@@ -859,12 +864,12 @@ export function CRMImporter() {
       )}
 
       {/* Activity Stats Panel */}
-      {stats && previewActivityRecords.length > 0 && (
+      {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Total Activity Rows', value: stats.totalActivityRows, color: 'text-slate-700 bg-slate-50 border-slate-200' },
-            { label: 'Completed Calls', value: stats.completedCalls, color: 'text-blue-700 bg-blue-50 border-blue-100' },
-            { label: 'Completed Meetings', value: stats.completedApps, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
+            { label: 'Total Activity Rows', value: stats.totalActivityRows || 0, color: 'text-slate-700 bg-slate-50 border-slate-200' },
+            { label: 'Completed Calls', value: stats.completedCalls || 0, color: 'text-blue-700 bg-blue-50 border-blue-100' },
+            { label: 'Completed Meetings', value: stats.completedApps || 0, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
             { label: 'Unique BDM-Weeks', value: previewActivityRecords.length, color: 'text-purple-700 bg-purple-50 border-purple-100' },
           ].map(s => (
             <div key={s.label} className={`rounded-2xl p-4 border ${s.color} text-center`}>
@@ -872,6 +877,22 @@ export function CRMImporter() {
               <p className="text-[9px] font-black uppercase tracking-widest mt-1 opacity-70">{s.label}</p>
             </div>
           ))}
+        </div>
+      )}
+      
+      {/* Empty State Warning */}
+      {stats && previewRecords.length === 0 && previewActivityRecords.length === 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-black text-red-800 uppercase">No Data Found</p>
+            <p className="text-[11px] text-red-700 mt-1">
+              We parsed your files but couldn't find any valid records. This usually happens if:
+              <br/>- The CSV files don't have the correct column headers (e.g., "Customer ID", "Account Owner", "Sales Stage").
+              <br/>- The files contain headers on a different row (like Row 2 or 3) instead of the first row.
+              <br/>- The export from Salesforce is a formatted report instead of a raw data CSV.
+            </p>
+          </div>
         </div>
       )}
 
