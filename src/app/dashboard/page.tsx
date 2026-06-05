@@ -36,6 +36,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
+import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
@@ -59,19 +60,18 @@ const NAV_ITEMS = [
   { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false },
 ];
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { profile, isLeader, user, loading: isAuthLoading } = useAuth();
   const db = useFirestore();
   const auth = useFirebaseAuth();
   const router = useRouter();
   const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<DashboardView>('DASHBOARD');
-  const [simulationUid, setSimulationUid] = useState<string | null>(null);
+  
+  const { activeUserId, simulationUid, setSimulationUid } = usePipelineData();
 
   const usersQuery = useMemoFirebase(() => { if (!db || !isLeader) return null; return collection(db, 'users'); }, [db, isLeader]);
   const { data: allUsers } = useCollection(usersQuery);
-
-  const activeUserId = simulationUid || user?.uid || null;
   const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);
 
   const handleSignOut = async () => { 
@@ -158,8 +158,8 @@ export default function DashboardPage() {
             <SidebarFooter className="p-4 border-t"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
           </Sidebar>
           <SidebarInset className="bg-[#F7F6F8]">
-            <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-6 shadow-sm">
-              <SidebarTrigger />
+            <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2">
+              <SidebarTrigger className="-ml-1" />
               {simulationUid && isLeader && (
                 <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-amber-800 text-xs font-bold animate-pulse">
                   <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
@@ -171,25 +171,35 @@ export default function DashboardPage() {
                     }}
                     className="ml-2 underline font-black hover:text-amber-950 uppercase text-[10px] tracking-wider"
                   >
-                    Exit &amp; Return
+                    Exit
                   </button>
                 </div>
               )}
               <div className="flex-1" />
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-xs font-bold leading-none">{profile?.name || user?.email?.split('@')[0] || 'User'}</p>
-                  <p className="text-[9px] text-muted-foreground uppercase mt-0.5 tracking-widest">{profile?.role || 'Loading...'}</p>
+              <div className="flex items-center gap-4">
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-900">{profile?.name}</p>
+                  <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role?.replace('_', ' ').toLowerCase()}</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white font-bold text-xs shadow-md border-2 border-white">
-                  {profile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || '?'}
+                <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs">
+                  {profile?.name?.charAt(0)}
                 </div>
               </div>
             </header>
-            <main className="min-h-screen">{renderContent()}</main>
+            <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)]">
+              {renderContent()}
+            </main>
           </SidebarInset>
         </SidebarProvider>
       )}
     </AuthGuard>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <PipelineProvider>
+      <DashboardContent />
+    </PipelineProvider>
   );
 }

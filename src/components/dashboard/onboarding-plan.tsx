@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardList, Calendar, CheckCircle2, Loader2, Users } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -79,7 +79,9 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
     setTasks(initialTasks);
   }, [config, planType, savedProgress]);
 
-  const toggleTask = async (phase: number, id: string) => {
+  const writeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const toggleTask = (phase: number, id: string) => {
     const newTasks = {
       ...tasks,
       [phase]: tasks[phase].map(t => t.id === id ? { ...t, completed: !t.completed } : t)
@@ -87,16 +89,20 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
     setTasks(newTasks);
 
     if (db && userId) {
-      // Build a flat object of checked states to save
-      const checkedState: Record<string, boolean> = {};
-      Object.values(newTasks).flat().forEach(t => {
-        if (t.completed) checkedState[t.id] = true;
-      });
-      
-      await setDoc(doc(db, 'onboardingProgress', progressDocId), {
-        tasks: checkedState,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      if (writeTimeoutRef.current) {
+        clearTimeout(writeTimeoutRef.current);
+      }
+      writeTimeoutRef.current = setTimeout(async () => {
+        const checkedState: Record<string, boolean> = {};
+        Object.values(newTasks).flat().forEach(t => {
+          if (t.completed) checkedState[t.id] = true;
+        });
+        
+        await setDoc(doc(db, 'onboardingProgress', progressDocId), {
+          tasks: checkedState,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }, 1000);
     }
   };
 

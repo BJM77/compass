@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { format, addWeeks, startOfMonth, endOfMonth, isSameWeek } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePipelineData } from '@/contexts/pipeline-context';
 
 interface FocusAccount {
   accountId: string;
@@ -102,11 +103,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
   const { data: callPlans } = useCollection(cpQuery);
 
   // 2. Opportunities Query for SF Pipeline & Swimlanes
-  const pipelineQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', currentWeek));
-  }, [db, userId, currentWeek]);
-  const { data: pipelineData } = useCollection(pipelineQuery);
+  const { pipelineReviews: pipelineData } = usePipelineData();
 
   // 3. 30-60-90 check
   const onboardingQuery = useMemoFirebase(() => {

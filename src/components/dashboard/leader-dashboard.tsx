@@ -27,9 +27,10 @@ import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { computeMomentum } from '@/lib/momentum';
-import { openSalesforceSearch, getCurrentWeek, getCurrentMonthWeeks } from '@/lib/utils';
+import { getCurrentWeek, getCurrentMonthWeeks } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
+import { usePipelineData } from '@/contexts/pipeline-context';
 
 interface LeaderDashboardProps {
   onSimulate?: (userId: string) => void;
@@ -50,12 +51,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
   const crmSummary = useCRMSummary(profile?.uid ?? null, true);
 
-  // BDMs log activity to weeklyProgress/{userId}_{week} via ActivityLogger
-  const activityQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'weeklyProgress'), where('week', '==', currentWeek));
-  }, [db, currentWeek]);
-  const { data: teamActivity } = useCollection(activityQuery);
+  const { pipelineReviews: allDeals, weeklyProgresses: teamActivity } = usePipelineData();
 
   const currentMonthWeeks = useMemo(() => getCurrentMonthWeeks(), []);
   const mtdActivityQuery = useMemoFirebase(() => {
@@ -63,12 +59,6 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     return query(collection(db, 'weeklyProgress'), where('week', 'in', currentMonthWeeks));
   }, [db, currentMonthWeeks]);
   const { data: teamMtdActivity } = useCollection(mtdActivityQuery);
-
-  const allDealsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'pipelineReviews'), where('week', '==', currentWeek));
-  }, [db, currentWeek]);
-  const { data: allDeals } = useCollection(allDealsQuery);
 
   const aggregates = useMemo(() => {
     if (!teamStats) return { totalRevenue: 0, totalTarget: 0, risks: 0 };

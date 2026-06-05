@@ -34,6 +34,7 @@ import { computeMomentum } from '@/lib/momentum';
 import { getCurrentWeek } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
+import { usePipelineData } from '@/contexts/pipeline-context';
 
 interface BDMDashboardProps {
   simulatedUser?: {
@@ -60,11 +61,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   }, [db, userId]);
   const { data: stats, isLoading: isStatsLoading } = useDoc(statsDocRef);
 
-  const dealsQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', currentWeek)); 
-  }, [db, userId, currentWeek]);
-  const { data: allDeals } = useCollection(dealsQuery);
+  const { pipelineReviews: allDeals } = usePipelineData();
 
   const pipelineTotal = useMemo(() => {
     if (!allDeals) return 0;
