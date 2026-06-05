@@ -178,7 +178,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         <img 
           src="/network-map.png" 
           alt="Team Global Express Parcel Network Western Australia" 
-          className="w-full max-w-5xl rounded-xl shadow-lg border"
+          className="w-full rounded-xl shadow-lg border"
         />
       </div>
 

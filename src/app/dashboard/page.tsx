@@ -18,6 +18,7 @@ import { WhitespaceHistory } from '@/components/dashboard/whitespace-history';
 import { SmartGoalsAudit } from '@/components/dashboard/smart-goals-audit';
 import { WeeklyArchive } from '@/components/dashboard/weekly-archive';
 import { BIReportsViewer } from '@/components/dashboard/bi-reports-viewer';
+import { DataExplorer } from '@/components/dashboard/data-explorer';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -41,7 +42,7 @@ import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER';
 
 const NAV_ITEMS = [
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false },
@@ -57,6 +58,7 @@ const NAV_ITEMS = [
   { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false },
   { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false },
   { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true },
+  { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true },
   { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false },
 ];
 
@@ -101,6 +103,7 @@ function DashboardContent() {
     if (currentView === 'REPORTS') return <div className="container mx-auto p-4 md:p-8 max-w-[1600px]"><BIReportsViewer /></div>;
     if (currentView === 'UPLOAD' && isLeader) return <div className="container mx-auto p-4 md:p-8 max-w-5xl"><CRMImporter /></div>;
     if (currentView === 'ARCHIVE') return <div className="container mx-auto p-4 md:p-8"><WeeklyArchive /></div>;
+    if (currentView === 'DATA_EXPLORER' && isLeader) return <div className="container mx-auto p-4 md:p-8"><DataExplorer /></div>;
     if (currentView === 'SETTINGS') return <div className="container mx-auto p-4 md:p-8"><SettingsHub /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
