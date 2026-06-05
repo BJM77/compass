@@ -651,35 +651,39 @@ export function CRMImporter() {
         // Fetch and merge into existing weeklyReports summaries in bulk for unique weeks
         const uniqueWeeks = Array.from(new Set(previewActivityRecords.map(r => r.week)));
         if (uniqueWeeks.length > 0) {
-          const reportsSnap = await getDocs(
-            query(collection(db, 'weeklyReports'), where('week', 'in', uniqueWeeks))
-          );
-          
-          if (!reportsSnap.empty) {
-            const reportsBatch = writeBatch(db);
-            let reportsUpdatedCount = 0;
+          const chunkSize = 30;
+          for (let i = 0; i < uniqueWeeks.length; i += chunkSize) {
+            const weekChunk = uniqueWeeks.slice(i, i + chunkSize);
+            const reportsSnap = await getDocs(
+              query(collection(db, 'weeklyReports'), where('week', 'in', weekChunk))
+            );
             
-            reportsSnap.docs.forEach(docSnap => {
-              const data = docSnap.data();
-              const userId = data.userId;
-              const week = data.week;
+            if (!reportsSnap.empty) {
+              const reportsBatch = writeBatch(db);
+              let reportsUpdatedCount = 0;
               
-              const actRecord = previewActivityRecords.find(r => r.userId === userId && r.week === week);
-              if (actRecord) {
-                const summary = data.summary || {};
-                reportsBatch.set(docSnap.ref, {
-                  summary: {
-                    ...summary,
-                    crmCalls: actRecord.calls,
-                    crmApps: actRecord.apps
-                  }
-                }, { merge: true });
-                reportsUpdatedCount++;
+              reportsSnap.docs.forEach(docSnap => {
+                const data = docSnap.data();
+                const userId = data.userId;
+                const week = data.week;
+                
+                const actRecord = previewActivityRecords.find(r => r.userId === userId && r.week === week);
+                if (actRecord) {
+                  const summary = data.summary || {};
+                  reportsBatch.set(docSnap.ref, {
+                    summary: {
+                      ...summary,
+                      crmCalls: actRecord.calls,
+                      crmApps: actRecord.apps
+                    }
+                  }, { merge: true });
+                  reportsUpdatedCount++;
+                }
+              });
+              
+              if (reportsUpdatedCount > 0) {
+                await reportsBatch.commit();
               }
-            });
-            
-            if (reportsUpdatedCount > 0) {
-              await reportsBatch.commit();
             }
           }
         }
