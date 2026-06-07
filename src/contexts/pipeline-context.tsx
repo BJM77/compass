@@ -13,6 +13,8 @@ interface PipelineContextType {
   isLoading: boolean;
   activeUserId: string | null;
   setActiveUserId: (id: string | null) => void;
+  simulationUid: string | null;
+  setSimulationUid: (id: string | null) => void;
 }
 
 const PipelineContext = createContext<PipelineContextType>({
@@ -21,6 +23,8 @@ const PipelineContext = createContext<PipelineContextType>({
   isLoading: true,
   activeUserId: null,
   setActiveUserId: () => {},
+  simulationUid: null,
+  setSimulationUid: () => {},
 });
 
 export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -68,6 +72,8 @@ export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       isLoading: isPipelineLoading || isProgressLoading,
       activeUserId,
       setActiveUserId: setSimulationUid,
+      simulationUid,
+      setSimulationUid,
     }}>
       {children}
     </PipelineContext.Provider>

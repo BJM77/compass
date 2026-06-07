@@ -27,7 +27,7 @@ import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { computeMomentum } from '@/lib/momentum';
-import { getCurrentWeek, getCurrentMonthWeeks } from '@/lib/utils';
+import { getCurrentWeek, getCurrentMonthWeeks, openSalesforceSearch } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';

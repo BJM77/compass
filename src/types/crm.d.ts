@@ -43,6 +43,8 @@ export interface PipelineReview {
   lastBarrierText?: string;
   starred?: boolean;
   notes?: string;
+  isReviewSelected?: boolean;
+  actionsForBen?: string;
   createdAt?: any;
 }
 

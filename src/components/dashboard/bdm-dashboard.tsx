@@ -92,7 +92,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       'Portfolio': 0.5,
     };
     return allDeals?.reduce((sum, deal) => {
-      const weight = stageWeights[deal.stage] ?? 0.2;
+      const weight = (deal.stage ? stageWeights[deal.stage] : undefined) ?? 0.2;
       return sum + ((Number(deal.value) || 0) * weight);
     }, 0) ?? 0;
   }, [allDeals]);

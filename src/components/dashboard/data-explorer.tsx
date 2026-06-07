@@ -18,19 +18,34 @@ export function DataExplorer() {
   const [selectedUser, setSelectedUser] = useState('all');
   const [selectedStage, setSelectedStage] = useState('all');
 
+  // Create a helper map to resolve userId -> userName from pipelineReviews
+  const userIdToName = useMemo(() => {
+    const map = new Map<string, string>();
+    pipelineReviews.forEach(r => {
+      if (r.userName) map.set(r.userId, r.userName);
+    });
+    return map;
+  }, [pipelineReviews]);
+
   // Extract unique users from data for the filter dropdown
   const users = useMemo(() => {
     const userMap = new Map<string, string>();
-    pipelineReviews.forEach(r => userMap.set(r.userId, r.userName));
-    weeklyProgresses.forEach(r => userMap.set(r.userId, r.userName));
+    pipelineReviews.forEach(r => {
+      if (r.userName) userMap.set(r.userId, r.userName);
+    });
+    weeklyProgresses.forEach(r => {
+      if (!userMap.has(r.userId)) {
+        userMap.set(r.userId, userIdToName.get(r.userId) || `BDM (${r.userId})`);
+      }
+    });
     return Array.from(userMap.entries()).map(([id, name]) => ({ id, name }));
-  }, [pipelineReviews, weeklyProgresses]);
+  }, [pipelineReviews, weeklyProgresses, userIdToName]);
 
   // Extract unique stages for opportunities
   const stages = useMemo(() => {
     const stageSet = new Set<string>();
     pipelineReviews.forEach(r => {
-      if (!r.isBareAccount && r.stage !== 'Existing Customer') {
+      if (!r.isBareAccount && r.stage && r.stage !== 'Existing Customer') {
         stageSet.add(r.stage);
       }
     });
@@ -43,7 +58,12 @@ export function DataExplorer() {
       const isCustomer = r.isBareAccount || r.stage === 'Existing Customer';
       if (!isCustomer) return false;
       if (selectedUser !== 'all' && r.userId !== selectedUser) return false;
-      if (searchQuery && !r.pipeline.toLowerCase().includes(searchQuery.toLowerCase()) && !r.accountMasterCode.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (searchQuery) {
+        const queryStr = searchQuery.toLowerCase();
+        const matchesPipeline = r.pipeline.toLowerCase().includes(queryStr);
+        const matchesCode = r.accountMasterCode?.toLowerCase().includes(queryStr) ?? false;
+        if (!matchesPipeline && !matchesCode) return false;
+      }
       return true;
     });
   }, [pipelineReviews, selectedUser, searchQuery]);
@@ -62,10 +82,13 @@ export function DataExplorer() {
   const activities = useMemo(() => {
     return weeklyProgresses.filter(r => {
       if (selectedUser !== 'all' && r.userId !== selectedUser) return false;
-      if (searchQuery && !r.userName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (searchQuery) {
+        const name = userIdToName.get(r.userId) || r.userId;
+        if (!name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      }
       return true;
     });
-  }, [weeklyProgresses, selectedUser, searchQuery]);
+  }, [weeklyProgresses, selectedUser, searchQuery, userIdToName]);
 
   const formatMoney = (val: number) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(val || 0);
 
@@ -143,11 +166,11 @@ export function DataExplorer() {
                   {customers.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-400 font-bold">No customers found.</TableCell></TableRow>
                   ) : customers.map(c => (
-                    <TableRow key={c.docId} className="hover:bg-slate-50">
+                    <TableRow key={c.id} className="hover:bg-slate-50">
                       <TableCell className="font-medium text-xs">{c.accountMasterCode}</TableCell>
                       <TableCell className="font-bold">{c.pipeline}</TableCell>
                       <TableCell className="text-xs">{c.userName}</TableCell>
-                      <TableCell className="text-right font-medium">{formatMoney(c.currentRevenue)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatMoney(c.currentRevenue || 0)}</TableCell>
                       <TableCell className="text-right font-bold text-emerald-600">{formatMoney(c.closedWonValue || 0)}</TableCell>
                       <TableCell className="text-center">
                         {c.creditHold ? <Badge variant="destructive" className="text-[10px]">YES</Badge> : <Badge variant="secondary" className="text-[10px] bg-slate-100 text-slate-400">NO</Badge>}
@@ -196,7 +219,7 @@ export function DataExplorer() {
                   {opportunities.length === 0 ? (
                     <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-400 font-bold">No opportunities found.</TableCell></TableRow>
                   ) : opportunities.map(o => (
-                    <TableRow key={o.docId} className="hover:bg-slate-50">
+                    <TableRow key={o.id} className="hover:bg-slate-50">
                       <TableCell className="font-medium text-xs text-slate-500">{o.salesforceId}</TableCell>
                       <TableCell className="font-bold text-sm text-primary">{o.opportunityName || '—'}</TableCell>
                       <TableCell className="font-medium text-xs">{o.pipeline}</TableCell>
@@ -204,7 +227,7 @@ export function DataExplorer() {
                       <TableCell>
                         <Badge className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">{o.stage}</Badge>
                       </TableCell>
-                      <TableCell className="text-right font-bold">{formatMoney(o.value)}</TableCell>
+                      <TableCell className="text-right font-bold">{formatMoney(o.value || 0)}</TableCell>
                       <TableCell className="text-right font-medium text-xs">{o.probability}%</TableCell>
                     </TableRow>
                   ))}
@@ -242,12 +265,12 @@ export function DataExplorer() {
                   {activities.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">No activities found.</TableCell></TableRow>
                   ) : activities.map(a => (
-                    <TableRow key={a.docId} className="hover:bg-slate-50">
-                      <TableCell className="font-bold text-sm">{a.userName}</TableCell>
+                    <TableRow key={a.id} className="hover:bg-slate-50">
+                      <TableCell className="font-bold text-sm">{userIdToName.get(a.userId) || `BDM (${a.userId})`}</TableCell>
                       <TableCell className="text-center font-black text-slate-700">{a.calls || 0}</TableCell>
                       <TableCell className="text-center font-black text-slate-700">{a.apps || 0}</TableCell>
                       <TableCell className="text-center font-black text-slate-700">{a.proposals || 0}</TableCell>
-                      <TableCell className="text-center font-black text-emerald-600">{a.wins || 0}</TableCell>
+                      <TableCell className="text-center font-black text-emerald-600">{a.deals || 0}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
