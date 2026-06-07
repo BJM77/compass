@@ -198,6 +198,109 @@ export function CRMImporter() {
   const [customersFile, setCustomersFile] = useState<File | null>(null);
   const [opportunitiesFile, setOpportunitiesFile] = useState<File | null>(null);
   const [activityFile, setActivityFile] = useState<File | null>(null);
+  
+  interface FileValidation {
+    isValid: boolean;
+    errors: string[];
+    headers: string[];
+    previewRows: any[];
+  }
+
+  const [customersVal, setCustomersVal] = useState<FileValidation | null>(null);
+  const [opportunitiesVal, setOpportunitiesVal] = useState<FileValidation | null>(null);
+  const [activityVal, setActivityVal] = useState<FileValidation | null>(null);
+
+  const validateHeaders = (headers: string[], requiredGroups: string[][]): { isValid: boolean; missing: string[] } => {
+    const missing: string[] = [];
+    const normalizedHeaders = headers.map(h => h.trim().toLowerCase());
+    
+    for (const group of requiredGroups) {
+      const matched = group.some(candidate => 
+        normalizedHeaders.includes(candidate.toLowerCase())
+      );
+      if (!matched) {
+        missing.push(group[0]);
+      }
+    }
+    return {
+      isValid: missing.length === 0,
+      missing
+    };
+  };
+
+  const handleFileChange = async (file: File | null, type: 'customers' | 'opportunities' | 'activity') => {
+    if (type === 'customers') {
+      setCustomersFile(file);
+      if (!file) { setCustomersVal(null); return; }
+      try {
+        const rows = await parseCSV(file);
+        const headers = Object.keys(rows[0] || {});
+        const validation = validateHeaders(headers, [
+          ['Customer ID', 'customer id'],
+          ['Account Owner', 'account owner'],
+          ['Account Name', 'account name'],
+          ['YTD Revenue This FY', 'ytd revenue this fy', 'Actual YTD Revenue'],
+          ['Credit Hold', 'credit hold'],
+          ['Business Unit', 'business unit']
+        ]);
+        setCustomersVal({
+          isValid: validation.isValid,
+          errors: validation.missing.map(m => `Missing required column group matching: "${m}"`),
+          headers,
+          previewRows: rows.slice(0, 5)
+        });
+      } catch (e) {
+        setCustomersVal({ isValid: false, errors: ['Failed to parse CSV file.'], headers: [], previewRows: [] });
+      }
+    } else if (type === 'opportunities') {
+      setOpportunitiesFile(file);
+      if (!file) { setOpportunitiesVal(null); return; }
+      try {
+        const rows = await parseCSV(file);
+        const headers = Object.keys(rows[0] || {});
+        const validation = validateHeaders(headers, [
+          ['Customer ID', 'customer id'],
+          ['Opportunity ID', 'opportunity id'],
+          ['Opportunity Owner', 'opportunity owner'],
+          ['Sales Stage', 'sales stage'],
+          ['Amount', 'amount'],
+          ['Probability (%)', 'probability (%)', 'probability'],
+          ['Expected Trading Date', 'expected trading date'],
+          ['Opportunity Name', 'opportunity name']
+        ]);
+        setOpportunitiesVal({
+          isValid: validation.isValid,
+          errors: validation.missing.map(m => `Missing required column group matching: "${m}"`),
+          headers,
+          previewRows: rows.slice(0, 5)
+        });
+      } catch (e) {
+        setOpportunitiesVal({ isValid: false, errors: ['Failed to parse CSV file.'], headers: [], previewRows: [] });
+      }
+    } else if (type === 'activity') {
+      setActivityFile(file);
+      if (!file) { setActivityVal(null); return; }
+      try {
+        const rows = await parseCSV(file);
+        const headers = Object.keys(rows[0] || {});
+        const validation = validateHeaders(headers, [
+          ['Completed?', 'completed', 'status'],
+          ['Date', 'date', 'created date'],
+          ['Assigned', 'assigned', 'created by: full name', 'created by', 'owner'],
+          ['Subject', 'subject']
+        ]);
+        setActivityVal({
+          isValid: validation.isValid,
+          errors: validation.missing.map(m => `Missing required column group matching: "${m}"`),
+          headers,
+          previewRows: rows.slice(0, 5)
+        });
+      } catch (e) {
+        setActivityVal({ isValid: false, errors: ['Failed to parse CSV file.'], headers: [], previewRows: [] });
+      }
+    }
+  };
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [previewRecords, setPreviewRecords] = useState<ProcessedRecord[]>([]);
@@ -749,6 +852,97 @@ export function CRMImporter() {
     </div>
   );
 
+  const FilePreviewSection = ({ 
+    title, validation 
+  }: { 
+    title: string; validation: FileValidation | null 
+  }) => {
+    const [showPreview, setShowPreview] = useState(false);
+    if (!validation) return null;
+
+    return (
+      <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-3 px-6 flex flex-row items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-800">{title} Preview & Validation</span>
+            {validation.isValid ? (
+              <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none font-bold uppercase text-[9px] tracking-wider">Valid Schema</Badge>
+            ) : (
+              <Badge variant="destructive" className="font-bold uppercase text-[9px] tracking-wider">Schema Errors</Badge>
+            )}
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowPreview(!showPreview)} 
+            className="text-xs font-bold uppercase tracking-wider text-primary h-8 px-3 rounded-lg hover:bg-slate-100"
+          >
+            {showPreview ? 'Hide Details' : 'Show Details & Preview'}
+          </Button>
+        </CardHeader>
+        {showPreview && (
+          <CardContent className="p-6 space-y-4">
+            {!validation.isValid && (
+              <div className="p-4 bg-red-50 border border-red-100 rounded-xl space-y-2">
+                <p className="text-xs font-black uppercase text-red-800 flex items-center gap-2">
+                  <AlertTriangle className="w-4.5 h-4.5" />
+                  Validation Errors detected:
+                </p>
+                <ul className="list-disc list-inside text-xs text-red-700 font-medium space-y-1">
+                  {validation.errors.map((err, i) => <li key={i}>{err}</li>)}
+                </ul>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Detected Columns ({validation.headers.length})</p>
+              <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-2 bg-slate-50 rounded-lg border border-slate-100">
+                {validation.headers.map((h, i) => (
+                  <Badge key={i} variant="outline" className="text-[9px] font-bold bg-white text-slate-600 border-slate-200">{h}</Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase text-slate-500 tracking-wider">File Preview (First 5 Rows)</p>
+              <div className="border rounded-xl overflow-hidden">
+                <ScrollArea className="w-full">
+                  <div className="max-h-[250px] overflow-auto">
+                    <Table>
+                      <TableHeader className="bg-slate-50 border-b sticky top-0 z-10">
+                        <TableRow>
+                          {validation.headers.slice(0, 8).map((h, i) => (
+                            <TableHead key={i} className="font-black text-[10px] uppercase text-slate-500 whitespace-nowrap px-4 py-2">{h}</TableHead>
+                          ))}
+                          {validation.headers.length > 8 && <TableHead className="font-black text-[10px] uppercase text-slate-500 px-4 py-2">...</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {validation.previewRows.map((row, i) => (
+                          <TableRow key={i} className="hover:bg-slate-50">
+                            {validation.headers.slice(0, 8).map((h, j) => (
+                              <TableCell key={j} className="text-xs font-medium max-w-[150px] truncate px-4 py-2">{String(row[h] ?? '')}</TableCell>
+                            ))}
+                            {validation.headers.length > 8 && <TableCell className="text-xs text-slate-400 px-4 py-2">...</TableCell>}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+    );
+  };
+
+  const hasValidationErrors = 
+    (customersVal && !customersVal.isValid) || 
+    (opportunitiesVal && !opportunitiesVal.isValid) || 
+    (activityVal && !activityVal.isValid);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -826,27 +1020,36 @@ export function CRMImporter() {
               label="Customers Export"
               hint="Customer ID · Account Owner · YTD Revenue · Credit Hold"
               file={customersFile}
-              onFile={setCustomersFile}
+              onFile={f => handleFileChange(f, 'customers')}
             />
             <FileZone
               label="Opportunities Export"
               hint="Opportunity ID · Customer ID · Sales Stage · Amount"
               file={opportunitiesFile}
-              onFile={setOpportunitiesFile}
+              onFile={f => handleFileChange(f, 'opportunities')}
             />
             <FileZone
               label="Activity Export"
               hint="Assigned · Completed Date · Subject · Status"
               file={activityFile}
-              onFile={setActivityFile}
+              onFile={f => handleFileChange(f, 'activity')}
             />
           </div>
+
+          {/* File Previews & Schema Validation */}
+          {(customersVal || opportunitiesVal || activityVal) && (
+            <div className="space-y-4">
+              <FilePreviewSection title="Customers File" validation={customersVal} />
+              <FilePreviewSection title="Opportunities File" validation={opportunitiesVal} />
+              <FilePreviewSection title="Activity File" validation={activityVal} />
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
             <Button
               onClick={handleProcess}
-              disabled={isProcessing || isImporting || (!customersFile && !opportunitiesFile && !activityFile)}
+              disabled={isProcessing || isImporting || hasValidationErrors || (!customersFile && !opportunitiesFile && !activityFile)}
               className="bg-slate-900 text-white font-black uppercase text-xs h-12 px-8 rounded-xl"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}

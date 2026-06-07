@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo } from 'react';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, FileText, Database, Users, Briefcase, Activity } from 'lucide-react';
+import { Search, Filter, FileText, Database, Users, Briefcase, Activity, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, Legend, PieChart, Pie } from 'recharts';
 
 export function DataExplorer() {
   const { pipelineReviews, weeklyProgresses, isLoading } = usePipelineData();
@@ -92,6 +91,133 @@ export function DataExplorer() {
 
   const formatMoney = (val: number) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(val || 0);
 
+  // Automated Smart Insights
+  const smartInsights = useMemo(() => {
+    const insights: { type: 'warning' | 'info' | 'success'; text: string }[] = [];
+
+    // 1. Stalled deals / High value deals at risk
+    const highValueStalled = pipelineReviews.filter(r => 
+      !r.isBareAccount && 
+      r.stage !== 'Existing Customer' && 
+      (r.value || 0) >= 500000 && 
+      (r.daysInStage || 0) > 30
+    );
+    if (highValueStalled.length > 0) {
+      insights.push({
+        type: 'warning',
+        text: `Alert: ${highValueStalled.length} high-value opportunity(s) (>= $500K) have been stalled in their stage for over 30 days.`
+      });
+    }
+
+    // 2. Accounts on Credit Hold with active pipeline
+    const creditHoldWithPipeline = pipelineReviews.filter(r => 
+      r.creditHold && 
+      !r.isBareAccount && 
+      r.stage !== 'Existing Customer' && 
+      (r.value || 0) > 0
+    );
+    if (creditHoldWithPipeline.length > 0) {
+      const totalRisk = creditHoldWithPipeline.reduce((sum, r) => sum + (r.value || 0), 0);
+      insights.push({
+        type: 'warning',
+        text: `Risk: ${creditHoldWithPipeline.length} customer accounts on Credit Hold have active opportunities worth ${formatMoney(totalRisk)}.`
+      });
+    }
+
+    // 3. Top performing BDM
+    let topBDM = { name: '', value: 0 };
+    const bdmWonMap = new Map<string, number>();
+    pipelineReviews.forEach(r => {
+      if (r.userName && r.closedWonValue) {
+        bdmWonMap.set(r.userName, (bdmWonMap.get(r.userName) || 0) + r.closedWonValue);
+      }
+    });
+    bdmWonMap.forEach((val, name) => {
+      if (val > topBDM.value) topBDM = { name, value: val };
+    });
+    if (topBDM.value > 0) {
+      insights.push({
+        type: 'success',
+        text: `BDM Milestone: ${topBDM.name} leads the team this week with ${formatMoney(topBDM.value)} in Closed-Won revenue!`
+      });
+    }
+
+    // 4. Low activity alert
+    const lowActivityBDMs: string[] = [];
+    weeklyProgresses.forEach(p => {
+      const name = userIdToName.get(p.userId) || p.userId;
+      if ((p.calls || 0) + (p.apps || 0) < 5) {
+        lowActivityBDMs.push(name);
+      }
+    });
+    if (lowActivityBDMs.length > 0) {
+      insights.push({
+        type: 'info',
+        text: `Activity Alert: ${lowActivityBDMs.join(', ')} logged fewer than 5 client interactions (calls + meetings) this week.`
+      });
+    }
+
+    // 5. Total active pipeline value
+    const activeOpps = pipelineReviews.filter(r => !r.isBareAccount && r.stage !== 'Existing Customer');
+    if (activeOpps.length > 0) {
+      const totalPipeline = activeOpps.reduce((sum, r) => sum + (r.value || 0), 0);
+      insights.push({
+        type: 'info',
+        text: `Pipeline Strength: Total active sales pipeline is valued at ${formatMoney(totalPipeline)} across ${activeOpps.length} opportunities.`
+      });
+    }
+
+    return insights;
+  }, [pipelineReviews, weeklyProgresses, userIdToName]);
+
+  // Chart data calculations
+  const opportunitiesChartData = useMemo(() => {
+    const stageMap = new Map<string, { stage: string; value: number; count: number }>();
+    opportunities.forEach(o => {
+      const stageName = o.stage || 'Unknown';
+      const existing = stageMap.get(stageName) || { stage: stageName, value: 0, count: 0 };
+      existing.value += o.value || 0;
+      existing.count += 1;
+      stageMap.set(stageName, existing);
+    });
+    return Array.from(stageMap.values()).map(s => ({
+      stage: s.stage,
+      value: Math.round(s.value / 1000) / 1000, // format to Millions (e.g., $1.2M)
+      count: s.count
+    }));
+  }, [opportunities]);
+
+  const activitiesChartData = useMemo(() => {
+    return activities.map(a => {
+      const name = userIdToName.get(a.userId) || `BDM (${a.userId})`;
+      return {
+        name,
+        calls: a.calls || 0,
+        meetings: a.apps || 0,
+        proposals: a.proposals || 0,
+        wins: a.deals || 0
+      };
+    });
+  }, [activities, userIdToName]);
+
+  const customersChartData = useMemo(() => {
+    const buMap = new Map<string, { name: string; value: number }>();
+    customers.forEach(c => {
+      const bu = c.businessUnit || 'Default';
+      const existing = buMap.get(bu) || { name: bu, value: 0 };
+      existing.value += c.currentRevenue || 0;
+      buMap.set(bu, existing);
+    });
+    const COLORS = ['#2563eb', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#64748b'];
+    return Array.from(buMap.values()).map((bu, index) => ({
+      ...bu,
+      value: Math.round(bu.value / 1000) / 1000, // Millions
+      color: COLORS[index % COLORS.length]
+    }));
+  }, [customers]);
+
+  const [insightIndex, setInsightIndex] = useState(0);
+
   if (isLoading) {
     return <div className="flex h-[400px] items-center justify-center text-slate-500 font-bold uppercase tracking-widest">Loading CRM Data...</div>;
   }
@@ -131,6 +257,40 @@ export function DataExplorer() {
         </div>
       </div>
 
+      {/* Smart Insights Banner */}
+      {smartInsights.length > 0 && (
+        <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-slate-50 to-indigo-50/20 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4.5 h-4.5 text-indigo-600 animate-pulse" />
+              <span className="text-[10px] font-black uppercase text-indigo-950 tracking-widest">Compass CRM Insights Engine</span>
+            </div>
+            {smartInsights.length > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button 
+                  onClick={() => setInsightIndex(prev => (prev - 1 + smartInsights.length) % smartInsights.length)}
+                  className="p-1 rounded hover:bg-slate-200/50 text-slate-400 hover:text-slate-800 transition-colors"
+                >
+                  &lt;
+                </button>
+                <span className="text-[9px] font-bold text-slate-500 uppercase">{insightIndex + 1} / {smartInsights.length}</span>
+                <button 
+                  onClick={() => setInsightIndex(prev => (prev + 1) % smartInsights.length)}
+                  className="p-1 rounded hover:bg-slate-200/50 text-slate-400 hover:text-slate-800 transition-colors"
+                >
+                  &gt;
+                </button>
+              </div>
+            )}
+          </div>
+          <CardContent className="p-4 px-6 flex items-center justify-between min-h-[52px]">
+            <p className="text-xs font-bold text-slate-700 leading-relaxed">
+              {smartInsights[insightIndex].text}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-slate-100/50 p-1 rounded-xl mb-6">
           <TabsTrigger value="customers" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">
@@ -149,6 +309,34 @@ export function DataExplorer() {
 
         {/* CUSTOMERS TAB */}
         <TabsContent value="customers">
+          {customersChartData.length > 0 && (
+            <Card className="border-none shadow-xl bg-white p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider mb-4">Customer Revenue Split by Business Unit</h3>
+              <div className="h-[250px] w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={customersChartData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      label={({ name, value }: { name: string; value: number }) => `${name}: $${value.toFixed(1)}M`}
+                    >
+                      {customersChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}M`} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          )}
+
           <Card className="border-none shadow-xl bg-white overflow-hidden">
             <div className="overflow-x-auto">
               <Table>
@@ -185,6 +373,27 @@ export function DataExplorer() {
 
         {/* OPPORTUNITIES TAB */}
         <TabsContent value="opportunities">
+          {opportunitiesChartData.length > 0 && (
+            <Card className="border-none shadow-xl bg-white p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider mb-4">Active Pipeline Value by Stage</h3>
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={opportunitiesChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="stage" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-slate-500" />
+                    <YAxis tickLine={false} className="text-[10px] font-bold text-slate-500" unit="M" />
+                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}M`} />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                      {opportunitiesChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#2563eb' : '#8b5cf6'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          )}
+
           <Card className="border-none shadow-xl bg-white overflow-hidden">
             {activeTab === 'opportunities' && (
               <div className="bg-slate-50 border-b p-3 flex gap-4 items-center">
@@ -239,6 +448,26 @@ export function DataExplorer() {
 
         {/* ACTIVITIES TAB */}
         <TabsContent value="activities">
+          {activitiesChartData.length > 0 && (
+            <Card className="border-none shadow-xl bg-white p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider mb-4">BDM Weekly Activity Comparison</h3>
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={activitiesChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-slate-500" />
+                    <YAxis tickLine={false} className="text-[10px] font-bold text-slate-500" />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="calls" name="Calls Logged" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="meetings" name="Meetings" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="proposals" name="Proposals" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          )}
+
           <Card className="border-none shadow-xl bg-white overflow-hidden">
             <div className="bg-blue-50/50 p-4 border-b border-blue-100 flex items-start gap-3">
               <Activity className="w-5 h-5 text-blue-500 mt-0.5" />

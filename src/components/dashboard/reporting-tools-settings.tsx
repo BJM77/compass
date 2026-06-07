@@ -224,65 +224,122 @@ export function ReportingToolsSettings({
       </div>
 
       <Dialog open={showWidgetDialog} onOpenChange={setShowWidgetDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="font-black uppercase tracking-widest text-slate-800">Configure New Widget</DialogTitle>
           </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase">Widget Name</Label>
-              <Input placeholder="e.g. Total Revenue" value={newWidget.name || ''} onChange={e => setNewWidget({...newWidget, name: e.target.value})} className="font-bold" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+            {/* Left Column: Form Controls */}
+            <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase">Widget Type</Label>
-                <Select value={newWidget.type} onValueChange={v => setNewWidget({...newWidget, type: v, calculation: v === 'table' ? 'none' : 'sum'})}>
-                  <SelectTrigger className="font-bold"><SelectValue/></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="kpi" className="font-bold">KPI Metric Card</SelectItem>
-                    <SelectItem value="table" className="font-bold">Data Table</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-[10px] font-black uppercase text-slate-500">Widget Name</Label>
+                <Input placeholder="e.g. Total Revenue" value={newWidget.name || ''} onChange={e => setNewWidget({...newWidget, name: e.target.value})} className="font-bold border-slate-200" />
               </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase">Data Source</Label>
-                <Select value={newWidget.dataSource} onValueChange={v => setNewWidget({...newWidget, dataSource: v, field: ''})}>
-                  <SelectTrigger className="font-bold"><SelectValue/></SelectTrigger>
-                  <SelectContent>
-                    {DATA_SOURCES.map(d => <SelectItem key={d.id} value={d.id} className="font-bold">{d.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase">Target Field</Label>
-                <Select value={newWidget.field} onValueChange={v => setNewWidget({...newWidget, field: v})}>
-                  <SelectTrigger className="font-bold"><SelectValue placeholder="Select..."/></SelectTrigger>
-                  <SelectContent>
-                    {DICTIONARY[newWidget.dataSource || 'opportunities'].map(f => <SelectItem key={f} value={f} className="font-bold">{f}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {newWidget.type === 'kpi' && (
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase">Calculation</Label>
-                  <Select value={newWidget.calculation} onValueChange={v => setNewWidget({...newWidget, calculation: v})}>
-                    <SelectTrigger className="font-bold"><SelectValue/></SelectTrigger>
+                  <Label className="text-[10px] font-black uppercase text-slate-500">Widget Type</Label>
+                  <Select value={newWidget.type} onValueChange={v => setNewWidget({...newWidget, type: v, calculation: v === 'table' ? 'none' : 'sum'})}>
+                    <SelectTrigger className="font-bold border-slate-200"><SelectValue/></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sum" className="font-bold">Sum (Total)</SelectItem>
-                      <SelectItem value="count" className="font-bold">Count</SelectItem>
-                      <SelectItem value="avg" className="font-bold">Average</SelectItem>
-                      <SelectItem value="none" className="font-bold">None</SelectItem>
+                      <SelectItem value="kpi" className="font-bold">KPI Metric Card</SelectItem>
+                      <SelectItem value="table" className="font-bold">Data Table</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-slate-500">Data Source</Label>
+                  <Select value={newWidget.dataSource} onValueChange={v => setNewWidget({...newWidget, dataSource: v, field: ''})}>
+                    <SelectTrigger className="font-bold border-slate-200"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                      {DATA_SOURCES.map(d => <SelectItem key={d.id} value={d.id} className="font-bold">{d.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-slate-500">Target Field</Label>
+                  <Select value={newWidget.field} onValueChange={v => setNewWidget({...newWidget, field: v})}>
+                    <SelectTrigger className="font-bold border-slate-200"><SelectValue placeholder="Select..."/></SelectTrigger>
+                    <SelectContent>
+                      {DICTIONARY[newWidget.dataSource || 'opportunities'].map(f => <SelectItem key={f} value={f} className="font-bold">{f}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {newWidget.type === 'kpi' && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-500">Calculation</Label>
+                    <Select value={newWidget.calculation} onValueChange={v => setNewWidget({...newWidget, calculation: v})}>
+                      <SelectTrigger className="font-bold border-slate-200"><SelectValue/></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sum" className="font-bold">Sum (Total)</SelectItem>
+                        <SelectItem value="count" className="font-bold">Count</SelectItem>
+                        <SelectItem value="avg" className="font-bold">Average</SelectItem>
+                        <SelectItem value="none" className="font-bold">None</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Live Interactive Preview */}
+            <div className="flex flex-col justify-center bg-slate-50 p-6 rounded-2xl border border-slate-100 min-h-[220px]">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 text-center">Live Widget Preview</p>
+              
+              {newWidget.type === 'kpi' ? (
+                <Card className="border-none shadow-md bg-white w-full">
+                  <CardContent className="p-5">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest truncate max-w-[80%]">{newWidget.name || 'Untitled KPI'}</p>
+                      <Activity className="w-3.5 h-3.5 text-accent opacity-50" />
+                    </div>
+                    <h3 className="text-2xl font-black tracking-tighter text-slate-800">
+                      {newWidget.calculation === 'count' ? '42' : newWidget.calculation === 'avg' ? '$2.4M' : '$128.5M'}
+                    </h3>
+                    <p className="text-[9px] mt-1.5 font-bold text-slate-400 capitalize">
+                      {newWidget.calculation || 'sum'} of {newWidget.field || 'Amount'}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-none shadow-md bg-white w-full overflow-hidden">
+                  <CardHeader className="bg-slate-50 border-b py-2.5 px-4">
+                    <CardTitle className="text-[10px] font-black uppercase tracking-tight flex items-center gap-1.5">
+                      <TableProperties className="w-3.5 h-3.5 text-primary" />
+                      {newWidget.name || 'Untitled Table'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <table className="w-full text-[10px]">
+                      <thead className="bg-slate-100 uppercase text-[8px] font-black tracking-widest text-slate-500">
+                        <tr>
+                          <th className="px-3 py-1.5 text-left">Entity</th>
+                          <th className="px-3 py-1.5 text-left">Owner</th>
+                          <th className="px-3 py-1.5 text-right">{newWidget.field || 'Amount'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr className="hover:bg-slate-50">
+                          <td className="px-3 py-1.5 font-bold truncate max-w-[80px]">Acme Deal</td>
+                          <td className="px-3 py-1.5 text-slate-500">John Doe</td>
+                          <td className="px-3 py-1.5 text-right font-black text-primary">$4.50M</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50">
+                          <td className="px-3 py-1.5 font-bold truncate max-w-[80px]">Stark Corp</td>
+                          <td className="px-3 py-1.5 text-slate-500">Tony Stark</td>
+                          <td className="px-3 py-1.5 text-right font-black text-primary">$18.2M</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="border-t pt-4">
             <Button variant="ghost" onClick={() => setShowWidgetDialog(false)} className="font-black">CANCEL</Button>
             <Button onClick={handleAddWidget} className="font-black">CREATE WIDGET</Button>
           </DialogFooter>
