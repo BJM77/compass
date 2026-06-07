@@ -4,8 +4,9 @@ import { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useFirestore, useMemoFirebase, useCollection, useDoc } from '@/firebase';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query, where, setDoc } from 'firebase/firestore';
 import { getCurrentWeek } from '@/lib/utils';
 import { Loader2, LayoutDashboard, TableProperties, Activity, AlertCircle } from 'lucide-react';
 
@@ -44,9 +45,11 @@ const FIELD_MAP: Record<string, string> = {
 };
 
 export function BIReportsViewer() {
-  const { profile } = useAuth();
+  const { profile, isLeader, isGM } = useAuth();
   const db = useFirestore();
   const currentWeek = getCurrentWeek();
+  const isAdmin = isLeader || isGM;
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Load configuration
   const settingsRef = useMemoFirebase(() => db ? doc(db, 'appSettings', 'global') : null, [db]);
@@ -82,16 +85,128 @@ export function BIReportsViewer() {
   }, [db, currentWeek]);
   const { data: activityRecords, isLoading: isActivityLoading } = useCollection(activityQuery);
 
+  const handleInitializeDefaults = async () => {
+    if (!db) return;
+    setIsSeeding(true);
+    try {
+      const globalDocRef = doc(db, 'appSettings', 'global');
+      await setDoc(globalDocRef, {
+        customDashboards: [
+          {
+            id: 'dash_revenue',
+            name: 'Executive Revenue Dashboard',
+            visibleTo: ['LEADER', 'GM']
+          },
+          {
+            id: 'dash_activities',
+            name: 'Team Activity Breakdown',
+            visibleTo: ['LEADER', 'GM', 'BDM']
+          }
+        ],
+        reportWidgets: [
+          // Executive Revenue Dashboard
+          {
+            id: 'widget_rev_total',
+            dashboardId: 'dash_revenue',
+            name: 'Total Opportunity Value',
+            dataSource: 'opportunities',
+            field: 'Amount',
+            calculation: 'sum',
+            type: 'kpi'
+          },
+          {
+            id: 'widget_rev_avg',
+            dashboardId: 'dash_revenue',
+            name: 'Average Deal Size',
+            dataSource: 'opportunities',
+            field: 'Amount',
+            calculation: 'avg',
+            type: 'kpi'
+          },
+          {
+            id: 'widget_rev_count',
+            dashboardId: 'dash_revenue',
+            name: 'Active Opportunities',
+            dataSource: 'opportunities',
+            field: 'Opportunity ID',
+            calculation: 'count',
+            type: 'kpi'
+          },
+          {
+            id: 'widget_rev_table',
+            dashboardId: 'dash_revenue',
+            name: 'Top Active Deals',
+            dataSource: 'opportunities',
+            field: 'Amount',
+            calculation: 'none',
+            type: 'table'
+          },
+          // Team Activity Breakdown
+          {
+            id: 'widget_act_count',
+            dashboardId: 'dash_activities',
+            name: 'Total Activities Logged',
+            dataSource: 'activities',
+            field: 'Created By: Full Name',
+            calculation: 'count',
+            type: 'kpi'
+          },
+          {
+            id: 'widget_act_table',
+            dashboardId: 'dash_activities',
+            name: 'Recent Activities',
+            dataSource: 'activities',
+            field: 'Subject',
+            calculation: 'none',
+            type: 'table'
+          }
+        ]
+      }, { merge: true });
+    } catch (e) {
+      console.error("Failed to seed default BI dashboards", e);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   if (isSettingsLoading || isPipelineLoading || isActivityLoading) {
     return <div className="flex justify-center items-center h-[50vh]"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   if (availableDashboards.length === 0) {
     return (
-      <div className="container mx-auto p-4 md:p-8 flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
-        <div className="bg-slate-100 p-4 rounded-full"><LayoutDashboard className="w-12 h-12 text-slate-400" /></div>
-        <h2 className="text-2xl font-black uppercase tracking-tight">No Custom Dashboards</h2>
-        <p className="text-muted-foreground max-w-md">There are no BI Dashboards configured for your role. Contact your administrator to build reports.</p>
+      <div className="container mx-auto p-4 md:p-8 flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6 max-w-md">
+        <div className="bg-indigo-50 p-4 rounded-2xl shadow-inner animate-pulse">
+          <LayoutDashboard className="w-12 h-12 text-indigo-600" />
+        </div>
+        <h2 className="text-2xl font-black uppercase tracking-tight text-slate-800">No Custom Dashboards</h2>
+        {isAdmin ? (
+          <>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              No custom BI dashboards have been configured yet. As an administrator, you can initialize premium default dashboards instantly or configure them in settings.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full justify-center pt-2">
+              <Button 
+                onClick={handleInitializeDefaults} 
+                disabled={isSeeding}
+                className="font-black uppercase text-xs tracking-wider bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 h-11 px-6 rounded-xl"
+              >
+                {isSeeding ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Initializing...
+                  </>
+                ) : (
+                  "Initialize Default Dashboards"
+                )}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            There are no BI Dashboards configured for your role. Contact your administrator to build reports.
+          </p>
+        )}
       </div>
     );
   }
