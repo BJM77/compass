@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { KPICard } from './kpi-card';
 import { UserManagement } from './user-management';
 import { TerritoryPlaybook } from './territory-playbook';
@@ -41,6 +43,15 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   const db = useFirestore();
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [openModal, setOpenModal] = useState<'REV' | 'APPS' | 'CALLS' | null>(null);
+  
+  const [revSearch, setRevSearch] = useState('');
+  const [revBdmFilter, setRevBdmFilter] = useState('ALL');
+  const [revSort, setRevSort] = useState<'DESC' | 'ASC'>('DESC');
+  
+  const [activityBdmFilter, setActivityBdmFilter] = useState('ALL');
+  const [activitySort, setActivitySort] = useState<'DESC' | 'ASC'>('DESC');
+
   const currentWeek = getCurrentWeek();
   
   const bdmStatsQuery = useMemoFirebase(() => {
@@ -59,6 +70,69 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     return query(collection(db, 'weeklyProgress'), where('week', 'in', currentMonthWeeks));
   }, [db, currentMonthWeeks]);
   const { data: teamMtdActivity } = useCollection(mtdActivityQuery);
+
+  const userMap = useMemo(() => {
+    const m = new Map<string, string>();
+    allDeals?.forEach(d => { if (d.userName) m.set(d.userId, d.userName); });
+    teamStats?.forEach(s => { if (s.name) m.set(s.id, s.name); });
+    return m;
+  }, [allDeals, teamStats]);
+
+  const filteredRevRecords = useMemo(() => {
+    let records = crmSummary.team.custRecords.filter(r => (Number(r.currentRevenue) || 0) > 0);
+    if (revBdmFilter !== 'ALL') {
+      records = records.filter(r => (userMap.get(r.userId) || r.userName || r.userId) === revBdmFilter);
+    }
+    if (revSearch.trim()) {
+      const q = revSearch.toLowerCase();
+      records = records.filter(r => 
+        (r.pipeline || '').toLowerCase().includes(q) || 
+        (r.accountName || '').toLowerCase().includes(q) ||
+        (r.accountMasterCode || '').toLowerCase().includes(q) ||
+        (userMap.get(r.userId) || r.userName || '').toLowerCase().includes(q)
+      );
+    }
+    records.sort((a, b) => {
+      const revA = Number(a.currentRevenue) || 0;
+      const revB = Number(b.currentRevenue) || 0;
+      return revSort === 'DESC' ? revB - revA : revA - revB;
+    });
+    return records;
+  }, [crmSummary.team.custRecords, revSearch, revBdmFilter, revSort, userMap]);
+
+  const revBdms = useMemo(() => {
+    const s = new Set<string>();
+    crmSummary.team.custRecords.forEach(r => {
+      const name = userMap.get(r.userId) || r.userName || r.userId;
+      if (name) s.add(name);
+    });
+    return Array.from(s).filter(Boolean).sort();
+  }, [crmSummary.team.custRecords, userMap]);
+
+  const filteredActivityRecords = useMemo(() => {
+    let records = [...(teamActivity || [])];
+    if (activityBdmFilter !== 'ALL') {
+      records = records.filter(act => (userMap.get(act.userId) || act.userId) === activityBdmFilter);
+    }
+    records.sort((a, b) => {
+      let valA = 0; let valB = 0;
+      if (openModal === 'APPS') {
+        valA = Number(a.apps || 0) + Number(a.crmApps || 0);
+        valB = Number(b.apps || 0) + Number(b.crmApps || 0);
+      } else {
+        valA = Number(a.calls || 0) + Number(a.crmCalls || 0);
+        valB = Number(b.calls || 0) + Number(b.crmCalls || 0);
+      }
+      return activitySort === 'DESC' ? valB - valA : valA - valB;
+    });
+    return records;
+  }, [teamActivity, activityBdmFilter, userMap, openModal, activitySort]);
+
+  const activityBdms = useMemo(() => {
+    const s = new Set<string>();
+    (teamActivity || []).forEach(act => s.add(userMap.get(act.userId) || act.userId));
+    return Array.from(s).filter(Boolean).sort();
+  }, [teamActivity, userMap]);
 
   const aggregates = useMemo(() => {
     if (!teamStats) return { totalRevenue: 0, totalTarget: 0, risks: 0 };
@@ -143,6 +217,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
           value={`$${(aggregates.totalRevenue / 1000000).toFixed(1)}M`} 
           subtitle={`Tgt: $${(aggregates.totalTarget / 1000000).toFixed(1)}M`} 
           icon={<TrendingUp className="w-4 h-4" />} 
+          onClick={() => setOpenModal('REV')}
         />
         <KPICard 
           title="Team Apps" 
@@ -154,6 +229,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
             </div>
           }
           icon={<Calendar className="w-4 h-4 text-blue-500" />} 
+          onClick={() => setOpenModal('APPS')}
         />
         <KPICard 
           title="Team Calls" 
@@ -165,6 +241,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
             </div>
           }
           icon={<Phone className="w-4 h-4 text-green-500" />} 
+          onClick={() => setOpenModal('CALLS')}
         />
         <KPICard 
           title="Momentum Risks" 
@@ -293,6 +370,119 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         </TabsContent>
         <TabsContent value="users"><UserManagement onSimulate={onSimulate} /></TabsContent>
       </Tabs>
+
+      <Dialog open={openModal === 'REV'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 shrink-0 border-b">
+            <DialogTitle>Territory Revenue Breakdown</DialogTitle>
+            <DialogDescription>All active customer accounts across the territory.</DialogDescription>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <input 
+                type="text" 
+                placeholder="Search accounts..." 
+                value={revSearch}
+                onChange={e => setRevSearch(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:max-w-[250px]"
+              />
+              <select 
+                value={revBdmFilter} 
+                onChange={e => setRevBdmFilter(e.target.value)}
+                className="flex h-9 w-full sm:w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="ALL">All BDMs / AMs</option>
+                {revBdms.map(bdm => <option key={bdm} value={bdm}>{bdm}</option>)}
+              </select>
+              <select 
+                value={revSort} 
+                onChange={e => setRevSort(e.target.value as 'DESC' | 'ASC')}
+                className="flex h-9 w-full sm:w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="DESC">Highest Revenue</option>
+                <option value="ASC">Lowest Revenue</option>
+              </select>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-0">
+            <Table>
+              <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
+                <TableRow>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">BDM / AM</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Account Name</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Code</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">YTD Revenue</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRevRecords.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium text-xs text-primary px-6">{userMap.get(r.userId) || r.userName || r.userId}</TableCell>
+                    <TableCell className="font-bold text-sm px-6">{r.pipeline || r.accountName || '—'}</TableCell>
+                    <TableCell className="text-xs text-slate-500 px-6">{r.accountMasterCode || '—'}</TableCell>
+                    <TableCell className="text-right font-black px-6">${(Number(r.currentRevenue) || 0).toLocaleString()}</TableCell>
+                  </TableRow>
+                ))}
+                {filteredRevRecords.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-12 font-bold text-slate-400">No matching records found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openModal === 'APPS' || openModal === 'CALLS'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 shrink-0 border-b">
+            <DialogTitle>{openModal === 'APPS' ? 'Team Apps Breakdown' : 'Team Calls Breakdown'}</DialogTitle>
+            <DialogDescription>Activity breakdown by team member for the latest uploaded week.</DialogDescription>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <select 
+                value={activityBdmFilter} 
+                onChange={e => setActivityBdmFilter(e.target.value)}
+                className="flex h-9 w-full sm:w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="ALL">All Team Members</option>
+                {activityBdms.map(bdm => <option key={bdm} value={bdm}>{bdm}</option>)}
+              </select>
+              <select 
+                value={activitySort} 
+                onChange={e => setActivitySort(e.target.value as 'DESC' | 'ASC')}
+                className="flex h-9 w-full sm:w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="DESC">Highest Activity</option>
+                <option value="ASC">Lowest Activity</option>
+              </select>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-0">
+            <Table>
+              <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
+                <TableRow>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Team Member</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">Manual (Live)</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">CRM (Live)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredActivityRecords.map((act, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-bold text-sm text-primary px-6">{userMap.get(act.userId) || act.userId}</TableCell>
+                    <TableCell className="text-right font-black text-slate-700 px-6">{openModal === 'APPS' ? (act.apps || 0) : (act.calls || 0)}</TableCell>
+                    <TableCell className="text-right font-black text-blue-600 px-6">{openModal === 'APPS' ? (act.crmApps || 0) : (act.crmCalls || 0)}</TableCell>
+                  </TableRow>
+                ))}
+                {filteredActivityRecords.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-12 font-bold text-slate-400">No matching activity data found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

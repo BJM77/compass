@@ -68,7 +68,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
             <History className="w-4 h-4 text-accent" />
             Strategic Archive
           </h2>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">14-Day Ephemeral Storage</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">90-Day Ephemeral Storage</p>
         </header>
 
         <ScrollArea className="h-[700px] pr-4">
@@ -118,7 +118,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
               <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed">
                 <FileText className="w-10 h-10 text-slate-100 mx-auto mb-4" />
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
-                  No expansion plans found in the active 14-day window.
+                  No expansion plans found in the active 90-day window.
                 </p>
               </div>
             )}

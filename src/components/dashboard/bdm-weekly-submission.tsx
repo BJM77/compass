@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { format, addWeeks } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, getWeekForDate, formatEAV, cn, openSalesforceSearch } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, formatEAV, cn, openSalesforceSearch, getNextWeekKey } from '@/lib/utils';
+import { usePipelineData } from '@/contexts/pipeline-context';
 
 const SALES_STAGES = [
   "Develop",
@@ -58,12 +59,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   }, [db, userId, currentWeek]);
   const { data: progress } = useDoc(progressRef);
 
-  // Salesforce pipeline query
-  const pipelineQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', currentWeek));
-  }, [db, userId, currentWeek]);
-  const { data: pipelineData } = useCollection(pipelineQuery);
+  // Salesforce pipeline data (latest deduplicated state)
+  const { pipelineReviews: pipelineData } = usePipelineData();
 
   const totalEAV = useMemo(() => {
     const opps = opportunities.reduce((s: number, i: any) => s + (parseFloat(i.eav) || 0), 0);
@@ -103,9 +100,14 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
           setCommitments(mondayData.actionPlan.filter((a: string) => a.trim()).map((a: string) => ({ id: crypto.randomUUID(), text: a, status: 'NOT_COMPLETED', update: '', reason: '' })));
         }
 
-        if (data.focusAccounts) setFocusAccounts(data.focusAccounts);
-        else if (mondayData?.focusAccounts) {
-          setFocusAccounts(mondayData.focusAccounts.map((f: any) => ({ ...f, status: 'NOT_COMPLETED', update: '' })));
+        if (data.focusAccounts) {
+          setFocusAccounts(data.focusAccounts.map((f: any) => ({
+            ...f,
+            status: f.status === 'COMPLETED' ? 'WON' : (f.status === 'NOT_COMPLETED' ? 'WORKING' : (f.status || 'WORKING')),
+            update: f.update || ''
+          })));
+        } else if (mondayData?.focusAccounts) {
+          setFocusAccounts(mondayData.focusAccounts.map((f: any) => ({ ...f, status: 'WORKING', update: '' })));
         }
 
         if (Array.isArray(data.stillWorkingAccounts)) {
@@ -119,7 +121,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
             setCommitments(mondayData.actionPlan.filter((a: string) => a.trim()).map((a: string) => ({ id: crypto.randomUUID(), text: a, status: 'NOT_COMPLETED', update: '', reason: '' })));
           }
           if (mondayData.focusAccounts) {
-            setFocusAccounts(mondayData.focusAccounts.map((f: any) => ({ ...f, status: 'NOT_COMPLETED', update: '' })));
+            setFocusAccounts(mondayData.focusAccounts.map((f: any) => ({ ...f, status: 'WORKING', update: '' })));
           }
         }
       }
@@ -236,8 +238,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       }, { merge: true });
 
       // 2. Rollover Uncompleted Commitments/Focus Accounts to Next Week Monday
-      const nextWeekDate = addWeeks(new Date(), 1);
-      const nextWeek = getWeekForDate(nextWeekDate);
+      const nextWeek = getNextWeekKey(currentWeek);
       const nextWeekRef = doc(db, 'weeklyCommitments', `${userId}_${nextWeek}`);
       
       const nextWeekSnap = await getDoc(nextWeekRef);
@@ -266,8 +267,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         }
       });
 
-      // Roll over uncompleted focus accounts
-      const uncompletedFocusAccounts = focusAccounts.filter((f: any) => f.status !== 'COMPLETED');
+      // Roll over uncompleted focus accounts (only if status is WORKING)
+      const uncompletedFocusAccounts = focusAccounts.filter((f: any) => (f.status || 'WORKING') === 'WORKING');
       uncompletedFocusAccounts.forEach((f: any) => {
         const cleanName = f.accountName.toUpperCase().trim();
         const existsIdx = nextWeekFocusAccounts.findIndex((acc: any) => acc.accountName.toUpperCase().trim() === cleanName);
@@ -421,7 +422,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
               {commitments.map((c: any, idx: number) => {
                 const isCompleted = c.status === 'COMPLETED';
                 return (
-                  <div key={c.id} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
+                  <div key={c.id} className={cn("p-4 bg-white rounded-2xl border transition-all duration-300 shadow-sm space-y-3", isCompleted ? "border-emerald-100 bg-emerald-50/20" : "border-slate-200")}>
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
@@ -435,9 +436,17 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                         id={`commit-check-${c.id}`}
                       />
                       <div className="flex-1 space-y-2">
-                        <label htmlFor={`commit-check-${c.id}`} className="text-sm font-bold text-slate-700 cursor-pointer block select-none">
-                          {c.text}
-                        </label>
+                        <div className="flex items-center justify-between gap-2">
+                          <label htmlFor={`commit-check-${c.id}`} className={cn("text-sm font-bold cursor-pointer block select-none", isCompleted ? "text-slate-500 line-through" : "text-slate-700")}>
+                            {c.text}
+                          </label>
+                          <Badge variant="outline" className={cn("text-[9px] font-black uppercase tracking-wider shrink-0", isCompleted ? "bg-emerald-100 text-emerald-800 border-none" : "bg-slate-100 text-slate-600 border-none")}>
+                            {isCompleted ? 'Completed' : 'In Progress'}
+                          </Badge>
+                        </div>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                          {isCompleted ? "✓ Completed: will NOT roll over to next Monday." : "⏱ In Progress: will roll over to next Monday's plan."}
+                        </p>
                         <div className="space-y-1">
                           <span className="text-[9px] font-black uppercase text-muted-foreground">Commentary / Reason for Rollover</span>
                           <Input
@@ -465,47 +474,106 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
             <Label className="text-[10px] font-black uppercase text-muted-foreground">Focus Accounts Review</Label>
             <div className="space-y-3">
               {focusAccounts.map((f: any, idx: number) => {
-                const isCompleted = f.status === 'COMPLETED';
+                const currentStatus = f.status || 'WORKING';
                 return (
-                  <div key={f.accountId || idx} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
-                    <div className="flex items-start gap-4">
-                      <input
-                        type="checkbox"
-                        checked={isCompleted}
-                        onChange={(e) => {
-                          const n = [...focusAccounts];
-                          n[idx].status = e.target.checked ? 'COMPLETED' : 'NOT_COMPLETED';
-                          setFocusAccounts(n);
-                        }}
-                        className="w-5 h-5 mt-0.5 accent-emerald-600 rounded cursor-pointer border-slate-300"
-                        id={`focus-check-${f.accountId || idx}`}
-                      />
-                      <div className="flex-1 space-y-2">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <label htmlFor={`focus-check-${f.accountId || idx}`} className="text-sm font-bold text-slate-700 cursor-pointer block select-none">
+                  <div key={f.accountId || idx} className={cn(
+                    "p-4 bg-white rounded-2xl border shadow-sm space-y-3 transition-all duration-300", 
+                    currentStatus === 'WON' && "border-emerald-100 bg-emerald-50/20",
+                    currentStatus === 'LOST' && "border-rose-100 bg-rose-50/20",
+                    currentStatus === 'WORKING' && "border-slate-200"
+                  )}>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="space-y-0.5">
+                          <span className={cn(
+                            "text-sm font-bold block select-none", 
+                            currentStatus === 'WON' && "text-emerald-800",
+                            currentStatus === 'LOST' && "text-rose-800 line-through",
+                            currentStatus === 'WORKING' && "text-slate-800"
+                          )}>
                             {f.accountName}
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-[9px] font-black uppercase">{f.actionType}</Badge>
-                            <span className="text-[10px] font-black text-emerald-600">${(f.eav || 0).toLocaleString()} EAV</span>
+                          </span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-[9px] font-black uppercase bg-slate-50">{f.actionType}</Badge>
+                            <span className="text-[10px] font-black text-slate-500">${(f.eav || 0).toLocaleString()} EAV</span>
                           </div>
                         </div>
-                        {f.aboutAccount && (
-                          <p className="text-[10px] text-muted-foreground leading-relaxed italic">{f.aboutAccount}</p>
-                        )}
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-black uppercase text-muted-foreground">Progress Update / Commentary</span>
-                          <Input
-                            placeholder="Enter update or reason for rollover..."
-                            value={f.update || ''}
-                            onChange={(e) => {
+
+                        {/* Working / Won / Lost Selector */}
+                        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
                               const n = [...focusAccounts];
-                              n[idx].update = e.target.value;
+                              n[idx].status = 'WORKING';
                               setFocusAccounts(n);
                             }}
-                            className="h-8 text-xs rounded-xl"
-                          />
+                            className={cn(
+                              "text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all",
+                              currentStatus === 'WORKING' 
+                                ? "bg-white text-slate-800 shadow-sm" 
+                                : "text-slate-400 hover:text-slate-600"
+                            )}
+                          >
+                            Working
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const n = [...focusAccounts];
+                              n[idx].status = 'WON';
+                              setFocusAccounts(n);
+                            }}
+                            className={cn(
+                              "text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all",
+                              currentStatus === 'WON' 
+                                ? "bg-emerald-600 text-white shadow-sm" 
+                                : "text-slate-400 hover:text-emerald-600"
+                            )}
+                          >
+                            Won
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const n = [...focusAccounts];
+                              n[idx].status = 'LOST';
+                              setFocusAccounts(n);
+                            }}
+                            className={cn(
+                              "text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all",
+                              currentStatus === 'LOST' 
+                                ? "bg-rose-600 text-white shadow-sm" 
+                                : "text-slate-400 hover:text-rose-600"
+                            )}
+                          >
+                            Lost
+                          </button>
                         </div>
+                      </div>
+                      
+                      {f.aboutAccount && (
+                        <p className="text-[10px] text-muted-foreground leading-relaxed italic border-l-2 border-slate-200 pl-2">{f.aboutAccount}</p>
+                      )}
+                      
+                      <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                        {currentStatus === 'WORKING' && "⏱ Still Working: will roll over to next Monday's plan."}
+                        {currentStatus === 'WON' && "🎉 Won! Account is archived and will NOT roll over."}
+                        {currentStatus === 'LOST' && "❌ Lost. Account is archived and will NOT roll over."}
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-black uppercase text-muted-foreground">Progress Update / Commentary</span>
+                        <Input
+                          placeholder="Enter update or reason for rollover..."
+                          value={f.update || ''}
+                          onChange={(e) => {
+                            const n = [...focusAccounts];
+                            n[idx].update = e.target.value;
+                            setFocusAccounts(n);
+                          }}
+                          className="h-8 text-xs rounded-xl"
+                        />
                       </div>
                     </div>
                   </div>
@@ -517,51 +585,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       </div>
 
       {/* Salesforce pipeline visualizer */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         
-        {/* Pipeline of Accounts */}
-        <Card className="border border-slate-200 shadow-xl bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-900 text-white py-5">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Pipeline of Accounts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            {crmAccounts.length === 0 ? (
-              <p className="text-[10px] text-muted-foreground italic">No Salesforce Accounts imported for this week.</p>
-            ) : (
-              crmAccounts.map((acc: any) => (
-                <div key={acc.id} className="p-4 bg-slate-50 border rounded-2xl hover:border-accent/40 transition-all flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <a 
-                      href="#" 
-                      onClick={(e) => { e.preventDefault(); openSalesforceSearch(acc.pipeline); }}
-                      className="text-xs font-black text-slate-800 uppercase hover:text-accent hover:underline truncate block"
-                      title="Open Account in Salesforce"
-                    >
-                      {acc.pipeline}
-                    </a>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Business Unit: {acc.businessUnit || 'FLEX'}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      onClick={() => openSalesforceSearch(acc.pipeline)}
-                      className="p-2 bg-white border text-slate-400 hover:text-accent rounded-xl shadow-sm transition-all"
-                      title="Open Salesforce Account"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </button>
-                    <Button size="sm" variant="outline" onClick={() => appendToReportNotes(`[Account Profile: ${acc.pipeline} - YTD: $${acc.currentRevenue?.toLocaleString() || 0}]`)} className="h-8 px-2 text-[10px] font-black hover:bg-accent/10 text-slate-700 hover:text-accent rounded-xl shadow-sm transition-all">
-                      <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Note
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
         {/* Pipeline of Opportunities */}
         <Card className="border border-slate-200 shadow-xl bg-white rounded-3xl overflow-hidden">
           <CardHeader className="bg-slate-900 text-white py-5">

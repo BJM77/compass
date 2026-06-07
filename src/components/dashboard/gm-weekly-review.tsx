@@ -26,6 +26,15 @@ import { cn, getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
+import { usePipelineData } from '@/contexts/pipeline-context';
+import { getMonthWeeksForWeek } from '@/lib/utils';
+
+export interface CrmMetrics {
+  eav: number;
+  weekOpps: number; mtdOpps: number;
+  weekSigned: number; mtdSigned: number;
+  weekWon: number; mtdWon: number;
+}
 
 interface BDMWeeklyReport {
   id?: string;
@@ -57,6 +66,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const db = useFirestore();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { allPipelineReviews } = usePipelineData();
   const currentWeek = propWeek || getCurrentWeek();
   
   const [selectedWeek, setSelectedWeek] = useState(currentWeek);
@@ -68,6 +78,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [includeGroupPlan, setIncludeGroupPlan] = useState(false);
 
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
@@ -82,7 +93,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     async function fetchMetadata() {
       if (!db) return;
       const snap = await getDocs(collection(db, 'weeklyReports'));
-      const weeks = Array.from(new Set(snap.docs.map(d => d.data().week))).sort().reverse();
+      const current = getCurrentWeek();
+      let weeks = Array.from(new Set([current, ...snap.docs.map(d => d.data().week as string)]));
+      weeks = weeks.filter(w => w && w <= current).sort().reverse();
       setAvailableWeeks(weeks);
     }
     fetchMetadata();
@@ -221,18 +234,93 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     toast({ title: "Review Created", description: "Executive summary drafted. Review and edit below before dispatching." });
   };
 
+  const mtdWeeks = useMemo(() => {
+    return getMonthWeeksForWeek(selectedWeek).filter(w => w <= selectedWeek);
+  }, [selectedWeek]);
+
+  const crmMetricsByUserId = useMemo(() => {
+    const map = new Map<string, CrmMetrics>();
+    reportData.forEach(r => map.set(r.userId, { eav: 0, weekOpps: 0, mtdOpps: 0, weekSigned: 0, mtdSigned: 0, weekWon: 0, mtdWon: 0 }));
+
+    const mtdReviews = allPipelineReviews.filter(r => mtdWeeks.includes(r.week));
+    const weekReviews = allPipelineReviews.filter(r => r.week === selectedWeek);
+
+    // 1. EAV & Weekly Metrics
+    weekReviews.forEach(r => {
+      if (r.isBareAccount || r.stage === 'Closed Lost') return;
+      const entry = map.get(r.userId);
+      if (!entry) return;
+
+      const val = Number(r.value) || 0;
+      if (val > 0) entry.eav += val;
+
+      if (['Finalise', 'Pending Trade'].includes(r.stage || '')) entry.weekSigned += 1;
+      if (r.stage === 'Closed Won') entry.weekWon += 1;
+    });
+
+    // 2. MTD Metrics (Unique Opps)
+    const mtdSignedOpps = new Set<string>();
+    const mtdWonOpps = new Set<string>();
+    mtdReviews.forEach(r => {
+      if (r.isBareAccount) return;
+      const key = r.salesforceId || r.opportunityName;
+      if (!key) return;
+      const entry = map.get(r.userId);
+      if (!entry) return;
+
+      if (['Finalise', 'Pending Trade'].includes(r.stage || '')) {
+        if (!mtdSignedOpps.has(key)) { mtdSignedOpps.add(key); entry.mtdSigned += 1; }
+      }
+      if (r.stage === 'Closed Won') {
+        if (!mtdWonOpps.has(key)) { mtdWonOpps.add(key); entry.mtdWon += 1; }
+      }
+    });
+
+    // 3. New Opps (First Appearance)
+    const oppFirstWeek = new Map<string, string>();
+    allPipelineReviews.forEach(r => {
+      if (r.isBareAccount) return;
+      const key = r.salesforceId || r.opportunityName;
+      if (!key) return;
+      const existing = oppFirstWeek.get(key);
+      if (!existing || r.week < existing) oppFirstWeek.set(key, r.week);
+    });
+
+    oppFirstWeek.forEach((firstWeek, key) => {
+      if (firstWeek === selectedWeek) {
+        const opp = weekReviews.find(r => (r.salesforceId || r.opportunityName) === key);
+        if (opp && map.has(opp.userId)) map.get(opp.userId)!.weekOpps += 1;
+      }
+      if (mtdWeeks.includes(firstWeek)) {
+        const opp = mtdReviews.find(r => (r.salesforceId || r.opportunityName) === key && r.week === firstWeek);
+        if (opp && map.has(opp.userId)) map.get(opp.userId)!.mtdOpps += 1;
+      }
+    });
+
+    return map;
+  }, [allPipelineReviews, selectedWeek, mtdWeeks, reportData]);
+
+  const teamCrmEAV = useMemo(() => {
+    let sum = 0;
+    crmMetricsByUserId.forEach(v => sum += v.eav);
+    return sum;
+  }, [crmMetricsByUserId]);
+
   const exportReport = () => {
     const headers = ['Identity', 'Calls', 'Apps', 'Total EAV', 'New Opps', 'Signed Deals', 'New Business', 'Status'];
-    const rows = reportData.map(r => [
-      r.userName, 
-      r.summary.callsMade || 0,
-      r.summary.meetingsHeld || 0,
-      r.summary.totalEAV, 
-      r.summary.newOpportunitiesCount, 
-      r.summary.signedPaperworkCount, 
-      r.summary.newBusinessCount, 
-      r.status
-    ]);
+    const rows = reportData.map(r => {
+      const metrics = crmMetricsByUserId.get(r.userId);
+      return [
+        r.userName, 
+        r.summary.callsMade || 0,
+        r.summary.meetingsHeld || 0,
+        metrics?.eav || r.summary.totalEAV || 0, 
+        metrics?.weekOpps || r.summary.newOpportunitiesCount, 
+        metrics?.weekSigned || r.summary.signedPaperworkCount, 
+        metrics?.weekWon || r.summary.newBusinessCount, 
+        r.status
+      ];
+    });
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -311,7 +399,10 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         }
 
         // ── PAGE 2+: One page per BDM ──────────────────────────────────────────
-        const extraSections = [...pdfBdmIds, 'gm-pdf-group90-p1', 'gm-pdf-group90-p2', 'gm-pdf-group90-p3', 'gm-pdf-opps', 'gm-pdf-signed', 'gm-pdf-newbiz'];
+        const extraSections = [...pdfBdmIds];
+        if (includeGroupPlan) {
+          extraSections.push('gm-pdf-group90-p1', 'gm-pdf-group90-p2', 'gm-pdf-group90-p3');
+        }
         for (const sectionId of extraSections) {
           const sectionEl = document.getElementById(sectionId);
           if (!sectionEl) continue;
@@ -352,7 +443,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
   };
 
   const metrics = useMemo(() => {
-    const totalEAV = reportData.reduce((sum, r) => sum + (r.summary.totalEAV || 0), 0);
+    const totalEAV = teamCrmEAV || 0;
     const totalNewOpps = opportunities.length;
     const totalSigned = paperwork.length;
     const totalNewBiz = newBusiness.length;
@@ -361,14 +452,17 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     const totalCrmCalls = reportData.reduce((sum, r) => sum + (r.summary.crmCalls || 0), 0);
     const totalCrmApps = reportData.reduce((sum, r) => sum + (r.summary.crmApps || 0), 0);
     return { totalEAV, totalNewOpps, totalSigned, totalNewBiz, totalCalls, totalApps, totalCrmCalls, totalCrmApps };
-  }, [reportData, opportunities, paperwork, newBusiness]);
+  }, [reportData, opportunities, paperwork, newBusiness, teamCrmEAV]);
 
-  const performanceData = reportData.map(r => ({
-    name: r.userName.split(' ')[0],
-    eav: (r.summary.totalEAV || 0) / 1000,
-    deals: r.summary.signedPaperworkCount || 0,
-    calls: r.summary.callsMade || 0
-  }));
+  const performanceData = reportData.map(r => {
+    const metrics = crmMetricsByUserId.get(r.userId);
+    return {
+      name: r.userName.split(' ')[0],
+      eav: (metrics?.eav || r.summary.totalEAV || 0) / 1000,
+      deals: metrics?.weekSigned || r.summary.signedPaperworkCount || 0,
+      calls: r.summary.callsMade || 0
+    };
+  });
 
   const pipelineStatusData = [
     { name: 'New Opps', value: opportunities.length, color: '#3b82f6' },
@@ -402,6 +496,15 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-white">
             <Download className="w-4 h-4 mr-2" /> EXPORT CSV
           </Button>
+          <label className="flex items-center gap-2 cursor-pointer border border-slate-200 bg-white px-3 h-10 rounded-md shadow-sm hover:bg-slate-50 transition-colors">
+            <input 
+              type="checkbox" 
+              checked={includeGroupPlan} 
+              onChange={(e) => setIncludeGroupPlan(e.target.checked)}
+              className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary cursor-pointer"
+            />
+            <span className="text-[10px] font-black text-slate-700 uppercase pt-0.5">Include 30/60/90 Plan in PDF</span>
+          </label>
           <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-slate-800 hover:bg-slate-700 font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-slate-800/20">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
             {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH(B&W)'}
@@ -577,46 +680,27 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           </div>
 
           {/* ZONES 2+: One polished page per BDM */}
-          {reportData.map((report, idx) => (
-            <BDMPdfPage
-              key={report.userId}
-              report={report}
-              pageNum={idx + 2}
-              weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]}
-            />
-          ))}
+          {reportData.map((report, idx) => {
+            const metrics = crmMetricsByUserId.get(report.userId);
+            return (
+              <BDMPdfPage
+                key={report.userId}
+                report={report}
+                pageNum={idx + 2}
+                weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]}
+                crmMetrics={metrics}
+              />
+            );
+          })}
 
           {/* ZONES 3a/3b/3c: Group Success Plan — one page per phase */}
-          <Group90PdfPhase phase={30} phaseIndex={1} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
-          <Group90PdfPhase phase={60} phaseIndex={2} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
-          <Group90PdfPhase phase={90} phaseIndex={3} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
-
-          {/* ZONE 4: Opportunities */}
-          <div id="gm-pdf-opps" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
-            <div style={{borderBottom: '3px solid #0f172a', paddingBottom: '12px', marginBottom: '28px'}}>
-              <div style={{fontSize: '8px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px'}}>Section 3</div>
-              <div style={{fontSize: '20px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase'}}>Active Pipeline Opportunities</div>
-            </div>
-            <OpportunitiesTable data={opportunities} />
-          </div>
-
-          {/* ZONE 5: Signed */}
-          <div id="gm-pdf-signed" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
-            <div style={{borderBottom: '3px solid #0f172a', paddingBottom: '12px', marginBottom: '28px'}}>
-              <div style={{fontSize: '8px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px'}}>Section 4</div>
-              <div style={{fontSize: '20px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase'}}>Signed Governance Work</div>
-            </div>
-            <SignedPaperworkTable data={paperwork} />
-          </div>
-
-          {/* ZONE 6: New Business */}
-          <div id="gm-pdf-newbiz" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
-            <div style={{borderBottom: '3px solid #0f172a', paddingBottom: '12px', marginBottom: '28px'}}>
-              <div style={{fontSize: '8px', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px'}}>Section 5</div>
-              <div style={{fontSize: '20px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase'}}>Live Freight & New Business</div>
-            </div>
-            <NewBusinessTable data={newBusiness} />
-          </div>
+          {includeGroupPlan && (
+            <>
+              <Group90PdfPhase phase={30} phaseIndex={1} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
+              <Group90PdfPhase phase={60} phaseIndex={2} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
+              <Group90PdfPhase phase={90} phaseIndex={3} weekLabel={selectedWeek.split('-W')[1] || selectedWeek.split('-')[1]} />
+            </>
+          )}
 
         </div>
       )}
@@ -633,9 +717,12 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          {reportData.map((report) => (
-            <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} />
-          ))}
+          {reportData.map((report) => {
+            const metrics = crmMetricsByUserId.get(report.userId);
+            return (
+              <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} crmMetrics={metrics} />
+            );
+          })}
         </TabsContent>
 
         <TabsContent value="group90" className="animate-in fade-in duration-500">
@@ -654,7 +741,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
   );
 }
 
-function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: BDMWeeklyReport; onSaveFeedback: (uid: string, f: string) => void; forceOpen?: boolean }) {
+function BDMReportCard({ report, onSaveFeedback, forceOpen = false, crmMetrics }: { report: BDMWeeklyReport; onSaveFeedback: (uid: string, f: string) => void; forceOpen?: boolean; crmMetrics?: CrmMetrics }) {
   const [feedback, setFeedback] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -690,12 +777,24 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
             <p className="text-xl font-black text-primary">{report.summary.crmApps || 0}</p>
             <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Man: {report.summary.meetingsHeld || 0}</p>
           </div>
-          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">{formatEAV(report.summary.totalEAV)}</p></div>
+          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">{formatEAV(crmMetrics?.eav ?? report.summary.totalEAV)}</p></div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-indigo-600 uppercase mb-1">Whitespace</p><p className="text-xl font-black text-primary">{report.whitespaceCount || 0}</p></div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Call Plans</p><p className="text-xl font-black text-primary">{report.callPlanCount || 0}</p></div>
-          <div className="bg-green-50 p-4 rounded-2xl border border-green-100"><p className="text-[9px] font-black text-green-600 uppercase mb-1">New Opps</p><p className="text-xl font-black text-green-900">{report.summary.newOpportunitiesCount}</p></div>
-          <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100"><p className="text-[9px] font-black text-purple-600 uppercase mb-1">Signed</p><p className="text-xl font-black text-purple-900">{report.summary.signedPaperworkCount}</p></div>
-          <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100"><p className="text-[9px] font-black text-orange-600 uppercase mb-1">New Biz</p><p className="text-xl font-black text-orange-900">{report.summary.newBusinessCount}</p></div>
+          <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
+            <p className="text-[9px] font-black text-green-600 uppercase mb-1">New Opps</p>
+            <p className="text-xl font-black text-green-900">{crmMetrics?.weekOpps ?? report.summary.newOpportunitiesCount}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">MTD: {crmMetrics?.mtdOpps ?? 0}</p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100">
+            <p className="text-[9px] font-black text-purple-600 uppercase mb-1">Signed</p>
+            <p className="text-xl font-black text-purple-900">{crmMetrics?.weekSigned ?? report.summary.signedPaperworkCount}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">MTD: {crmMetrics?.mtdSigned ?? 0}</p>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
+            <p className="text-[9px] font-black text-orange-600 uppercase mb-1">New Biz</p>
+            <p className="text-xl font-black text-orange-900">{crmMetrics?.weekWon ?? report.summary.newBusinessCount}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">MTD: {crmMetrics?.mtdWon ?? 0}</p>
+          </div>
         </div>
 
         {(isOpen || forceOpen) && (
@@ -854,7 +953,7 @@ function Group90PdfPhase({ phase, phaseIndex, weekLabel }: { phase: 30 | 60 | 90
   );
 }
 
-function BDMPdfPage({ report, pageNum, weekLabel }: { report: BDMWeeklyReport; pageNum: number; weekLabel: string }) {
+function BDMPdfPage({ report, pageNum, weekLabel, crmMetrics }: { report: BDMWeeklyReport, pageNum: number, weekLabel: string, crmMetrics?: CrmMetrics }) {
   const statusColor = report.status === 'REVIEWED' ? '#059669' : '#d97706';
   const s = report.summary;
   return (
@@ -891,10 +990,10 @@ function BDMPdfPage({ report, pageNum, weekLabel }: { report: BDMWeeklyReport; p
         {([
           { label: 'Calls', value: s.callsMade || 0, subValue: s.crmCalls !== undefined ? `CRM: ${s.crmCalls}` : null, color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
           { label: 'Apps', value: s.meetingsHeld || 0, subValue: s.crmApps !== undefined ? `CRM: ${s.crmApps}` : null, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
-          { label: 'Total EAV', value: formatEAV(s.totalEAV), color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
-          { label: 'New Opps', value: s.newOpportunitiesCount, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
-          { label: 'Signed', value: s.signedPaperworkCount, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-          { label: 'New Biz', value: s.newBusinessCount, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+          { label: 'Total EAV', value: formatEAV(crmMetrics?.eav ?? s.totalEAV), color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+          { label: 'New Opps', value: crmMetrics?.weekOpps ?? s.newOpportunitiesCount, subValue: `MTD: ${crmMetrics?.mtdOpps ?? 0}`, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
+          { label: 'Signed', value: crmMetrics?.weekSigned ?? s.signedPaperworkCount, subValue: `MTD: ${crmMetrics?.mtdSigned ?? 0}`, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+          { label: 'New Biz', value: crmMetrics?.weekWon ?? s.newBusinessCount, subValue: `MTD: ${crmMetrics?.mtdWon ?? 0}`, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
         ] as {label:string;value:string|number;subValue?:string|null;color:string;bg:string;border:string}[]).map((m) => (
           <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: '10px', padding: '12px 8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ fontSize: '8px', fontWeight: 800, color: m.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{m.label}</div>

@@ -73,9 +73,12 @@ export function getCurrentWeek(): string {
  * Returns all financial week keys that fall within the current calendar month.
  */
 export function getCurrentMonthWeeks(): string[] {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  return getMonthWeeksForDate(new Date());
+}
+
+export function getMonthWeeksForDate(date: Date): string[] {
+  const year = date.getFullYear();
+  const month = date.getMonth();
   const weeks = new Set<string>();
   
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -85,6 +88,24 @@ export function getCurrentMonthWeeks(): string[] {
   }
   
   return Array.from(weeks);
+}
+
+export function getMonthWeeksForWeek(weekKey: string): string[] {
+  // Find a date that matches this weekKey
+  const now = new Date();
+  let searchDate = new Date(now.getFullYear(), 0, 1);
+  let found = false;
+  // Search up to 2 years back and 1 year forward
+  for (let i = -700; i < 365; i++) {
+    const d = new Date(now.getFullYear(), 0, i);
+    if (getWeekForDate(d) === weekKey) {
+      searchDate = d;
+      found = true;
+      break;
+    }
+  }
+  if (!found) return [weekKey];
+  return getMonthWeeksForDate(searchDate);
 }
 
 /**
@@ -105,4 +126,34 @@ export function formatEAV(val: number): string {
   }
   return `$${val.toFixed(0)}`;
 }
+
+/**
+ * Resolves the next financial week key after the given weekKey.
+ * e.g., "2026-10" -> "2026-11". Gracefully transitions years by adding 7 days to a date in the given week.
+ */
+export function getNextWeekKey(weekKey: string): string {
+  const [yearStr, weekStr] = weekKey.split('-');
+  const year = parseInt(yearStr, 10);
+  const weekNum = parseInt(weekStr, 10);
+
+  if (isNaN(year) || isNaN(weekNum)) {
+    return getWeekForDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  }
+
+  // Find a matching date for the weekKey (similar to getMonthWeeksForWeek)
+  let searchDate = new Date(year, 3, 1); // Start around April of that financial year
+  let found = false;
+  for (let i = -10; i < 370; i++) {
+    const d = new Date(year, 3, 1 + i);
+    if (getWeekForDate(d) === weekKey) {
+      searchDate = d;
+      found = true;
+      break;
+    }
+  }
+
+  const nextWeekDate = new Date(searchDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return getWeekForDate(nextWeekDate);
+}
+
 

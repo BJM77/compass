@@ -19,7 +19,7 @@ import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { jsPDF } from "jspdf";
 import { cn } from '@/lib/utils';
-import { addWeeks } from 'date-fns';
+import { addDays } from 'date-fns';
 
 const SERVICES = ["Road", "Air", "B2C", "International", "Courier"];
 const STATES = ["EXPAND", "MAINTAIN", "TARGET", "WHITE_SPACE"] as const;
@@ -108,9 +108,8 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
           accountName: accountName.toUpperCase(),
           configs: serviceConfigs,
           createdAt: serverTimestamp(),
-          expiresAt: addWeeks(new Date(), 2) // TTL Logic: 14 Days
         });
-        toast({ title: "Analysis Archived", description: "Diagnostic saved to governance node for 14 days." });
+        toast({ title: "Analysis Archived", description: "Diagnostic saved to governance node for 90 days." });
       }
 
     } catch (e) {

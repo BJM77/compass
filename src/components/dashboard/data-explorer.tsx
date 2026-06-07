@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { usePipelineData } from '@/contexts/pipeline-context';
+import { useAuth } from '@/contexts/auth-context';
+import { PipelineReview, WeeklyProgress } from '@/types/crm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,46 +12,88 @@ import { Search, Filter, FileText, Database, Users, Briefcase, Activity, Sparkle
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, Legend, PieChart, Pie } from 'recharts';
 
 export function DataExplorer() {
-  const { pipelineReviews, weeklyProgresses, isLoading } = usePipelineData();
-  
+  const { allPipelineReviews, allWeeklyProgresses, isLoading } = usePipelineData();
+  const { isLeader } = useAuth();
+
   const [activeTab, setActiveTab] = useState('customers');
+  const [selectedWeek, setSelectedWeek] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const availableWeeks = useMemo(() => {
+    const current = getCurrentWeek();
+    const weeks = new Set<string>([current]);
+    allPipelineReviews.forEach(r => { if (r.week) weeks.add(r.week); });
+    allWeeklyProgresses.forEach(r => { if (r.week) weeks.add(r.week); });
+    return Array.from(weeks).filter(w => w && w <= current).sort().reverse();
+  }, [allPipelineReviews, allWeeklyProgresses]);
+
+  const pipelineReviews = useMemo(() => {
+    if (selectedWeek !== 'all') {
+      return allPipelineReviews.filter(r => r.week === selectedWeek);
+    }
+    const latestMap = new Map<string, PipelineReview>();
+    allPipelineReviews.forEach(r => {
+      const key = r.salesforceId || r.accountMasterCode || r.id;
+      if (!key) return;
+      const existing = latestMap.get(key);
+      if (!existing || (r.week || '') > (existing.week || '')) {
+        latestMap.set(key, r);
+      }
+    });
+    return Array.from(latestMap.values());
+  }, [allPipelineReviews, selectedWeek]);
+
+  const weeklyProgresses = useMemo(() => {
+    if (selectedWeek !== 'all') {
+      return allWeeklyProgresses.filter(r => r.week === selectedWeek);
+    }
+    const userTotals = new Map<string, WeeklyProgress>();
+    allWeeklyProgresses.forEach(r => {
+      const existing = userTotals.get(r.userId) || { ...r, calls: 0, apps: 0, proposals: 0, deals: 0 };
+      existing.calls = (existing.calls || 0) + (r.calls || 0);
+      existing.apps = (existing.apps || 0) + (r.apps || 0);
+      existing.proposals = (existing.proposals || 0) + (r.proposals || 0);
+      existing.deals = (existing.deals || 0) + (r.deals || 0);
+      userTotals.set(r.userId, existing);
+    });
+    return Array.from(userTotals.values());
+  }, [allWeeklyProgresses, selectedWeek]);
   const [selectedUser, setSelectedUser] = useState('all');
   const [selectedStage, setSelectedStage] = useState('all');
 
-  // Create a helper map to resolve userId -> userName from pipelineReviews
+  // Create a helper map to resolve userId -> userName from all data
   const userIdToName = useMemo(() => {
     const map = new Map<string, string>();
-    pipelineReviews.forEach(r => {
+    allPipelineReviews.forEach(r => {
       if (r.userName) map.set(r.userId, r.userName);
     });
     return map;
-  }, [pipelineReviews]);
+  }, [allPipelineReviews]);
 
   // Extract unique users from data for the filter dropdown
   const users = useMemo(() => {
     const userMap = new Map<string, string>();
-    pipelineReviews.forEach(r => {
+    allPipelineReviews.forEach(r => {
       if (r.userName) userMap.set(r.userId, r.userName);
     });
-    weeklyProgresses.forEach(r => {
+    allWeeklyProgresses.forEach(r => {
       if (!userMap.has(r.userId)) {
         userMap.set(r.userId, userIdToName.get(r.userId) || `BDM (${r.userId})`);
       }
     });
     return Array.from(userMap.entries()).map(([id, name]) => ({ id, name }));
-  }, [pipelineReviews, weeklyProgresses, userIdToName]);
+  }, [allPipelineReviews, allWeeklyProgresses, userIdToName]);
 
   // Extract unique stages for opportunities
   const stages = useMemo(() => {
     const stageSet = new Set<string>();
-    pipelineReviews.forEach(r => {
+    allPipelineReviews.forEach(r => {
       if (!r.isBareAccount && r.stage && r.stage !== 'Existing Customer') {
         stageSet.add(r.stage);
       }
     });
     return Array.from(stageSet);
-  }, [pipelineReviews]);
+  }, [allPipelineReviews]);
 
   // Filter Data
   const customers = useMemo(() => {
@@ -243,6 +287,17 @@ export function DataExplorer() {
               className="pl-9 font-medium border-slate-200"
             />
           </div>
+          <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+            <SelectTrigger className="w-full sm:w-[160px] font-bold">
+              <SelectValue placeholder="All Time" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="font-bold">All Time</SelectItem>
+              {availableWeeks.map(w => (
+                <SelectItem key={w} value={w} className="font-medium">Week {w}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={selectedUser} onValueChange={setSelectedUser}>
             <SelectTrigger className="w-full sm:w-[200px] font-bold">
               <SelectValue placeholder="Filter by User" />

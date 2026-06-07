@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { getCurrentWeek } from '@/lib/utils';
 
 // ─── Active stages that qualify as an "Opportunity" row ──────────────────────
 const ACTIVE_STAGES = new Set([
@@ -122,19 +121,32 @@ function addSummaries(a: CRMUserSummary, b: CRMUserSummary): CRMUserSummary {
  */
 export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTeamSummary {
   const db = useFirestore();
-  const currentWeek = getCurrentWeek();
 
-  // Fetch ALL team records for the week — needed by both BDMs (for team total)
-  // and leaders (for per-user breakdown).
+  // Fetch ALL team records independently so "TEAM COMBINED" sees everyone,
+  // even if the user is a BDM or a Leader simulating a specific user.
   const allQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'pipelineReviews'), where('week', '==', currentWeek));
-  }, [db, currentWeek]);
+    return query(collection(db, 'pipelineReviews'));
+  }, [db]);
 
-  const { data: allRecords, isLoading } = useCollection(allQuery);
+  const { data: rawRecords, isLoading } = useCollection(allQuery);
 
   return useMemo<CRMTeamSummary>(() => {
-    const records = allRecords || [];
+    const allRecords = (rawRecords || []).filter(
+      (r: any) => !r.userName || r.userName.toUpperCase() !== 'JOHN THORNTON'
+    );
+
+    // Deduplicate to only keep the most recent row for each opportunity/customer
+    const latestMap = new Map<string, any>();
+    allRecords.forEach(r => {
+      const key = r.salesforceId || r.accountMasterCode || r.id;
+      if (!key) return;
+      const existing = latestMap.get(key);
+      if (!existing || (r.week || '') > (existing.week || '')) {
+        latestMap.set(key, r);
+      }
+    });
+    const records = Array.from(latestMap.values());
 
     // Group records by userId
     const byUserId = new Map<string, { name: string; rows: any[] }>();
@@ -166,5 +178,5 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
       myStats,
       isLoading,
     };
-  }, [allRecords, myUserId, isLeader, isLoading]);
+  }, [rawRecords, myUserId, isLeader, isLoading]);
 }

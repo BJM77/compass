@@ -10,6 +10,8 @@ import { PipelineReview, WeeklyProgress } from '@/types/crm';
 interface PipelineContextType {
   pipelineReviews: PipelineReview[];
   weeklyProgresses: WeeklyProgress[];
+  allPipelineReviews: PipelineReview[];
+  allWeeklyProgresses: WeeklyProgress[];
   isLoading: boolean;
   activeUserId: string | null;
   setActiveUserId: (id: string | null) => void;
@@ -20,6 +22,8 @@ interface PipelineContextType {
 const PipelineContext = createContext<PipelineContextType>({
   pipelineReviews: [],
   weeklyProgresses: [],
+  allPipelineReviews: [],
+  allWeeklyProgresses: [],
   isLoading: true,
   activeUserId: null,
   setActiveUserId: () => {},
@@ -42,33 +46,67 @@ export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!db) return null;
     if (isLeader && !simulationUid) {
       // Leader sees all deals if not simulating
-      return query(collection(db, 'pipelineReviews'), where('week', '==', currentWeek));
+      return query(collection(db, 'pipelineReviews'));
     } else if (activeUserId) {
       // BDM or Leader simulating sees specific user deals
-      return query(collection(db, 'pipelineReviews'), where('userId', '==', activeUserId), where('week', '==', currentWeek));
+      return query(collection(db, 'pipelineReviews'), where('userId', '==', activeUserId));
     }
     return null;
-  }, [db, currentWeek, isLeader, activeUserId, simulationUid]);
+  }, [db, isLeader, activeUserId, simulationUid]);
 
-  const { data: pipelineReviews, isLoading: isPipelineLoading } = useCollection(pipelineQuery);
+  const { data: rawPipelineReviews, isLoading: isPipelineLoading } = useCollection(pipelineQuery);
 
   // Weekly Progress Query
   const progressQuery = useMemoFirebase(() => {
     if (!db) return null;
     if (isLeader && !simulationUid) {
-      return query(collection(db, 'weeklyProgress'), where('week', '==', currentWeek));
+      return query(collection(db, 'weeklyProgress'));
     } else if (activeUserId) {
-      return query(collection(db, 'weeklyProgress'), where('userId', '==', activeUserId), where('week', '==', currentWeek));
+      return query(collection(db, 'weeklyProgress'), where('userId', '==', activeUserId));
     }
     return null;
-  }, [db, currentWeek, isLeader, activeUserId, simulationUid]);
+  }, [db, isLeader, activeUserId, simulationUid]);
 
-  const { data: weeklyProgresses, isLoading: isProgressLoading } = useCollection(progressQuery);
+  const { data: rawWeeklyProgresses, isLoading: isProgressLoading } = useCollection(progressQuery);
+
+  const allPipelineReviews = (rawPipelineReviews || []).filter(
+    (r: any) => !r.userName || r.userName.toUpperCase() !== 'JOHN THORNTON'
+  ) as PipelineReview[];
+  
+  const allWeeklyProgresses = (rawWeeklyProgresses || []).filter(
+    (r: any) => !r.userName || r.userName.toUpperCase() !== 'JOHN THORNTON'
+  ) as WeeklyProgress[];
+
+  const pipelineReviews = React.useMemo(() => {
+    const latestMap = new Map<string, PipelineReview>();
+    allPipelineReviews.forEach(r => {
+      const key = r.salesforceId || r.accountMasterCode || r.id;
+      if (!key) return;
+      const existing = latestMap.get(key);
+      if (!existing || (r.week || '') > (existing.week || '')) {
+        latestMap.set(key, r);
+      }
+    });
+    return Array.from(latestMap.values());
+  }, [allPipelineReviews]);
+
+  const weeklyProgresses = React.useMemo(() => {
+    const latestUserMap = new Map<string, WeeklyProgress>();
+    allWeeklyProgresses.forEach(r => {
+      const existing = latestUserMap.get(r.userId);
+      if (!existing || (r.week || '') > (existing.week || '')) {
+        latestUserMap.set(r.userId, r);
+      }
+    });
+    return Array.from(latestUserMap.values());
+  }, [allWeeklyProgresses]);
 
   return (
     <PipelineContext.Provider value={{
-      pipelineReviews: (pipelineReviews || []) as PipelineReview[],
-      weeklyProgresses: (weeklyProgresses || []) as WeeklyProgress[],
+      pipelineReviews,
+      weeklyProgresses,
+      allPipelineReviews,
+      allWeeklyProgresses,
       isLoading: isPipelineLoading || isProgressLoading,
       activeUserId,
       setActiveUserId: setSimulationUid,

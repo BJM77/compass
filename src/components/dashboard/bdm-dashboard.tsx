@@ -31,7 +31,7 @@ import { doc, collection, query, where, orderBy, limit } from 'firebase/firestor
 import { format } from 'date-fns';
 import { jsPDF } from "jspdf";
 import { computeMomentum } from '@/lib/momentum';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -121,10 +121,10 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       pdfDoc.setFontSize(9);
       pdfDoc.text("KEY PERFORMANCE INDICATORS", 20, 40);
       pdfDoc.setFont("helvetica", "normal");
-      pdfDoc.text(`Revenue YTD:`, 20, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${((stats?.revenueYTD || 0) / 1000000).toFixed(2)}M`, 60, 48);
-      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Target:`, 100, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${((stats?.target || 0) / 1000000).toFixed(2)}M`, 120, 48);
-      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Weighted Forecast:`, 20, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${(weightedForecast / 1000000).toFixed(2)}M`, 70, 55);
-      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Pipeline Total:`, 100, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`$${(pipelineTotal / 1000000).toFixed(2)}M`, 140, 55);
+      pdfDoc.text(`Revenue YTD:`, 20, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(crmSummary.myStats?.custYTDRevenueThisFY || 0)}`, 60, 48);
+      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Target:`, 100, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(stats?.target || 0)}`, 120, 48);
+      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Weighted Forecast:`, 20, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(weightedForecast)}`, 70, 55);
+      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Pipeline Total:`, 100, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(pipelineTotal)}`, 140, 55);
 
       // --- Momentum ---
       pdfDoc.setFont("helvetica", "bold");
@@ -195,9 +195,9 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KPICard title="Rev YTD" value={`$${((stats?.revenueYTD || 0) / 1000000).toFixed(2)}M`} subtitle={`Tgt: $${((stats?.target || 0) / 1000000).toFixed(2)}M`} icon={<DollarSign className="w-4 h-4" />} info="Annual strategic revenue achievement." />
-        <KPICard title="Forecast" value={`$${(weightedForecast / 1000000).toFixed(2)}M`} subtitle="Weighted" icon={<TrendingUp className="w-4 h-4 text-green-500" />} info="Calculated based on stage probability × value." />
-        <KPICard title="Strategic Yield" value={`$${(((isAM ? stats?.revenueYTD : pipelineTotal) / (stats?.activityScore || 1)) / 1000000).toFixed(3)}M`} subtitle="Val/Activity" icon={<Gauge className="w-4 h-4" />} info="The 'Professional Multiplier': Revenue generated per unit of activity." />
+        <KPICard title="Rev YTD" value={`${formatEAV(crmSummary.myStats?.custYTDRevenueThisFY || 0)}`} subtitle={`Tgt: ${formatEAV(stats?.target || 0)}`} icon={<DollarSign className="w-4 h-4" />} info="Annual strategic revenue achievement." />
+        <KPICard title="Forecast" value={`${formatEAV(weightedForecast)}`} subtitle="Weighted" icon={<TrendingUp className="w-4 h-4 text-green-500" />} info="Calculated based on stage probability × value." />
+        <KPICard title="Strategic Yield" value={`${formatEAV((isAM ? (crmSummary.myStats?.custYTDRevenueThisFY || 0) : pipelineTotal) / (stats?.activityScore || 1))}`} subtitle="Val/Activity" icon={<Gauge className="w-4 h-4" />} info="The 'Professional Multiplier': Revenue generated per unit of activity." />
         <KPICard 
           title="Velocity Pulse" 
           value={`${momentumCounts.HOT}`} 

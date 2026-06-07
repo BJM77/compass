@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { format, addWeeks } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, getWeekForDate, formatEAV, cn, openSalesforceSearch } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, formatEAV, cn, openSalesforceSearch, getNextWeekKey } from '@/lib/utils';
 
 const SALES_STAGES = [
   "Develop",
@@ -236,8 +236,7 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
       }, { merge: true });
 
       // 2. Rollover Uncompleted Commitments/Focus Accounts to Next Week Monday
-      const nextWeekDate = addWeeks(new Date(), 1);
-      const nextWeek = getWeekForDate(nextWeekDate);
+      const nextWeek = getNextWeekKey(currentWeek);
       const nextWeekRef = doc(db, 'weeklyCommitments', `${userId}_${nextWeek}`);
       
       const nextWeekSnap = await getDoc(nextWeekRef);

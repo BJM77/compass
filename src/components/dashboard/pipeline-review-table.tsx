@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { computeMomentum } from '@/lib/momentum';
 import { cn, getCurrentWeek, getWeekForDate } from '@/lib/utils';
+import { usePipelineData } from '@/contexts/pipeline-context';
 
 export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunities' }: { userId: string, readOnly?: boolean, filterType?: 'opportunities' | 'accounts' | 'all' }) {
   const { isLeader } = useAuth();
@@ -32,8 +33,12 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
   
   const currentWeek = getCurrentWeek();
 
-  const reviewsQuery = useMemoFirebase(() => db ? query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', currentWeek)) : null, [db, userId, currentWeek]);
-  const { data: rawReviews, isLoading } = useCollection(reviewsQuery);
+  const { pipelineReviews: allDeals, isLoading } = usePipelineData();
+
+  const rawReviews = useMemo(() => {
+    if (!allDeals) return [];
+    return allDeals.filter(d => d.userId === userId);
+  }, [allDeals, userId]);
 
   const reviews = useMemo(() => {
     if (!rawReviews) return [];
@@ -205,7 +210,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                               {row.opportunityName && (
                                 <a 
                                   href="#"
-                                  onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName, row.salesforceId); }}
+                                  onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName || '', row.salesforceId); }}
                                   className="text-[9px] text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate block w-fit"
                                   title="Open Opportunity in Salesforce"
                                 >
@@ -233,9 +238,9 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                       <TableCell>
                         <div className="space-y-1">
                           <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" className="text-xs font-black h-9 pl-6 bg-transparent border-transparent focus:border-primary/20" value={row.value || 0} onChange={e => handleUpdate(row.id, 'value', parseFloat(e.target.value) || 0)} readOnly={readOnly} /></div>
-                          {(row.closedWonValue > 0) && (
+                          {(((row as any).closedWonValue || 0) > 0) && (
                             <p className="text-[8px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-100 text-center">
-                              Won: ${Number(row.closedWonValue).toLocaleString()}
+                              Won: ${Number((row as any).closedWonValue).toLocaleString()}
                             </p>
                           )}
                         </div>
@@ -244,7 +249,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                       <TableCell><Textarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.barriers} onChange={e => handleUpdate(row.id, 'barriers', e.target.value)} readOnly={readOnly} /></TableCell>
                       <TableCell><Textarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.actionsForBen} onChange={e => handleUpdate(row.id, 'actionsForBen', e.target.value)} readOnly={readOnly} placeholder="Enter immediate next steps..." /></TableCell>
                       <TableCell className="text-center">
-                        <Checkbox disabled={!canPerformFridayActions || readOnly} checked={row.isRolledOver} onCheckedChange={() => handleRollover(row)} />
+                        <Checkbox disabled={!canPerformFridayActions || readOnly} checked={(row as any).isRolledOver} onCheckedChange={() => handleRollover(row)} />
                       </TableCell>
                       <TableCell className="text-center">
                         <Button variant="ghost" disabled={!canPerformFridayActions || readOnly} onClick={async () => { if(confirm("Archive Closed-Lost?")) { await addDoc(collection(db!, 'lostCustomers'), { ...row, lostAt: serverTimestamp(), week: currentWeek }); await deleteDoc(doc(db!, 'pipelineReviews', row.id)); toast({ title: "Archived Lost" }); } }} className="text-red-300 hover:text-red-600 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
