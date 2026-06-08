@@ -83,8 +83,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
 
-  // Popups & SMART Goals State
-  const [showNudge, setShowNudge] = useState(false);
+  // SMART Goals State
   const [smartGoal, setSmartGoal] = useState({ specific: '', measurable: '', achievable: '', relevant: '', timebound: '' });
   const [hasGoalForMonth, setHasGoalForMonth] = useState(false);
   const [submittingGoal, setSubmittingGoal] = useState(false);
@@ -111,17 +110,6 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
     return doc(db, 'onboardingProgress', `${userId}_BDM_NORTH_90`); // fallback to default
   }, [db, userId]);
   const { data: onboarding } = useDoc(onboardingQuery);
-
-  useEffect(() => {
-    if (onboarding) {
-      const updated = onboarding.updatedAt?.toDate();
-      if (!updated || !isSameWeek(updated, new Date())) {
-        setShowNudge(true);
-      }
-    } else {
-      setShowNudge(true);
-    }
-  }, [onboarding]);
 
   // Load existing plan & SMART Goals
   useEffect(() => {
@@ -395,35 +383,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
         ))}
       </datalist>
       
-      {/* 30-60-90 Popup Nudge */}
-      {showNudge && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card className="max-w-md w-full bg-white border-2 border-accent/20 shadow-2xl rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <CardHeader className="bg-slate-900 text-white flex flex-row items-center justify-between py-6">
-              <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-accent" />
-                Update 30-60-90 Day Plan
-              </CardTitle>
-              <Button variant="ghost" size="icon" onClick={() => setShowNudge(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </Button>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                You have not updated or opened your 30-60-90 Day Success Roadmap this week. Please review your strategic objectives to align with quarterly milestones.
-              </p>
-              <div className="flex gap-3 justify-end pt-2">
-                <Button variant="outline" onClick={() => setShowNudge(false)} className="font-bold text-xs uppercase rounded-xl h-10 px-5">
-                  Close
-                </Button>
-                <Button onClick={() => setShowNudge(false)} className="bg-accent hover:bg-accent/90 text-white font-black text-xs uppercase rounded-xl h-10 px-6">
-                  Update Now
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+
 
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start gap-4">
