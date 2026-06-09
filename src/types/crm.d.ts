@@ -109,4 +109,5 @@ export interface FactFindingDoc {
   tradingTerms: string;
   selectedServices?: string[];
   selectedStates?: string[];
+  mapDirection?: 'TO' | 'FROM';
 }

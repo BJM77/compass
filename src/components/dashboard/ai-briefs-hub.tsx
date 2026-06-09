@@ -26,7 +26,7 @@ export function AIBriefsHub() {
   }, [db, isLeader]);
   const { data: allUsers, isLoading: isUsersLoading } = useCollection(usersQuery);
 
-  const teamMembers = useMemo(() => allUsers?.filter(u => u.role !== 'LEADER') || [], [allUsers]);
+  const teamMembers = useMemo(() => allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER') || [], [allUsers]);
   
   // DEFENSIVE: Ensure we have a valid ID before building query paths
   const activeBdmId = selectedBdmId || teamMembers[0]?.id || null;

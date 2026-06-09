@@ -87,7 +87,8 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     seasonalFluctuations: '',
     tradingTerms: '',
     selectedServices: [],
-    selectedStates: []
+    selectedStates: [],
+    mapDirection: 'FROM'
   });
 
   useEffect(() => {
@@ -122,9 +123,25 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
         const found = AUSTRALIA_STATES.find(s => s.id === sid);
         return found ? found.id : sid;
       });
-      handleChange('locations', `WA to ${stateNames.join(', ')}`);
+      const directionStr = formData.mapDirection === 'TO' ? `${stateNames.join(', ')} to WA` : `WA to ${stateNames.join(', ')}`;
+      handleChange('locations', directionStr);
     } else {
       handleChange('locations', '');
+    }
+  };
+
+  const handleToggleMapDirection = () => {
+    const newDir = formData.mapDirection === 'TO' ? 'FROM' : 'TO';
+    handleChange('mapDirection', newDir);
+    
+    // Update location string if states are selected
+    if (formData.selectedStates && formData.selectedStates.length > 0) {
+      const stateNames = formData.selectedStates.map(sid => {
+        const found = AUSTRALIA_STATES.find(s => s.id === sid);
+        return found ? found.id : sid;
+      });
+      const directionStr = newDir === 'TO' ? `${stateNames.join(', ')} to WA` : `WA to ${stateNames.join(', ')}`;
+      handleChange('locations', directionStr);
     }
   };
 
@@ -327,7 +344,17 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                 <div className="md:col-span-5 bg-slate-50/50 p-4 rounded-xl border border-slate-200/60 print:hidden flex flex-col items-center">
                   <div className="text-center mb-3">
                     <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Interactive Shipping Map</span>
-                    <h4 className="text-xs font-bold text-slate-600">Origin Perth (WA) Destination Lanes</h4>
+                    <h4 className="text-xs font-bold text-slate-600 mb-2">
+                      {formData.mapDirection === 'TO' ? 'Destination Perth (WA)' : 'Origin Perth (WA) Destination Lanes'}
+                    </h4>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleToggleMapDirection}
+                      className="text-[10px] font-black uppercase shadow-sm border-slate-300"
+                    >
+                      Swap Direction: {formData.mapDirection === 'TO' ? 'TO PERTH' : 'FROM PERTH'}
+                    </Button>
                   </div>
                   <div className="relative w-full max-w-[280px] aspect-[420/520]">
                     <svg viewBox="0 0 420 520" className="w-full h-full select-none">
@@ -368,10 +395,10 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                             <path
                               d={`M 95,330 Q ${mx},${my} ${state.x},${state.y}`}
                               fill="none"
-                              stroke="#4f46e5"
+                              stroke={formData.mapDirection === 'TO' ? '#f97316' : '#ef4444'}
                               strokeWidth="2.5"
                               strokeDasharray="4 3"
-                              className="animate-[dash_2s_linear_infinite]"
+                              className={formData.mapDirection === 'TO' ? 'animate-[dash_2s_linear_reverse_infinite]' : 'animate-[dash_2s_linear_infinite]'}
                             />
                             <circle cx={state.x} cy={state.y} r={4} className="fill-indigo-600 stroke-white stroke-1.5" />
                             <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-slate-700 text-center" textAnchor="middle">
@@ -426,8 +453,8 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   Team Global Express Parcel Network Western Australia
                 </div>
 
-                {/* 4 Speeds Columns */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* 1 Column Layout */}
+                <div className="grid grid-cols-1 gap-4">
                   
                   {/* Speed Column: Next Available Road & Air */}
                   <div className="space-y-4">

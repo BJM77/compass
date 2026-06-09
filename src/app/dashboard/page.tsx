@@ -23,7 +23,7 @@ import { FactFindingHub } from '@/components/dashboard/fact-finding-hub';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
-  SidebarMenuItem, SidebarMenuButton,
+  SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel, SidebarGroupContent
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
@@ -46,22 +46,24 @@ type DashboardView =
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING';
 
 const NAV_ITEMS = [
-  { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false },
-  { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false },
-  { view: 'TEAM_GOALS' as DashboardView,        label: 'Team Goals',        icon: Star,             adminOnly: true },
-  { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false },
-  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false },
-  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false },
-  { view: 'BRIEFS' as DashboardView,            label: 'Briefs',            icon: Sparkles,         adminOnly: true },
-  { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true },
-  { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true },
-  { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true },
-  { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true },
-  { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false },
-  { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false },
-  { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true },
-  { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true },
-  { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false },
+  { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
+  { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'main' },
+  { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
+  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
+  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
+  { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true,  group: 'main' },
+  { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false, group: 'main' },
+  
+  // Admin Items
+  { view: 'TEAM_GOALS' as DashboardView,        label: 'Team Goals',        icon: Star,             adminOnly: true,  group: 'admin' },
+  { view: 'BRIEFS' as DashboardView,            label: 'Briefs',            icon: Sparkles,         adminOnly: true,  group: 'admin' },
+  { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true,  group: 'admin' },
+  { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true,  group: 'admin' },
+  { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true,  group: 'admin' },
+  { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true,  group: 'admin' },
+  { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false, group: 'admin' },
+  { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false, group: 'admin' },
+  { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true,  group: 'admin' },
 ];
 
 function DashboardContent() {
@@ -119,7 +121,7 @@ function DashboardContent() {
         <div className="min-h-screen bg-[#F7F6F8]">
           <header className="sticky top-0 z-30 flex items-center justify-between px-5 h-16 bg-slate-900 text-white shadow-xl">
             <div className="flex items-center gap-2"><Compass className="w-6 h-6 text-accent" /><span className="font-black uppercase tracking-tight">BDM Compass</span></div>
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-black">{profile?.name?.charAt(0)}</div>
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-black uppercase">{(profile?.name || user?.email || '?').charAt(0)}</div>
           </header>
           <main className="pb-24">{renderContent()}</main>
           <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-white/10 px-2 py-3 flex justify-around shadow-2xl">
@@ -136,30 +138,54 @@ function DashboardContent() {
           <Sidebar collapsible="icon">
             <SidebarHeader className="p-4 flex items-center gap-2"><Compass className="w-6 h-6 text-primary" /><span className="font-bold text-lg text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></SidebarHeader>
             <SidebarContent>
-              <SidebarMenu className="px-2 space-y-1">
-                {simulationUid && isLeader && (
-                  <SidebarMenuItem>
-                    <button
-                      onClick={() => {
-                        setSimulationUid(null);
-                        setCurrentView('TEAM'); // Return to Governance/Users page
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all font-black text-xs uppercase tracking-wider border border-amber-500/20 mb-2 group"
-                    >
-                      <XCircle className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
-                      <span>Return to Governance</span>
-                    </button>
-                  </SidebarMenuItem>
-                )}
-                {NAV_ITEMS.filter(item => item.adminOnly ? isLeader : true).map(nav => (
-                  <SidebarMenuItem key={nav.view}>
-                    <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
-                      <nav.icon className="w-4 h-4" />
-                      <span>{nav.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
+              <SidebarGroup>
+                <SidebarGroupContent>
+                  <SidebarMenu className="px-2 space-y-1">
+                    {simulationUid && isLeader && (
+                      <SidebarMenuItem>
+                        <button
+                          onClick={() => {
+                            setSimulationUid(null);
+                            setCurrentView('TEAM'); // Return to Governance/Users page
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all font-black text-xs uppercase tracking-wider border border-amber-500/20 mb-2 group"
+                        >
+                          <XCircle className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
+                          <span>Return to Governance</span>
+                        </button>
+                      </SidebarMenuItem>
+                    )}
+                    {NAV_ITEMS.filter(item => item.group === 'main' && (item.adminOnly ? isLeader : true)).map(nav => (
+                      <SidebarMenuItem key={nav.view}>
+                        <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
+                          <nav.icon className="w-4 h-4" />
+                          <span>{nav.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+
+              {NAV_ITEMS.some(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)) && (
+                <SidebarGroup>
+                  <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mt-4 mb-1">
+                    Admin
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu className="px-2 space-y-1">
+                      {NAV_ITEMS.filter(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)).map(nav => (
+                        <SidebarMenuItem key={nav.view}>
+                          <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
+                            <nav.icon className="w-4 h-4" />
+                            <span>{nav.label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )}
             </SidebarContent>
             <SidebarFooter className="p-4 border-t"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
           </Sidebar>
@@ -184,11 +210,11 @@ function DashboardContent() {
               <div className="flex-1" />
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-900">{profile?.name}</p>
-                  <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role?.replace('_', ' ').toLowerCase()}</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-900">{profile?.name || user?.email}</p>
+                  <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role?.replace('_', ' ').toLowerCase() || 'No Role'}</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs">
-                  {profile?.name?.charAt(0)}
+                <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs uppercase">
+                  {(profile?.name || user?.email || '?').charAt(0)}
                 </div>
               </div>
             </header>
