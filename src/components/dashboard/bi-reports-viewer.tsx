@@ -175,7 +175,7 @@ export function BIReportsViewer() {
 
   if (availableDashboards.length === 0) {
     return (
-      <div className="container mx-auto p-4 md:p-8 flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6 max-w-md">
+      <div className="w-full mx-auto p-4 md:p-8 flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6 max-w-md">
         <div className="bg-indigo-50 p-4 rounded-2xl shadow-inner animate-pulse">
           <LayoutDashboard className="w-12 h-12 text-indigo-600" />
         </div>

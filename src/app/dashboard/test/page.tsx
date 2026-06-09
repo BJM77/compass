@@ -20,7 +20,7 @@ export default function TestPage() {
 
   return (
     <AuthGuard>
-      <div className="container mx-auto p-4 md:p-8 space-y-6">
+      <div className="w-full p-4 md:p-8 space-y-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-black tracking-tight text-slate-900">
             TEST ENVIRONMENT

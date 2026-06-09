@@ -394,7 +394,7 @@ export function WeeklyArchive() {
   const isCurrentWeek = selectedWeek === currentWeek;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20">
+    <div className="w-full space-y-6 pb-20">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">

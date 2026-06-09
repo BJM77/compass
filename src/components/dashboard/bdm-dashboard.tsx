@@ -177,7 +177,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   if (isStatsLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Compass className="animate-spin" /></div>;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+    <div className="w-full p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-xl md:text-3xl font-black font-headline text-primary tracking-tighter uppercase">{isAM ? 'Portfolio Intelligence' : 'Professional Brief'}</h1>
@@ -194,7 +194,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KPICard title="Rev YTD" value={`${formatEAV(crmSummary.myStats?.custYTDRevenueThisFY || 0)}`} subtitle={`Tgt: ${formatEAV(stats?.target || 0)}`} icon={<DollarSign className="w-4 h-4" />} info="Annual strategic revenue achievement." />
         <KPICard title="Forecast" value={`${formatEAV(weightedForecast)}`} subtitle="Weighted" icon={<TrendingUp className="w-4 h-4 text-green-500" />} info="Calculated based on stage probability × value." />
         <KPICard title="Strategic Yield" value={`${formatEAV((isAM ? (crmSummary.myStats?.custYTDRevenueThisFY || 0) : pipelineTotal) / (stats?.activityScore || 1))}`} subtitle="Val/Activity" icon={<Gauge className="w-4 h-4" />} info="The 'Professional Multiplier': Revenue generated per unit of activity." />

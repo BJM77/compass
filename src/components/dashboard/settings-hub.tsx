@@ -265,7 +265,7 @@ export function SettingsHub() {
   if (isLoading) return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20">
+    <div className="w-full space-y-8 pb-20">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Governance Node</p>

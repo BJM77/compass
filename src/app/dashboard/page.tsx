@@ -95,21 +95,21 @@ function DashboardContent() {
     // DEFENSIVE: Block rendering if activeUserId is not yet resolved
     if (!activeUserId && !isAuthLoading) return <div className="flex items-center justify-center py-40"><Loader2 className="animate-spin" /></div>;
 
-    if (currentView === 'TEAM' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
-    if (currentView === 'CALL_PLANNING') return <div className="container mx-auto p-4 md:p-8"><CallPlanning userId={activeUserId || ''} /></div>;
-    if (currentView === 'ALL_CALL_PLANNING' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><AdminCallPlanning /></div>;
-    if (currentView === 'BRIEFS' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;
-    if (currentView === 'TEAM_GOALS' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><SmartGoalsAudit /></div>;
-    if (currentView === 'STRATEGY' && isLeader) return <div className="container mx-auto p-4 md:p-8 space-y-8"><StrategyManagement /></div>;
-    if (currentView === 'GM_REVIEW' && isLeader) return <div className="container mx-auto p-4 md:p-8"><GMWeeklyReview /></div>;
-    if (currentView === 'WHITE_SPACE') return <div className="container mx-auto p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
-    if (currentView === 'WHITESPACE_HISTORY') return <div className="container mx-auto p-4 md:p-8"><WhitespaceHistory userId={activeUserId || ''} /></div>;
-    if (currentView === 'REPORTS') return <div className="container mx-auto p-4 md:p-8 max-w-[1600px]"><BIReportsViewer /></div>;
-    if (currentView === 'UPLOAD' && isLeader) return <div className="container mx-auto p-4 md:p-8 max-w-5xl"><CRMImporter /></div>;
-    if (currentView === 'ARCHIVE') return <div className="container mx-auto p-4 md:p-8"><WeeklyArchive /></div>;
-    if (currentView === 'FACT_FINDING') return <div className="container mx-auto p-4 md:p-8"><FactFindingHub /></div>;
-    if (currentView === 'DATA_EXPLORER' && isLeader) return <div className="container mx-auto p-4 md:p-8"><DataExplorer /></div>;
-    if (currentView === 'SETTINGS') return <div className="container mx-auto p-4 md:p-8"><SettingsHub /></div>;
+    if (currentView === 'TEAM' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
+    if (currentView === 'CALL_PLANNING') return <div className="w-full p-4 md:p-8"><CallPlanning userId={activeUserId || ''} /></div>;
+    if (currentView === 'ALL_CALL_PLANNING' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AdminCallPlanning /></div>;
+    if (currentView === 'BRIEFS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;
+    if (currentView === 'TEAM_GOALS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><SmartGoalsAudit /></div>;
+    if (currentView === 'STRATEGY' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><StrategyManagement /></div>;
+    if (currentView === 'GM_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><GMWeeklyReview /></div>;
+    if (currentView === 'WHITE_SPACE') return <div className="w-full p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
+    if (currentView === 'WHITESPACE_HISTORY') return <div className="w-full p-4 md:p-8"><WhitespaceHistory userId={activeUserId || ''} /></div>;
+    if (currentView === 'REPORTS') return <div className="w-full p-4 md:p-8"><BIReportsViewer /></div>;
+    if (currentView === 'UPLOAD' && isLeader) return <div className="w-full p-4 md:p-8"><CRMImporter /></div>;
+    if (currentView === 'ARCHIVE') return <div className="w-full p-4 md:p-8"><WeeklyArchive /></div>;
+    if (currentView === 'FACT_FINDING') return <div className="w-full p-4 md:p-8"><FactFindingHub /></div>;
+    if (currentView === 'DATA_EXPLORER' && isLeader) return <div className="w-full p-4 md:p-8"><DataExplorer /></div>;
+    if (currentView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
@@ -117,45 +117,47 @@ function DashboardContent() {
 
   return (
     <AuthGuard>
-      {isMobile ? (
-        <div className="min-h-screen bg-[#F7F6F8]">
-          <header className="sticky top-0 z-30 flex items-center justify-between px-5 h-16 bg-slate-900 text-white shadow-xl">
-            <div className="flex items-center gap-2"><Compass className="w-6 h-6 text-accent" /><span className="font-black uppercase tracking-tight">BDM Compass</span></div>
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-black uppercase">{(profile?.name || user?.email || '?').charAt(0)}</div>
-          </header>
-          <main className="pb-24">{renderContent()}</main>
-          <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-white/10 px-2 py-3 flex justify-around shadow-2xl">
-            {NAV_ITEMS.filter(i => !i.adminOnly).slice(0, 4).map(i => (
-              <button key={i.view} onClick={() => setCurrentView(i.view)} className={`flex flex-col items-center gap-1 ${currentView === i.view ? 'text-accent' : 'text-white/40'}`}>
-                <i.icon className="w-5 h-5" />
-                <span className="text-[8px] font-black uppercase">{i.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      ) : (
-        <SidebarProvider>
-          <Sidebar collapsible="icon">
-            <SidebarHeader className="p-4 flex items-center gap-2"><Compass className="w-6 h-6 text-primary" /><span className="font-bold text-lg text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></SidebarHeader>
-            <SidebarContent>
+      <SidebarProvider>
+        <Sidebar collapsible="icon">
+          <SidebarHeader className="p-4 flex items-center gap-2"><Compass className="w-6 h-6 text-primary" /><span className="font-bold text-lg text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu className="px-2 space-y-1">
+                  {simulationUid && isLeader && (
+                    <SidebarMenuItem>
+                      <button
+                        onClick={() => {
+                          setSimulationUid(null);
+                          setCurrentView('TEAM'); // Return to Governance/Users page
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all font-black text-xs uppercase tracking-wider border border-amber-500/20 mb-2 group"
+                      >
+                        <XCircle className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
+                        <span>Return to Governance</span>
+                      </button>
+                    </SidebarMenuItem>
+                  )}
+                  {NAV_ITEMS.filter(item => item.group === 'main' && (item.adminOnly ? isLeader : true)).map(nav => (
+                    <SidebarMenuItem key={nav.view}>
+                      <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
+                        <nav.icon className="w-4 h-4" />
+                        <span>{nav.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {NAV_ITEMS.some(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)) && (
               <SidebarGroup>
+                <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mt-4 mb-1">
+                  Admin
+                </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu className="px-2 space-y-1">
-                    {simulationUid && isLeader && (
-                      <SidebarMenuItem>
-                        <button
-                          onClick={() => {
-                            setSimulationUid(null);
-                            setCurrentView('TEAM'); // Return to Governance/Users page
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all font-black text-xs uppercase tracking-wider border border-amber-500/20 mb-2 group"
-                        >
-                          <XCircle className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
-                          <span>Return to Governance</span>
-                        </button>
-                      </SidebarMenuItem>
-                    )}
-                    {NAV_ITEMS.filter(item => item.group === 'main' && (item.adminOnly ? isLeader : true)).map(nav => (
+                    {NAV_ITEMS.filter(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)).map(nav => (
                       <SidebarMenuItem key={nav.view}>
                         <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
                           <nav.icon className="w-4 h-4" />
@@ -166,64 +168,48 @@ function DashboardContent() {
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
-
-              {NAV_ITEMS.some(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)) && (
-                <SidebarGroup>
-                  <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mt-4 mb-1">
-                    Admin
-                  </SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenu className="px-2 space-y-1">
-                      {NAV_ITEMS.filter(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)).map(nav => (
-                        <SidebarMenuItem key={nav.view}>
-                          <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
-                            <nav.icon className="w-4 h-4" />
-                            <span>{nav.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              )}
-            </SidebarContent>
-            <SidebarFooter className="p-4 border-t"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
-          </Sidebar>
-          <SidebarInset className="bg-[#F7F6F8]">
-            <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2">
-              <SidebarTrigger className="-ml-1" />
-              {simulationUid && isLeader && (
-                <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-amber-800 text-xs font-bold animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
-                  <span>Simulating: <strong className="font-black">{simulatedUserProfile?.name || simulationUid}</strong></span>
-                  <button
-                    onClick={() => {
-                      setSimulationUid(null);
-                      setCurrentView('TEAM');
-                    }}
-                    className="ml-2 underline font-black hover:text-amber-950 uppercase text-[10px] tracking-wider"
-                  >
-                    Exit
-                  </button>
-                </div>
-              )}
-              <div className="flex-1" />
-              <div className="flex items-center gap-4">
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-900">{profile?.name || user?.email}</p>
-                  <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role?.replace('_', ' ').toLowerCase() || 'No Role'}</p>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs uppercase">
-                  {(profile?.name || user?.email || '?').charAt(0)}
-                </div>
+            )}
+          </SidebarContent>
+          <SidebarFooter className="p-4 border-t"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
+        </Sidebar>
+        <SidebarInset className="bg-[#F7F6F8]">
+          <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center gap-2 md:hidden pl-1">
+              <Compass className="w-5 h-5 text-indigo-600" />
+              <span className="font-black uppercase tracking-tight text-xs text-slate-900">BDM Compass</span>
+            </div>
+            {simulationUid && isLeader && (
+              <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-amber-800 text-xs font-bold animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                <span>Simulating: <strong className="font-black">{simulatedUserProfile?.name || simulationUid}</strong></span>
+                <button
+                  onClick={() => {
+                    setSimulationUid(null);
+                    setCurrentView('TEAM');
+                  }}
+                  className="ml-2 underline font-black hover:text-amber-950 uppercase text-[10px] tracking-wider"
+                >
+                  Exit
+                </button>
               </div>
-            </header>
-            <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)]">
-              {renderContent()}
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
-      )}
+            )}
+            <div className="flex-1" />
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-900">{profile?.name || user?.email}</p>
+                <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role?.replace('_', ' ').toLowerCase() || 'No Role'}</p>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs uppercase">
+                {(profile?.name || user?.email || '?').charAt(0)}
+              </div>
+            </div>
+          </header>
+          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)]">
+            {renderContent()}
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
     </AuthGuard>
   );
 }

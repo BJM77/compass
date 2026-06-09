@@ -30,7 +30,7 @@ export function AnnouncementBanner() {
       {/* Decorative shimmer animation */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
       
-      <div className="container mx-auto flex items-center justify-between gap-4 relative">
+      <div className="w-full max-w-full px-2 md:px-4 flex items-center justify-between gap-4 relative">
         <div className="flex items-center gap-3 flex-1 overflow-hidden">
           <div className="bg-white/20 p-1.5 rounded-lg flex-shrink-0">
             <Megaphone className="w-4 h-4" />

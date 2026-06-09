@@ -200,7 +200,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   if (isStatsLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Compass className="animate-spin" /></div>;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-in fade-in duration-700">
+    <div className="w-full p-4 md:p-8 space-y-6 animate-in fade-in duration-700">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-primary p-2 rounded-xl shadow-lg rotate-3 shrink-0"><ShieldCheck className="w-5 h-5 text-white" /></div>
@@ -211,7 +211,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard 
           title="Territory Rev" 
           value={`$${(aggregates.totalRevenue / 1000000).toFixed(1)}M`} 
