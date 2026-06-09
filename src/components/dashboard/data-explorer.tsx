@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { getCurrentWeek } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
 import { PipelineReview, WeeklyProgress } from '@/types/crm';

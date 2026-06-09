@@ -679,7 +679,7 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p>
             <p className="text-xl font-black text-primary">{report.summary.crmCalls || 0}</p>

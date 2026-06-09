@@ -178,5 +178,11 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isAdmin() || (isSignedIn() && docId == request.auth.uid); 
     }
+
+    match /factFindingDocs/{docId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
   }
 }

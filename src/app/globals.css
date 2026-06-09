@@ -50,3 +50,9 @@
     scrollbar-width: none;
   }
 }
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}

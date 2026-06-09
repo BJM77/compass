@@ -76,3 +76,37 @@ export interface ReportWidget {
   calculation: string;
   type: string;
 }
+
+export interface FactFindingDoc {
+  id?: string;
+  userId: string;
+  createdAt?: any;
+  companyName: string;
+  businessDetails: string;
+  currentlyUsing: string;
+  businessModel: string;
+  freightType: string;
+  freightSize: string;
+  weeklyAmount: string;
+  locations: string;
+  waPercentage: string;
+  overnightPercentage: string;
+  hasData: boolean;
+  perfectWorld: string;
+  deliveryExpectation: string;
+  wholesaleCharges: string;
+  urgentDeliveries: string;
+  securityConcern: boolean;
+  highValueFreight: boolean;
+  dangerousGoods: boolean;
+  internationalFreight: boolean;
+  internationalType: string;
+  internationalSize: string;
+  painPoints: string;
+  specialHandling: string;
+  loadingDock: string;
+  seasonalFluctuations: string;
+  tradingTerms: string;
+  selectedServices?: string[];
+  selectedStates?: string[];
+}

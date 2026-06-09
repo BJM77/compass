@@ -514,10 +514,10 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
       </div>
 
       {/* Main Focus and Stage Pipeline Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         
         {/* Left Side: Targets & Focus Commitments */}
-        <div className="xl:col-span-5 space-y-6">
+        <div className="space-y-6">
           <Card className="border shadow-md">
             <CardHeader><CardTitle className="text-lg font-black flex items-center gap-2">{userRole === 'BDM' ? <Rocket className="w-5 h-5 text-accent" /> : <Shield className="w-5 h-5 text-accent" />} Focus Accounts</CardTitle></CardHeader>
             <CardContent className="space-y-4">
@@ -619,7 +619,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
         </div>
 
         {/* Right Side: Salesforce Pipeline swimlanes */}
-        <div className="xl:col-span-7 space-y-6">
+        <div className="space-y-6">
           <Card className="border border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
             <CardHeader className="bg-slate-900 text-white flex flex-row items-center justify-between py-5">
               <div>

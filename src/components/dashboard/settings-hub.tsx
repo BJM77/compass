@@ -145,7 +145,7 @@ function SettingRow({ label, description, children }: { label: string; descripti
 
 export function SettingsHub() {
   const { profile, isLeader: isAuthLeader, isGM, user } = useAuth();
-  const isLeader = isAuthLeader && !isGM;
+  const isLeader = isAuthLeader || isGM;
   const db = useFirestore();
   const { toast } = useToast();
 
