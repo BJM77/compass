@@ -67,7 +67,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {!isGM && (
+      {isGM && (
         <div className="lg:col-span-5">
           <Card className="border-none shadow-xl">
             <CardHeader className="bg-primary/5"><CardTitle className="text-xl font-bold flex items-center gap-2"><UserPlus className="w-5 h-5" /> Provisioning</CardTitle></CardHeader>
@@ -89,7 +89,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
           </Card>
         </div>
       )}
-      <div className={isGM ? "lg:col-span-12" : "lg:col-span-7"}>
+      <div className={!isGM ? "lg:col-span-12" : "lg:col-span-7"}>
         <Card className="border-none shadow-xl overflow-hidden">
           <CardHeader className="border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><ShieldCheck className="text-green-600" /> Registry</CardTitle></CardHeader>
           <CardContent className="p-0">
@@ -100,7 +100,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                     <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{u.name.charAt(0)}</div>
                     <div>
                       <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-[9px] uppercase ml-2">{u.role}</Badge></div>
-                      <div className="text-[10px] text-muted-foreground font-black uppercase mt-1"><Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory}</div>
+                      <div className="text-[10px] text-muted-foreground font-black uppercase mt-1"><Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} • Target: ${(Number(u.target) || 0).toLocaleString()}</div>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -115,7 +115,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                         <UserCircle className="w-4 h-4" />
                       </Button>
                     )}
-                    {!isGM && (
+                    {isGM && (
                       <>
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} title="Edit User"><Edit3 className="w-4 h-4" /></Button>
                         <Button size="icon" variant="ghost" className="text-red-400" onClick={() => handleRemove(u)} title="Remove User"><Trash2 className="w-4 h-4" /></Button>

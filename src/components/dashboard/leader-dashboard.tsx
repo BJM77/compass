@@ -15,7 +15,7 @@ import { OnboardingPlan } from './onboarding-plan';
 import { GMReportGenerator } from './gm-report-generator';
 import { AiReportGenerator } from './ai-report-generator';
 import { AIDealWhisperer } from './ai-deal-whisperer';
-import { VelocityPulse } from './velocity-pulse';
+import { SalesVelocityWidgets } from './sales-velocity-widgets';
 import { HistoricalActivity } from './historical-activity';
 import { 
   Users, TrendingUp, AlertTriangle, BarChart3, 
@@ -273,7 +273,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
-           <VelocityPulse teamStats={teamStats || []} teamActivity={teamActivity || []} onSimulate={onSimulate} />
+           <SalesVelocityWidgets teamStats={teamStats || []} allDeals={allDeals || []} totalRevenue={aggregates.totalRevenue} />
            <AIDealWhisperer deals={allDeals || []} />
            <HistoricalActivity />
            <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
