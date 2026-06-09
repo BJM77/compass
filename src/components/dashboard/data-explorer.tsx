@@ -278,7 +278,8 @@ export function DataExplorer() {
           <p className="text-slate-500 mt-1 font-medium">Browse, filter, and inspect all imported CRM records.</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+        <div className="flex flex-col gap-4 w-full md:w-auto items-end">
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input 
@@ -310,6 +311,29 @@ export function DataExplorer() {
               ))}
             </SelectContent>
           </Select>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 justify-end">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 self-center mr-2">Quick Views:</span>
+            <button 
+              onClick={() => { setActiveTab('activities'); setSelectedWeek(availableWeeks[0] || 'all'); setSearchQuery(''); setSelectedUser('all'); }}
+              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+            >
+              This Week's Activity
+            </button>
+            <button 
+              onClick={() => { setActiveTab('opportunities'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); setSelectedStage('all'); }}
+              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+            >
+              All Revenue & Pipeline
+            </button>
+            <button 
+              onClick={() => { setActiveTab('customers'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); }}
+              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+            >
+              Customer Accounts
+            </button>
+          </div>
         </div>
       </div>
 

@@ -21,14 +21,14 @@ export function WeeklyActivitySummary({ userId, readOnly }: WeeklyActivitySummar
 
   const activityDocRef = useMemoFirebase(() => {
     if (!db || !userId) return null;
-    return doc(db, 'weeklyActivity', docId);
+    return doc(db, 'weeklyProgress', docId);
   }, [db, userId, docId]);
 
   const { data: activity } = useDoc(activityDocRef);
 
   const updateActivity = async (field: string, value: number) => {
     if (!db || !userId || readOnly) return;
-    const docRef = doc(db, 'weeklyActivity', docId);
+    const docRef = doc(db, 'weeklyProgress', docId);
     await setDoc(docRef, {
       userId,
       week: currentWeek,
@@ -57,7 +57,7 @@ export function WeeklyActivitySummary({ userId, readOnly }: WeeklyActivitySummar
           </div>
           <div className="space-y-2">
             <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5"><Lightbulb className="w-3 h-3 text-yellow-500" /> New Opps</Label>
-            <Input type="number" className="text-xl font-bold h-12" value={activity?.newOpps || 0} onChange={(e) => updateActivity('newOpps', parseInt(e.target.value) || 0)} readOnly={readOnly}/>
+            <Input type="number" className="text-xl font-bold h-12" value={activity?.proposals || 0} onChange={(e) => updateActivity('proposals', parseInt(e.target.value) || 0)} readOnly={readOnly}/>
           </div>
         </div>
       </CardContent>
