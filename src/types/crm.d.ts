@@ -110,4 +110,8 @@ export interface FactFindingDoc {
   selectedServices?: string[];
   selectedStates?: string[];
   mapDirection?: 'TO' | 'FROM';
+  selectedStatesFrom?: string[];
+  selectedStatesTo?: string[];
+  mapNotesFrom?: string;
+  mapNotesTo?: string;
 }

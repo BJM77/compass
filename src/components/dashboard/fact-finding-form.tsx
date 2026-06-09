@@ -88,12 +88,22 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     tradingTerms: '',
     selectedServices: [],
     selectedStates: [],
-    mapDirection: 'FROM'
+    mapDirection: 'FROM',
+    selectedStatesFrom: [],
+    selectedStatesTo: [],
+    mapNotesFrom: '',
+    mapNotesTo: ''
   });
 
   useEffect(() => {
     if (existingDoc) {
-      setFormData(existingDoc);
+      setFormData({
+        ...existingDoc,
+        selectedStatesFrom: existingDoc.selectedStatesFrom || (existingDoc.mapDirection !== 'TO' ? existingDoc.selectedStates || [] : []),
+        selectedStatesTo: existingDoc.selectedStatesTo || (existingDoc.mapDirection === 'TO' ? existingDoc.selectedStates || [] : []),
+        mapNotesFrom: existingDoc.mapNotesFrom || '',
+        mapNotesTo: existingDoc.mapNotesTo || ''
+      });
     }
   }, [existingDoc]);
 
@@ -109,40 +119,41 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     handleChange('selectedServices', updated);
   };
 
-  const handleToggleState = (stateId: string) => {
-    const current = formData.selectedStates || [];
+  const updateCombinedLocations = (fromStates: string[], toStates: string[]) => {
+    const parts: string[] = [];
+    if (fromStates.length > 0) {
+      parts.push(`WA to ${fromStates.join(', ')}`);
+    }
+    if (toStates.length > 0) {
+      parts.push(`${toStates.join(', ')} to WA`);
+    }
+    handleChange('locations', parts.join(' | '));
+  };
+
+  const handleToggleStateFrom = (stateId: string) => {
+    const current = formData.selectedStatesFrom || [];
     const updated = current.includes(stateId)
       ? current.filter(id => id !== stateId)
       : [...current, stateId];
     
-    handleChange('selectedStates', updated);
-    
-    // Automatically construct Location string
-    if (updated.length > 0) {
-      const stateNames = updated.map(sid => {
-        const found = AUSTRALIA_STATES.find(s => s.id === sid);
-        return found ? found.id : sid;
-      });
-      const directionStr = formData.mapDirection === 'TO' ? `${stateNames.join(', ')} to WA` : `WA to ${stateNames.join(', ')}`;
-      handleChange('locations', directionStr);
-    } else {
-      handleChange('locations', '');
-    }
+    setFormData(prev => {
+      const next = { ...prev, selectedStatesFrom: updated };
+      updateCombinedLocations(updated, next.selectedStatesTo || []);
+      return next;
+    });
   };
 
-  const handleToggleMapDirection = () => {
-    const newDir = formData.mapDirection === 'TO' ? 'FROM' : 'TO';
-    handleChange('mapDirection', newDir);
+  const handleToggleStateTo = (stateId: string) => {
+    const current = formData.selectedStatesTo || [];
+    const updated = current.includes(stateId)
+      ? current.filter(id => id !== stateId)
+      : [...current, stateId];
     
-    // Update location string if states are selected
-    if (formData.selectedStates && formData.selectedStates.length > 0) {
-      const stateNames = formData.selectedStates.map(sid => {
-        const found = AUSTRALIA_STATES.find(s => s.id === sid);
-        return found ? found.id : sid;
-      });
-      const directionStr = newDir === 'TO' ? `${stateNames.join(', ')} to WA` : `WA to ${stateNames.join(', ')}`;
-      handleChange('locations', directionStr);
-    }
+    setFormData(prev => {
+      const next = { ...prev, selectedStatesTo: updated };
+      updateCombinedLocations(next.selectedStatesFrom || [], updated);
+      return next;
+    });
   };
 
   const handleSave = async () => {
@@ -227,7 +238,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Main Form Content */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-12 space-y-6">
           
           <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
@@ -278,6 +289,68 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   <div className="hidden print:block font-medium text-lg pt-2">{formData.businessModel || '_________________'}</div>
                 </div>
               </div>
+
+              <div className="border-t border-slate-100 pt-6 mt-6">
+                <h3 className="text-sm font-black uppercase text-indigo-900 tracking-wider mb-4">Operational Needs</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <Checkbox id="securityConcern" checked={formData.securityConcern} onCheckedChange={(c) => handleChange('securityConcern', !!c)} className="print:border-slate-500" />
+                    <Label htmlFor="securityConcern" className="font-bold text-xs text-slate-700 cursor-pointer">Freight security is a concern</Label>
+                  </div>
+                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <Checkbox id="highValueFreight" checked={formData.highValueFreight} onCheckedChange={(c) => handleChange('highValueFreight', !!c)} className="print:border-slate-500" />
+                    <Label htmlFor="highValueFreight" className="font-bold text-xs text-slate-700 cursor-pointer">Sends High Value freight</Label>
+                  </div>
+                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <Checkbox id="dangerousGoods" checked={formData.dangerousGoods} onCheckedChange={(c) => handleChange('dangerousGoods', !!c)} className="print:border-slate-500" />
+                    <Label htmlFor="dangerousGoods" className="font-bold text-xs text-slate-700 cursor-pointer">Sends Dangerous Goods</Label>
+                  </div>
+                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <Checkbox id="internationalFreight" checked={formData.internationalFreight} onCheckedChange={(c) => handleChange('internationalFreight', !!c)} className="print:border-slate-500" />
+                    <Label htmlFor="internationalFreight" className="font-bold text-xs text-slate-700 cursor-pointer">Uses International Freight</Label>
+                  </div>
+                </div>
+
+                {formData.internationalFreight && (
+                  <div className="mt-4 p-4 bg-indigo-50/30 rounded-xl border border-indigo-100/50 grid grid-cols-1 md:grid-cols-2 gap-4 print:p-0 print:bg-transparent print:border-none print:mt-2">
+                    <div className="space-y-2">
+                      <Label className="font-bold text-xs text-indigo-900 print:text-slate-700">International Type (Sea/Air)</Label>
+                      <Input value={formData.internationalType} onChange={e => handleChange('internationalType', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-bold text-xs text-indigo-900 print:text-slate-700">Intl Size (Parcels/Cartons/Pallets/Containers)</Label>
+                      <Input value={formData.internationalSize} onChange={e => handleChange('internationalSize', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-slate-100 pt-6 mt-6">
+                <h3 className="text-sm font-black uppercase text-indigo-900 tracking-wider mb-4">Advanced Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="font-bold text-slate-700">Primary Pain Points</Label>
+                    <Textarea value={formData.painPoints} onChange={e => handleChange('painPoints', e.target.value)} className="min-h-[80px] print:border-none print:resize-none print:p-0 print:shadow-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Special Handling Requirements</Label>
+                    <Input value={formData.specialHandling} onChange={e => handleChange('specialHandling', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Loading Dock Capabilities</Label>
+                    <Input value={formData.loadingDock} onChange={e => handleChange('loadingDock', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Seasonal Fluctuations</Label>
+                    <Input value={formData.seasonalFluctuations} onChange={e => handleChange('seasonalFluctuations', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Trading Terms Expected</Label>
+                    <Input value={formData.tradingTerms} onChange={e => handleChange('tradingTerms', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  </div>
+                </div>
+              </div>
+
             </CardContent>
           </Card>
 
@@ -306,17 +379,16 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
               </div>
 
               {/* Map & Destination Lanes Visuals */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                <div className="md:col-span-7 space-y-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700 flex items-center gap-1.5">
                       <Map className="w-4 h-4 text-primary" />
-                      From - To Locations (Click States to Toggle To-Lanes)
+                      From - To Locations
                     </Label>
                     <Input placeholder="e.g. Perth to Sydney, Metro only..." value={formData.locations} onChange={e => handleChange('locations', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none font-bold" />
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="font-bold text-slate-700">% Staying in WA?</Label>
                       <Input type="number" placeholder="%" value={formData.waPercentage} onChange={e => handleChange('waPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
@@ -326,8 +398,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                       <Input type="number" placeholder="%" value={formData.overnightPercentage} onChange={e => handleChange('overnightPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-lg border border-slate-100 print:bg-transparent print:border-none print:p-0 mt-4">
+                  <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-lg border border-slate-100 print:bg-transparent print:border-none print:p-0 justify-center">
                     <Checkbox 
                       id="hasData" 
                       checked={formData.hasData} 
@@ -340,92 +411,208 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   </div>
                 </div>
 
-                {/* SVG Interactive Map Column */}
-                <div className="md:col-span-5 bg-slate-50/50 p-4 rounded-xl border border-slate-200/60 print:hidden flex flex-col items-center">
-                  <div className="text-center mb-3">
-                    <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Interactive Shipping Map</span>
-                    <h4 className="text-xs font-bold text-slate-600 mb-2">
-                      {formData.mapDirection === 'TO' ? 'Destination Perth (WA)' : 'Origin Perth (WA) Destination Lanes'}
-                    </h4>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleToggleMapDirection}
-                      className="text-[10px] font-black uppercase shadow-sm border-slate-300"
-                    >
-                      Swap Direction: {formData.mapDirection === 'TO' ? 'TO PERTH' : 'FROM PERTH'}
-                    </Button>
-                  </div>
-                  <div className="relative w-full max-w-[280px] aspect-[420/520]">
-                    <svg viewBox="0 0 420 520" className="w-full h-full select-none">
-                      {/* State Paths */}
+                {/* Dual Maps Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:hidden">
+                  
+                  {/* MAP 1: OUTBOUND */}
+                  <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60 flex flex-col items-center space-y-4">
+                    <div className="text-center">
+                      <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Interactive Shipping Map</span>
+                      <h4 className="text-xs font-bold text-slate-700 mb-1">Origin Perth (WA) Destination Lanes</h4>
+                      <p className="text-[10px] text-red-600 font-bold uppercase tracking-wide">OUTBOUND (FROM PERTH)</p>
+                    </div>
+                    <div className="relative w-full max-w-[280px] aspect-[420/520]">
+                      <svg viewBox="0 0 420 520" className="w-full h-full select-none">
+                        {/* State Paths */}
+                        {AUSTRALIA_STATES.map((state) => {
+                          const isSelected = formData.selectedStatesFrom?.includes(state.id);
+                          const isWA = state.id === 'WA';
+                          return (
+                            <g key={`from-${state.id}`} className="cursor-pointer" onClick={() => handleToggleStateFrom(state.id)}>
+                              <path
+                                d={state.path}
+                                className={`transition-all duration-300 stroke-white stroke-2 ${
+                                  isWA
+                                    ? 'fill-indigo-600/20 hover:fill-indigo-600/30'
+                                    : isSelected
+                                    ? 'fill-red-500 hover:fill-red-600'
+                                    : 'fill-slate-200 hover:fill-slate-300'
+                                }`}
+                              />
+                              <title>{state.name} ({state.id})</title>
+                            </g>
+                          );
+                        })}
+
+                        {/* Perth Origin Point */}
+                        <circle cx={95} cy={330} r={6} className="fill-indigo-600 stroke-white stroke-2 animate-pulse" />
+                        <text x={95} y={320} className="text-[9px] font-black fill-indigo-800 text-anchor-middle">PERTH</text>
+
+                        {/* Connection Lanes */}
+                        {AUSTRALIA_STATES.map((state) => {
+                          if (state.id === 'WA' || !formData.selectedStatesFrom?.includes(state.id)) return null;
+                          const mx = (95 + state.x) / 2;
+                          const my = (330 + state.y) / 2 - 40;
+                          return (
+                            <g key={`lane-from-${state.id}`}>
+                              <path
+                                d={`M 95,330 Q ${mx},${my} ${state.x},${state.y}`}
+                                fill="none"
+                                stroke="#ef4444"
+                                strokeWidth="2.5"
+                                strokeDasharray="4 3"
+                                className="animate-[dash_2s_linear_infinite]"
+                              />
+                              <circle cx={state.x} cy={state.y} r={4} className="fill-indigo-600 stroke-white stroke-1.5" />
+                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-slate-700 text-center" textAnchor="middle">
+                                {state.id}: {state.dist}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    <div className="flex flex-wrap gap-1 justify-center">
                       {AUSTRALIA_STATES.map((state) => {
-                        const isSelected = formData.selectedStates?.includes(state.id);
-                        const isWA = state.id === 'WA';
+                        const isSelected = formData.selectedStatesFrom?.includes(state.id);
+                        if (state.id === 'WA') return null;
                         return (
-                          <g key={state.id} className="cursor-pointer" onClick={() => handleToggleState(state.id)}>
-                            <path
-                              d={state.path}
-                              className={`transition-all duration-300 stroke-white stroke-2 ${
-                                isWA
-                                  ? 'fill-indigo-600/20 hover:fill-indigo-600/30'
-                                  : isSelected
-                                  ? 'fill-indigo-600 hover:fill-indigo-700'
-                                  : 'fill-slate-200 hover:fill-slate-300'
-                              }`}
-                            />
-                            <title>{state.name} ({state.id})</title>
-                          </g>
+                          <button
+                            key={`btn-from-${state.id}`}
+                            type="button"
+                            onClick={() => handleToggleStateFrom(state.id)}
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
+                              isSelected ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                            }`}
+                          >
+                            {state.id}
+                          </button>
                         );
                       })}
+                    </div>
+                    <div className="w-full pt-2">
+                      <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Locations not near Capital City / Unique Notes</Label>
+                      <Textarea 
+                        placeholder="e.g. Bunbury, Kalgoorlie, Port Hedland..." 
+                        value={formData.mapNotesFrom || ''} 
+                        onChange={e => handleChange('mapNotesFrom', e.target.value)}
+                        className="mt-1.5 text-xs font-medium rounded-xl border-slate-200"
+                        rows={2}
+                      />
+                    </div>
+                  </div>
 
-                      {/* Perth Origin Point */}
-                      <circle cx={95} cy={330} r={6} className="fill-indigo-600 stroke-white stroke-2 animate-pulse" />
-                      <text x={95} y={320} className="text-[9px] font-black fill-indigo-800 text-anchor-middle">PERTH</text>
+                  {/* MAP 2: INBOUND */}
+                  <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60 flex flex-col items-center space-y-4">
+                    <div className="text-center">
+                      <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Interactive Shipping Map</span>
+                      <h4 className="text-xs font-bold text-slate-700 mb-1">Destination Perth (WA)</h4>
+                      <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wide">INBOUND (TO PERTH)</p>
+                    </div>
+                    <div className="relative w-full max-w-[280px] aspect-[420/520]">
+                      <svg viewBox="0 0 420 520" className="w-full h-full select-none">
+                        {/* State Paths */}
+                        {AUSTRALIA_STATES.map((state) => {
+                          const isSelected = formData.selectedStatesTo?.includes(state.id);
+                          const isWA = state.id === 'WA';
+                          return (
+                            <g key={`to-${state.id}`} className="cursor-pointer" onClick={() => handleToggleStateTo(state.id)}>
+                              <path
+                                d={state.path}
+                                className={`transition-all duration-300 stroke-white stroke-2 ${
+                                  isWA
+                                    ? 'fill-indigo-600/20 hover:fill-indigo-600/30'
+                                    : isSelected
+                                    ? 'fill-orange-500 hover:fill-orange-600'
+                                    : 'fill-slate-200 hover:fill-slate-300'
+                                }`}
+                              />
+                              <title>{state.name} ({state.id})</title>
+                            </g>
+                          );
+                        })}
 
-                      {/* Connection Lanes */}
+                        {/* Perth Destination Point */}
+                        <circle cx={95} cy={330} r={6} className="fill-indigo-600 stroke-white stroke-2 animate-pulse" />
+                        <text x={95} y={320} className="text-[9px] font-black fill-indigo-800 text-anchor-middle">PERTH</text>
+
+                        {/* Connection Lanes */}
+                        {AUSTRALIA_STATES.map((state) => {
+                          if (state.id === 'WA' || !formData.selectedStatesTo?.includes(state.id)) return null;
+                          const mx = (95 + state.x) / 2;
+                          const my = (330 + state.y) / 2 - 40;
+                          return (
+                            <g key={`lane-to-${state.id}`}>
+                              <path
+                                d={`M 95,330 Q ${mx},${my} ${state.x},${state.y}`}
+                                fill="none"
+                                stroke="#f97316"
+                                strokeWidth="2.5"
+                                strokeDasharray="4 3"
+                                className="animate-[dash_2s_linear_reverse_infinite]"
+                              />
+                              <circle cx={state.x} cy={state.y} r={4} className="fill-indigo-600 stroke-white stroke-1.5" />
+                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-slate-700 text-center" textAnchor="middle">
+                                {state.id}: {state.dist}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    <div className="flex flex-wrap gap-1 justify-center">
                       {AUSTRALIA_STATES.map((state) => {
-                        if (state.id === 'WA' || !formData.selectedStates?.includes(state.id)) return null;
-                        
-                        // Draw curved line from Perth (95, 330) to State Capital (state.x, state.y)
-                        const mx = (95 + state.x) / 2;
-                        const my = (330 + state.y) / 2 - 40; // curve upwards
+                        const isSelected = formData.selectedStatesTo?.includes(state.id);
+                        if (state.id === 'WA') return null;
                         return (
-                          <g key={`lane-${state.id}`}>
-                            <path
-                              d={`M 95,330 Q ${mx},${my} ${state.x},${state.y}`}
-                              fill="none"
-                              stroke={formData.mapDirection === 'TO' ? '#f97316' : '#ef4444'}
-                              strokeWidth="2.5"
-                              strokeDasharray="4 3"
-                              className={formData.mapDirection === 'TO' ? 'animate-[dash_2s_linear_reverse_infinite]' : 'animate-[dash_2s_linear_infinite]'}
-                            />
-                            <circle cx={state.x} cy={state.y} r={4} className="fill-indigo-600 stroke-white stroke-1.5" />
-                            <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-slate-700 text-center" textAnchor="middle">
-                              {state.id}: {state.dist}
-                            </text>
-                          </g>
+                          <button
+                            key={`btn-to-${state.id}`}
+                            type="button"
+                            onClick={() => handleToggleStateTo(state.id)}
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
+                              isSelected ? 'bg-orange-500 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                            }`}
+                          >
+                            {state.id}
+                          </button>
                         );
                       })}
-                    </svg>
+                    </div>
+                    <div className="w-full pt-2">
+                      <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Locations not near Capital City / Unique Notes</Label>
+                      <Textarea 
+                        placeholder="e.g. Albany, Geraldton, Broome..." 
+                        value={formData.mapNotesTo || ''} 
+                        onChange={e => handleChange('mapNotesTo', e.target.value)}
+                        className="mt-1.5 text-xs font-medium rounded-xl border-slate-200"
+                       />
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1 mt-3 justify-center">
-                    {AUSTRALIA_STATES.map((state) => {
-                      const isSelected = formData.selectedStates?.includes(state.id);
-                      if (state.id === 'WA') return null;
-                      return (
-                        <button
-                          key={state.id}
-                          type="button"
-                          onClick={() => handleToggleState(state.id)}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
-                            isSelected ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                          }`}
-                        >
-                          {state.id}
-                        </button>
-                      );
-                    })}
+                </div>
+              </div>
+
+              {/* Selected Lanes & Map Notes Print Version (Static List for PDF) */}
+              <div className="hidden print:block border-t border-slate-300 pt-4 space-y-4">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-1">Outbound Lanes (From Perth)</h5>
+                    <p className="text-sm font-bold text-slate-900">{(formData.selectedStatesFrom || []).join(', ') || 'None selected'}</p>
+                    {formData.mapNotesFrom && (
+                      <div className="mt-2">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase">Locations not near Capital City / Unique Notes:</p>
+                        <p className="text-xs font-medium text-slate-800 whitespace-pre-wrap">{formData.mapNotesFrom}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-1">Inbound Lanes (To Perth)</h5>
+                    <p className="text-sm font-bold text-slate-900">{(formData.selectedStatesTo || []).join(', ') || 'None selected'}</p>
+                    {formData.mapNotesTo && (
+                      <div className="mt-2">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase">Locations not near Capital City / Unique Notes:</p>
+                        <p className="text-xs font-medium text-slate-800 whitespace-pre-wrap">{formData.mapNotesTo}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -648,76 +835,6 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
             </CardContent>
           </Card>
 
-
-        </div>
-
-        {/* Sidebar Form Content */}
-        <div className="lg:col-span-4 space-y-6">
-          
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
-              <CardTitle className="text-lg font-black text-slate-800">Operational Needs</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4 print:px-0">
-              <div className="flex items-center space-x-3">
-                <Checkbox id="securityConcern" checked={formData.securityConcern} onCheckedChange={(c) => handleChange('securityConcern', !!c)} className="print:border-slate-500" />
-                <Label htmlFor="securityConcern" className="font-bold text-slate-700 cursor-pointer">Freight security is a concern</Label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Checkbox id="highValueFreight" checked={formData.highValueFreight} onCheckedChange={(c) => handleChange('highValueFreight', !!c)} className="print:border-slate-500" />
-                <Label htmlFor="highValueFreight" className="font-bold text-slate-700 cursor-pointer">Sends High Value freight</Label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Checkbox id="dangerousGoods" checked={formData.dangerousGoods} onCheckedChange={(c) => handleChange('dangerousGoods', !!c)} className="print:border-slate-500" />
-                <Label htmlFor="dangerousGoods" className="font-bold text-slate-700 cursor-pointer">Sends Dangerous Goods</Label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Checkbox id="internationalFreight" checked={formData.internationalFreight} onCheckedChange={(c) => handleChange('internationalFreight', !!c)} className="print:border-slate-500" />
-                <Label htmlFor="internationalFreight" className="font-bold text-slate-700 cursor-pointer">Uses International Freight</Label>
-              </div>
-
-              {formData.internationalFreight && (
-                <div className="mt-4 p-4 bg-indigo-50/50 rounded-lg border border-indigo-100 space-y-4 print:p-0 print:bg-transparent print:border-none print:mt-2">
-                  <div className="space-y-2">
-                    <Label className="font-bold text-indigo-900 print:text-slate-700">International Type (Sea/Air)</Label>
-                    <Input value={formData.internationalType} onChange={e => handleChange('internationalType', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-bold text-indigo-900 print:text-slate-700">Intl Size (Parcels/Cartons/Pallets/Containers)</Label>
-                    <Input value={formData.internationalSize} onChange={e => handleChange('internationalSize', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
-              <CardTitle className="text-lg font-black text-slate-800">Advanced Details</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4 print:px-0">
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Primary Pain Points</Label>
-                <Textarea value={formData.painPoints} onChange={e => handleChange('painPoints', e.target.value)} className="min-h-[80px] print:border-none print:resize-none print:p-0 print:shadow-none" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Special Handling Requirements</Label>
-                <Input value={formData.specialHandling} onChange={e => handleChange('specialHandling', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Loading Dock Capabilities</Label>
-                <Input value={formData.loadingDock} onChange={e => handleChange('loadingDock', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Seasonal Fluctuations</Label>
-                <Input value={formData.seasonalFluctuations} onChange={e => handleChange('seasonalFluctuations', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Trading Terms Expected</Label>
-                <Input value={formData.tradingTerms} onChange={e => handleChange('tradingTerms', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
-              </div>
-            </CardContent>
-          </Card>
 
         </div>
       </div>

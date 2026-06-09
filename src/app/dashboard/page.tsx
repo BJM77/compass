@@ -200,12 +200,12 @@ function DashboardContent() {
                 <p className="text-xs font-black uppercase tracking-widest text-slate-900">{profile?.name || user?.email}</p>
                 <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role?.replace('_', ' ').toLowerCase() || 'No Role'}</p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs uppercase">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs uppercase shrink-0">
                 {(profile?.name || user?.email || '?').charAt(0)}
               </div>
             </div>
           </header>
-          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto">
             {renderContent()}
           </main>
         </SidebarInset>
