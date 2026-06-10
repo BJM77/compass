@@ -114,4 +114,5 @@ export interface FactFindingDoc {
   selectedStatesTo?: string[];
   mapNotesFrom?: string;
   mapNotesTo?: string;
+  serviceNotes?: Record<string, string>;
 }

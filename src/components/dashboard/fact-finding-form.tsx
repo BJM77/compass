@@ -92,7 +92,8 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     selectedStatesFrom: [],
     selectedStatesTo: [],
     mapNotesFrom: '',
-    mapNotesTo: ''
+    mapNotesTo: '',
+    serviceNotes: {}
   });
 
   useEffect(() => {
@@ -102,7 +103,8 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
         selectedStatesFrom: existingDoc.selectedStatesFrom || (existingDoc.mapDirection !== 'TO' ? existingDoc.selectedStates || [] : []),
         selectedStatesTo: existingDoc.selectedStatesTo || (existingDoc.mapDirection === 'TO' ? existingDoc.selectedStates || [] : []),
         mapNotesFrom: existingDoc.mapNotesFrom || '',
-        mapNotesTo: existingDoc.mapNotesTo || ''
+        mapNotesTo: existingDoc.mapNotesTo || '',
+        serviceNotes: existingDoc.serviceNotes || {}
       });
     }
   }, [existingDoc]);
@@ -117,6 +119,13 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
       ? current.filter(id => id !== serviceId)
       : [...current, serviceId];
     handleChange('selectedServices', updated);
+  };
+
+  const handleServiceNote = (serviceId: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      serviceNotes: { ...(prev.serviceNotes || {}), [serviceId]: value }
+    }));
   };
 
   const updateCombinedLocations = (fromStates: string[], toStates: string[]) => {
@@ -653,20 +662,31 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Next Available')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
-                          <div
-                            key={s.id}
-                            onClick={() => handleToggleService(s.id)}
-                            className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                              isSelected
-                                ? 'bg-orange-500 border-orange-600 text-white shadow-md scale-[1.02]'
-                                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="text-xs font-black tracking-tight">{s.name}</span>
-                              {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                          <div key={s.id} className="space-y-1.5">
+                            <div
+                              onClick={() => handleToggleService(s.id)}
+                              className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'bg-orange-500 border-orange-600 text-white shadow-md scale-[1.02]'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                              </div>
+                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
-                            <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                            {isSelected && (
+                              <Textarea
+                                placeholder={`Add notes about ${s.name}...`}
+                                value={(formData.serviceNotes || {})[s.id] || ''}
+                                onChange={e => handleServiceNote(s.id, e.target.value)}
+                                onClick={e => e.stopPropagation()}
+                                className="text-xs font-medium rounded-lg border-orange-200 bg-orange-50 focus:border-orange-400 min-h-[60px]"
+                                rows={2}
+                              />
+                            )}
                           </div>
                         );
                       })}
@@ -684,25 +704,36 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         const isIntl = s.id === 'tom-intl-air-sea';
                         return (
-                          <div
-                            key={s.id}
-                            onClick={() => handleToggleService(s.id)}
-                            className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                              isSelected
-                                ? 'bg-indigo-600 border-indigo-700 text-white shadow-md scale-[1.02]'
-                                : isIntl
-                                ? 'bg-sky-50 hover:bg-sky-100 border-sky-200 text-sky-900'
-                                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
-                                <span className="text-xs font-black tracking-tight">{s.name}</span>
+                          <div key={s.id} className="space-y-1.5">
+                            <div
+                              onClick={() => handleToggleService(s.id)}
+                              className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'bg-indigo-600 border-indigo-700 text-white shadow-md scale-[1.02]'
+                                  : isIntl
+                                  ? 'bg-sky-50 hover:bg-sky-100 border-sky-200 text-sky-900'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <div className="flex flex-col">
+                                  <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
+                                  <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                </div>
+                                {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                               </div>
-                              {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
-                            <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                            {isSelected && (
+                              <Textarea
+                                placeholder={`Add notes about ${s.name}...`}
+                                value={(formData.serviceNotes || {})[s.id] || ''}
+                                onChange={e => handleServiceNote(s.id, e.target.value)}
+                                onClick={e => e.stopPropagation()}
+                                className="text-xs font-medium rounded-lg border-indigo-200 bg-indigo-50 focus:border-indigo-400 min-h-[60px]"
+                                rows={2}
+                              />
+                            )}
                           </div>
                         );
                       })}
@@ -719,23 +750,34 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('1-8 Days')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
-                          <div
-                            key={s.id}
-                            onClick={() => handleToggleService(s.id)}
-                            className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                              isSelected
-                                ? 'bg-amber-500 border-amber-600 text-slate-950 shadow-md scale-[1.02]'
-                                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
-                                <span className="text-xs font-black tracking-tight">{s.name}</span>
+                          <div key={s.id} className="space-y-1.5">
+                            <div
+                              onClick={() => handleToggleService(s.id)}
+                              className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'bg-amber-500 border-amber-600 text-slate-950 shadow-md scale-[1.02]'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <div className="flex flex-col">
+                                  <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
+                                  <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                </div>
+                                {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                               </div>
-                              {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
-                            <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                            {isSelected && (
+                              <Textarea
+                                placeholder={`Add notes about ${s.name}...`}
+                                value={(formData.serviceNotes || {})[s.id] || ''}
+                                onChange={e => handleServiceNote(s.id, e.target.value)}
+                                onClick={e => e.stopPropagation()}
+                                className="text-xs font-medium rounded-lg border-amber-200 bg-amber-50 focus:border-amber-400 min-h-[60px]"
+                                rows={2}
+                              />
+                            )}
                           </div>
                         );
                       })}
@@ -752,23 +794,34 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Courier')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
-                          <div
-                            key={s.id}
-                            onClick={() => handleToggleService(s.id)}
-                            className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                              isSelected
-                                ? 'bg-zinc-700 border-zinc-800 text-white shadow-md scale-[1.02]'
-                                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
-                                <span className="text-xs font-black tracking-tight">{s.name}</span>
+                          <div key={s.id} className="space-y-1.5">
+                            <div
+                              onClick={() => handleToggleService(s.id)}
+                              className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'bg-zinc-700 border-zinc-800 text-white shadow-md scale-[1.02]'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <div className="flex flex-col">
+                                  <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
+                                  <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                </div>
+                                {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                               </div>
-                              {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
-                            <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                            {isSelected && (
+                              <Textarea
+                                placeholder={`Add notes about ${s.name}...`}
+                                value={(formData.serviceNotes || {})[s.id] || ''}
+                                onChange={e => handleServiceNote(s.id, e.target.value)}
+                                onClick={e => e.stopPropagation()}
+                                className="text-xs font-medium rounded-lg border-zinc-200 bg-zinc-50 focus:border-zinc-400 min-h-[60px]"
+                                rows={2}
+                              />
+                            )}
                           </div>
                         );
                       })}
@@ -787,10 +840,14 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                     {formData.selectedServices.map(sid => {
                       const s = CARRIER_SERVICES.find(srv => srv.id === sid);
                       if (!s) return null;
+                      const note = (formData.serviceNotes || {})[sid];
                       return (
-                        <div key={sid} className="border border-slate-300 p-2 rounded text-xs flex justify-between">
-                          <span className="font-bold">{s.name} ({s.speed})</span>
-                          <span className="text-slate-500 font-medium">{s.weight}</span>
+                        <div key={sid} className="border border-slate-300 p-2 rounded text-xs">
+                          <div className="flex justify-between">
+                            <span className="font-bold">{s.name} ({s.speed})</span>
+                            <span className="text-slate-500 font-medium">{s.weight}</span>
+                          </div>
+                          {note && <p className="mt-1 text-slate-600 font-medium whitespace-pre-wrap">{note}</p>}
                         </div>
                       );
                     })}
@@ -835,6 +892,20 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
             </CardContent>
           </Card>
 
+          {/* Bottom Save Button */}
+          <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <p className="text-xs font-medium text-slate-500">Don't forget to save your changes before leaving this page.</p>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
+                <Printer className="w-4 h-4" />
+                Export PDF
+              </Button>
+              <Button onClick={handleSave} disabled={isSaving} className="flex-1 sm:flex-none gap-2 font-bold shadow-md">
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save Document
+              </Button>
+            </div>
+          </div>
 
         </div>
       </div>
