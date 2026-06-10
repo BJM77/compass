@@ -64,6 +64,12 @@ export function GMReportGenerator() {
   }, [db]);
   const { data: callPlans } = useCollection(cpQuery);
 
+  const opsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'opsReports'), where('week', '==', currentWeek), where('status', '==', 'ESCALATED'));
+  }, [db, currentWeek]);
+  const { data: opsReports } = useCollection(opsQuery);
+
   const analytics = useMemo(() => {
     if (!teamGoals || !teamStats || !teamPipeline || !users) return null;
     
@@ -268,6 +274,32 @@ export function GMReportGenerator() {
             doc.text(narrativeLines, margin, y);
             y += (narrativeLines.length * 5);
           }
+        });
+      }
+
+      // --- SHEET: OPS REPORTS ---
+      if (opsReports && opsReports.length > 0) {
+        doc.addPage();
+        y = 20;
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(`OPERATIONS REPORTS (ESCALATED) - WEEK ${currentWeek}`, margin, y);
+        y += 10;
+        doc.line(margin, y, 190, y);
+        y += 10;
+
+        opsReports.forEach((report: any) => {
+          if (y > 260) { doc.addPage(); y = 20; }
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          const typeLabel = report.type === 'PROBLEM' ? '[PROBLEM]' : '[POSITIVE EVENT]';
+          doc.text(`${typeLabel} ${report.userName || 'Unknown'}`, margin, y);
+          y += 6;
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "normal");
+          const descLines = doc.splitTextToSize(report.description || '', 170);
+          doc.text(descLines, margin, y);
+          y += (descLines.length * 5) + 10;
         });
       }
       

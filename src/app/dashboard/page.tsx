@@ -20,6 +20,8 @@ import { WeeklyArchive } from '@/components/dashboard/weekly-archive';
 import { BIReportsViewer } from '@/components/dashboard/bi-reports-viewer';
 import { DataExplorer } from '@/components/dashboard/data-explorer';
 import { FactFindingHub } from '@/components/dashboard/fact-finding-hub';
+import { OpsReportForm } from '@/components/dashboard/ops-report-form';
+import { OpsReportReview } from '@/components/dashboard/ops-report-review';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -28,7 +30,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -43,7 +45,7 @@ import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW';
 
 const NAV_ITEMS = [
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
@@ -51,6 +53,7 @@ const NAV_ITEMS = [
   { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
   { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
   { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
+  { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
   { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true,  group: 'main' },
   { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false, group: 'main' },
   
@@ -60,6 +63,7 @@ const NAV_ITEMS = [
   { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true,  group: 'admin' },
   { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true,  group: 'admin' },
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true,  group: 'admin' },
+  { view: 'OPS_REVIEW' as DashboardView,        label: 'Ops Review',        icon: ClipboardList,    adminOnly: true,  group: 'admin' },
   { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true,  group: 'admin' },
   { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false, group: 'admin' },
   { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false, group: 'admin' },
@@ -110,6 +114,8 @@ function DashboardContent() {
     if (currentView === 'FACT_FINDING') return <div className="w-full p-4 md:p-8"><FactFindingHub /></div>;
     if (currentView === 'DATA_EXPLORER' && isLeader) return <div className="w-full p-4 md:p-8"><DataExplorer /></div>;
     if (currentView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
+    if (currentView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
+    if (currentView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;

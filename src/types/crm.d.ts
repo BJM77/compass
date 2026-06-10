@@ -116,3 +116,14 @@ export interface FactFindingDoc {
   mapNotesTo?: string;
   serviceNotes?: Record<string, string>;
 }
+
+export interface OpsReport {
+  id?: string;
+  userId: string;
+  userName?: string;
+  week: string;
+  type: 'PROBLEM' | 'POSITIVE';
+  description: string;
+  status: 'ESCALATED' | 'DISMISSED';
+  createdAt?: any;
+}

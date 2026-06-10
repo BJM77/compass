@@ -75,6 +75,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [paperwork, setPaperwork] = useState<any[]>([]);
   const [newBusiness, setNewBusiness] = useState<any[]>([]);
+  const [opsReports, setOpsReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -106,7 +107,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       if (!db || !users) return;
       setIsLoading(true);
       try {
-        const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap, progressSnap, whitespaceSnap, callPlansSnap] = await Promise.all([
+        const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap, progressSnap, whitespaceSnap, callPlansSnap, opsSnap] = await Promise.all([
           getDocs(query(collection(db, 'weeklyReports'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'opportunities'), where('week', '==', selectedWeek))),
@@ -114,7 +115,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           getDocs(query(collection(db, 'newBusiness'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
           getDocs(collection(db, 'whitespacePlans')),
-          getDocs(collection(db, 'callPlans'))
+          getDocs(collection(db, 'callPlans')),
+          getDocs(query(collection(db, 'opsReports'), where('week', '==', selectedWeek)))
         ]);
 
         const bdms = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
@@ -173,6 +175,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         setOpportunities(oppsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setPaperwork(paperworkSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setNewBusiness(businessSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setOpsReports(opsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter((r: any) => r.status === 'ESCALATED'));
       } finally {
         setIsLoading(false);
       }
@@ -714,6 +717,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
           <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
           <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
+          <TabsTrigger value="opsReports" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><AlertTriangle className="w-3 h-3 text-red-500" /> Ops Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -736,6 +740,32 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         <TabsContent value="opportunities"><OpportunitiesTable data={opportunities} /></TabsContent>
         <TabsContent value="signed"><SignedPaperworkTable data={paperwork} /></TabsContent>
         <TabsContent value="business"><NewBusinessTable data={newBusiness} /></TabsContent>
+        <TabsContent value="opsReports">
+          <Card className="border-none shadow-md bg-white overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b">
+              <CardTitle className="text-sm font-black uppercase text-primary">Escalated Operations Reports</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {opsReports.length > 0 ? (
+                <div className="grid gap-4">
+                  {opsReports.map((report: any) => (
+                    <div key={report.id} className="p-4 rounded-xl border bg-slate-50">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge className={report.type === 'PROBLEM' ? 'bg-orange-100 text-orange-800 border-none' : 'bg-emerald-100 text-emerald-800 border-none'}>
+                          {report.type === 'PROBLEM' ? 'PROBLEM' : 'POSITIVE EVENT'}
+                        </Badge>
+                        <span className="font-bold text-sm text-primary">{report.userName}</span>
+                      </div>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap">{report.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500 font-bold uppercase tracking-widest text-center py-10">No escalated reports for this week.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
