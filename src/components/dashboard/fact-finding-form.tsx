@@ -390,13 +390,6 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
               {/* Map & Destination Lanes Visuals */}
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label className="font-bold text-slate-700 flex items-center gap-1.5">
-                      <Map className="w-4 h-4 text-primary" />
-                      From - To Locations
-                    </Label>
-                    <Input placeholder="e.g. Perth to Sydney, Metro only..." value={formData.locations} onChange={e => handleChange('locations', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none font-bold" />
-                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="font-bold text-slate-700">% Staying in WA?</Label>
@@ -873,21 +866,14 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                 <Textarea value={formData.perfectWorld} onChange={e => handleChange('perfectWorld', e.target.value)} className="print:border-none print:resize-none print:p-0 print:shadow-none" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Delivery Expectation</Label>
-                  <Input value={formData.deliveryExpectation} onChange={e => handleChange('deliveryExpectation', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Do wholesale suppliers charge for delivery?</Label>
-                  <Input placeholder="Yes/No/Details" value={formData.wholesaleCharges} onChange={e => handleChange('wholesaleCharges', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
-                </div>
+              <div className="space-y-2">
+                <Label className="font-bold text-slate-700">Delivery Expectation</Label>
+                <Input value={formData.deliveryExpectation} onChange={e => handleChange('deliveryExpectation', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
               </div>
 
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Do you require urgent deliveries?</Label>
-                <p className="text-xs text-slate-500 font-medium mb-2 print:hidden">Daily, Weekly, Monthly, Adhoc</p>
-                <Input value={formData.urgentDeliveries} onChange={e => handleChange('urgentDeliveries', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                <Label className="font-bold text-slate-700">Do wholesale suppliers charge for delivery?</Label>
+                <Input placeholder="Yes/No/Details" value={formData.wholesaleCharges} onChange={e => handleChange('wholesaleCharges', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
               </div>
             </CardContent>
           </Card>
