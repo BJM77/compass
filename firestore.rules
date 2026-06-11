@@ -98,6 +98,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /opsReports/{reportId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
     // Friday Synthesis Data (BDM Weekly Submission)
     match /opportunities/{oppId} {
       allow read: if isSignedIn();
