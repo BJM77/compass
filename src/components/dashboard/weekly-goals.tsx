@@ -256,6 +256,34 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
     }
   };
 
+  const handleClonePreviousWeek = async () => {
+    if (!db || !userId) return;
+    try {
+      const prevWeek = getWeekForDate(addWeeks(targetDate, -1));
+      const prevPlanRef = doc(db, 'weeklyCommitments', `${userId}_${prevWeek}`);
+      const snap = await getDoc(prevPlanRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.focusAccounts) {
+          const clonedFocus = (data.focusAccounts || []).map((acc: any) => ({
+            ...acc,
+            accountId: crypto.randomUUID()
+          }));
+          setFocusAccounts(clonedFocus);
+        }
+        if (Array.isArray(data.actionPlan)) setActionPlan(data.actionPlan);
+        if (data.roadblocks) setRoadblocks(data.roadblocks);
+        if (data.supportNeeded) setSupportNeeded(data.supportNeeded);
+        
+        toast({ title: "Strategy Cloned", description: `Successfully cloned week ${prevWeek.split('-')[1]} strategic priorities.` });
+      } else {
+        toast({ variant: "destructive", title: "No Previous Data", description: `No strategic planning log found for week ${prevWeek.split('-')[1]}.` });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Cloning Failed", description: "Failed to read previous week plan." });
+    }
+  };
+
   const handleDelete = async () => {
     if (!db || !userId) return;
     if (!confirm("Are you sure you want to delete this weekly plan? This cannot be undone.")) return;
@@ -409,6 +437,11 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {!hasExistingPlan && (
+            <Button variant="outline" onClick={handleClonePreviousWeek} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+              <Sparkles className="w-4 h-4" /> Clone Previous Week
+            </Button>
+          )}
           {hasExistingPlan && (
             <Button variant="outline" onClick={handleDelete} disabled={isDeleting} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-red-200 text-red-500 hover:bg-red-50">
               {isDeleting ? 'Deleting...' : 'Delete'}

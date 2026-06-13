@@ -63,6 +63,9 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     companyName: '',
     businessDetails: '',
     currentlyUsing: '',
+    keyDecisionMaker: '',
+    incumbentCompetitor: '',
+    contractEndDate: '',
     businessModel: '',
     freightType: '',
     freightSize: '',
@@ -218,6 +221,18 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          {docId && (
+            <Button type="button" variant="outline" onClick={() => {
+              window.dispatchEvent(new CustomEvent('switch-view', {
+                detail: {
+                  view: 'CALL_PLANNING',
+                  params: { type: 'fact-finding', data: formData }
+                }
+              }));
+            }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
+              Prepare Call Plan
+            </Button>
+          )}
           <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
             <Printer className="w-4 h-4" />
             Export PDF
@@ -283,6 +298,24 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   <Label className="font-bold text-slate-700">Currently Using (Provider)</Label>
                   <Input value={formData.currentlyUsing} onChange={e => handleChange('currentlyUsing', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Key Decision Maker Name</Label>
+                  <Input value={formData.keyDecisionMaker || ''} onChange={e => handleChange('keyDecisionMaker', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. John Doe (Director)" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Incumbent Competitor</Label>
+                  <Input value={formData.incumbentCompetitor || ''} onChange={e => handleChange('incumbentCompetitor', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="Incumbent provider details..." />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Contract End Date / Renewal Timeline</Label>
+                  <Input value={formData.contractEndDate || ''} onChange={e => handleChange('contractEndDate', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. Dec 2026 or 2026-12-31" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Business Model</Label>
                   <div className="print:hidden">
@@ -882,6 +915,18 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
           <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
             <p className="text-xs font-medium text-slate-500">Don't forget to save your changes before leaving this page.</p>
             <div className="flex items-center gap-2 w-full sm:w-auto">
+              {docId && (
+                <Button type="button" variant="outline" onClick={() => {
+                  window.dispatchEvent(new CustomEvent('switch-view', {
+                    detail: {
+                      view: 'CALL_PLANNING',
+                      params: { type: 'fact-finding', data: formData }
+                    }
+                  }));
+                }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
+                  Prepare Call Plan
+                </Button>
+              )}
               <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
                 <Printer className="w-4 h-4" />
                 Export PDF

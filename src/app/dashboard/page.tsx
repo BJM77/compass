@@ -30,16 +30,17 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
-import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
+import { getCurrentWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 
 type DashboardView =
@@ -77,12 +78,32 @@ function DashboardContent() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState<DashboardView>('DASHBOARD');
+  const [viewParams, setViewParams] = useState<any>(null);
+
+  useEffect(() => {
+    const handleSwitchView = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.view) {
+        setCurrentView(customEvent.detail.view);
+        if (customEvent.detail.params) {
+          setViewParams(customEvent.detail.params);
+        } else {
+          setViewParams(null);
+        }
+      }
+    };
+    window.addEventListener('switch-view', handleSwitchView);
+    return () => window.removeEventListener('switch-view', handleSwitchView);
+  }, []);
   
   const { activeUserId, simulationUid, setSimulationUid } = usePipelineData();
 
   const usersQuery = useMemoFirebase(() => { if (!db || !isLeader) return null; return collection(db, 'users'); }, [db, isLeader]);
   const { data: allUsers } = useCollection(usersQuery);
   const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);
+  
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'appSettings', 'global') : null, [db]);
+  const { data: settingsData } = useDoc(settingsRef);
 
   const handleSignOut = async () => { 
     if (auth) { 
@@ -100,7 +121,7 @@ function DashboardContent() {
     if (!activeUserId && !isAuthLoading) return <div className="flex items-center justify-center py-40"><Loader2 className="animate-spin" /></div>;
 
     if (currentView === 'TEAM' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
-    if (currentView === 'CALL_PLANNING') return <div className="w-full p-4 md:p-8"><CallPlanning userId={activeUserId || ''} /></div>;
+    if (currentView === 'CALL_PLANNING') return <div className="w-full p-4 md:p-8"><CallPlanning userId={activeUserId || ''} initialParams={viewParams} /></div>;
     if (currentView === 'ALL_CALL_PLANNING' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AdminCallPlanning /></div>;
     if (currentView === 'BRIEFS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;
     if (currentView === 'TEAM_GOALS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><SmartGoalsAudit /></div>;
@@ -211,6 +232,33 @@ function DashboardContent() {
               </div>
             </div>
           </header>
+          {/* Session Context Bar */}
+          <div className="bg-slate-900 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-300 py-2.5 px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-sm">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+              {/* User Context */}
+              <div className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span>BDM Context: <strong className="text-white">{simulationUid ? `${simulatedUserProfile?.name || simulationUid} (Simulating)` : `${profile?.name || user?.email || 'Guest'} (Me)`}</strong></span>
+              </div>
+              
+              {/* Divider */}
+              <span className="hidden sm:inline text-slate-700">|</span>
+
+              {/* Week Context */}
+              <div className="flex items-center gap-1.5">
+                <CalendarCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Sales Week: <strong className="text-white">{getCurrentWeek()}</strong></span>
+              </div>
+            </div>
+
+            {/* Sync Context */}
+            <div className="flex items-center gap-1.5 self-stretch sm:self-auto justify-between sm:justify-start">
+              <div className="flex items-center gap-1.5">
+                <Database className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Last CRM Sync: <strong className="text-white">{settingsData?.lastCrmSync?.toDate ? format(settingsData.lastCrmSync.toDate(), 'MMM d, yyyy h:mm a') : 'Never'}</strong></span>
+              </div>
+            </div>
+          </div>
           <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto">
             {renderContent()}
           </main>

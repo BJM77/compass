@@ -11,7 +11,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, serverTimestamp, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format, addWeeks, differenceInDays } from 'date-fns';
-import { Plus, Loader2, ClipboardList, Trash2, Star, ExternalLink, Activity, AlertCircle, Zap, ShieldAlert } from 'lucide-react';
+import { Plus, Loader2, ClipboardList, Trash2, Star, ExternalLink, Activity, AlertCircle, Zap, ShieldAlert, X, CheckCircle2 } from 'lucide-react';
 import { WeeklyActivitySummary } from './weekly-activity-summary';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { computeMomentum } from '@/lib/momentum';
 import { cn, getCurrentWeek, getWeekForDate } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
+import { calculateDealHealth } from '@/lib/deal-health';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunities' }: { userId: string, readOnly?: boolean, filterType?: 'opportunities' | 'accounts' | 'all' }) {
   const { isLeader } = useAuth();
@@ -34,6 +38,102 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
   const currentWeek = getCurrentWeek();
 
   const { pipelineReviews: allDeals, isLoading } = usePipelineData();
+
+  // Load Fact Findings
+  const ffQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'factFindings'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: factFindings } = useCollection(ffQuery);
+
+  // Load Call Plans
+  const cpQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'callPlans'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: callPlans } = useCollection(cpQuery);
+
+  // Load Whitespace Plans
+  const wpQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'whitespacePlans'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: whitespacePlans } = useCollection(wpQuery);
+
+  // Win/Loss Analysis Log State
+  const [winLossDialogOpen, setWinLossDialogOpen] = useState(false);
+  const [winLossData, setWinLossData] = useState({
+    dealId: '',
+    accountName: '',
+    opportunityName: '',
+    outcome: 'WON' as 'WON' | 'LOST',
+    reason: '',
+    competitor: '',
+    priceDetail: '',
+    notes: '',
+    value: 0
+  });
+
+  const triggerWinLossModal = (row: any, type: 'WON' | 'LOST') => {
+    setWinLossData({
+      dealId: row.id,
+      accountName: row.pipeline || '',
+      opportunityName: row.opportunityName || '',
+      outcome: type,
+      reason: '',
+      competitor: '',
+      priceDetail: '',
+      notes: '',
+      value: row.value || 0
+    });
+    setWinLossDialogOpen(true);
+  };
+
+  const handleSaveWinLoss = async () => {
+    if (!db || !winLossData.dealId) return;
+    try {
+      const logRef = collection(db, 'winLossLogs');
+      await addDoc(logRef, {
+        userId,
+        dealId: winLossData.dealId,
+        accountName: winLossData.accountName,
+        opportunityName: winLossData.opportunityName,
+        outcome: winLossData.outcome,
+        reason: winLossData.reason,
+        competitor: winLossData.competitor,
+        priceDetail: winLossData.priceDetail,
+        notes: winLossData.notes,
+        value: winLossData.value,
+        week: currentWeek,
+        createdAt: serverTimestamp()
+      });
+
+      if (winLossData.outcome === 'WON') {
+        await updateDoc(doc(db, 'pipelineReviews', winLossData.dealId), {
+          stage: 'Closed Won',
+          closedWonValue: winLossData.value,
+          updatedAt: serverTimestamp()
+        });
+        toast({ title: "Deal Marked Won 🎉", description: "Win analysis successfully logged to governance hub." });
+      } else {
+        const row = reviews?.find(r => r.id === winLossData.dealId);
+        await addDoc(collection(db, 'lostCustomers'), {
+          ...row,
+          lostReason: winLossData.reason,
+          lostCompetitor: winLossData.competitor,
+          lostNotes: winLossData.notes,
+          lostAt: serverTimestamp(),
+          week: currentWeek
+        });
+        await deleteDoc(doc(db, 'pipelineReviews', winLossData.dealId));
+        toast({ title: "Deal Archived as Lost", description: "Loss analysis logged." });
+      }
+
+      setWinLossDialogOpen(false);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Action Failed", description: "Could not log Win/Loss details." });
+    }
+  };
 
   const rawReviews = useMemo(() => {
     if (!allDeals) return [];
@@ -146,20 +246,21 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                 <TableRow className="uppercase text-[9px] font-black tracking-widest border-b-2">
                   <TableHead className="w-[60px] text-center">MTG</TableHead>
                   <TableHead>Momentum</TableHead>
+                  <TableHead className="w-[100px]">Health</TableHead>
                   <TableHead className="w-[250px]">Account / Opportunity</TableHead>
                   <TableHead className="w-[140px]">Value (M)</TableHead>
                   <TableHead className="w-[180px]">Stage</TableHead>
                   <TableHead className="w-[250px]">Barriers & Risks</TableHead>
                   <TableHead className="w-[250px]">Commitment / Next Action</TableHead>
                   <TableHead className="w-[80px] text-center">ROLL</TableHead>
-                  <TableHead className="w-[80px] text-center">LOST</TableHead>
+                  <TableHead className="w-[100px] text-center">CLOSE</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-20"><Loader2 className="animate-spin mx-auto text-primary w-10 h-10" /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center py-20"><Loader2 className="animate-spin mx-auto text-primary w-10 h-10" /></TableCell></TableRow>
                 ) : reviews?.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-20 text-muted-foreground font-bold uppercase tracking-widest bg-slate-50/50">No opportunities identified.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center py-20 text-muted-foreground font-bold uppercase tracking-widest bg-slate-50/50">No opportunities identified.</TableCell></TableRow>
                 ) : reviews?.map(row => {
                   const momentum = computeMomentum({
                     daysInStage: row.daysInStage || differenceInDays(now, row.createdAt?.toDate?.() || now),
@@ -167,6 +268,21 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                     barrierText: row.barriers || '',
                     lastBarrierText: row.lastBarrierText || ''
                   });
+
+                  const health = calculateDealHealth(
+                    row,
+                    factFindings || [],
+                    callPlans || [],
+                    whitespacePlans || []
+                  );
+
+                  let healthColor = "bg-rose-50 border-rose-200 text-rose-700";
+                  if (health.score >= 80) {
+                    healthColor = "bg-emerald-50 border-emerald-200 text-emerald-700";
+                  } else if (health.score >= 50) {
+                    healthColor = "bg-amber-50 border-amber-200 text-amber-700";
+                  }
+
                   return (
                     <TableRow key={row.id} className={cn("hover:bg-slate-50 transition-colors group", row.isReviewSelected && "bg-accent/5")}>
                       <TableCell className="text-center">
@@ -184,6 +300,46 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="bg-slate-900 text-white font-bold text-[10px]">{momentum.reason}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className={cn("flex items-center gap-1 px-2.5 py-1 rounded-full w-fit border cursor-help font-black text-[9px] uppercase tracking-wide", healthColor)}>
+                                <span>Health: {health.score}%</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-slate-950 text-white p-3.5 max-w-[280px] rounded-xl space-y-2.5 border border-slate-800 shadow-xl">
+                              <p className="font-black text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-accent inline-block animate-pulse" />
+                                Deal Health Diagnosis
+                              </p>
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[9px] font-bold text-slate-300">
+                                <span>Activity (25%):</span> <span className="text-right text-white">{health.breakdown.activity}/25</span>
+                                <span>Stage duration (25%):</span> <span className="text-right text-white">{health.breakdown.stage}/25</span>
+                                <span>Fact Finding (20%):</span> <span className="text-right text-white">{health.breakdown.factFinding}/20</span>
+                                <span>Call Plan (15%):</span> <span className="text-right text-white">{health.breakdown.callPlan}/15</span>
+                                <span>Whitespace (15%):</span> <span className="text-right text-white">{health.breakdown.whitespace}/15</span>
+                              </div>
+                              {health.alerts.length > 0 && (
+                                <div className="border-t border-slate-850 pt-2 space-y-1">
+                                  <p className="text-[8px] font-black uppercase tracking-wider text-rose-400">Improvement Areas:</p>
+                                  {health.alerts.map((a, idx) => (
+                                    <p key={idx} className="text-[9px] leading-relaxed text-slate-400">• {a}</p>
+                                  ))}
+                                </div>
+                              )}
+                              {health.positives.length > 0 && (
+                                <div className="border-t border-slate-855 pt-2 space-y-1">
+                                  <p className="text-[8px] font-black uppercase tracking-wider text-emerald-400">Strengths:</p>
+                                  {health.positives.map((p, idx) => (
+                                    <p key={idx} className="text-[9px] leading-relaxed text-slate-400">• {p}</p>
+                                  ))}
+                                </div>
+                              )}
+                            </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
@@ -216,6 +372,22 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 >
                                   {row.opportunityName}
                                 </a>
+                              )}
+                              {row.isReviewSelected && (
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    window.dispatchEvent(new CustomEvent('switch-view', {
+                                      detail: {
+                                        view: 'CALL_PLANNING',
+                                        params: { type: 'top8', data: row }
+                                      }
+                                    }));
+                                  }}
+                                  className="text-[8px] text-indigo-600 hover:text-indigo-800 font-black hover:underline tracking-wider uppercase block w-fit mt-1"
+                                >
+                                  Prepare Call Plan
+                                </button>
                               )}
                             </div>
                             <Input
@@ -252,7 +424,28 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         <Checkbox disabled={!canPerformFridayActions || readOnly} checked={(row as any).isRolledOver} onCheckedChange={() => handleRollover(row)} />
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button variant="ghost" disabled={!canPerformFridayActions || readOnly} onClick={async () => { if(confirm("Archive Closed-Lost?")) { await addDoc(collection(db!, 'lostCustomers'), { ...row, lostAt: serverTimestamp(), week: currentWeek }); await deleteDoc(doc(db!, 'pipelineReviews', row.id)); toast({ title: "Archived Lost" }); } }} className="text-red-300 hover:text-red-600 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            disabled={!canPerformFridayActions || readOnly} 
+                            onClick={() => triggerWinLossModal(row, 'WON')} 
+                            className="text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 h-8 w-8 rounded-lg shrink-0"
+                            title="Mark Closed-Won"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            disabled={!canPerformFridayActions || readOnly} 
+                            onClick={() => triggerWinLossModal(row, 'LOST')} 
+                            className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 rounded-lg shrink-0"
+                            title="Mark Closed-Lost"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -262,6 +455,73 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={winLossDialogOpen} onOpenChange={setWinLossDialogOpen}>
+        <DialogContent className="max-w-md bg-white rounded-3xl p-6 border-none shadow-2xl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2 text-primary">
+              <Sparkles className="w-5 h-5 text-accent" />
+              {winLossData.outcome === 'WON' ? 'Log Closed-Won Success' : 'Log Closed-Lost Analysis'}
+            </DialogTitle>
+            <DialogDescription className="font-bold text-[10px] uppercase tracking-widest text-slate-400 mt-1">
+              Analyze strategic factors for {winLossData.accountName || 'this opportunity'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Primary Factor</Label>
+              <Select value={winLossData.reason} onValueChange={(val) => setWinLossData({ ...winLossData, reason: val })}>
+                <SelectTrigger className="h-10 font-bold text-xs">
+                  <SelectValue placeholder="SELECT PRIMARY REASON..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Price" className="font-bold">PRICE / BUDGET COMPETITIVENESS</SelectItem>
+                  <SelectItem value="Competitor" className="font-bold">COMPETITOR RELATIONSHIP / OFFERING</SelectItem>
+                  <SelectItem value="Timing" className="font-bold">TIMING / URGENCY SHIFT</SelectItem>
+                  <SelectItem value="Service" className="font-bold">SERVICE QUALITY / CAPABILITY</SelectItem>
+                  <SelectItem value="Relationship" className="font-bold">RELATIONSHIP / TRUST LEVEL</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Incumbent / Competitor Name</Label>
+              <Input 
+                placeholder="Name of competitor..."
+                value={winLossData.competitor}
+                onChange={(e) => setWinLossData({ ...winLossData, competitor: e.target.value })}
+                className="h-10 text-xs font-semibold"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pricing / Contract Details</Label>
+              <Input 
+                placeholder="Rate details, discount offered, target margin..."
+                value={winLossData.priceDetail}
+                onChange={(e) => setWinLossData({ ...winLossData, priceDetail: e.target.value })}
+                className="h-10 text-xs font-semibold"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Debrief Notes</Label>
+              <Textarea 
+                placeholder="Additional strategic context, lessons learned, or follow-up plans..."
+                value={winLossData.notes}
+                onChange={(e) => setWinLossData({ ...winLossData, notes: e.target.value })}
+                className="min-h-[80px] rounded-xl text-xs font-medium leading-relaxed"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setWinLossDialogOpen(false)} className="font-black h-11 uppercase text-xs">Cancel</Button>
+            <Button onClick={handleSaveWinLoss} className="bg-primary hover:bg-primary/95 text-white font-black h-11 uppercase text-xs px-6">Save & Close Deal</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

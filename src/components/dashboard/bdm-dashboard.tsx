@@ -35,6 +35,7 @@ import { getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
+import { calculateDealHealth } from '@/lib/deal-health';
 
 interface BDMDashboardProps {
   simulatedUser?: {
@@ -62,6 +63,101 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   const { data: stats, isLoading: isStatsLoading } = useDoc(statsDocRef);
 
   const { pipelineReviews: allDeals } = usePipelineData();
+
+  // Load Fact Findings
+  const ffQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'factFindings'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: factFindings } = useCollection(ffQuery);
+
+  // Load Call Plans
+  const cpQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'callPlans'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: callPlans } = useCollection(cpQuery);
+
+  // Load Whitespace Plans
+  const wpQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'whitespacePlans'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: whitespacePlans } = useCollection(wpQuery);
+
+  const recommendations = useMemo(() => {
+    const list: any[] = [];
+    const myDeals = allDeals?.filter(d => d.userId === userId && d.isReviewSelected) || [];
+    
+    myDeals.forEach(deal => {
+      const dealNameUpper = (deal.pipeline || '').toUpperCase();
+      const oppNameUpper = (deal.opportunityName || '').toUpperCase();
+      
+      const hasFF = factFindings?.some(ff => {
+        const ffName = (ff.companyName || '').toUpperCase();
+        return ffName && (ffName === dealNameUpper || ffName === oppNameUpper);
+      });
+      
+      const hasCP = callPlans?.some(cp => {
+        const cpName = (cp.accountName || '').toUpperCase();
+        return cpName && (cpName === dealNameUpper || cpName === oppNameUpper);
+      });
+
+      const hasWP = whitespacePlans?.some(wp => {
+        const wpName = (wp.accountName || '').toUpperCase();
+        return wpName && (wpName === dealNameUpper || wpName === oppNameUpper);
+      });
+
+      // Check 1: Fact Finding exists but no Call Plan
+      if (hasFF && !hasCP) {
+        list.push({
+          id: `ff-no-cp-${deal.id}`,
+          type: 'ACTION',
+          title: `Prepare Call Plan: ${deal.pipeline}`,
+          description: `Discovery data exists in Fact Finding. Prepare a professional SPIN call plan to drive commitment.`,
+          actionLabel: 'Plan Call',
+          actionView: 'CALL_PLANNING',
+          actionParams: { type: 'top8', data: deal }
+        });
+      }
+
+      // Check 2: Stalled in stage > 30 days
+      const daysInStage = Number(deal.daysInStage) || 0;
+      if (daysInStage > 30) {
+        list.push({
+          id: `stalled-${deal.id}`,
+          type: 'WARNING',
+          title: `Stalled Deal Alert: ${deal.pipeline}`,
+          description: `Opportunity has been in '${deal.stage}' stage for ${daysInStage} days. Re-assess barriers or schedule a coaching sync.`,
+          actionLabel: 'Log Activity',
+          actionView: 'overview'
+        });
+      }
+
+      // Check 3: No Whitespace diagnostic
+      if (!hasWP && deal.isBareAccount) {
+        list.push({
+          id: `no-wp-${deal.id}`,
+          type: 'ACTION',
+          title: `Run Whitespace Diagnostic: ${deal.pipeline}`,
+          description: `Archived customer node lacks service share mapping. Complete a Whitespace diagnostic to target expansion.`,
+          actionLabel: 'Run Whitespace',
+          actionView: 'WHITE_SPACE'
+        });
+      }
+    });
+
+    if (list.length === 0) {
+      list.push({
+        id: 'default-1',
+        type: 'STRENGTH',
+        title: 'Strategy Pipeline Aligned',
+        description: 'All active review accounts have call preparations and whitespace diagnostics current. Great execution!',
+      });
+    }
+
+    return list.slice(0, 3);
+  }, [allDeals, userId, factFindings, callPlans, whitespacePlans]);
 
   const pipelineTotal = useMemo(() => {
     if (!allDeals) return 0;
@@ -209,28 +305,58 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       </div>
 
       <CRMSummaryPanel summary={crmSummary} showAllUsers={false} currentWeek={currentWeek} />
-
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
          <div className="xl:col-span-8 space-y-8">
             <SmartGoalsView userId={userId || ''} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden relative h-full">
-                  <div className="absolute top-0 right-0 p-6 opacity-10"><Target className="w-24 h-24 text-accent" /></div>
-                  <CardHeader className="pb-2"><CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-accent"><Target className="w-3.5 h-3.5" /> Execution Priorities</CardTitle></CardHeader>
+                  <div className="absolute top-0 right-0 p-6 opacity-10"><Sparkles className="w-24 h-24 text-accent" /></div>
+                  <CardHeader className="pb-2">
+                     <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-accent">
+                        <Sparkles className="w-3.5 h-3.5" /> Next Best Actions
+                     </CardTitle>
+                  </CardHeader>
                   <CardContent className="space-y-3">
-                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 group hover:bg-white/10 transition-all cursor-pointer">
-                        <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center font-black text-[10px] shrink-0">1</div>
-                        <p className="text-[11px] font-bold leading-tight flex-1">Complete all Monday Planning commitments by 10am.</p>
-                     </div>
-                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 group hover:bg-white/10 transition-all cursor-pointer">
-                        <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center font-black text-[10px] shrink-0">2</div>
-                        <p className="text-[11px] font-bold leading-tight flex-1">Log all client outcomes in the Rapid Habit Tracker daily.</p>
-                     </div>
-                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 group hover:bg-white/10 transition-all cursor-pointer">
-                        <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center font-black text-[10px] shrink-0">3</div>
-                        <p className="text-[11px] font-bold leading-tight flex-1">Finalise your Friday Synthesis pack for leadership review.</p>
-                     </div>
+                     {recommendations.map((rec) => {
+                        let typeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+                        if (rec.type === 'WARNING') {
+                           typeColor = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+                        } else if (rec.type === 'ACTION') {
+                           typeColor = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+                        }
+                        return (
+                           <div key={rec.id} className="p-3 bg-white/5 rounded-xl border border-white/10 flex flex-col gap-2 hover:bg-white/10 transition-all">
+                              <div className="flex items-center justify-between gap-2">
+                                 <span className={cn("text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border", typeColor)}>
+                                    {rec.type}
+                                 </span>
+                                 {rec.actionLabel && (
+                                    <button
+                                       onClick={() => {
+                                          if (rec.actionView === 'CALL_PLANNING') {
+                                             window.dispatchEvent(new CustomEvent('switch-view', {
+                                                detail: { view: 'CALL_PLANNING', params: rec.actionParams }
+                                             }));
+                                          } else if (rec.actionView === 'WHITE_SPACE') {
+                                             window.dispatchEvent(new CustomEvent('switch-view', {
+                                                detail: { view: 'WHITE_SPACE' }
+                                             }));
+                                          } else if (rec.actionView) {
+                                             setActiveTab(rec.actionView);
+                                          }
+                                       }}
+                                       className="text-[9px] font-black uppercase tracking-wider text-accent hover:underline flex items-center gap-1"
+                                    >
+                                       {rec.actionLabel} <ArrowRight className="w-2.5 h-2.5" />
+                                    </button>
+                                 )}
+                              </div>
+                              <p className="text-[11px] font-black uppercase text-white leading-tight">{rec.title}</p>
+                              <p className="text-[10px] font-medium text-slate-300 leading-snug">{rec.description}</p>
+                           </div>
+                        );
+                     })}
                   </CardContent>
                </Card>
 

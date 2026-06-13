@@ -84,6 +84,9 @@ export interface FactFindingDoc {
   companyName: string;
   businessDetails: string;
   currentlyUsing: string;
+  keyDecisionMaker?: string;
+  incumbentCompetitor?: string;
+  contractEndDate?: string;
   businessModel: string;
   freightType: string;
   freightSize: string;

@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { getCurrentWeek } from '@/lib/utils';
 import { differenceInCalendarWeeks, isBefore } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -791,6 +791,11 @@ export function CRMImporter() {
           }
         }
       }
+
+      // Update last sync time in global app settings
+      await setDoc(doc(db, 'appSettings', 'global'), {
+        lastCrmSync: serverTimestamp()
+      }, { merge: true });
 
       const pipelineMsg = count > 0 ? `${count} pipeline records` : '';
       const activityMsg = activityImportCount > 0 ? `${activityImportCount} activity aggregates` : '';

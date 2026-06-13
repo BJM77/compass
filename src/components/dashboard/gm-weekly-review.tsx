@@ -878,8 +878,38 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false, crmMetrics }
              )}
              <div data-html2canvas-ignore="true" className="space-y-3">
                 <p className="text-[10px] font-black uppercase text-primary">Provide Strategic Feedback</p>
-                <Textarea placeholder="Coach this team member on their weekly performance..." value={feedback} onChange={(e) => setFeedback(e.target.value)} className="min-h-[100px] rounded-2xl border-primary/20 bg-white" />
-                <Button onClick={() => onSaveFeedback(report.userId, feedback)} disabled={!feedback.trim()} className="w-full bg-accent font-black uppercase text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
+                <div className="flex flex-wrap gap-2 mb-2">
+                   <button 
+                     type="button"
+                     onClick={() => setFeedback("Excellent Progress: Outstanding pipeline velocity and activity levels. Whitespace plans are fully populated.")}
+                     className="text-[9px] font-black uppercase bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-emerald-300 text-slate-600 hover:text-emerald-700 px-2.5 py-1 rounded-lg transition-colors"
+                   >
+                     👍 Excellent Progress
+                   </button>
+                   <button 
+                     type="button"
+                     onClick={() => setFeedback("Pipeline Risk: High value deals are showing stalled days-in-stage. Focus on closing call plan outcomes this week.")}
+                     className="text-[9px] font-black uppercase bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-rose-300 text-slate-600 hover:text-rose-700 px-2.5 py-1 rounded-lg transition-colors"
+                   >
+                     ⚠️ Pipeline Risk
+                   </button>
+                   <button 
+                     type="button"
+                     onClick={() => setFeedback("Data Gaps: Active opportunities are missing Fact Finding discovery logs or Whitespace diagnostics. Complete these nodes.")}
+                     className="text-[9px] font-black uppercase bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-amber-300 text-slate-600 hover:text-amber-700 px-2.5 py-1 rounded-lg transition-colors"
+                   >
+                     🔍 Data Gaps
+                   </button>
+                   <button 
+                     type="button"
+                     onClick={() => setFeedback("Action Required: Territory activity levels (calls/apps) are currently below threshold. Prioritize customer engagement.")}
+                     className="text-[9px] font-black uppercase bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-indigo-300 text-slate-600 hover:text-indigo-700 px-2.5 py-1 rounded-lg transition-colors"
+                   >
+                     ⚡ Action Required
+                   </button>
+                </div>
+                <Textarea placeholder="Coach this team member on their weekly performance..." value={feedback} onChange={(e) => setFeedback(e.target.value)} className="min-h-[100px] rounded-2xl border-primary/20 bg-white text-xs font-bold leading-relaxed" />
+                <Button onClick={() => { onSaveFeedback(report.userId, feedback); setFeedback(''); }} disabled={!feedback.trim()} className="w-full bg-accent font-black uppercase text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
              </div>
           </div>
         )}

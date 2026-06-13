@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, setDoc, increment } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,13 +23,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import FreightSpinGuide from './freight-spin-guide';
 
+import { useEffect } from 'react';
+
 interface CallPlanningProps {
   userId: string;
+  initialParams?: any;
 }
 
 const AVAILABLE_SERVICES = ["Road", "Priority", "Same-day", "TAE", "International", "Custom Plan", "DG's"];
 
-export function CallPlanning({ userId }: CallPlanningProps) {
+export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
   const db = useFirestore();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -48,6 +51,57 @@ export function CallPlanning({ userId }: CallPlanningProps) {
     needPayoff: '',
     objections: ''
   });
+
+  useEffect(() => {
+    if (initialParams && initialParams.type === 'fact-finding' && initialParams.data) {
+      const docData = initialParams.data;
+      const mappedServices: string[] = [];
+      const selected = docData.selectedServices || [];
+      if (selected.includes('na-time-sensitive') || selected.includes('tom-priority-air-express') || selected.includes('road-express-1-8')) {
+        mappedServices.push('Priority');
+      }
+      if (selected.includes('na-same-day')) {
+        mappedServices.push('Same-day');
+      }
+      if (selected.includes('na-tae')) {
+        mappedServices.push('TAE');
+      }
+      if (selected.includes('tom-intl-air-sea') || docData.internationalFreight) {
+        mappedServices.push('International');
+      }
+      if (docData.dangerousGoods) {
+        mappedServices.push("DG's");
+      }
+      if (selected.includes('tom-road-express') || selected.includes('road-express-1-8')) {
+        mappedServices.push('Road');
+      }
+
+      setFormData({
+        accountName: docData.companyName || '',
+        objective: docData.perfectWorld ? `Target perfect world scenario: ${docData.perfectWorld}` : 'Secure commitment for next steps',
+        services: mappedServices,
+        situation: `Discovery Notes:\nBusiness Details: ${docData.businessDetails || 'None'}\nCurrently Using: ${docData.currentlyUsing || 'None'}\nKey Decision Maker: ${docData.keyDecisionMaker || 'None'}\nIncumbent Competitor: ${docData.incumbentCompetitor || 'None'}\nLocations: ${docData.locations || 'None'}`,
+        problem: `Pain Points identified: ${docData.painPoints || 'None'}`,
+        implication: `What happens if pain points aren't resolved?`,
+        needPayoff: `Guaranteed delivery expectation: ${docData.deliveryExpectation || 'None'}`,
+        objections: `Contract End Date: ${docData.contractEndDate || 'None'}. ${docData.dangerousGoods ? 'Objections: DG safety compliance certifications' : ''}`
+      });
+      setSelectedBPlanId(null);
+    } else if (initialParams && initialParams.type === 'top8' && initialParams.data) {
+      const deal = initialParams.data;
+      setFormData({
+        accountName: deal.pipeline || '',
+        objective: deal.actionsForBen ? `Action Plan: ${deal.actionsForBen}` : 'Advance opportunity to next stage',
+        services: [],
+        situation: `Opportunity Name: ${deal.opportunityName || 'None'}\nCurrent Stage: ${deal.stage || 'None'}`,
+        problem: `Barriers identified: ${deal.barriers || 'None'}`,
+        implication: '',
+        needPayoff: '',
+        objections: deal.lastBarrierText || ''
+      });
+      setSelectedBPlanId(null);
+    }
+  }, [initialParams]);
 
   const plansQuery = useMemoFirebase(() => {
     if (!db || !userId) return null;
@@ -136,15 +190,36 @@ export function CallPlanning({ userId }: CallPlanningProps) {
   const handleLogOutcome = async () => {
     if (!db || !selectedPlanId || !outcomeData.outcome) return;
     try {
+      const week = getCurrentWeek();
+      
+      // Save outcome log
       await addDoc(collection(db, 'callOutcomes'), {
         userId,
         callPlanId: selectedPlanId,
         accountName: formData.accountName,
         outcome: outcomeData.outcome,
         notes: outcomeData.notes,
-        week: getCurrentWeek(),
+        week,
         createdAt: serverTimestamp()
       });
+
+      // Update weekly activity counters
+      const progressRef = doc(db, 'weeklyProgress', `${userId}_${week}`);
+      const updates: Record<string, any> = {
+        userId,
+        week,
+        updatedAt: serverTimestamp()
+      };
+
+      if (outcomeData.outcome === 'APPOINTMENT_BOOKED') {
+        updates.apps = increment(1);
+        updates.calls = increment(1);
+      } else {
+        updates.calls = increment(1);
+      }
+
+      await setDoc(progressRef, updates, { merge: true });
+
       toast({ title: "Outcome Logged", description: "Closing the loop on professional preparation." });
       setOutcomeDialogOpen(false);
       handleNewPlan();
