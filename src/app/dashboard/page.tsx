@@ -15,6 +15,7 @@ import { AdminCallPlanning } from '@/components/dashboard/admin-call-planning';
 import { SettingsHub } from '@/components/dashboard/settings-hub';
 import { WhitespaceAnalysis } from '@/components/dashboard/whitespace-analysis';
 import { WhitespaceHistory } from '@/components/dashboard/whitespace-history';
+import { StrategicArchive } from '@/components/dashboard/strategic-archive';
 import { SmartGoalsAudit } from '@/components/dashboard/smart-goals-audit';
 import { WeeklyArchive } from '@/components/dashboard/weekly-archive';
 import { BIReportsViewer } from '@/components/dashboard/bi-reports-viewer';
@@ -45,7 +46,7 @@ import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
-  | 'WHITESPACE_HISTORY' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
+  | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW';
 
 const NAV_ITEMS = [
@@ -65,8 +66,7 @@ const NAV_ITEMS = [
   { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true,  group: 'admin' },
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true,  group: 'admin' },
   { view: 'OPS_REVIEW' as DashboardView,        label: 'Ops Review',        icon: ClipboardList,    adminOnly: true,  group: 'admin' },
-  { view: 'ALL_CALL_PLANNING' as DashboardView, label: 'All Call Plans',    icon: Archive,          adminOnly: true,  group: 'admin' },
-  { view: 'WHITESPACE_HISTORY' as DashboardView, label: 'Saved Plans',      icon: History,          adminOnly: false, group: 'admin' },
+  { view: 'STRATEGIC_ARCHIVE' as DashboardView, label: 'Strategic Archive', icon: Archive,          adminOnly: false, group: 'admin' },
   { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false, group: 'admin' },
   { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true,  group: 'admin' },
 ];
@@ -122,13 +122,12 @@ function DashboardContent() {
 
     if (currentView === 'TEAM' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
     if (currentView === 'CALL_PLANNING') return <div className="w-full p-4 md:p-8"><CallPlanning userId={activeUserId || ''} initialParams={viewParams} /></div>;
-    if (currentView === 'ALL_CALL_PLANNING' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AdminCallPlanning /></div>;
+    if (currentView === 'STRATEGIC_ARCHIVE') return <div className="w-full p-4 md:p-8"><StrategicArchive userId={activeUserId || ''} /></div>;
     if (currentView === 'BRIEFS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;
     if (currentView === 'TEAM_GOALS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><SmartGoalsAudit /></div>;
     if (currentView === 'STRATEGY' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><StrategyManagement /></div>;
     if (currentView === 'GM_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><GMWeeklyReview /></div>;
     if (currentView === 'WHITE_SPACE') return <div className="w-full p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
-    if (currentView === 'WHITESPACE_HISTORY') return <div className="w-full p-4 md:p-8"><WhitespaceHistory userId={activeUserId || ''} /></div>;
     if (currentView === 'REPORTS') return <div className="w-full p-4 md:p-8"><BIReportsViewer /></div>;
     if (currentView === 'UPLOAD' && isLeader) return <div className="w-full p-4 md:p-8"><CRMImporter /></div>;
     if (currentView === 'ARCHIVE') return <div className="w-full p-4 md:p-8"><WeeklyArchive /></div>;

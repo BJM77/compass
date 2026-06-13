@@ -19,9 +19,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { openSalesforceSearch } from '@/lib/utils';
 
-export function AdminCallPlanning() {
+interface AdminCallPlanningProps {
+  userId?: string;
+}
+
+export function AdminCallPlanning({ userId }: AdminCallPlanningProps) {
   const db = useFirestore();
-  const { isLeader, loading: isAuthLoading } = useAuth();
+  const { isLeader, user, loading: isAuthLoading } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchSearchTerm] = useState('');
   const [isCreatingTeamPlan, setIsCreatingTeamPlan] = useState(false);
@@ -37,18 +41,24 @@ export function AdminCallPlanning() {
   });
 
   const plansQuery = useMemoFirebase(() => {
-    // SECURITY GATE: Prevents index-heavy queries before leader status is confirmed
-    if (!db || !isLeader || isAuthLoading) return null;
-    // SIMPLIFIED QUERY: Removed complex orderBy to prevent 400 Missing Index errors during verified access
-    return collection(db, 'callPlans');
-  }, [db, isLeader, isAuthLoading]);
+    if (!db || isAuthLoading) return null;
+    
+    if (isLeader) {
+      return collection(db, 'callPlans');
+    }
+    
+    const activeUserId = userId || user?.uid;
+    if (!activeUserId) return null;
+    
+    return query(collection(db, 'callPlans'), where('userId', '==', activeUserId));
+  }, [db, isLeader, isAuthLoading, userId, user]);
   
   const { data: allPlans, isLoading: isPlansLoading } = useCollection(plansQuery);
 
   const usersQuery = useMemoFirebase(() => {
-    if (!db || !isLeader || isAuthLoading) return null;
+    if (!db || isAuthLoading) return null;
     return collection(db, 'users');
-  }, [db, isLeader, isAuthLoading]);
+  }, [db, isAuthLoading]);
   const { data: allUsers } = useCollection(usersQuery);
 
   const userMap = useMemo(() => {
@@ -119,57 +129,59 @@ export function AdminCallPlanning() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Dialog open={isCreatingTeamPlan} onOpenChange={setIsCreatingTeamPlan}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent hover:bg-accent/90 text-white font-black uppercase text-xs h-11 px-6 shadow-lg shadow-accent/20 gap-2">
-              <Users className="w-4 h-4" /> CREATE TEAM BLUEPRINT
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-black uppercase flex items-center gap-3">
-                <ShieldCheck className="w-6 h-6 text-accent" />
-                Team Strategy Blueprint
-              </DialogTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">
-                Deploy a standardized SPIN plan to all BDMs and AMs.
-              </CardDescription>
-            </DialogHeader>
-            <div className="space-y-6 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Campaign/Vertical Name</label>
-                  <Input value={teamFormData.accountName} onChange={e => setTeamFormData({...teamFormData, accountName: e.target.value.toUpperCase()})} className="h-11 font-black" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Core Objective</label>
-                  <Input value={teamFormData.objective} onChange={e => setTeamFormData({...teamFormData, objective: e.target.value})} className="h-11 font-bold" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Situation Questions</label>
-                  <Textarea value={teamFormData.situation} onChange={e => setTeamFormData({...teamFormData, situation: e.target.value})} className="min-h-[100px]" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Problem Questions</label>
-                  <Textarea value={teamFormData.problem} onChange={e => setTeamFormData({...teamFormData, problem: e.target.value})} className="min-h-[100px]" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Implication Questions</label>
-                  <Textarea value={teamFormData.implication} onChange={e => setTeamFormData({...teamFormData, implication: e.target.value})} className="min-h-[100px]" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Need-Payoff Questions</label>
-                  <Textarea value={teamFormData.needPayoff} onChange={e => setTeamFormData({...teamFormData, needPayoff: e.target.value})} className="min-h-[100px]" />
-                </div>
-              </div>
-              <Button onClick={handleSaveTeamPlan} className="w-full bg-primary font-black h-14 rounded-2xl shadow-xl shadow-primary/20 uppercase">
-                PUBLISH TO TEAM NODES
+        {isLeader && (
+          <Dialog open={isCreatingTeamPlan} onOpenChange={setIsCreatingTeamPlan}>
+            <DialogTrigger asChild>
+              <Button className="bg-accent hover:bg-accent/90 text-white font-black uppercase text-xs h-11 px-6 shadow-lg shadow-accent/20 gap-2">
+                <Users className="w-4 h-4" /> CREATE TEAM BLUEPRINT
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black uppercase flex items-center gap-3">
+                  <ShieldCheck className="w-6 h-6 text-accent" />
+                  Team Strategy Blueprint
+                </DialogTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">
+                  Deploy a standardized SPIN plan to all BDMs and AMs.
+                </CardDescription>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Campaign/Vertical Name</label>
+                    <Input value={teamFormData.accountName} onChange={e => setTeamFormData({...teamFormData, accountName: e.target.value.toUpperCase()})} className="h-11 font-black" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Core Objective</label>
+                    <Input value={teamFormData.objective} onChange={e => setTeamFormData({...teamFormData, objective: e.target.value})} className="h-11 font-bold" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Situation Questions</label>
+                    <Textarea value={teamFormData.situation} onChange={e => setTeamFormData({...teamFormData, situation: e.target.value})} className="min-h-[100px]" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Problem Questions</label>
+                    <Textarea value={teamFormData.problem} onChange={e => setTeamFormData({...teamFormData, problem: e.target.value})} className="min-h-[100px]" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Implication Questions</label>
+                    <Textarea value={teamFormData.implication} onChange={e => setTeamFormData({...teamFormData, implication: e.target.value})} className="min-h-[100px]" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Need-Payoff Questions</label>
+                    <Textarea value={teamFormData.needPayoff} onChange={e => setTeamFormData({...teamFormData, needPayoff: e.target.value})} className="min-h-[100px]" />
+                  </div>
+                </div>
+                <Button onClick={handleSaveTeamPlan} className="w-full bg-primary font-black h-14 rounded-2xl shadow-xl shadow-primary/20 uppercase">
+                  PUBLISH TO TEAM NODES
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card className="border-none shadow-xl bg-white overflow-hidden">

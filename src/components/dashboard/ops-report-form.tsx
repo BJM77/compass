@@ -6,21 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { getCurrentWeek } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, PlusCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
+import { AlertCircle, PlusCircle, CheckCircle2, Loader2, Sparkles, Edit, Trash2, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function OpsReportForm() {
-  const { user, profile } = useAuth();
+  const { user, profile, isLeader } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
   
   const [type, setType] = useState<'PROBLEM' | 'POSITIVE'>('PROBLEM');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   
   const currentWeek = getCurrentWeek();
 
@@ -44,17 +45,26 @@ export function OpsReportForm() {
     try {
       if (!db || !user) throw new Error("Not connected");
       
-      await addDoc(collection(db, 'opsReports'), {
-        userId: user.uid,
-        userName: profile?.name || user.email,
-        week: currentWeek,
-        type,
-        description,
-        status: 'ESCALATED',
-        createdAt: serverTimestamp()
-      });
+      if (editingId) {
+        await updateDoc(doc(db, 'opsReports', editingId), {
+          type,
+          description,
+        });
+        toast({ title: 'Success', description: 'Ops Report updated successfully.' });
+        setEditingId(null);
+      } else {
+        await addDoc(collection(db, 'opsReports'), {
+          userId: user.uid,
+          userName: profile?.name || user.email,
+          week: currentWeek,
+          type,
+          description,
+          status: 'ESCALATED',
+          createdAt: serverTimestamp()
+        });
+        toast({ title: 'Success', description: 'Ops Report submitted successfully.' });
+      }
       
-      toast({ title: 'Success', description: 'Ops Report submitted successfully.' });
       setDescription('');
       setType('PROBLEM');
     } catch (e) {
@@ -63,6 +73,45 @@ export function OpsReportForm() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEdit = (report: any) => {
+    setEditingId(report.id);
+    setType(report.type);
+    setDescription(report.description);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this report?')) return;
+    try {
+      if (!db) throw new Error("Not connected");
+      await deleteDoc(doc(db, 'opsReports', id));
+      toast({ title: 'Deleted', description: 'Ops Report deleted successfully.' });
+      if (editingId === id) {
+        setEditingId(null);
+        setDescription('');
+        setType('PROBLEM');
+      }
+    } catch (e) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete report.' });
+    }
+  };
+
+  const handleEmail = (report: any) => {
+    const email = prompt("Enter the email address to send this report to:");
+    if (!email) return;
+    
+    const subject = encodeURIComponent(`Ops Report: ${report.type === 'PROBLEM' ? 'Operational Problem' : 'Positive Event'}`);
+    const body = encodeURIComponent(
+      `Submitted by: ${report.userName}\n` +
+      `Week: ${report.week}\n` +
+      `Type: ${report.type}\n\n` +
+      `Description:\n${report.description}`
+    );
+    
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -80,7 +129,11 @@ export function OpsReportForm() {
       <Card className="border-none shadow-lg">
         <CardHeader className="bg-slate-50 border-b">
           <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
-            <PlusCircle className="w-4 h-4" /> New Entry - Week {currentWeek.split('-')[1]}
+            {editingId ? (
+              <><Edit className="w-4 h-4" /> Edit Entry - Week {currentWeek.split('-')[1]}</>
+            ) : (
+              <><PlusCircle className="w-4 h-4" /> New Entry - Week {currentWeek.split('-')[1]}</>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6 space-y-4">
@@ -109,14 +162,25 @@ export function OpsReportForm() {
             />
           </div>
           
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isSubmitting || !description.trim()} 
-            className="w-full md:w-auto font-black uppercase h-12 px-8"
-          >
-            {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-            Submit Report
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting || !description.trim()} 
+              className="w-full md:w-auto font-black uppercase h-12 px-8"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : (editingId ? <Edit className="w-4 h-4 mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />)}
+              {editingId ? 'Update Report' : 'Submit Report'}
+            </Button>
+            {editingId && (
+              <Button 
+                variant="ghost" 
+                onClick={() => { setEditingId(null); setDescription(''); setType('PROBLEM'); }}
+                className="font-black uppercase h-12"
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -144,11 +208,28 @@ export function OpsReportForm() {
                     </div>
                     <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap">{report.description}</p>
                   </div>
-                  {report.createdAt && (
-                    <div className="text-[10px] text-slate-400 font-bold uppercase shrink-0">
-                      {report.createdAt.toDate?.().toLocaleString()}
+                  <div className="flex flex-col gap-2 shrink-0 md:items-end mt-4 md:mt-0">
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEmail(report)} className="h-8 text-xs px-2 shadow-sm">
+                        <Mail className="w-3 h-3 mr-1.5" /> Email
+                      </Button>
+                      { (report.userId === user?.uid || isLeader) && (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(report)} className="h-8 text-xs px-2 shadow-sm">
+                            <Edit className="w-3 h-3 mr-1.5" /> Edit
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(report.id)} className="h-8 text-xs px-2 shadow-sm bg-red-600 hover:bg-red-700">
+                            <Trash2 className="w-3 h-3 mr-1.5" /> Delete
+                          </Button>
+                        </>
+                      )}
                     </div>
-                  )}
+                    {report.createdAt && (
+                      <div className="text-[9px] text-slate-400 font-bold uppercase mt-2">
+                        {report.createdAt.toDate?.().toLocaleString()}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}

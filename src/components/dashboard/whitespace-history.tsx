@@ -12,6 +12,7 @@ import { format, differenceInDays } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/auth-context';
 import { Separator } from '@/components/ui/separator';
+import { User as UserIcon } from 'lucide-react';
 
 interface WhitespaceHistoryProps {
   userId: string;
@@ -41,6 +42,21 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     if (isLeader) return plans;
     return plans.filter(p => p.userId === userId);
   }, [plans, isLeader, userId]);
+
+  const usersQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    return collection(db, 'users');
+  }, [db, isLeader]);
+  
+  const { data: allUsers } = useCollection(usersQuery);
+
+  const userMap = useMemo(() => {
+    const map: Record<string, string> = { 'TEAM_NODE': 'TEAM BLUEPRINT' };
+    allUsers?.forEach((u: any) => {
+      map[u.id] = u.name;
+    });
+    return map;
+  }, [allUsers]);
 
   const selectedPlan = filteredPlans.find(p => p.id === selectedPlanId);
 
@@ -97,6 +113,12 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                     </Badge>
                   </div>
                   <p className="text-sm font-black text-primary uppercase leading-tight truncate pr-6">{plan.accountName}</p>
+                  {isLeader && plan.userId && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <UserIcon className="w-3 h-3 text-accent" />
+                      <span className="text-[10px] font-bold text-accent uppercase tracking-wider">{userMap[plan.userId] || 'Unknown User'}</span>
+                    </div>
+                  )}
                   <div className="mt-3 flex justify-between items-center">
                      <div className="flex gap-1">
                         {Object.keys(plan.configs || {}).slice(0, 3).map(s => (
@@ -141,7 +163,11 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                   </div>
                   <CardTitle className="text-3xl font-black tracking-tight uppercase">{selectedPlan.accountName}</CardTitle>
                   <CardDescription className="text-slate-400 font-medium flex items-center gap-2">
-                    <Info className="w-3.5 h-3.5" /> Synchronised from session on {selectedPlan.createdAt?.toDate ? format(selectedPlan.createdAt.toDate(), 'PPP') : 'today'}.
+                    <Info className="w-3.5 h-3.5" /> 
+                    {isLeader && selectedPlan.userId && (
+                      <span className="font-bold text-accent mr-1">[{userMap[selectedPlan.userId] || 'Unknown User'}]</span>
+                    )}
+                    Synchronised from session on {selectedPlan.createdAt?.toDate ? format(selectedPlan.createdAt.toDate(), 'PPP') : 'today'}.
                   </CardDescription>
                </CardHeader>
                <CardContent className="p-0">

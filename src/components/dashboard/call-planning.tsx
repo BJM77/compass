@@ -15,6 +15,8 @@ import {
   ShieldCheck, ClipboardList, Loader2, Sparkles, Box, ExternalLink, 
   CheckCircle2, Clock, Map 
 } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
+import { User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
@@ -23,7 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import FreightSpinGuide from './freight-spin-guide';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 interface CallPlanningProps {
   userId: string;
@@ -35,6 +37,7 @@ const AVAILABLE_SERVICES = ["Road", "Priority", "Same-day", "TAE", "Internationa
 export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
   const db = useFirestore();
   const { toast } = useToast();
+  const { isLeader } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPlanId, setSelectedBPlanId] = useState<string | null>(null);
   const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
@@ -103,19 +106,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
     }
   }, [initialParams]);
 
-  const plansQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(
-      collection(db, 'callPlans'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
-  }, [db, userId]);
-
-  const { data: plans, isLoading } = useCollection(plansQuery);
-
   const teamPlansQuery = useMemoFirebase(() => {
-    // LIFECYCLE SYNC: Synchronize with userId availability to prevent ID: ca9 assertion failures
     if (!db || !userId) return null;
     return query(
       collection(db, 'callPlans'),
@@ -192,7 +183,6 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
     try {
       const week = getCurrentWeek();
       
-      // Save outcome log
       await addDoc(collection(db, 'callOutcomes'), {
         userId,
         callPlanId: selectedPlanId,
@@ -203,7 +193,6 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
         createdAt: serverTimestamp()
       });
 
-      // Update weekly activity counters
       const progressRef = doc(db, 'weeklyProgress', `${userId}_${week}`);
       const updates: Record<string, any> = {
         userId,
@@ -412,85 +401,21 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 <p className="text-[9px] font-black text-accent uppercase mb-2 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3" /> Shared Blueprint
                 </p>
-                <p className="text-sm font-black text-primary uppercase leading-tight truncate">{plan.accountName}</p>
-                <p className="text-[10px] text-muted-foreground font-bold mt-1.5 line-clamp-2 italic leading-relaxed">
-                  "{plan.objective}"
-                </p>
+                <p className="text-xs font-black text-primary uppercase mt-2 mb-1">{plan.accountName}</p>
+                <p className="text-[10px] text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
+                {isLeader && plan.userId && plan.userId !== 'TEAM_NODE' && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <UserIcon className="w-3 h-3 text-accent" />
+                    <span className="text-[9px] font-bold text-accent uppercase tracking-wider">{userMap[plan.userId] || 'Unknown User'}</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="space-y-4 print:hidden pt-8">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="text-lg font-black uppercase tracking-tight text-primary flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-accent" />
-            Previous Strategy Documents
-          </h3>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-            {plans?.length || 0} Saved Preps
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {plans?.map((plan) => (
-            <div
-              key={plan.id}
-              className={`text-left p-5 rounded-2xl border-2 transition-all group relative ${
-                selectedPlanId === plan.id 
-                  ? 'border-accent bg-accent/5 shadow-lg scale-[1.02]' 
-                  : 'border-white bg-white hover:border-slate-100 shadow-sm hover:shadow-md'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1.5">
-                  <Clock className="w-3 h-3" />
-                  {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'Just now'}
-                </p>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); openSalesforceSearch(plan.accountName, plan.salesforceId); }}
-                    className="text-accent hover:text-accent/80 p-1"
-                    title="View in Salesforce"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleDelete(plan.id); }}
-                    className="text-red-300 hover:text-red-50 p-1"
-                    title="Archive Plan"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <button onClick={() => handleSelectPlan(plan)} className="w-full text-left">
-                <p className="text-sm font-black text-primary uppercase leading-tight line-clamp-1">{plan.accountName}</p>
-                <p className="text-[10px] text-muted-foreground font-bold mt-1.5 line-clamp-2 italic leading-relaxed">
-                  "{plan.objective}"
-                </p>
-              </button>
-              {plan.services && plan.services.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-4">
-                  {plan.services.slice(0, 4).map((s: string) => (
-                    <Badge key={s} variant="outline" className="text-[7px] px-1.5 py-0 h-4 border-accent/20 text-accent uppercase font-black">
-                      {s}
-                    </Badge>
-                  ))}
-                  {plan.services.length > 4 && <span className="text-[8px] font-bold text-muted-foreground">+{plan.services.length - 4}</span>}
-                </div>
-              )}
-            </div>
-          ))}
-          {(!plans || plans.length === 0) && !isLoading && (
-            <div className="col-span-full py-16 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
-              <PhoneCall className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-              <p className="text-sm font-black text-slate-400 uppercase tracking-widest">No preparation documents archived.</p>
-            </div>
-          )}
-        </div>
-      </div>
+
 
       <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-3xl p-8">
