@@ -123,8 +123,8 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
         <div className="flex items-center gap-4">
           {/* Quick stats */}
           <div className="hidden md:flex items-center gap-3 text-[9px] font-black text-slate-400 uppercase">
-            <span><Phone className="w-3 h-3 inline mr-0.5" /> {data.calls}{data.crmCalls !== undefined ? `/${data.crmCalls}` : ''}</span>
-            <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> {data.apps}{data.crmApps !== undefined ? `/${data.crmApps}` : ''}</span>
+            <span><Phone className="w-3 h-3 inline mr-0.5" /> {data.crmCalls !== undefined ? data.crmCalls : data.calls}{data.crmCalls !== undefined ? ` (Man: ${data.calls})` : ''}</span>
+            <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> {data.crmApps !== undefined ? data.crmApps : data.apps}{data.crmApps !== undefined ? ` (Man: ${data.apps})` : ''}</span>
             <span><FileText className="w-3 h-3 inline mr-0.5" /> {data.proposals}</span>
             <span><Award className="w-3 h-3 inline mr-0.5" /> {data.deals}</span>
           </div>
@@ -137,8 +137,8 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
         <CardContent className="px-5 pb-6 pt-0 space-y-6 border-t border-slate-100">
           {/* Activity Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
-            <StatPill icon={Phone} label="Calls" value={data.calls} subValue={data.crmCalls !== undefined ? `CRM: ${data.crmCalls}` : null} color="bg-blue-50 text-blue-600 border-blue-100" />
-            <StatPill icon={CalendarCheck} label="Apps" value={data.apps} subValue={data.crmApps !== undefined ? `CRM: ${data.crmApps}` : null} color="bg-green-50 text-green-600 border-green-100" />
+            <StatPill icon={Phone} label="Calls" value={data.crmCalls !== undefined ? data.crmCalls : data.calls} subValue={data.crmCalls !== undefined ? `Man: ${data.calls}` : null} color="bg-blue-50 text-blue-600 border-blue-100" />
+            <StatPill icon={CalendarCheck} label="Apps" value={data.crmApps !== undefined ? data.crmApps : data.apps} subValue={data.crmApps !== undefined ? `Man: ${data.apps}` : null} color="bg-green-50 text-green-600 border-green-100" />
             <StatPill icon={FileText} label="Opps" value={data.proposals} color="bg-purple-50 text-purple-600 border-purple-100" />
             <StatPill icon={Award} label="Wins" value={data.deals} color="bg-orange-50 text-orange-600 border-orange-100" />
           </div>
@@ -447,12 +447,12 @@ export function WeeklyArchive() {
               </div>
               <div className="flex flex-wrap gap-3 text-xs font-black">
                 <div className="text-center px-4">
-                  <p className="text-xl font-black text-white">{teamTotals.calls}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Calls {teamTotals.crmCalls > 0 ? `(CRM: ${teamTotals.crmCalls})` : ''}</p>
+                  <p className="text-xl font-black text-white">{teamTotals.crmCalls > 0 ? teamTotals.crmCalls : teamTotals.calls}</p>
+                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Calls {teamTotals.crmCalls > 0 ? `(Man: ${teamTotals.calls})` : ''}</p>
                 </div>
                 <div className="text-center px-4">
-                  <p className="text-xl font-black text-white">{teamTotals.apps}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Apps {teamTotals.crmApps > 0 ? `(CRM: ${teamTotals.crmApps})` : ''}</p>
+                  <p className="text-xl font-black text-white">{teamTotals.crmApps > 0 ? teamTotals.crmApps : teamTotals.apps}</p>
+                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Apps {teamTotals.crmApps > 0 ? `(Man: ${teamTotals.apps})` : ''}</p>
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.proposals}</p>

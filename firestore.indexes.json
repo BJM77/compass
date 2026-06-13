@@ -31,6 +31,14 @@
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "week", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "factFindingDocs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

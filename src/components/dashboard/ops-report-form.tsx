@@ -28,12 +28,11 @@ export function OpsReportForm() {
     if (!db || !user) return null;
     return query(
       collection(db, 'opsReports'),
-      where('userId', '==', user.uid),
       where('week', '==', currentWeek)
     );
   }, [db, user, currentWeek]);
 
-  const { data: myReports, loading } = useCollection(opsQuery);
+  const { data: teamReports, loading } = useCollection(opsQuery);
 
   const handleSubmit = async () => {
     if (!description.trim()) {
@@ -122,16 +121,20 @@ export function OpsReportForm() {
       </Card>
 
       <div className="space-y-4 mt-8">
-        <h3 className="text-sm font-black uppercase tracking-widest text-primary border-b pb-2">Your Submissions This Week</h3>
+        <h3 className="text-sm font-black uppercase tracking-widest text-primary border-b pb-2">Team Submissions This Week</h3>
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>
-        ) : myReports && myReports.length > 0 ? (
+        ) : teamReports && teamReports.length > 0 ? (
           <div className="grid gap-4">
-            {myReports.map((report: any) => (
+            {teamReports.map((report: any) => (
               <Card key={report.id} className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
                 <CardContent className="p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center">
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-primary font-black text-[10px] uppercase shrink-0">
+                        {(report.userName || '?').charAt(0)}
+                      </div>
+                      <span className="font-bold text-sm text-primary mr-2">{report.userName}</span>
                       <Badge className={report.type === 'PROBLEM' ? 'bg-orange-100 text-orange-800 border-none' : 'bg-emerald-100 text-emerald-800 border-none'}>
                         {report.type === 'PROBLEM' ? 'PROBLEM' : 'POSITIVE EVENT'}
                       </Badge>

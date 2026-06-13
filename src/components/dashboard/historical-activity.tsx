@@ -60,9 +60,6 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
             const apps = Number(data?.apps || 0);
             const crmCalls = Number(data?.crmCalls || 0);
             const crmApps = Number(data?.crmApps || 0);
-            const totalCalls = crmCalls > 0 ? crmCalls : calls;
-            const totalApps = crmApps > 0 ? crmApps : apps;
-
             return (
               <div key={week} className="min-w-[120px] bg-slate-50 border border-slate-100 rounded-xl p-3 shrink-0 flex flex-col items-center justify-center">
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1">
@@ -72,11 +69,13 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                 <div className="flex items-center gap-4 w-full justify-around">
                   <div className="text-center">
                     <Phone className="w-3.5 h-3.5 text-blue-500 mx-auto mb-1" />
-                    <p className="text-sm font-black text-slate-800">{totalCalls}</p>
+                    <p className="text-sm font-black text-slate-800">{crmCalls > 0 ? crmCalls : calls}</p>
+                    {crmCalls > 0 && <p className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">M: {calls}</p>}
                   </div>
                   <div className="text-center">
                     <CalendarCheck className="w-3.5 h-3.5 text-green-500 mx-auto mb-1" />
-                    <p className="text-sm font-black text-slate-800">{totalApps}</p>
+                    <p className="text-sm font-black text-slate-800">{crmApps > 0 ? crmApps : apps}</p>
+                    {crmApps > 0 && <p className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">M: {apps}</p>}
                   </div>
                 </div>
               </div>
@@ -111,13 +110,19 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   const data = progressData?.find(d => d.userId === u.id && d.week === week);
                   const crmCalls = Number(data?.crmCalls || 0);
                   const crmApps = Number(data?.crmApps || 0);
-                  const calls = crmCalls > 0 ? crmCalls : Number(data?.calls || 0);
-                  const apps = crmApps > 0 ? crmApps : Number(data?.apps || 0);
+                  const calls = Number(data?.calls || 0);
+                  const apps = Number(data?.apps || 0);
                   return (
                     <td key={week} className="px-4 py-3 text-center text-slate-600">
                       <div className="flex items-center justify-center gap-2">
-                        <span className="flex items-center gap-1" title="Calls"><Phone className="w-3 h-3 text-blue-400" /> {calls}</span>
-                        <span className="flex items-center gap-1" title="Apps"><CalendarCheck className="w-3 h-3 text-green-400" /> {apps}</span>
+                        <span className="flex items-center gap-1 flex-col" title="Calls">
+                          <span className="flex items-center gap-1"><Phone className="w-3 h-3 text-blue-400" /> {crmCalls > 0 ? crmCalls : calls}</span>
+                          {crmCalls > 0 && <span className="text-[7px] text-slate-400">M: {calls}</span>}
+                        </span>
+                        <span className="flex items-center gap-1 flex-col" title="Apps">
+                          <span className="flex items-center gap-1"><CalendarCheck className="w-3 h-3 text-green-400" /> {crmApps > 0 ? crmApps : apps}</span>
+                          {crmApps > 0 && <span className="text-[7px] text-slate-400">M: {apps}</span>}
+                        </span>
                       </div>
                     </td>
                   );

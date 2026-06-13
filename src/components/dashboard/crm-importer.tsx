@@ -125,6 +125,16 @@ function classifyActivity(row: any): 'CALL' | 'APP' {
   if (activityType === 'face to face visit' || activityType.includes('face to face') || activityType.includes('visit')) return 'APP';
   if (activityType === 'video / conference call' || activityType.includes('video') || activityType.includes('conference')) return 'APP';
 
+  // Specific mappings requested by user
+  if (activityType.includes('monthly fuel update') || subject.includes('monthly fuel update')) return 'APP';
+  if (activityType.includes('fuel levy update') || subject.includes('fuel levy update')) return 'APP';
+  if (activityType.includes('contract review') || subject.includes('contract review')) return 'APP';
+  if (activityType.includes('customer issue') || subject.includes('customer issue')) return 'CALL';
+  if (activityType.includes('client meeting') || subject.includes('client meeting')) return 'APP';
+  if (activityType.includes('cold call') || subject.includes('cold call')) return 'CALL';
+  if (activityType.includes('proposal 1') || subject.includes('proposal 1')) return 'APP';
+  if (activityType.includes('1st pick up review') || subject.includes('1st pick up review')) return 'APP';
+
   // 2. Generic/Fallback Checks on Activity Type and Subject:
   const isMeeting = 
     activityType.includes('meeting') || activityType.includes('appointment') || activityType.includes('app') || activityType.includes('f2f') ||

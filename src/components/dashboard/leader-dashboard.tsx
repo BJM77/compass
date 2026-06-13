@@ -135,7 +135,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   }, [teamActivity, userMap]);
 
   const aggregates = useMemo(() => {
-    if (!teamStats) return { totalRevenue: 0, totalTarget: 0, risks: 0 };
+    if (!teamStats) return { totalRevenue: 0, totalTarget: 0, risks: 0, pipelineAmount: 0, pipelineCount: 0 };
     const filteredStats = teamStats.filter(s => s.role === 'BDM' || s.role === 'ACCOUNT_MANAGER');
     
     const riskDeals = allDeals?.filter(d => {
@@ -148,10 +148,15 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
       return m.score === 'DEAD' || m.score === 'STALLING';
     }) || [];
 
+    const opportunityDeals = allDeals?.filter(d => !d.isBareAccount) || [];
+    const totalPipelineAmount = opportunityDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+
     return {
       totalRevenue: crmSummary.team.custYTDRevenueThisFY || 0,
       totalTarget: filteredStats.reduce((sum, b) => sum + (Number(b.target) || 0), 0),
-      risks: riskDeals.length
+      risks: riskDeals.length,
+      pipelineAmount: totalPipelineAmount,
+      pipelineCount: opportunityDeals.length
     };
   }, [teamStats, allDeals, crmSummary.team.custYTDRevenueThisFY]);
 
@@ -244,10 +249,10 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
           onClick={() => setOpenModal('CALLS')}
         />
         <KPICard 
-          title="Momentum Risks" 
-          value={aggregates.risks} 
-          status={aggregates.risks > 5 ? 'AT_RISK' : 'ON_TRACK'} 
-          icon={<AlertTriangle className="w-4 h-4" />} 
+          title="Opportunity Pipeline" 
+          value={`$${(aggregates.pipelineAmount || 0).toLocaleString()}`} 
+          subtitle={`Total Opportunities: ${aggregates.pipelineCount || 0}`}
+          icon={<Target className="w-4 h-4 text-purple-500" />} 
         />
       </div>
 
@@ -461,16 +466,16 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
               <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
                 <TableRow>
                   <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Team Member</TableHead>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">Manual (Live)</TableHead>
                   <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">CRM (Live)</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">Manual (Live)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredActivityRecords.map((act, i) => (
                   <TableRow key={i}>
                     <TableCell className="font-bold text-sm text-primary px-6">{userMap.get(act.userId) || act.userId}</TableCell>
-                    <TableCell className="text-right font-black text-slate-700 px-6">{openModal === 'APPS' ? (act.apps || 0) : (act.calls || 0)}</TableCell>
                     <TableCell className="text-right font-black text-blue-600 px-6">{openModal === 'APPS' ? (act.crmApps || 0) : (act.crmCalls || 0)}</TableCell>
+                    <TableCell className="text-right font-black text-slate-700 px-6">{openModal === 'APPS' ? (act.apps || 0) : (act.calls || 0)}</TableCell>
                   </TableRow>
                 ))}
                 {filteredActivityRecords.length === 0 && (

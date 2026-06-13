@@ -366,7 +366,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
             </div>
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Calls Completed (CRM Imported)</p>
-              <p className="text-2xl font-black text-primary">{progress?.crmCalls || 0}</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <p className="text-2xl font-black text-primary">{progress?.crmCalls || 0}</p>
+                {progress?.calls !== undefined && <p className="text-[10px] font-bold text-slate-400 uppercase">Man: {progress.calls}</p>}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -377,7 +380,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
             </div>
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Appointments Held (CRM Imported)</p>
-              <p className="text-2xl font-black text-primary">{progress?.crmApps || 0}</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <p className="text-2xl font-black text-primary">{progress?.crmApps || 0}</p>
+                {progress?.apps !== undefined && <p className="text-[10px] font-bold text-slate-400 uppercase">Man: {progress.apps}</p>}
+              </div>
             </div>
           </CardContent>
         </Card>

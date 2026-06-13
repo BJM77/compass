@@ -617,7 +617,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                   <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px'}}>{r.userName.charAt(0)}</div>
                   <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>
                     {r.userName.split(' ')[0]}
-                    <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.callsMade || 0}/{r.summary.crmCalls || 0} · A:{r.summary.meetingsHeld || 0}/{r.summary.crmApps || 0})</span>
+                    <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.crmCalls || 0} M:{r.summary.callsMade || 0} · A:{r.summary.crmApps || 0} M:{r.summary.meetingsHeld || 0})</span>
                   </span>
                 </div>
               ))}
