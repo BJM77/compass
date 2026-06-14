@@ -209,9 +209,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
 
   const generateExecutiveReview = () => {
     // Aggregation calculations
-    const teamOppsCount = opportunities.length;
-    const teamSignedCount = paperwork.length;
-    const teamNewBizCount = newBusiness.length;
+    const teamOppsCount = metrics.totalOpps;
+    const teamSignedCount = metrics.totalSigned;
+    const teamNewBizCount = metrics.totalNewBiz;
     
     // Appointments (CRM/Man)
     const crmApps = metrics.totalCrmApps;
@@ -447,15 +447,18 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
   const metrics = useMemo(() => {
     const totalEAV = teamCrmEAV || 0;
-    const totalNewOpps = opportunities.length;
-    const totalSigned = paperwork.length;
-    const totalNewBiz = newBusiness.length;
+    
+    const weekReviews = allPipelineReviews.filter(r => r.week === selectedWeek);
+    const totalOpps = weekReviews.filter(r => !r.isBareAccount && r.stage !== 'Closed Lost').length;
+    const totalSigned = weekReviews.filter(r => !r.isBareAccount && ['Finalise', 'Pending Trade'].includes(r.stage || '')).length;
+    const totalNewBiz = weekReviews.filter(r => !r.isBareAccount && r.stage === 'Closed Won').length;
+
     const totalCalls = reportData.reduce((sum, r) => sum + (r.summary.callsMade || 0), 0);
     const totalApps = reportData.reduce((sum, r) => sum + (r.summary.meetingsHeld || 0), 0);
     const totalCrmCalls = reportData.reduce((sum, r) => sum + (r.summary.crmCalls || 0), 0);
     const totalCrmApps = reportData.reduce((sum, r) => sum + (r.summary.crmApps || 0), 0);
-    return { totalEAV, totalNewOpps, totalSigned, totalNewBiz, totalCalls, totalApps, totalCrmCalls, totalCrmApps };
-  }, [reportData, opportunities, paperwork, newBusiness, teamCrmEAV]);
+    return { totalEAV, totalOpps, totalSigned, totalNewBiz, totalCalls, totalApps, totalCrmCalls, totalCrmApps };
+  }, [reportData, allPipelineReviews, selectedWeek, teamCrmEAV]);
 
   const performanceData = reportData.map(r => {
     const metrics = crmMetricsByUserId.get(r.userId);
@@ -468,9 +471,9 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
   });
 
   const pipelineStatusData = [
-    { name: 'New Opps', value: opportunities.length, color: '#3b82f6' },
-    { name: 'Signed', value: paperwork.length, color: '#10b981' },
-    { name: 'Portfolio', value: newBusiness.length, color: '#8b5cf6' }
+    { name: 'Total Opps', value: metrics.totalOpps, color: '#3b82f6' },
+    { name: 'Signed', value: metrics.totalSigned, color: '#10b981' },
+    { name: 'Portfolio', value: metrics.totalNewBiz, color: '#8b5cf6' }
   ];
 
   if (isLoading) return <div className="flex items-center justify-center py-40"><Loader2 className="w-12 h-12 animate-spin text-accent" /></div>;
@@ -535,7 +538,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <MetricCard title="Pipeline EAV" value={`$${(metrics.totalEAV / 1000000).toFixed(1)}M`} sub="Target Achievement" icon={<DollarSign className="w-4 h-4" />} color="blue" />
-        <MetricCard title="New Opps" value={metrics.totalNewOpps} sub="Weekly Growth" icon={<Target className="w-4 h-4" />} color="green" />
+        <MetricCard title="Total Opps" value={metrics.totalOpps} sub="Active Pipeline" icon={<Target className="w-4 h-4" />} color="green" />
         <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-4 h-4" />} color="purple" />
         <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-4 h-4" />} color="orange" />
         <MetricCard title="Team Calls" value={metrics.totalCrmCalls} sub={`Man: ${metrics.totalCalls} completed`} icon={<Phone className="w-4 h-4" />} color="blue" />
@@ -627,7 +630,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             <div style={{display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '24px'}}>
               {([
                 {label: 'Pipeline EAV', value: `$${(metrics.totalEAV/1000000).toFixed(1)}M`, sub: 'Target Achievement', color: '#1d4ed8', bg: '#eff6ff'},
-                {label: 'New Opps', value: metrics.totalNewOpps, sub: 'Weekly Growth', color: '#059669', bg: '#f0fdf4'},
+                {label: 'Total Opps', value: metrics.totalOpps, sub: 'Active Pipeline', color: '#059669', bg: '#f0fdf4'},
                 {label: 'Signed Paperwork', value: metrics.totalSigned, sub: 'Governance Win', color: '#7c3aed', bg: '#f5f3ff'},
                 {label: 'New Biz Started', value: metrics.totalNewBiz, sub: 'Live Freight', color: '#d97706', bg: '#fffbeb'},
                 {label: 'Team Calls', value: metrics.totalCalls, sub: `CRM: ${metrics.totalCrmCalls} Touch`, color: '#1d4ed8', bg: '#eff6ff'},

@@ -614,7 +614,20 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
           </Card>
 
           <Card className="border shadow-md">
-            <CardHeader><CardTitle className="text-lg font-black">Commitments for Week Ahead</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-black">Commitments for Week Ahead</CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setActionPlan(['', '', '', '', '']);
+                  toast({ title: "Commitments Cleared", description: "All actions have been reset to blank." });
+                }}
+                className="h-8 px-3 text-red-500 hover:text-red-700 hover:bg-red-50 font-bold text-[10px] uppercase tracking-wider"
+              >
+                Clear All
+              </Button>
+            </CardHeader>
             <CardContent className="grid grid-cols-1 gap-3">
               {actionPlan.map((action, idx) => (
                 <div key={idx} className="flex gap-4 items-start group">

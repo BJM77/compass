@@ -42,7 +42,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
   // Load Fact Findings
   const ffQuery = useMemoFirebase(() => {
     if (!db || !userId) return null;
-    return query(collection(db, 'factFindings'), where('userId', '==', userId));
+    return query(collection(db, 'factFindingDocs'), where('userId', '==', userId));
   }, [db, userId]);
   const { data: factFindings } = useCollection(ffQuery);
 

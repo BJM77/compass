@@ -22,10 +22,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import {
   User, Bell, Sparkles, BarChart3, Link2,
   ShieldCheck, Lock, Trash2, Save,
-  Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe, Users, Activity, LayoutDashboard
+  Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe, Users, Activity, LayoutDashboard,
+  LayoutGrid, GripVertical, EyeOff
 } from 'lucide-react';
 
 import { ReportingToolsSettings, CustomDashboard, ReportWidget } from './reporting-tools-settings';
+
+export interface DashboardWidgetConfig {
+  id: string;
+  name: string;
+  width: 1 | 2 | 3;
+  visible: boolean;
+}
 
 interface AppSettings {
   displayName: string;
@@ -59,7 +67,27 @@ interface AppSettings {
   sessionTimeoutMinutes: number;
   customDashboards: CustomDashboard[];
   reportWidgets: ReportWidget[];
+  dashboardLayout?: DashboardWidgetConfig[];
 }
+
+export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetConfig[] = [
+  { id: 'kpi-cards', name: 'KPI Summary Cards (Rev YTD, Forecast, Yield, Velocity)', width: 3, visible: true },
+  { id: 'crm-summary', name: 'CRM Performance Summary Panel (My Perf / Team Combined)', width: 3, visible: true },
+  { id: 'smart-goals', name: 'SMART Goals Tracker', width: 2, visible: true },
+  { id: 'next-best-actions', name: 'Next Best Actions Recommendation Card', width: 1, visible: true },
+  { id: 'strategic-nudge', name: 'Strategic Nudge (30-60-90 Success Plan)', width: 1, visible: true },
+  { id: 'behavioral-pulse', name: 'Behavioral Pulse & Alerts', width: 1, visible: true },
+  { id: 'voice-logger', name: 'Voice-to-Text Outcome Logger', width: 1, visible: true },
+  { id: 'habit-tracker', name: 'Rapid Habit Tracker', width: 1, visible: true },
+  { id: 'historical-activity', name: 'Historical Activity Tracker', width: 1, visible: true },
+  { id: 'territory-playbook', name: 'Territory Playbook (Flex Pool)', width: 2, visible: true },
+  { id: 'monday-planning', name: 'Monday Planning (Weekly Goals)', width: 3, visible: false },
+  { id: 'customer-review', name: 'Customers Table (Pipeline Review)', width: 3, visible: false },
+  { id: 'pipeline-review', name: 'Opportunities Table & AI Whisperer', width: 3, visible: false },
+  { id: 'friday-synthesis', name: 'Friday Synthesis (Weekly Submission)', width: 3, visible: false },
+  { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false },
+  { id: 'success-plan', name: 'Success Plan Details (Onboarding)', width: 3, visible: false },
+];
 
 const DEFAULTS: AppSettings = {
   displayName: '',
@@ -93,11 +121,13 @@ const DEFAULTS: AppSettings = {
   sessionTimeoutMinutes: 480,
   customDashboards: [],
   reportWidgets: [],
+  dashboardLayout: DEFAULT_DASHBOARD_LAYOUT,
 };
 
 const SECTIONS = [
   { id: 'profile',      label: 'My Profile',       icon: User,       leaderOnly: false },
   { id: 'notifications',label: 'Notifications',    icon: Bell,       leaderOnly: false },
+  { id: 'dashboard-design', label: 'Dashboard Design', icon: LayoutGrid, leaderOnly: true },
   { id: 'reporting',    label: 'Reporting Tools',  icon: LayoutDashboard, leaderOnly: true  },
   { id: 'ai',           label: 'AI & Intelligence', icon: Sparkles,  leaderOnly: true  },
   { id: 'scoring',      label: 'Scoring Weights',  icon: BarChart3,  leaderOnly: true  },
@@ -238,7 +268,7 @@ export function SettingsHub() {
       await setDoc(doc(db, 'appSettings', user.uid), { ...personal, updatedAt: serverTimestamp() }, { merge: true });
 
       if (isLeader) {
-        const globalKeys: (keyof AppSettings)[] = ['escalationAlertsEnabled', 'escalationWeeksThreshold', 'leaderPulseEnabled', 'aiModel', 'briefCacheTTLDays', 'promptTone', 'aiUsageLoggingEnabled', 'autoGenerateBriefs', 'stallingDaysThreshold', 'deadRolloverCount', 'gracePeriodDays', 'velocityAuditDays', 'weightRevenue', 'weightActivity', 'weightBehaviour', 'salesforceOrgUrl', 'crmSyncSchedule', 'duplicateDetectionMode', 'autoPurgeEnabled', 'customDashboards', 'reportWidgets'];
+        const globalKeys: (keyof AppSettings)[] = ['escalationAlertsEnabled', 'escalationWeeksThreshold', 'leaderPulseEnabled', 'aiModel', 'briefCacheTTLDays', 'promptTone', 'aiUsageLoggingEnabled', 'autoGenerateBriefs', 'stallingDaysThreshold', 'deadRolloverCount', 'gracePeriodDays', 'velocityAuditDays', 'weightRevenue', 'weightActivity', 'weightBehaviour', 'salesforceOrgUrl', 'crmSyncSchedule', 'duplicateDetectionMode', 'autoPurgeEnabled', 'customDashboards', 'reportWidgets', 'dashboardLayout'];
         const global: Partial<AppSettings> = {};
         globalKeys.forEach(k => { (global as any)[k] = settings[k]; });
         await setDoc(doc(db, 'appSettings', 'global'), { ...global, updatedAt: serverTimestamp() }, { merge: true });
@@ -332,6 +362,134 @@ export function SettingsHub() {
               onDashboardsChange={(d) => set('customDashboards', d)}
               onWidgetsChange={(w) => set('reportWidgets', w)}
             />
+          )}
+
+          {activeSection === 'dashboard-design' && isLeader && (
+            <SectionCard 
+              title="Dashboard Designer" 
+              description="Customize the layout, widget widths, and order for all BDM and AM dashboards globally. Drag cards to reorder." 
+              icon={LayoutGrid}
+            >
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                {/* Configuration side */}
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Layout Configurations</h3>
+                  <div className="space-y-2">
+                    {(settings.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT).map((widget, index) => {
+                      const layout = settings.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT;
+                      return (
+                        <div
+                          key={widget.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', String(index));
+                          }}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const draggedIdx = Number(e.dataTransfer.getData('text/plain'));
+                            if (isNaN(draggedIdx) || draggedIdx === index) return;
+                            const newLayout = [...layout];
+                            const [draggedItem] = newLayout.splice(draggedIdx, 1);
+                            newLayout.splice(index, 0, draggedItem);
+                            set('dashboardLayout', newLayout);
+                          }}
+                          className={cn(
+                            "flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all cursor-move",
+                            !widget.visible && "opacity-60 bg-slate-50"
+                          )}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <GripVertical className="w-4 h-4 text-slate-400 shrink-0 cursor-grab" />
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-800 truncate">{widget.name}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className={cn(
+                                  "text-[8px] font-black uppercase px-1 py-0.5 rounded",
+                                  widget.visible ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-slate-100 text-slate-500 border border-slate-200"
+                                )}>
+                                  {widget.visible ? 'Visible' : 'Hidden'}
+                                </span>
+                                <span className="text-[8px] font-bold text-slate-400">
+                                  {widget.width} Column{widget.width > 1 ? 's' : ''} wide
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
+                            {/* Width Selector */}
+                            <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+                              {[1, 2, 3].map(w => (
+                                <button
+                                  key={w}
+                                  onClick={() => {
+                                    const newLayout = layout.map(item => 
+                                      item.id === widget.id ? { ...item, width: w as 1 | 2 | 3 } : item
+                                    );
+                                    set('dashboardLayout', newLayout);
+                                  }}
+                                  className={cn(
+                                    "px-2 py-0.5 text-[9px] font-black rounded-md transition-colors",
+                                    widget.width === w ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-700"
+                                  )}
+                                >
+                                  {w} Col
+                                </button>
+                              ))}
+                            </div>
+
+                            {/* Visibility Switch */}
+                            <Switch 
+                              checked={widget.visible} 
+                              onCheckedChange={(checked) => {
+                                const newLayout = layout.map(item => 
+                                  item.id === widget.id ? { ...item, visible: checked } : item
+                                );
+                                set('dashboardLayout', newLayout);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Live Preview side */}
+                <div className="border border-slate-200 bg-slate-50 rounded-2xl p-4 flex flex-col h-fit">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Grid Layout Preview</h3>
+                    <Badge className="bg-slate-200 text-slate-700 border-none font-bold text-[8px] uppercase">3-Col Grid</Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2">
+                    {(settings.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT)
+                      .filter(widget => widget.visible)
+                      .map((widget) => (
+                        <div
+                          key={widget.id}
+                          className={cn(
+                            "p-3 rounded-lg border border-slate-200 bg-white shadow-sm flex flex-col justify-between min-h-[70px] relative transition-all",
+                            widget.width === 1 ? "col-span-1" : widget.width === 2 ? "col-span-2" : "col-span-3"
+                          )}
+                        >
+                          <p className="text-[10px] font-bold text-slate-700 leading-tight uppercase truncate">{widget.name.split(' (')[0]}</p>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="text-[8px] font-black text-slate-400 bg-slate-100 px-1 py-0.5 rounded">Span {widget.width}</span>
+                            <span className="w-2.5 h-2.5 rounded-full bg-primary/20 animate-pulse" />
+                          </div>
+                        </div>
+                      ))}
+                    {(settings.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT).filter(w => w.visible).length === 0 && (
+                      <div className="col-span-3 p-8 border-2 border-dashed border-slate-200 rounded-xl text-center text-xs font-bold text-slate-400 uppercase">
+                        All widgets hidden
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </SectionCard>
           )}
 
           {activeSection === 'ai' && isLeader && (
