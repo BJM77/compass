@@ -464,27 +464,52 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
 
       <div className="space-y-6">
         {/* Dynamic Sticky Anchor Navigation Bar */}
-        <div className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide sticky top-[104px] z-20">
-          {layout.filter(w => w.visible).map(widget => (
-            <button
-              key={widget.id}
-              onClick={() => {
-                // Automatically expand target widget if collapsed
-                setCollapsedWidgets(prev => ({ ...prev, [widget.id]: false }));
-                setTimeout(() => {
-                  const element = document.getElementById(`widget-${widget.id}`);
-                  if (element) {
-                    const yOffset = -160;
-                    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                    window.scrollTo({ top: y, behavior: 'smooth' });
-                  }
-                }, 100);
-              }}
-              className="flex-1 text-center rounded-lg px-4 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest text-slate-600 hover:bg-slate-50 hover:text-primary transition-all whitespace-nowrap"
-            >
-              {widget.name.split(' (')[0].split(' Panel')[0].split(' Tracker')[0].split(' Cards')[0].split(' Table')[0].split(' Recommendation')[0]}
-            </button>
-          ))}
+        <div className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20">
+          {layout.filter(w => w.visible).map(widget => {
+            // Map widget IDs to requested shortened names
+            const shortNames: Record<string, string> = {
+              'kpi-cards': 'Summary',
+              'voice-logger': 'Logger',
+              'crm-summary': 'Summary',
+              'monday-planning': 'Monday Planning',
+              'friday-synthesis': 'Friday Synthesis',
+              'call-prep': 'Planning',
+              'smart-goals': 'Goals',
+              'success-plan': 'Plan Details',
+              // Fallbacks for other widgets
+              'behavioral-pulse': 'Pulse',
+              'next-best-actions': 'Next Actions',
+              'strategic-nudge': 'Nudge',
+              'territory-playbook': 'Playbook',
+              'habit-tracker': 'Habits',
+              'historical-activity': 'History',
+              'customer-review': 'Customers',
+              'pipeline-review': 'Opportunities'
+            };
+
+            const displayName = shortNames[widget.id] || widget.name.split(' (')[0].split(' Panel')[0].split(' Tracker')[0].split(' Cards')[0].split(' Table')[0].split(' Recommendation')[0];
+
+            return (
+              <button
+                key={widget.id}
+                onClick={() => {
+                  // Automatically expand target widget if collapsed
+                  setCollapsedWidgets(prev => ({ ...prev, [widget.id]: false }));
+                  setTimeout(() => {
+                    const element = document.getElementById(`widget-${widget.id}`);
+                    if (element) {
+                      const yOffset = -160;
+                      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                      window.scrollTo({ top: y, behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+                className="flex-1 text-center rounded-lg px-4 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest text-slate-600 hover:bg-slate-50 hover:text-primary transition-all whitespace-nowrap"
+              >
+                {displayName}
+              </button>
+            );
+          })}
         </div>
 
         {/* Dynamic Grid Layout */}
@@ -496,7 +521,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                 key={widget.id} 
                 id={`widget-${widget.id}`}
                 className={cn(
-                  widget.width === 1 ? "col-span-1" : widget.width === 2 ? "col-span-2" : "col-span-1 lg:col-span-3",
+                  widget.width === 1 ? "col-span-1" : widget.width === 2 ? "col-span-1 lg:col-span-2" : "col-span-1 lg:col-span-3",
                   "flex flex-col gap-4 border border-slate-200 bg-white rounded-3xl p-5 shadow-sm scroll-mt-40 transition-all duration-300 h-fit"
                 )}
               >

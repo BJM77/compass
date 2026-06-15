@@ -141,71 +141,73 @@ function RecordsModal({
 
         <div className="flex-1 relative overflow-hidden my-2">
           <ScrollArea className="h-full w-full pr-4">
-            <UiTable className="text-xs">
-              <TableHeader>
-                <TableRow className="uppercase text-[9px] font-black tracking-widest bg-slate-50 sticky top-0 z-10 select-none">
-                  <TableHead onClick={() => handleSort('account')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
-                    Account / Customer {renderSortIcon('account')}
-                  </TableHead>
-                  <TableHead onClick={() => handleSort('owner')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
-                    Owner {renderSortIcon('owner')}
-                  </TableHead>
-                  {type !== 'CUST' && (
-                    <TableHead onClick={() => handleSort('stage')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
-                      Opportunity / Stage {renderSortIcon('stage')}
+            <div className="overflow-x-auto">
+              <UiTable className="text-xs">
+                <TableHeader>
+                  <TableRow className="uppercase text-[9px] font-black tracking-widest bg-slate-50 sticky top-0 z-10 select-none">
+                    <TableHead onClick={() => handleSort('account')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      Account / Customer {renderSortIcon('account')}
                     </TableHead>
-                  )}
-                  {type !== 'CUST' && (
-                    <TableHead onClick={() => handleSort('pipeline')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
-                      Pipeline $ {renderSortIcon('pipeline')}
+                    <TableHead onClick={() => handleSort('owner')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      Owner {renderSortIcon('owner')}
                     </TableHead>
-                  )}
-                  <TableHead onClick={() => handleSort('revFY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
-                    YTD Rev FY {renderSortIcon('revFY')}
-                  </TableHead>
-                  <TableHead onClick={() => handleSort('revLY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
-                    YTD Rev LY {renderSortIcon('revLY')}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRecords.map((r, idx) => (
-                  <TableRow key={r.id || idx} className="hover:bg-slate-50/80 transition-colors font-medium">
-                    <TableCell className="font-black text-primary">
-                      <div>{r.pipeline || r.accountName || r.accountMasterCode}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium">{r.businessUnit || r.accountMasterCode}</div>
-                    </TableCell>
-                    <TableCell className="font-bold text-slate-600">{r.userName || r.userId}</TableCell>
                     {type !== 'CUST' && (
-                      <TableCell>
-                        <div className="font-bold text-slate-800 truncate max-w-[200px]">{r.opportunityName || '—'}</div>
-                        <Badge variant="outline" className="text-[8px] uppercase font-black bg-slate-100 text-slate-700 mt-0.5">
-                          {r.stage || '—'}
-                        </Badge>
-                      </TableCell>
+                      <TableHead onClick={() => handleSort('stage')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                        Opportunity / Stage {renderSortIcon('stage')}
+                      </TableHead>
                     )}
                     {type !== 'CUST' && (
-                      <TableCell className="text-right font-black text-accent">
-                        {fmt(Number(r.value) || 0)}
-                      </TableCell>
+                      <TableHead onClick={() => handleSort('pipeline')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                        Pipeline $ {renderSortIcon('pipeline')}
+                      </TableHead>
                     )}
-                    <TableCell className="text-right font-black text-emerald-600">
-                      {fmt(Number(r.currentRevenue) || 0)}
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-slate-400">
-                      {fmt(Number(r.lastYearRevenue) || 0)}
-                    </TableCell>
+                    <TableHead onClick={() => handleSort('revFY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      YTD Rev FY {renderSortIcon('revFY')}
+                    </TableHead>
+                    <TableHead onClick={() => handleSort('revLY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      YTD Rev LY {renderSortIcon('revLY')}
+                    </TableHead>
                   </TableRow>
-                ))}
-                {filteredRecords.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={type === 'CUST' ? 4 : 6} className="text-center py-16 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                      {records.length > 0 ? 'No matching records found for filter criteria.' : 'No matching records available for inspection.'}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </UiTable>
+                </TableHeader>
+                <TableBody>
+                  {filteredRecords.map((r, idx) => (
+                    <TableRow key={r.id || idx} className="hover:bg-slate-50/80 transition-colors font-medium">
+                      <TableCell className="font-black text-primary">
+                        <div>{r.pipeline || r.accountName || r.accountMasterCode}</div>
+                        <div className="text-[10px] text-muted-foreground font-medium">{r.businessUnit || r.accountMasterCode}</div>
+                      </TableCell>
+                      <TableCell className="font-bold text-slate-600">{r.userName || r.userId}</TableCell>
+                      {type !== 'CUST' && (
+                        <TableCell>
+                          <div className="font-bold text-slate-800 truncate max-w-[200px]">{r.opportunityName || '—'}</div>
+                          <Badge variant="outline" className="text-[8px] uppercase font-black bg-slate-100 text-slate-700 mt-0.5">
+                            {r.stage || '—'}
+                          </Badge>
+                        </TableCell>
+                      )}
+                      {type !== 'CUST' && (
+                        <TableCell className="text-right font-black text-accent">
+                          {fmt(Number(r.value) || 0)}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-right font-black text-emerald-600">
+                        {fmt(Number(r.currentRevenue) || 0)}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-slate-400">
+                        {fmt(Number(r.lastYearRevenue) || 0)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredRecords.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={type === 'CUST' ? 4 : 6} className="text-center py-16 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                        {records.length > 0 ? 'No matching records found for filter criteria.' : 'No matching records available for inspection.'}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </UiTable>
+            </div>
           </ScrollArea>
         </div>
       </DialogContent>
@@ -454,7 +456,7 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Individual Breakdown (Click row to inspect accounts)</p>
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-100 overflow-hidden shadow-inner">
+              <div className="rounded-2xl border border-slate-100 overflow-x-auto shadow-inner">
                 <ScrollArea className="max-h-72">
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 text-[8px] font-black uppercase tracking-widest border-b border-slate-100 sticky top-0 z-10">

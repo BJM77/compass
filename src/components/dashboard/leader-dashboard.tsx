@@ -408,31 +408,33 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
             </div>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-0">
-            <Table>
-              <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
-                <TableRow>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">BDM / AM</TableHead>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Account Name</TableHead>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Code</TableHead>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">YTD Revenue</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRevRecords.map((r, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium text-xs text-primary px-6">{userMap.get(r.userId) || r.userName || r.userId}</TableCell>
-                    <TableCell className="font-bold text-sm px-6">{r.pipeline || r.accountName || '—'}</TableCell>
-                    <TableCell className="text-xs text-slate-500 px-6">{r.accountMasterCode || '—'}</TableCell>
-                    <TableCell className="text-right font-black px-6">${(Number(r.currentRevenue) || 0).toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
-                {filteredRevRecords.length === 0 && (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-12 font-bold text-slate-400">No matching records found.</TableCell>
+                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">BDM / AM</TableHead>
+                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Account Name</TableHead>
+                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Code</TableHead>
+                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">YTD Revenue</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredRevRecords.map((r, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium text-xs text-primary px-6">{userMap.get(r.userId) || r.userName || r.userId}</TableCell>
+                      <TableCell className="font-bold text-sm px-6">{r.pipeline || r.accountName || '—'}</TableCell>
+                      <TableCell className="text-xs text-slate-500 px-6">{r.accountMasterCode || '—'}</TableCell>
+                      <TableCell className="text-right font-black px-6">${(Number(r.currentRevenue) || 0).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredRevRecords.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-12 font-bold text-slate-400">No matching records found.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -462,29 +464,31 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
             </div>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-0">
-            <Table>
-              <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
-                <TableRow>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Team Member</TableHead>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">CRM (Live)</TableHead>
-                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">Manual (Live)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredActivityRecords.map((act, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-bold text-sm text-primary px-6">{userMap.get(act.userId) || act.userId}</TableCell>
-                    <TableCell className="text-right font-black text-blue-600 px-6">{openModal === 'APPS' ? (act.crmApps || 0) : (act.crmCalls || 0)}</TableCell>
-                    <TableCell className="text-right font-black text-slate-700 px-6">{openModal === 'APPS' ? (act.apps || 0) : (act.calls || 0)}</TableCell>
-                  </TableRow>
-                ))}
-                {filteredActivityRecords.length === 0 && (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-12 font-bold text-slate-400">No matching activity data found.</TableCell>
+                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Team Member</TableHead>
+                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">CRM (Live)</TableHead>
+                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">Manual (Live)</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredActivityRecords.map((act, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-bold text-sm text-primary px-6">{userMap.get(act.userId) || act.userId}</TableCell>
+                      <TableCell className="text-right font-black text-blue-600 px-6">{openModal === 'APPS' ? (act.crmApps || 0) : (act.crmCalls || 0)}</TableCell>
+                      <TableCell className="text-right font-black text-slate-700 px-6">{openModal === 'APPS' ? (act.apps || 0) : (act.calls || 0)}</TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredActivityRecords.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-12 font-bold text-slate-400">No matching activity data found.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -165,23 +165,6 @@ export default function LoginPage() {
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Authorize Connection"}
               </Button>
             </form>
-
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
-                <span className="bg-white px-2 text-muted-foreground">Internal Node</span>
-              </div>
-            </div>
-
-            <Button 
-              variant="outline" 
-              onClick={handleDemoBypass}
-              className="w-full border-accent/20 text-accent hover:bg-accent/5 font-bold h-11"
-            >
-              Demo Access (Bypass)
-            </Button>
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
              <div className="text-[10px] text-center text-muted-foreground/60 px-4 leading-relaxed font-medium">
