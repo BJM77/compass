@@ -85,7 +85,7 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetConfig[] = [
   { id: 'customer-review', name: 'Customers Table (Pipeline Review)', width: 3, visible: false },
   { id: 'pipeline-review', name: 'Opportunities Table & AI Whisperer', width: 3, visible: false },
   { id: 'friday-synthesis', name: 'Friday Synthesis (Weekly Submission)', width: 3, visible: false },
-  { id: 'twiw', name: 'The Week That Was (TWIW)', width: 3, visible: true },
+  { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true },
   { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false },
   { id: 'success-plan', name: 'Success Plan Details (Onboarding)', width: 3, visible: false },
 ];

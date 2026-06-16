@@ -117,7 +117,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           setStatus('NONE');
         }
       } catch (err) {
-        console.error("Failed to load TWIW submission", err);
+        console.error("Failed to load TWTW submission", err);
       } finally {
         setIsLoading(false);
       }
@@ -329,11 +329,11 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
       toast({
         title: submitState === 'SUBMITTED' ? "Report Submitted" : "Draft Saved",
         description: submitState === 'SUBMITTED' 
-          ? "Your TWIW report has been published to Leadership." 
+          ? "Your TWTW report has been published to Leadership." 
           : "Your updates were successfully saved as a draft."
       });
     } catch (err) {
-      toast({ variant: "destructive", title: "Operation Failed", description: "Failed to upload TWIW report." });
+      toast({ variant: "destructive", title: "Operation Failed", description: "Failed to upload TWTW report." });
     } finally {
       setIsSaving(false);
       setIsSubmitting(false);
@@ -344,7 +344,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   const collatedOutput = useMemo(() => {
     if (!allSubmissions || allSubmissions.length === 0) return "No submissions available to collate yet.";
 
-    let md = `# THE WEEK THAT WAS (TWIW) - Week ${selectedWeek.split('-')[1]}\n`;
+    let md = `# THE WEEK THAT WAS (TWTW) - Week ${selectedWeek.split('-')[1]}\n`;
     md += `Collated Master Report for WA Territory\n\n`;
 
     // 1. Key Wins
@@ -441,7 +441,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
       {/* Header Bar */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div className="space-y-1">
-          <h1 className="text-xl md:text-3xl font-black font-headline text-primary tracking-tighter uppercase">TWIW: The Week That Was</h1>
+          <h1 className="text-xl md:text-3xl font-black font-headline text-primary tracking-tighter uppercase">TWTW: The Week That Was</h1>
           <p className="text-muted-foreground text-xs font-bold uppercase tracking-tight">Standardized Team Performance Reporting</p>
         </div>
 

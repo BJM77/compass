@@ -86,7 +86,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     const fridayIdx = result.findIndex(w => w.id === 'friday-synthesis');
     
     // If twiw exists but is not right after friday-synthesis, remove it so we can re-insert it
-    let twiwWidget: DashboardWidgetConfig = { id: 'twiw', name: 'The Week That Was (TWIW)', width: 3, visible: true };
+    let twiwWidget: DashboardWidgetConfig = { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true };
     if (twiwIdx !== -1) {
       twiwWidget = result.splice(twiwIdx, 1)[0];
     }

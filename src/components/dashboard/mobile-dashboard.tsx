@@ -163,8 +163,8 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
       'FACT_FINDING': 'Fact Finding',
       'WHITE_SPACE': 'White Space',
       'MONDAY_PLANNING': 'Monday Planning',
-      'FRIDAY_SYNTHESIS': 'Friday Synthesis',
-      'TWIW': 'The Week That Was',
+      'FRIDAY_SYNTHESIS': 'Friday Report',
+      'TWIW': 'TWTW',
       'TEAM': 'Team Governance'
     };
     return titles[module] || 'Dashboard';
@@ -176,7 +176,7 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
     { id: 'WHITE_SPACE' as MobileModule, label: 'White Space', icon: LayoutGrid },
     { id: 'MONDAY_PLANNING' as MobileModule, label: 'Monday Plan', icon: Target },
     { id: 'FRIDAY_SYNTHESIS' as MobileModule, label: 'Friday Report', icon: Send },
-    { id: 'TWIW' as MobileModule, label: 'TWIW', icon: CalendarCheck },
+    { id: 'TWIW' as MobileModule, label: 'TWTW', icon: CalendarCheck },
   ];
 
   return (
