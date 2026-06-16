@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 export const MOBILE_BREAKPOINT = 768;
 
-export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+export function useIsMobile(): boolean | undefined {
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
     const checkMobile = () => {

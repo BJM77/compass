@@ -277,14 +277,14 @@ export default function DashboardPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!loading && isMobile && !isRedirecting) {
+    if (!loading && isMobile === true && !isRedirecting) {
       setIsRedirecting(true);
       router.push('/dashboard/mobile');
     }
   }, [loading, isMobile, router, isRedirecting]);
 
-  // If on mobile, don't render the desktop dashboard
-  if (isMobile) {
+  // If on mobile or determining, don't render the desktop dashboard
+  if (isMobile === true || isMobile === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F6F8]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

@@ -22,7 +22,7 @@ export default function MobileDashboardPage() {
       }
 
       // If on desktop, redirect to the main dashboard
-      if (!isMobile && !isRedirecting) {
+      if (isMobile === false && !isRedirecting) {
         setIsRedirecting(true);
         router.push('/dashboard');
       }
