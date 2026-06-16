@@ -5,6 +5,7 @@ import { useAuth, UserProfile } from '@/contexts/auth-context';
 import { KPICard } from './kpi-card';
 import { TerritoryPlaybook } from './territory-playbook';
 import { OnboardingPlan } from './onboarding-plan';
+import { TWIWView } from './twiw-view';
 import { ActivityLogger } from './activity-logger';
 import { WeeklyGoals } from './weekly-goals';
 import { SmartGoalsView } from './smart-goals-view';
@@ -32,7 +33,7 @@ import { doc, collection, query, where, orderBy, limit } from 'firebase/firestor
 import { format } from 'date-fns';
 import { jsPDF } from "jspdf";
 import { computeMomentum } from '@/lib/momentum';
-import { getCurrentWeek, formatEAV } from '@/lib/utils';
+import { getCurrentWeek, formatEAV, getWidgetSpanClass } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -77,7 +78,29 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     return doc(db, 'appSettings', 'global');
   }, [db]);
   const { data: globalSettings } = useDoc(settingsDocRef);
-  const layout = (globalSettings?.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT) as DashboardWidgetConfig[];
+  const rawLayout = (globalSettings?.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT) as DashboardWidgetConfig[];
+  
+  const layout = useMemo(() => {
+    let result = [...rawLayout];
+    const twiwIdx = result.findIndex(w => w.id === 'twiw');
+    const fridayIdx = result.findIndex(w => w.id === 'friday-synthesis');
+    
+    // If twiw exists but is not right after friday-synthesis, remove it so we can re-insert it
+    let twiwWidget: DashboardWidgetConfig = { id: 'twiw', name: 'The Week That Was (TWIW)', width: 3, visible: true };
+    if (twiwIdx !== -1) {
+      twiwWidget = result.splice(twiwIdx, 1)[0];
+    }
+    
+    // Re-insert right after friday-synthesis, or push to end if not found
+    const newFridayIdx = result.findIndex(w => w.id === 'friday-synthesis');
+    if (newFridayIdx !== -1) {
+      result.splice(newFridayIdx + 1, 0, twiwWidget);
+    } else {
+      result.push(twiwWidget);
+    }
+    
+    return result;
+  }, [rawLayout]);
 
   const { pipelineReviews: allDeals } = usePipelineData();
 
@@ -433,6 +456,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         );
       case 'friday-synthesis':
         return <BDMWeeklySubmission userId={userId || ''} userName={profile?.name || 'BDM'} />;
+      case 'twiw':
+        return <TWIWView userId={userId || ''} isLeader={false} />;
       case 'call-prep':
         return <CallPlanning userId={userId || ''} />;
       case 'success-plan':
@@ -464,7 +489,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
 
       <div className="space-y-6">
         {/* Dynamic Sticky Anchor Navigation Bar */}
-        <div className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20">
+        <div className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20 max-w-full">
           {layout.filter(w => w.visible).map(widget => {
             // Map widget IDs to requested shortened names
             const shortNames: Record<string, string> = {
@@ -473,6 +498,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
               'crm-summary': 'Summary',
               'monday-planning': 'Monday Planning',
               'friday-synthesis': 'Friday Synthesis',
+              'twiw': 'The Week That Was',
               'call-prep': 'Planning',
               'smart-goals': 'Goals',
               'success-plan': 'Plan Details',
@@ -513,16 +539,17 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         </div>
 
         {/* Dynamic Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {layout.filter(w => w.visible).map(widget => {
             const isCollapsed = collapsedWidgets[widget.id] ?? false;
+            const spanClass = getWidgetSpanClass(widget.width as 1 | 2 | 3);
             return (
               <div 
                 key={widget.id} 
                 id={`widget-${widget.id}`}
                 className={cn(
-                  widget.width === 1 ? "col-span-1" : widget.width === 2 ? "col-span-1 lg:col-span-2" : "col-span-1 lg:col-span-3",
-                  "flex flex-col gap-4 border border-slate-200 bg-white rounded-3xl p-5 shadow-sm scroll-mt-40 transition-all duration-300 h-fit"
+                  spanClass,
+                  "flex flex-col gap-4 border border-slate-200 bg-white rounded-3xl p-4 md:p-5 shadow-sm scroll-mt-40 transition-all duration-300 h-fit min-w-0 overflow-hidden"
                 )}
               >
                 {/* Header bar with collapse toggle */}

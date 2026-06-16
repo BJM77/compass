@@ -229,7 +229,7 @@ function SummaryColumn({
     <div className={`flex-1 rounded-2xl ${large ? 'p-6' : 'p-4'} space-y-4 ${accent ? 'bg-primary/5 border border-primary/10' : 'bg-slate-50 border border-slate-100'}`}>
       <p className={`font-black uppercase tracking-widest ${large ? 'text-xs mb-4' : 'text-[9px]'} ${accent ? 'text-primary' : 'text-slate-500'}`}>{label}</p>
 
-      <div className={large ? "grid grid-cols-2 gap-8" : ""}>
+      <div className={large ? "grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8" : ""}>
       {/* Opportunities */}
       <div className="space-y-3">
         <div className="flex items-center justify-between mb-1">
@@ -456,9 +456,8 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Individual Breakdown (Click row to inspect accounts)</p>
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-100 overflow-x-auto shadow-inner">
-                <ScrollArea className="max-h-72">
-                  <table className="w-full text-sm">
+              <div className="rounded-2xl border border-slate-100 overflow-x-auto overflow-y-auto max-h-72 shadow-inner">
+                  <table className="w-full text-sm min-w-[700px]">
                     <thead className="bg-slate-50 text-[8px] font-black uppercase tracking-widest border-b border-slate-100 sticky top-0 z-10">
                       <tr>
                         <th className="px-4 py-2.5 text-left">BDM / AM</th>
@@ -476,7 +475,7 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                     {/* Team total footer */}
                     <tfoot className="bg-slate-900 text-white text-[9px] font-black uppercase">
                       <tr>
-                        <td className="px-4 py-3">TEAM TOTAL</td>
+                        <td className="px-4 py-3 sticky left-0 bg-slate-900">TEAM TOTAL</td>
                         <td className="px-4 py-3 text-center">{summary.team.opportunityCount}</td>
                         <td className="px-4 py-3 text-right">{fmt(summary.team.opportunityValue)}</td>
                         <td className="px-4 py-3 text-center">{summary.team.customerCount}</td>
@@ -492,7 +491,6 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                       </tr>
                     </tfoot>
                   </table>
-                </ScrollArea>
               </div>
             </div>
           )}

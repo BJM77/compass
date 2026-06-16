@@ -7,6 +7,25 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Determines the appropriate Tailwind col-span class for a widget
+ * based on its configured width and the current screen size.
+ */
+export function getWidgetSpanClass(width: 1 | 2 | 3): string {
+  // On small screens (mobile), we use a 2-column grid.
+  // A widget configured as width: 3 will be forced to take up 2 columns.
+  // width: 1 and width: 2 will take up 1 column each.
+  if (width === 3) {
+    return 'col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-3';
+  }
+  // width: 2 also takes up 2 columns on mobile to keep them full-width.
+  if (width === 2) {
+    return 'col-span-2 sm:col-span-2 md:col-span-2 lg:col-span-2';
+  }
+  // width: 1 takes up 1 column on all screens.
+  return 'col-span-1 sm:col-span-1 md:col-span-1 lg:col-span-1';
+}
+
+/**
  * Intelligent Salesforce Router
  * 
  * Priority 1: If a Salesforce Record ID is provided, navigate directly to the record.

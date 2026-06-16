@@ -91,7 +91,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
       // Individual View: 4 cards or rows for the past 4 weeks
       return (
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {pastWeeks.map(week => {
+          {pastWeeks.map((week, idx) => {
             const data = progressData?.find(d => d.week === week);
             const calls = Number(data?.calls || 0);
             const apps = Number(data?.apps || 0);
@@ -104,7 +104,10 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   const myUser = allUsers?.find(u => u.id === userId);
                   setSelectedCell({ userId, userName: myUser?.name || 'BDM', week });
                 }}
-                className="min-w-[120px] bg-slate-50 border border-slate-100 rounded-xl p-3 shrink-0 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100/80 transition-all hover:scale-[1.02]"
+                className={cn(
+                  "min-w-[120px] bg-slate-50 border border-slate-100 rounded-xl p-3 shrink-0 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100/80 transition-all hover:scale-[1.02]",
+                  idx >= 2 && "hidden sm:flex"
+                )}
               >
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1">
                   Wk {week.split('-')[1]}
@@ -138,8 +141,8 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
           <thead className="bg-slate-50 uppercase text-[9px] font-black tracking-widest border-b text-slate-500">
             <tr>
               <th className="px-4 py-3 text-left">BDM</th>
-              {pastWeeks.map(week => (
-                <th key={week} className="px-4 py-3 text-center">
+              {pastWeeks.map((week, idx) => (
+                <th key={week} className={cn("px-4 py-3 text-center", idx >= 2 && "hidden sm:table-cell")}>
                   Wk {week.split('-')[1]}
                   {week === currentWeek && <span className="text-accent ml-1">*</span>}
                 </th>
@@ -159,7 +162,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                 >
                   {u.name}
                 </td>
-                {pastWeeks.map(week => {
+                {pastWeeks.map((week, idx) => {
                   const data = progressData?.find(d => d.userId === u.id && d.week === week);
                   const crmCalls = Number(data?.crmCalls || 0);
                   const crmApps = Number(data?.crmApps || 0);
@@ -171,7 +174,10 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                       onClick={() => {
                         setSelectedCell({ userId: u.id, userName: u.name, week });
                       }}
-                      className="px-4 py-3 text-center text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors"
+                      className={cn(
+                        "px-4 py-3 text-center text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors",
+                        idx >= 2 && "hidden sm:table-cell"
+                      )}
                     >
                       <div className="flex items-center justify-center gap-2">
                         <span className="flex items-center gap-1 flex-col" title="Calls">

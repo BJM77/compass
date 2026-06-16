@@ -457,10 +457,10 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
       </header>
 
       {/* Tallies and SMART Goals */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Monthly SMART Goal Panel */}
-        <Card className="border border-slate-200 shadow-md lg:col-span-2">
+        <Card className="border border-slate-200 shadow-md md:col-span-2">
           <CardHeader className="bg-slate-900 text-white flex flex-row items-center justify-between py-4">
             <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-accent">
               <Star className="w-4 h-4" />

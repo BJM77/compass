@@ -265,7 +265,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full space-y-6">
-        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 inline-flex overflow-x-auto scrollbar-hide max-w-full">
+        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 flex overflow-x-auto scrollbar-hide max-w-full">
           <TabsTrigger value="dashboard" className="font-black uppercase text-[10px] tracking-widest"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
           <TabsTrigger value="activity-metrics" className="font-black uppercase text-[10px] tracking-widest"><Activity className="w-3.5 h-3.5 mr-1.5" /> Plan Metrics</TabsTrigger>
           <TabsTrigger value="group-90" className="font-black uppercase text-[10px] tracking-widest">Group 90</TabsTrigger>

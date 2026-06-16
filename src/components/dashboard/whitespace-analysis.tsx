@@ -131,23 +131,26 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black uppercase text-primary flex items-center gap-3"><LayoutGrid className="w-8 h-8 text-accent" /> Whitespace Intelligence</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase text-primary flex items-center gap-3"><LayoutGrid className="w-6 h-6 md:w-8 md:h-8 text-accent shrink-0" /> Whitespace Intelligence</h1>
           <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Manual Strategic Expansion Diagnostic</p>
         </div>
-        <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border shadow-sm">
+        <div className="flex flex-col md:flex-row gap-2 bg-white p-2 rounded-2xl border shadow-sm w-full md:w-auto">
           <Input 
             placeholder="ACCOUNT NAME..." 
             value={accountName} 
             onChange={(e) => setAccountName(e.target.value.toUpperCase())} 
-            className="w-[200px] md:w-[240px] h-10 font-black uppercase text-xs border-none bg-slate-50 focus-visible:ring-0" 
+            className="w-full md:w-[240px] h-10 font-black uppercase text-xs border-none bg-slate-50 focus-visible:ring-0" 
           />
-          <div className="h-6 w-px bg-slate-200 mx-1" />
-          <Button variant="ghost" onClick={handleClear} className="text-red-600 hover:bg-red-50 font-black h-10 px-2 text-[10px] uppercase">
-            <RotateCcw className="w-3.5 h-3.5 mr-1" /> CLEAR
-          </Button>
-          <Button onClick={handleExport} disabled={!accountName || isExporting} className="bg-slate-900 text-white font-black h-10 px-3 text-[10px] uppercase shadow-md gap-2">
-            {isExporting ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <FileDown className="w-3.5 h-3.5" />} EXPORT & ARCHIVE
-          </Button>
+          <div className="hidden md:block h-6 w-px bg-slate-200 mx-1 self-center" />
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Button variant="ghost" onClick={handleClear} className="flex-1 md:flex-none text-red-600 hover:bg-red-50 font-black h-10 px-2 text-[10px] uppercase">
+              <RotateCcw className="w-3.5 h-3.5 mr-1" /> CLEAR
+            </Button>
+            <Button onClick={handleExport} disabled={!accountName || isExporting} className="flex-1 md:flex-none bg-slate-900 text-white font-black h-10 px-3 text-[10px] uppercase shadow-md gap-2">
+              {isExporting ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <FileDown className="w-3.5 h-3.5 shrink-0" />} 
+              <span className="truncate">EXPORT & ARCHIVE</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -158,7 +161,7 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
           const wallet = Number(config.totalWallet) || 0;
           const sharePct = wallet > 0 ? (spend / wallet) * 100 : 0;
           return (
-            <Card key={service} className="border shadow-sm p-6 space-y-4 bg-white hover:shadow-md transition-shadow">
+            <Card key={service} className="border shadow-sm p-4 md:p-6 space-y-4 bg-white hover:shadow-md transition-shadow">
               <div className="text-center space-y-2">
                 <p className="text-xs font-black uppercase text-slate-400">{service}</p>
                 <div className={cn("mx-auto w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-colors", stateColors[config.state])}>
@@ -214,7 +217,7 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
       </div>
 
       <div className="grid grid-cols-1">
-        <Card className="border shadow-xl p-8 bg-white">
+        <Card className="border shadow-xl p-4 md:p-8 bg-white">
           <div className="flex items-center gap-2 mb-8 text-primary">
              <Info className="w-4 h-4 text-accent" />
              <CardTitle className="text-sm font-black uppercase">Strategic Rationale & Barriers</CardTitle>

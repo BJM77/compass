@@ -23,6 +23,7 @@ import { DataExplorer } from '@/components/dashboard/data-explorer';
 import { FactFindingHub } from '@/components/dashboard/fact-finding-hub';
 import { OpsReportForm } from '@/components/dashboard/ops-report-form';
 import { OpsReportReview } from '@/components/dashboard/ops-report-review';
+import { TWIWView } from '@/components/dashboard/twiw-view';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -39,7 +40,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, doc } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/lib/mobile-utils';
 import { format } from 'date-fns';
 import { getCurrentWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
@@ -47,12 +48,13 @@ import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW';
 
 const NAV_ITEMS = [
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
   { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'main' },
   { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
+  { view: 'TWIW' as DashboardView,              label: 'The Week That Was', icon: CalendarCheck,    adminOnly: false, group: 'main' },
   { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
   { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
   { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
@@ -136,6 +138,7 @@ function DashboardContent() {
     if (currentView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
     if (currentView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
     if (currentView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
+    if (currentView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
@@ -268,6 +271,28 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
+  const { user, profile, loading } = useAuth();
+  const router = useRouter();
+  const isMobile = useIsMobile();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && isMobile && !isRedirecting) {
+      setIsRedirecting(true);
+      router.push('/dashboard/mobile');
+    }
+  }, [loading, isMobile, router, isRedirecting]);
+
+  // If on mobile, don't render the desktop dashboard
+  if (isMobile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F6F8]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Desktop version - your existing code
   return (
     <PipelineProvider>
       <DashboardContent />

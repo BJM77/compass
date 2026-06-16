@@ -240,7 +240,8 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
           )}
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <Table className="min-w-[1400px]">
               <TableHeader className="bg-white">
                 <TableRow className="uppercase text-[9px] font-black tracking-widest border-b-2">
@@ -452,6 +453,166 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                 })}
               </TableBody>
             </Table>
+          </div>
+
+          {/* Mobile Card-Based List View */}
+          <div className="block lg:hidden space-y-4 p-4">
+            {isLoading ? (
+              <div className="text-center py-12"><Loader2 className="animate-spin mx-auto text-primary w-8 h-8" /></div>
+            ) : reviews?.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground font-bold uppercase tracking-widest bg-slate-50/50 rounded-2xl border border-slate-100">No opportunities identified.</div>
+            ) : reviews?.map(row => {
+              const momentum = computeMomentum({
+                daysInStage: row.daysInStage || differenceInDays(now, row.createdAt?.toDate?.() || now),
+                rolloverCount: row.rolloverCount || 0,
+                barrierText: row.barriers || '',
+                lastBarrierText: row.lastBarrierText || ''
+              });
+
+              const health = calculateDealHealth(
+                row,
+                factFindings || [],
+                callPlans || [],
+                whitespacePlans || []
+              );
+
+              let healthColor = "bg-rose-50 border-rose-200 text-rose-700";
+              if (health.score >= 80) {
+                healthColor = "bg-emerald-50 border-emerald-200 text-emerald-700";
+              } else if (health.score >= 50) {
+                healthColor = "bg-amber-50 border-amber-200 text-amber-700";
+              }
+
+              return (
+                <div key={row.id} className={cn("p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative transition-all", row.isReviewSelected && "bg-accent/5 border-accent/20")}>
+                  {/* Header Actions */}
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => toggleSelection(row)} className={`p-2 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-white shadow-md' : 'bg-white border text-slate-300 hover:text-slate-400'}`}>
+                        <Star className={`w-4 h-4 ${row.isReviewSelected && "fill-current"}`} />
+                      </button>
+                      <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${momentum.bg}`}>
+                        <Activity className={`w-3 h-3 ${momentum.color}`} />
+                        <span className={`text-[8px] font-black uppercase ${momentum.color}`}>{momentum.score}</span>
+                      </div>
+                      <div className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full border font-black text-[8px] uppercase tracking-wide", healthColor)}>
+                        <span>Health: {health.score}%</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        disabled={!canPerformFridayActions || readOnly} 
+                        onClick={() => triggerWinLossModal(row, 'WON')} 
+                        className="text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 h-7 w-7 rounded-lg"
+                        title="Mark Closed-Won"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        disabled={!canPerformFridayActions || readOnly} 
+                        onClick={() => triggerWinLossModal(row, 'LOST')} 
+                        className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 h-7 w-7 rounded-lg"
+                        title="Mark Closed-Lost"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Account Name */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Input className="text-xs font-black uppercase h-8 bg-white" value={row.pipeline} onChange={e => handleUpdate(row.id, 'pipeline', e.target.value)} readOnly={readOnly} placeholder="Account Name" />
+                      {row.creditHold && (
+                        <span className="shrink-0 text-[7px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md border border-red-200">HOLD</span>
+                      )}
+                      <button
+                        onClick={() => openSalesforceSearch(row.pipeline, row.salesforceId)}
+                        className={`p-1.5 bg-white border rounded-xl shrink-0 transition-colors ${row.salesforceId ? 'text-accent hover:text-accent/80' : 'text-slate-300 hover:text-accent'}`}
+                        title={row.salesforceId ? 'Open Salesforce Record (ID)' : 'Search in Salesforce (by name)'}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 px-1">
+                      {row.pipeline && (
+                        <a 
+                          href="#" 
+                          onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.pipeline); }}
+                          className="text-[8px] text-accent font-black hover:underline tracking-wider uppercase"
+                        >
+                          SF Account
+                        </a>
+                      )}
+                      {row.opportunityName && (
+                        <a 
+                          href="#"
+                          onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName || '', row.salesforceId); }}
+                          className="text-[8px] text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate max-w-[150px]"
+                        >
+                          {row.opportunityName}
+                        </a>
+                      )}
+                      {row.isReviewSelected && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.dispatchEvent(new CustomEvent('switch-view', {
+                              detail: { view: 'CALL_PLANNING', params: { type: 'top8', data: row } }
+                            }));
+                          }}
+                          className="text-[8px] text-indigo-600 hover:text-indigo-850 font-black hover:underline tracking-wider uppercase"
+                        >
+                          Plan Call
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Value / Stage */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Value ($)</label>
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400">$</span>
+                        <Input type="number" className="text-xs font-black h-8 pl-5 bg-white" value={row.value || 0} onChange={e => handleUpdate(row.id, 'value', parseFloat(e.target.value) || 0)} readOnly={readOnly} />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Stage</label>
+                      <Input className="text-xs font-bold h-8 bg-white" value={row.stage} onChange={e => handleUpdate(row.id, 'stage', e.target.value)} readOnly={readOnly} />
+                    </div>
+                  </div>
+
+                  {/* Barriers / Next Action */}
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Barriers & Risks</label>
+                      <Textarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.barriers} onChange={e => handleUpdate(row.id, 'barriers', e.target.value)} readOnly={readOnly} placeholder="Risks..." />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Commitment / Next Action</label>
+                      <Textarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.actionsForBen} onChange={e => handleUpdate(row.id, 'actionsForBen', e.target.value)} readOnly={readOnly} placeholder="Next Action..." />
+                    </div>
+                  </div>
+
+                  {/* Rollover Toggle */}
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                    <span className="text-[9px] font-black uppercase text-slate-400">Rollover to Next Week</span>
+                    <div className="flex items-center gap-2">
+                      <Checkbox disabled={!canPerformFridayActions || readOnly} checked={(row as any).isRolledOver} onCheckedChange={() => handleRollover(row)} id={`rollover-${row.id}`} />
+                      <Label htmlFor={`rollover-${row.id}`} className="text-[10px] font-black uppercase text-slate-600">Roll</Label>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
