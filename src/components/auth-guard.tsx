@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  allowedRoles?: ('LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM')[];
+  allowedRoles?: ('LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM' | 'GUEST')[];
 }
 
 export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {

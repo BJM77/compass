@@ -118,27 +118,29 @@ function DashboardContent() {
 
 
 
+  const activeView = profile?.role === 'GUEST' ? 'TWIW' : currentView;
+
   const renderContent = () => {
     // DEFENSIVE: Block rendering if activeUserId is not yet resolved
     if (!activeUserId && !isAuthLoading) return <div className="flex items-center justify-center py-40"><Loader2 className="animate-spin" /></div>;
 
-    if (currentView === 'TEAM' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
-    if (currentView === 'CALL_PLANNING') return <div className="w-full p-4 md:p-8"><CallPlanning userId={activeUserId || ''} initialParams={viewParams} /></div>;
-    if (currentView === 'STRATEGIC_ARCHIVE') return <div className="w-full p-4 md:p-8"><StrategicArchive userId={activeUserId || ''} /></div>;
-    if (currentView === 'BRIEFS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;
-    if (currentView === 'TEAM_GOALS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><SmartGoalsAudit /></div>;
-    if (currentView === 'STRATEGY' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><StrategyManagement /></div>;
-    if (currentView === 'GM_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><GMWeeklyReview /></div>;
-    if (currentView === 'WHITE_SPACE') return <div className="w-full p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
-    if (currentView === 'REPORTS') return <div className="w-full p-4 md:p-8"><BIReportsViewer /></div>;
-    if (currentView === 'UPLOAD' && isLeader) return <div className="w-full p-4 md:p-8"><CRMImporter /></div>;
-    if (currentView === 'ARCHIVE') return <div className="w-full p-4 md:p-8"><WeeklyArchive /></div>;
-    if (currentView === 'FACT_FINDING') return <div className="w-full p-4 md:p-8"><FactFindingHub /></div>;
-    if (currentView === 'DATA_EXPLORER' && isLeader) return <div className="w-full p-4 md:p-8"><DataExplorer /></div>;
-    if (currentView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
-    if (currentView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
-    if (currentView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
-    if (currentView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
+    if (activeView === 'TEAM' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
+    if (activeView === 'CALL_PLANNING') return <div className="w-full p-4 md:p-8"><CallPlanning userId={activeUserId || ''} initialParams={viewParams} /></div>;
+    if (activeView === 'STRATEGIC_ARCHIVE') return <div className="w-full p-4 md:p-8"><StrategicArchive userId={activeUserId || ''} /></div>;
+    if (activeView === 'BRIEFS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;
+    if (activeView === 'TEAM_GOALS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><SmartGoalsAudit /></div>;
+    if (activeView === 'STRATEGY' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><StrategyManagement /></div>;
+    if (activeView === 'GM_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><GMWeeklyReview /></div>;
+    if (activeView === 'WHITE_SPACE') return <div className="w-full p-4 md:p-8"><WhitespaceAnalysis userId={activeUserId || ''} /></div>;
+    if (activeView === 'REPORTS') return <div className="w-full p-4 md:p-8"><BIReportsViewer /></div>;
+    if (activeView === 'UPLOAD' && isLeader) return <div className="w-full p-4 md:p-8"><CRMImporter /></div>;
+    if (activeView === 'ARCHIVE') return <div className="w-full p-4 md:p-8"><WeeklyArchive /></div>;
+    if (activeView === 'FACT_FINDING') return <div className="w-full p-4 md:p-8"><FactFindingHub /></div>;
+    if (activeView === 'DATA_EXPLORER' && isLeader) return <div className="w-full p-4 md:p-8"><DataExplorer /></div>;
+    if (activeView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
+    if (activeView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
+    if (activeView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
+    if (activeView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
@@ -167,9 +169,12 @@ function DashboardContent() {
                       </button>
                     </SidebarMenuItem>
                   )}
-                  {NAV_ITEMS.filter(item => item.group === 'main' && (item.adminOnly ? isLeader : true)).map(nav => (
+                  {NAV_ITEMS.filter(item => {
+                    if (profile?.role === 'GUEST') return item.view === 'TWIW';
+                    return item.group === 'main' && (item.adminOnly ? isLeader : true);
+                  }).map(nav => (
                     <SidebarMenuItem key={nav.view}>
-                      <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
+                      <SidebarMenuButton isActive={activeView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
                         <nav.icon className="w-4 h-4" />
                         <span>{nav.label}</span>
                       </SidebarMenuButton>
@@ -179,7 +184,7 @@ function DashboardContent() {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {NAV_ITEMS.some(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)) && (
+            {profile?.role !== 'GUEST' && NAV_ITEMS.some(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)) && (
               <SidebarGroup>
                 <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mt-4 mb-1">
                   Admin

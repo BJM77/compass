@@ -5,7 +5,7 @@ import { User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useUser, useFirestore } from '@/firebase';
 
-export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM';
+export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM' | 'GUEST';
 export type Territory = 'METRO_NORTH' | 'METRO_SOUTH' | 'WESTERN_TRADE_COAST' | 'REGIONAL' | 'FLEX';
 
 export interface UserProfile {
@@ -13,6 +13,7 @@ export interface UserProfile {
   name: string;
   role: UserRole;
   territory?: Territory;
+  state?: 'WA' | 'SA' | 'QLD';
   zones?: string[];
   specialisation?: string;
   salesforceUserId?: string;
@@ -31,6 +32,7 @@ interface AuthContextType {
   isBDM: boolean;
   isAM: boolean;
   isGM: boolean;
+  isGuest: boolean;
   setMockAuth: (profile: UserProfile | null) => void;
 }
 
@@ -42,6 +44,7 @@ const AuthContext = createContext<AuthContextType>({
   isBDM: false,
   isAM: false,
   isGM: false,
+  isGuest: false,
   setMockAuth: () => {},
 });
 
@@ -108,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isBDM: profile?.role === 'BDM',
     isAM: profile?.role === 'ACCOUNT_MANAGER',
     isGM: profile?.role === 'GM' || firebaseUser?.uid === 'eFPAFC5wauPrnguvwzebKssdpSg2',
+    isGuest: profile?.role === 'GUEST',
     setMockAuth,
   };
 

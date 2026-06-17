@@ -9,9 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentWeek, getNextWeekKey, formatEAV, cn } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
+import { useAuth } from '@/contexts/auth-context';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
@@ -49,6 +51,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   const { toast } = useToast();
   const currentWeek = getCurrentWeek();
   const { pipelineReviews: allDeals } = usePipelineData();
+  const { profile, user } = useAuth();
 
   // Active Week State
   const [selectedWeek, setSelectedWeek] = useState(currentWeek);
@@ -64,6 +67,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
   // Sourced Team Profiles (for Collation)
   const usersQuery = useMemoFirebase(() => {
@@ -315,6 +319,8 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
       await setDoc(doc(db, 'twiwSubmissions', `${userId}_${selectedWeek}`), {
         userId,
         userName: bdmName,
+        email: profile?.email || user?.email || 'Guest',
+        state: profile?.state || 'WA',
         week: selectedWeek,
         wins: wins.filter(w => w.account.trim()),
         risks: risks.filter(r => r.account.trim()),
@@ -326,6 +332,9 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
       }, { merge: true });
 
       setStatus(submitState);
+      if (submitState === 'SUBMITTED') {
+        setSuccessDialogOpen(true);
+      }
       toast({
         title: submitState === 'SUBMITTED' ? "Report Submitted" : "Draft Saved",
         description: submitState === 'SUBMITTED' 
@@ -341,82 +350,90 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   };
 
   // Collate all submissions (Leaders only)
-  const collatedOutput = useMemo(() => {
-    if (!allSubmissions || allSubmissions.length === 0) return "No submissions available to collate yet.";
+  const submissionsByState = useMemo(() => {
+    if (!allSubmissions || allSubmissions.length === 0) return {};
+    const grouped: Record<string, any[]> = {};
+    
+    // Filter and group by state
+    allSubmissions.forEach(sub => {
+      // Only include if they actually submitted or saved a draft
+      if (sub.status === 'NONE' && !sub.wins?.length && !sub.risks?.length) return; 
+      
+      const state = sub.state || 'WA';
+      if (!grouped[state]) grouped[state] = [];
+      grouped[state].push(sub);
+    });
 
-    let md = `# THE WEEK THAT WAS (TWTW) - Week ${selectedWeek.split('-')[1]}\n`;
-    md += `Collated Master Report for WA Territory\n\n`;
-
-    // 1. Key Wins
-    md += `## 🏆 KEY WINS\n`;
-    let winsSection = '';
-    allSubmissions.forEach((sub: any) => {
-      const userWins = sub.wins || [];
-      userWins.forEach((w: any) => {
-        winsSection += `* **[${sub.userName}]** ${w.account} — ${formatEAV(w.value)} (${w.notes || 'No extra notes'})\n`;
+    // Sort emails within each state
+    Object.keys(grouped).forEach(state => {
+      grouped[state].sort((a, b) => {
+        const emailA = a.email || a.userName || '';
+        const emailB = b.email || b.userName || '';
+        return emailA.localeCompare(emailB);
       });
     });
-    md += winsSection || `*No key wins reported by team members.*\n`;
-    md += `\n`;
 
-    // 2. Churn Risk Flags
-    md += `## ⚠️ CHURN RISK FLAGS\n`;
-    let risksSection = '';
-    allSubmissions.forEach((sub: any) => {
-      const userRisks = sub.risks || [];
-      userRisks.forEach((r: any) => {
-        risksSection += `* **[${sub.userName}]** ${r.account} — ${formatEAV(r.value)} | *Mitigation:* ${r.mitigation || 'N/A'}\n`;
-      });
-    });
-    md += risksSection || `*No active churn risk flags reported.*\n`;
-    md += `\n`;
-
-    // 3. Major Pipeline & Customer updates
-    md += `## 💼 MAJOR PIPELINE & CUSTOMER UPDATES\n`;
-    let updatesSection = '';
-    allSubmissions.forEach((sub: any) => {
-      if (sub.updates?.trim()) {
-        updatesSection += `### ${sub.userName}\n${sub.updates}\n\n`;
-      }
-    });
-    md += updatesSection || `*No pipeline updates reported.*\n`;
-
-    // 4. 30 Day Projected Wins >$200k
-    md += `## 🚀 30 DAY PROJECTED WINS >$200K\n`;
-    let projectedSection = '';
-    allSubmissions.forEach((sub: any) => {
-      const userProjected = sub.projectedWins || [];
-      userProjected.forEach((p: any) => {
-        projectedSection += `* **[${sub.userName}]** ${p.account} — ${formatEAV(p.value)} (Est. Close: ${p.expectedDate})\n`;
-      });
-    });
-    md += projectedSection || `*No projected wins >$200k reported.*\n`;
-    md += `\n`;
-
-    // 5. Top Priorities for the week ahead
-    md += `## 🎯 TOP PRIORITIES FOR THE WEEK AHEAD\n`;
-    let prioritiesSection = '';
-    allSubmissions.forEach((sub: any) => {
-      const userPriorities = sub.priorities || [];
-      if (userPriorities.length > 0) {
-        prioritiesSection += `### ${sub.userName}\n`;
-        userPriorities.forEach((p: string) => {
-          prioritiesSection += `* ${p}\n`;
-        });
-        prioritiesSection += `\n`;
-      }
-    });
-    md += prioritiesSection || `*No priorities set for the week ahead.*\n`;
-
-    return md;
+    return grouped;
   }, [allSubmissions, selectedWeek]);
 
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    navigator.clipboard.writeText(collatedOutput);
-    setCopied(true);
-    toast({ title: "Copied to Clipboard", description: "Collation document ready for email or report packs." });
-    setTimeout(() => setCopied(false), 2000);
+  const [isExporting, setIsExporting] = useState(false);
+  const handleExportPdf = () => {
+    setIsExporting(true);
+    const printContents = document.getElementById('twtw-print-area')?.innerHTML;
+    if (!printContents) {
+      toast({ variant: "destructive", title: "Error", description: "No data available to print." });
+      setIsExporting(false);
+      return;
+    }
+    
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    if (!printWindow) {
+      toast({ variant: "destructive", title: "Popup Blocked", description: "Please allow popups to export to PDF." });
+      setIsExporting(false);
+      return;
+    }
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>TWTW Export - Week ${selectedWeek.split('-')[1]}</title>
+          <style>
+            @page { size: landscape; margin: 15mm; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+              -webkit-print-color-adjust: exact; 
+              color-adjust: exact; 
+              color: #0f172a;
+            }
+            h1 { font-size: 24px; text-align: center; text-transform: uppercase; margin-bottom: 30px; letter-spacing: 1px; }
+            .state-container { margin-bottom: 40px; page-break-after: always; }
+            .state-container:last-child { page-break-after: auto; }
+            h2 { font-size: 18px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; color: #1e293b; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 11px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; vertical-align: top; }
+            th { background-color: #f1f5f9; font-weight: 800; text-transform: uppercase; color: #475569; font-size: 10px; letter-spacing: 0.5px; }
+            td { line-height: 1.4; word-break: break-word; }
+            .avoid-break { page-break-inside: avoid; }
+            .whitespace-pre-line { white-space: pre-line; }
+            .empty-state { text-align: center; color: #64748b; font-style: italic; padding: 20px; }
+          </style>
+        </head>
+        <body>
+          <h1>The Week That Was (TWTW) - Week ${selectedWeek.split('-')[1]}</h1>
+          ${printContents}
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Small delay to ensure styles apply
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+      setIsExporting(false);
+    }, 500);
   };
 
   const salesWeeks = useMemo(() => {
@@ -490,9 +507,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
   function renderSubmissionForm() {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Entry Fields */}
-        <div className="md:col-span-2 space-y-6">
+      <div className="space-y-6">
           
           {/* Key Wins */}
           <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
@@ -505,14 +520,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   Significant closed business during the week
                 </CardDescription>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAutoSuggestWins}
-                className="text-[9px] font-black uppercase border-accent/20 text-accent hover:bg-accent/5 rounded-xl h-8 gap-1.5"
-              >
-                <Sparkles className="w-3 h-3" /> Auto-Suggest Wins
-              </Button>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Desktop Table View */}
@@ -564,7 +571,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     {wins.length === 0 && (
                       <tr>
                         <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                          No Wins reported yet. Add a custom row or auto-suggest wins.
+                          No Wins reported yet. Add a custom row.
                         </td>
                       </tr>
                     )}
@@ -616,7 +623,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                 ))}
                 {wins.length === 0 && (
                   <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                    No Wins reported yet. Add a custom row or auto-suggest wins.
+                    No Wins reported yet. Add a custom row.
                   </div>
                 )}
               </div>
@@ -638,14 +645,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   Key accounts at risk of churning or revenue loss
                 </CardDescription>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAutoSuggestRisks}
-                className="text-[9px] font-black uppercase border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl h-8 gap-1.5"
-              >
-                <Sparkles className="w-3 h-3" /> Auto-Suggest Risks
-              </Button>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Desktop Table View */}
@@ -697,7 +696,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     {risks.length === 0 && (
                       <tr>
                         <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                          No Risks flagged yet. Add a custom row or auto-suggest risks.
+                          No Risks flagged yet. Add a custom row.
                         </td>
                       </tr>
                     )}
@@ -749,7 +748,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                 ))}
                 {risks.length === 0 && (
                   <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                    No Risks flagged yet. Add a custom row or auto-suggest risks.
+                    No Risks flagged yet. Add a custom row.
                   </div>
                 )}
               </div>
@@ -792,14 +791,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   High-value closures expected within the next 30 days
                 </CardDescription>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAutoSuggestProjected}
-                className="text-[9px] font-black uppercase border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl h-8 gap-1.5"
-              >
-                <Sparkles className="w-3 h-3" /> Auto-Suggest Deals
-              </Button>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Desktop Table View */}
@@ -851,7 +842,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     {projectedWins.length === 0 && (
                       <tr>
                         <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                          No projected wins &gt;$200k found. Add a custom row or auto-suggest.
+                          No projected wins &gt;$200k found. Add a custom row.
                         </td>
                       </tr>
                     )}
@@ -903,7 +894,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                 ))}
                 {projectedWins.length === 0 && (
                   <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                    No projected wins &gt;$200k found. Add a custom row or auto-suggest.
+                    No projected wins &gt;$200k found. Add a custom row.
                   </div>
                 )}
               </div>
@@ -913,10 +904,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
               </Button>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Right 1 Column: Priorities and Submission Actions */}
-        <div className="space-y-6">
+        {/* Bottom Cards: Priorities and Submission Actions */}
           {/* Priorities */}
           <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
@@ -928,14 +916,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   Key areas of focus for the next 7 days
                 </CardDescription>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAutoSuggestPriorities}
-                className="text-[9px] font-black uppercase border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl h-8 gap-1.5"
-              >
-                <Sparkles className="w-3 h-3" /> Auto-Suggest
-              </Button>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Input row */}
@@ -1004,12 +984,38 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   className="w-full bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  Submit to Leadership
+                  {status === 'SUBMITTED' ? 'Update Submission' : 'Submit to Leadership'}
                 </Button>
               </div>
             </CardContent>
           </Card>
-        </div>
+
+      <Dialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 bg-white">
+          <DialogHeader className="flex flex-col items-center text-center space-y-4">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
+              <Check className="w-8 h-8 text-emerald-600" />
+            </div>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900">
+              Thank You!
+            </DialogTitle>
+            <DialogDescription className="text-sm font-bold text-slate-500">
+              Your "The Week That Was" report has been successfully submitted.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="text-center text-xs font-semibold text-slate-400 mt-2 mb-6">
+            You can still edit and update your information at any time. Simply make your changes and click "Update Submission".
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button 
+              onClick={() => setSuccessDialogOpen(false)} 
+              className="bg-primary text-white font-black h-12 px-8 uppercase tracking-widest rounded-xl"
+            >
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     );
   }
@@ -1068,24 +1074,121 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
             <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
               <div>
                 <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <ClipboardCheck className="w-4 h-4 text-accent" /> Master North Pack Draft
+                  <ClipboardCheck className="w-4 h-4 text-accent" /> Master TWTW Collation
                 </CardTitle>
                 <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Aggregated team performance data for executive reporting
                 </CardDescription>
               </div>
               <Button 
-                onClick={handleCopy}
-                disabled={collatedSubmissionsCount === 0}
-                className="text-[10px] font-black uppercase bg-accent hover:bg-accent/90 text-white rounded-xl h-9 shadow-md shadow-accent/10 px-4 gap-1.5"
+                onClick={handleExportPdf}
+                disabled={collatedSubmissionsCount === 0 || isExporting}
+                className="bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
               >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Copied' : 'Copy Collation'}
+                {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
+                Export to Landscape PDF
               </Button>
             </CardHeader>
-            <CardContent className="p-5">
-              <div className="bg-slate-900 border border-slate-800 text-slate-300 p-5 rounded-2xl font-mono text-xs leading-relaxed max-h-[60vh] overflow-y-auto whitespace-pre-wrap select-text">
-                {collatedOutput}
+            <CardContent className="p-0">
+              {/* Display View */}
+              <div className="p-6 space-y-12 max-h-[800px] overflow-y-auto">
+                {Object.entries(submissionsByState).length === 0 ? (
+                   <div className="text-center py-24 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                     No submissions available to collate yet.
+                   </div>
+                ) : (
+                  Object.entries(submissionsByState).map(([state, subs]) => (
+                    <div key={state} className="space-y-4">
+                      <h3 className="text-lg font-black uppercase text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                        {state} Region <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-500 font-black">{subs.length} Reps</Badge>
+                      </h3>
+                      
+                      <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table className="w-full text-xs text-left">
+                          <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
+                              <th className="p-3 w-[15%]">Email/Name</th>
+                              <th className="p-3 w-[17%]">Key Wins</th>
+                              <th className="p-3 w-[17%]">Churn Risk</th>
+                              <th className="p-3 w-[17%]">Major Updates</th>
+                              <th className="p-3 w-[17%]">30 Day Projected</th>
+                              <th className="p-3 w-[17%]">Priorities</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 bg-white">
+                            {subs.map((sub, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50/50 align-top transition-colors">
+                                <td className="p-3 font-bold text-slate-800 break-words">{sub.email || sub.userName}</td>
+                                <td className="p-3 text-slate-600 whitespace-pre-line">
+                                  {(sub.wins || []).map((w: any) => `• ${w.account} - ${formatEAV(w.value)}`).join('\n') || '-'}
+                                </td>
+                                <td className="p-3 text-slate-600 whitespace-pre-line text-rose-600/90">
+                                  {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
+                                </td>
+                                <td className="p-3 text-slate-600 whitespace-pre-line">
+                                  {sub.updates || '-'}
+                                </td>
+                                <td className="p-3 text-slate-600 whitespace-pre-line text-blue-600/90">
+                                  {(sub.projectedWins || []).map((p: any) => `• ${p.account} - ${formatEAV(p.value)}\n  (${p.expectedDate})`).join('\n\n') || '-'}
+                                </td>
+                                <td className="p-3 text-slate-600 whitespace-pre-line">
+                                  {(sub.priorities || []).map((p: string) => `• ${p}`).join('\n') || '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Hidden Print Area (used by handleExportPdf) */}
+              <div id="twtw-print-area" className="hidden">
+                {Object.entries(submissionsByState).map(([state, subs]) => (
+                  <div key={state} className="state-container">
+                    <h2>{state} Region</h2>
+                    {subs.length === 0 ? (
+                      <div className="empty-state">No data available for this region.</div>
+                    ) : (
+                      <table>
+                        <thead>
+                          <tr>
+                            <th style={{width: '15%'}}>Email/Name</th>
+                            <th style={{width: '17%'}}>Key Wins</th>
+                            <th style={{width: '17%'}}>Churn Risk</th>
+                            <th style={{width: '17%'}}>Major Updates</th>
+                            <th style={{width: '17%'}}>30 Day Projected</th>
+                            <th style={{width: '17%'}}>Priorities</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {subs.map((sub, idx) => (
+                            <tr key={idx} className="avoid-break">
+                              <td style={{fontWeight: 'bold'}}>{sub.email || sub.userName}</td>
+                              <td className="whitespace-pre-line">
+                                {(sub.wins || []).map((w: any) => `• ${w.account} - ${formatEAV(w.value)}`).join('\n') || '-'}
+                              </td>
+                              <td className="whitespace-pre-line">
+                                {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
+                              </td>
+                              <td className="whitespace-pre-line">
+                                {sub.updates || '-'}
+                              </td>
+                              <td className="whitespace-pre-line">
+                                {(sub.projectedWins || []).map((p: any) => `• ${p.account} - ${formatEAV(p.value)}\n  (${p.expectedDate})`).join('\n\n') || '-'}
+                              </td>
+                              <td className="whitespace-pre-line">
+                                {(sub.priorities || []).map((p: string) => `• ${p}`).join('\n') || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

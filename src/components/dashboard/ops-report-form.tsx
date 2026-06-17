@@ -33,7 +33,7 @@ export function OpsReportForm() {
     );
   }, [db, user, currentWeek]);
 
-  const { data: teamReports, loading } = useCollection(opsQuery);
+  const { data: teamReports, isLoading: loading } = useCollection(opsQuery);
 
   const handleSubmit = async () => {
     if (!description.trim()) {

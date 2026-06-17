@@ -25,7 +25,7 @@ export function OpsReportReview() {
     );
   }, [db, selectedWeek]);
 
-  const { data: reports, loading } = useCollection(opsQuery);
+  const { data: reports, isLoading: loading } = useCollection(opsQuery);
 
   const handleUpdateStatus = async (id: string, newStatus: 'ESCALATED' | 'DISMISSED') => {
     try {

@@ -26,7 +26,7 @@ export function FactFindingHub() {
     );
   }, [db, user]);
 
-  const { data: docs, loading } = useCollection<FactFindingDoc>(docsQuery);
+  const { data: docs, isLoading: loading } = useCollection<FactFindingDoc>(docsQuery);
 
   if (selectedDoc === 'new') {
     return <FactFindingForm onBack={() => setSelectedDoc(null)} />;

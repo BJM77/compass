@@ -11,7 +11,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, serverTimestamp, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format, addWeeks, differenceInDays } from 'date-fns';
-import { Plus, Loader2, ClipboardList, Trash2, Star, ExternalLink, Activity, AlertCircle, Zap, ShieldAlert, X, CheckCircle2 } from 'lucide-react';
+import { Plus, Loader2, ClipboardList, Trash2, Star, ExternalLink, Activity, AlertCircle, Zap, ShieldAlert, X, CheckCircle2, Sparkles } from 'lucide-react';
 import { WeeklyActivitySummary } from './weekly-activity-summary';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';

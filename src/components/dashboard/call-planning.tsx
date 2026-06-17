@@ -406,7 +406,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 {isLeader && plan.userId && plan.userId !== 'TEAM_NODE' && (
                   <div className="flex items-center gap-1.5 mt-2">
                     <UserIcon className="w-3 h-3 text-accent" />
-                    <span className="text-[9px] font-bold text-accent uppercase tracking-wider">{userMap[plan.userId] || 'Unknown User'}</span>
+                    <span className="text-[9px] font-bold text-accent uppercase tracking-wider">{'Unknown User'}</span>
                   </div>
                 )}
               </div>
