@@ -257,17 +257,6 @@ function SummaryColumn({
           <span className="text-[10px] text-slate-500 font-bold">Pipeline Value</span>
           <span className="text-sm font-black text-primary">{fmt(data.opportunityValue)}</span>
         </div>
-        <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] text-slate-500 font-bold">YTD Rev FY</span>
-          <div className="flex items-center gap-1">
-            <span className="text-xs font-black">{fmt(data.oppYTDRevenueThisFY)}</span>
-            {yoyBadge(data.oppYTDRevenueThisFY, data.oppYTDRevenueLastFY)}
-          </div>
-        </div>
-        <div className="flex justify-between items-center px-1">
-          <span className={`${large ? 'text-xs' : 'text-[10px]'} text-slate-500 font-bold`}>YTD Rev LY</span>
-          <span className={`${large ? 'text-sm' : 'text-xs'} font-bold text-slate-400`}>{fmt(data.oppYTDRevenueLastFY)}</span>
-        </div>
       </div>
 
       {/* Accounts */}

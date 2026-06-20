@@ -632,7 +632,14 @@ export function CRMImporter() {
       }
     } catch (e: any) {
       console.error(e);
-      toast({ variant: 'destructive', title: 'Processing Failed', description: e?.message });
+      if (e?.name === 'NotReadableError' || e?.message?.includes('NotReadableError') || e?.message?.includes('could not be read')) {
+        toast({ variant: 'destructive', title: 'File Access Error', description: 'A file could not be read. Please re-select your files and try again.' });
+        setCustomersFile(null);
+        setOpportunitiesFile(null);
+        setActivityFile(null);
+      } else {
+        toast({ variant: 'destructive', title: 'Processing Failed', description: e?.message });
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -679,24 +686,24 @@ export function CRMImporter() {
           chunk.forEach(record => {
             const docRef = doc(db, 'pipelineReviews', record.docId);
             batch.set(docRef, {
-              accountMasterCode: record.accountMasterCode,
-              salesforceId:      record.salesforceId,
-              pipeline:          record.pipeline,
-              opportunityName:   record.opportunityName,
-              stage:             record.stage,
-              value:             record.value,
-              probability:       record.probability,
-              expectedDate:      record.expectedDate,
-              businessUnit:      record.businessUnit,
-              userId:            record.userId,
-              userName:          record.userName,
-              currentRevenue:    record.currentRevenue,
-              lastYearRevenue:   record.lastYearRevenue,
-              lastInvoiceDate:   record.lastInvoiceDate,
-              lastActivity:      record.lastActivity,
-              creditHold:        record.creditHold,
-              closedWonValue:    record.closedWonValue,
-              isBareAccount:     record.isBareAccount,
+              accountMasterCode: record.accountMasterCode || '',
+              salesforceId:      record.salesforceId || '',
+              pipeline:          record.pipeline || '',
+              opportunityName:   record.opportunityName || '',
+              stage:             record.stage || '',
+              value:             record.value || 0,
+              probability:       record.probability || 0,
+              expectedDate:      record.expectedDate || '',
+              businessUnit:      record.businessUnit || '',
+              userId:            record.userId || '',
+              userName:          record.userName || 'Unknown',
+              currentRevenue:    record.currentRevenue || 0,
+              lastYearRevenue:   record.lastYearRevenue || 0,
+              lastInvoiceDate:   record.lastInvoiceDate || '',
+              lastActivity:      record.lastActivity || '',
+              creditHold:        record.creditHold || false,
+              closedWonValue:    record.closedWonValue || 0,
+              isBareAccount:     record.isBareAccount || false,
               week:              currentWeek,
               importedFromSF:    true,
               updatedAt:         serverTimestamp(),
@@ -719,12 +726,12 @@ export function CRMImporter() {
           const rev = userRevenueTotals.get(u.id) || 0;
           const statRef = doc(db, 'bdmStats', u.id);
           statsBatch.set(statRef, {
-            id: u.id,
-            name: u.name,
-            role: u.role,
+            id: u.id || '',
+            name: u.name || 'Unknown User',
+            role: u.role || 'BDM',
             territory: u.territory || 'FLEX',
             target: Number(u.target) || 2500000,
-            revenueYTD: rev,
+            revenueYTD: rev || 0,
             updatedAt: serverTimestamp(),
           }, { merge: true });
         });
