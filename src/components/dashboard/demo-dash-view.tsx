@@ -519,7 +519,10 @@ export function DemoDashView() {
                 Registered Staff
               </button>
               <button 
-                onClick={() => setSimUserRole('GUEST')}
+                onClick={() => {
+                  setSimUserRole('GUEST');
+                  setSimDay('THURSDAY');
+                }}
                 className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
                   simUserRole === 'GUEST' ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-400 hover:text-white"
                 )}
@@ -530,27 +533,29 @@ export function DemoDashView() {
           </div>
 
           {/* Simulated Day Toggle */}
-          <div className="space-y-1">
-            <label className="text-[8px] font-black uppercase text-slate-400 tracking-wider block">Simulation Phase</label>
-            <div className="flex bg-slate-850 p-1 rounded-xl border border-slate-700">
-              <button 
-                onClick={() => setSimDay('THURSDAY')}
-                className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
-                  simDay === 'THURSDAY' ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
-                )}
-              >
-                Thursday (TWTW)
-              </button>
-              <button 
-                onClick={() => setSimDay('FRIDAY')}
-                className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
-                  simDay === 'FRIDAY' ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
-                )}
-              >
-                Friday (Combined Pack)
-              </button>
+          {simUserRole === 'REGISTERED' && (
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase text-slate-400 tracking-wider block">Simulation Phase</label>
+              <div className="flex bg-slate-850 p-1 rounded-xl border border-slate-700">
+                <button 
+                  onClick={() => setSimDay('THURSDAY')}
+                  className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
+                    simDay === 'THURSDAY' ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+                  )}
+                >
+                  Thursday (TWTW)
+                </button>
+                <button 
+                  onClick={() => setSimDay('FRIDAY')}
+                  className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
+                    simDay === 'FRIDAY' ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+                  )}
+                >
+                  Friday (Combined Pack)
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <Button 
             variant="outline" 
