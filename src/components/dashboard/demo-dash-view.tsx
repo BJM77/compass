@@ -119,8 +119,7 @@ export function DemoDashView() {
   const [newPriority, setNewPriority] = useState('');
   const [twtwStatus, setTwtwStatus] = useState<'NONE' | 'DRAFT' | 'SUBMITTED'>('NONE');
 
-  // TWTW Registered-only Extra Data
-  const [twtwFocusAccounts, setTwtwFocusAccounts] = useState<FocusAccount[]>([]);
+  // Thursday TWTW Registered-only Extra Data
   const [twtwKpiActuals, setTwtwKpiActuals] = useState<KPITargetsActuals>({
     callsToMake: 50, appointmentsToSet: 15, proposalsToSend: 8, dealsToClose: 3, revenueTarget: 250000,
     callsMade: 0, appointmentsSet: 0, proposalsSent: 0, dealsClosed: 0, revenueWon: 0
@@ -168,7 +167,6 @@ export function DemoDashView() {
     setProjectedWins([]);
     setPriorities([]);
     setTwtwStatus('NONE');
-    setTwtwFocusAccounts([]);
     setTwtwKpiActuals({
       callsToMake: 50, appointmentsToSet: 15, proposalsToSend: 8, dealsToClose: 3, revenueTarget: 250000,
       callsMade: 0, appointmentsSet: 0, proposalsSent: 0, dealsClosed: 0, revenueWon: 0
@@ -202,9 +200,11 @@ export function DemoDashView() {
   const handleLoadPreviousFridayData = () => {
     // 1. Priorities are populated from previous actions
     setPriorities([...dbPrevFridayPlan.actionPlan]);
-    // 2. Focus accounts loaded
-    setTwtwFocusAccounts(dbPrevFridayPlan.focusAccounts.map(acc => ({ ...acc, status: 'WORKING', update: '' })));
-    // 3. KPI targets mapped & actuals simulated
+    // 2. Focus accounts loaded for review
+    setCurrentWeekFocusAccounts(dbPrevFridayPlan.focusAccounts.map(acc => ({ ...acc, status: 'WORKING', update: '' })));
+    // 3. Actions checklist loaded (since Phase A is on Thursday now)
+    setCurrentWeekActions(dbPrevFridayPlan.actionPlan.map(act => ({ text: act, completed: false, update: '' })));
+    // 4. KPI targets mapped & actuals simulated
     setTwtwKpiActuals({
       ...dbPrevFridayPlan.kpiTargets,
       callsMade: 43,
@@ -213,7 +213,7 @@ export function DemoDashView() {
       dealsClosed: 1,
       revenueWon: 150000
     });
-    // 4. Roadblocks & support mapped
+    // 5. Roadblocks & support mapped
     setTwtwRoadblocks(dbPrevFridayPlan.roadblocks);
     setTwtwSupport(dbPrevFridayPlan.supportNeeded);
 
@@ -227,7 +227,13 @@ export function DemoDashView() {
     setProjectedWins([
       { id: 'p1', account: 'ZENITH MANUFACTURING', value: 280000, expectedDate: 'End of month' }
     ]);
-    setUpdates('Zenith and ACME progressed strongly. Global Carriers remains a minor rate risk.');
+
+    // Pre-populate performance narrative with bullet points of the previous Friday's action plan
+    const actionBullets = dbPrevFridayPlan.actionPlan
+      .filter(act => act.trim())
+      .map(act => `• ${act}: `)
+      .join('\n');
+    setUpdates(actionBullets ? `${actionBullets}\n\nZenith and ACME progressed strongly. Global Carriers remains a minor rate risk.` : 'Zenith and ACME progressed strongly. Global Carriers remains a minor rate risk.');
 
     toast({
       title: "Friday Data Loaded",
@@ -309,9 +315,30 @@ export function DemoDashView() {
     setFridaySignedDeals(wins.map(w => ({ id: w.id, accountName: w.account, eav: w.value, notes: w.notes })));
     setFridayOpportunities(projectedWins.map(p => ({ id: p.id, accountName: p.account, eav: p.value, stage: 'Propose', probability: 50 })));
     
+    // Automatically import Priorities from Thursday TWTW into Next Week Actions
+    if (priorities.length > 0) {
+      const newActions = [...priorities];
+      while (newActions.length < 5) {
+        newActions.push('');
+      }
+      setNextWeekActions(newActions);
+    }
+
+    // Rollover focus accounts from Thursday (status WORKING)
+    const rolledOver = currentWeekFocusAccounts
+      .filter(fa => fa.status === 'WORKING')
+      .map(fa => ({
+        id: fa.id,
+        accountName: fa.accountName,
+        actionType: fa.actionType,
+        eav: fa.eav,
+        aboutAccount: fa.update ? `[Rollover] ${fa.update}` : 'Rolled over from previous week.'
+      }));
+    setNextWeekFocusAccounts(rolledOver);
+
     toast({
       title: "Thursday Data Pulled",
-      description: "Friday pack details initialized from Thursday TWTW submissions & wins."
+      description: "Friday pack details initialized: Priorities imported & Focus Accounts rolled over."
     });
   };
 
@@ -428,7 +455,7 @@ export function DemoDashView() {
     // If registered user, append extra monday/friday metrics to details for collation
     if (simUserRole === 'REGISTERED') {
       const kpis = `[KPI Actuals: ${twtwKpiActuals.callsMade}/${twtwKpiActuals.callsToMake} Calls, ${twtwKpiActuals.appointmentsSet}/${twtwKpiActuals.appointmentsToSet} Appts]`;
-      const faCount = twtwFocusAccounts.length > 0 ? `\n[Focus Accounts Active: ${twtwFocusAccounts.length}]` : '';
+      const faCount = currentWeekFocusAccounts.length > 0 ? `\n[Focus Accounts Active: ${currentWeekFocusAccounts.length}]` : '';
       const rb = twtwRoadblocks ? `\n[Roadblocks: ${twtwRoadblocks}]` : '';
       userUpdatesFormatted = `${userUpdatesFormatted}\n\n${kpis}${faCount}${rb}`;
     }
@@ -463,7 +490,7 @@ export function DemoDashView() {
         }
       ]
     };
-  }, [wins, risks, updates, projectedWins, priorities, simUserRole, twtwKpiActuals, twtwFocusAccounts, twtwRoadblocks]);
+  }, [wins, risks, updates, projectedWins, priorities, simUserRole, twtwKpiActuals, currentWeekFocusAccounts, twtwRoadblocks]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20 relative">
@@ -871,16 +898,71 @@ export function DemoDashView() {
                         </CardContent>
                       </Card>
 
-                      {/* Focus Accounts Update Section */}
+                      {/* Phase A Integration: Review Monday Commitments */}
                       <Card className="border border-indigo-100 shadow-md">
                         <CardHeader className="bg-indigo-900 text-indigo-100 py-4 rounded-t-3xl">
                           <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
-                            <Target className="w-4 h-4 font-black" /> Focus Account Progress Review
+                            <ClipboardCheck className="w-4 h-4" /> Review Monday Commitments (Phase A)
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-4">
-                          {twtwFocusAccounts.map((acc, index) => (
-                            <div key={acc.id} className="p-4 bg-slate-50 border rounded-2xl space-y-3">
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-wider">Ticking off items removes them from rollover. Uncompleted actions roll to next week.</p>
+                          <div className="space-y-3">
+                            {currentWeekActions.map((c, idx) => (
+                              <div key={idx} className={cn("p-4 bg-white rounded-2xl border transition-all duration-300 shadow-sm space-y-3", c.completed ? "border-emerald-100 bg-emerald-50/20" : "border-slate-200")}>
+                                <div className="flex items-start gap-4">
+                                  <input
+                                    type="checkbox"
+                                    checked={c.completed}
+                                    onChange={(e) => handleFridayActionCheckbox(idx, e.target.checked)}
+                                    className="w-5 h-5 mt-0.5 accent-indigo-600 rounded cursor-pointer"
+                                  />
+                                  <div className="flex-1 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <span className={cn("text-xs font-bold", c.completed ? "text-slate-500 line-through" : "text-slate-700")}>
+                                        {c.text}
+                                      </span>
+                                      <Badge variant="outline" className={cn("text-[9px] font-black uppercase", c.completed ? "bg-emerald-100 text-emerald-800 border-none" : "bg-slate-100 text-slate-600 border-none")}>
+                                        {c.completed ? 'Completed' : 'In Progress (Rolls Over)'}
+                                      </Badge>
+                                    </div>
+                                    <Input
+                                      placeholder="Commentary or rollover reason..."
+                                      value={c.update}
+                                      onChange={e => {
+                                        const updated = [...currentWeekActions];
+                                        updated[idx].update = e.target.value;
+                                        setCurrentWeekActions(updated);
+                                      }}
+                                      className="h-8 text-xs bg-slate-50/50"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            {currentWeekActions.length === 0 && (
+                              <p className="text-[10px] text-muted-foreground italic text-center py-4">
+                                No active commitments. Click "Load Previous Friday Data" to pull actions.
+                              </p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Phase A Integration: Focus Accounts Performance */}
+                      <Card className="border border-indigo-100 shadow-md">
+                        <CardHeader className="bg-indigo-900 text-indigo-100 py-4 rounded-t-3xl">
+                          <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                            <Target className="w-4 h-4 font-black" /> Focus Account Progress Review (Phase A)
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-4">
+                          {currentWeekFocusAccounts.map((acc, index) => (
+                            <div key={acc.id} className={cn("p-4 bg-slate-50 border rounded-2xl space-y-3 transition-all",
+                              acc.status === 'WON' && "border-emerald-100 bg-emerald-50/10",
+                              acc.status === 'LOST' && "border-red-100 bg-red-50/10",
+                              acc.status === 'WORKING' && "border-slate-200"
+                            )}>
                               <div className="flex justify-between items-center">
                                 <div>
                                   <h4 className="text-xs font-black text-slate-800 uppercase">{acc.accountName}</h4>
@@ -888,11 +970,7 @@ export function DemoDashView() {
                                 </div>
                                 <select 
                                   value={acc.status || 'WORKING'} 
-                                  onChange={e => {
-                                    const list = [...twtwFocusAccounts];
-                                    list[index].status = e.target.value as any;
-                                    setTwtwFocusAccounts(list);
-                                  }}
+                                  onChange={e => handleFridayFocusAccountStatusChange(index, e.target.value as any)}
                                   className="text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border bg-white cursor-pointer"
                                 >
                                   <option value="WORKING">Working (Rollover)</option>
@@ -904,15 +982,15 @@ export function DemoDashView() {
                                 placeholder="Status update notes..." 
                                 value={acc.update || ''} 
                                 onChange={e => {
-                                  const list = [...twtwFocusAccounts];
+                                  const list = [...currentWeekFocusAccounts];
                                   list[index].update = e.target.value;
-                                  setTwtwFocusAccounts(list);
+                                  setCurrentWeekFocusAccounts(list);
                                 }}
                                 className="h-8 text-xs bg-white" 
                               />
                             </div>
                           ))}
-                          {twtwFocusAccounts.length === 0 && (
+                          {currentWeekFocusAccounts.length === 0 && (
                             <p className="text-[10px] text-muted-foreground italic text-center py-6">
                               No active Focus Accounts. Load previous Friday data to review goals.
                             </p>
@@ -984,257 +1062,180 @@ export function DemoDashView() {
                     </div>
                   </header>
 
-                  <Tabs defaultValue="current" className="w-full">
-                    <TabsList className="bg-slate-100 border p-1 rounded-xl w-full grid grid-cols-2">
-                      <TabsTrigger value="current" className="font-black uppercase text-[10px] tracking-widest py-2">
-                        Phase A: Close Current Week (Friday Pack)
-                      </TabsTrigger>
-                      <TabsTrigger value="next" className="font-black uppercase text-[10px] tracking-widest py-2">
-                        Phase B: Setup Next Week (Monday Plan)
-                      </TabsTrigger>
-                    </TabsList>
+                  {/* Thursday Review Reference Card */}
+                  <Card className="border border-slate-200 bg-slate-50/50 shadow-sm">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
+                        <Info className="w-3.5 h-3.5 text-slate-500" /> Reference: Thursday TWTW Submission Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-slate-600">
+                      <div className="bg-white p-2.5 rounded-xl border">
+                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Narrative Updates</span>
+                        <span className="truncate block font-bold mt-0.5">{updates || 'None provided'}</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border">
+                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Wins Logged</span>
+                        <span className="font-bold text-emerald-600 block mt-0.5">{wins.length} Wins (${wins.reduce((sum, w) => sum + w.value, 0).toLocaleString()})</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border">
+                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Risks Logged</span>
+                        <span className="font-bold text-rose-600 block mt-0.5">{risks.length} Risks</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border">
+                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Commitments Checked</span>
+                        <span className="font-bold text-indigo-600 block mt-0.5">
+                          {currentWeekActions.filter(a => a.completed).length} / {currentWeekActions.length} Completed
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                    {/* PHASE A: CLOSE CURRENT WEEK */}
-                    <TabsContent value="current" className="mt-4 space-y-6">
-                      
-                      {/* Monday Commitments Review */}
-                      <Card className="border shadow-md">
-                        <CardHeader className="bg-slate-50 border-b py-4">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                            <ClipboardCheck className="w-4 h-4 text-emerald-600" /> Review Monday Commitments
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6 space-y-4">
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-wider">Ticking off items removes them from rollover. Uncompleted actions roll to next week.</p>
-                          <div className="space-y-3">
-                            {currentWeekActions.map((c, idx) => (
-                              <div key={idx} className={cn("p-4 bg-white rounded-2xl border transition-all duration-300 shadow-sm space-y-3", c.completed ? "border-emerald-100 bg-emerald-50/20" : "border-slate-200")}>
-                                <div className="flex items-start gap-4">
-                                  <input
-                                    type="checkbox"
-                                    checked={c.completed}
-                                    onChange={(e) => handleFridayActionCheckbox(idx, e.target.checked)}
-                                    className="w-5 h-5 mt-0.5 accent-emerald-600 rounded cursor-pointer"
-                                  />
-                                  <div className="flex-1 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <span className={cn("text-xs font-bold", c.completed ? "text-slate-500 line-through" : "text-slate-700")}>
-                                        {c.text}
-                                      </span>
-                                      <Badge variant="outline" className={cn("text-[9px] font-black uppercase", c.completed ? "bg-emerald-100 text-emerald-800 border-none" : "bg-slate-100 text-slate-600 border-none")}>
-                                        {c.completed ? 'Completed' : 'In Progress (Rolls Over)'}
-                                      </Badge>
-                                    </div>
-                                    <Input
-                                      placeholder="Commentary or rollover reason..."
-                                      value={c.update}
-                                      onChange={e => {
-                                        const updated = [...currentWeekActions];
-                                        updated[idx].update = e.target.value;
-                                        setCurrentWeekActions(updated);
-                                      }}
-                                      className="h-8 text-xs bg-slate-50/50"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                  {/* NEXT WEEK GOALS PLANNING FORM (Monday Plan) */}
+                  <div className="space-y-6">
+                    
+                    {/* Next Week targets */}
+                    <Card className="border border-emerald-100 shadow-md">
+                      <CardHeader className="bg-slate-50 border-b py-4">
+                        <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-emerald-600" /> Setup Next Week KPI Targets
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                          <div className="space-y-1">
+                            <span className="text-[8px] font-black uppercase text-muted-foreground">Calls Target</span>
+                            <Input type="number" value={nextWeekKpiTargets.callsToMake} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, callsToMake: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
                           </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Current Week Focus Accounts Review */}
-                      <Card className="border shadow-md">
-                        <CardHeader className="bg-slate-50 border-b py-4">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                            <Target className="w-4 h-4 text-emerald-600" /> Focus Accounts Performance
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6 space-y-4">
-                          <div className="space-y-4">
-                            {currentWeekFocusAccounts.map((acc, idx) => (
-                              <div key={acc.id} className={cn("p-4 bg-white rounded-2xl border shadow-sm space-y-3 transition-all",
-                                acc.status === 'WON' && "border-emerald-100 bg-emerald-50/10",
-                                acc.status === 'LOST' && "border-red-100 bg-red-50/10",
-                                acc.status === 'WORKING' && "border-slate-200"
-                              )}>
-                                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                                  <div>
-                                    <span className="text-xs font-black text-slate-800 block">{acc.accountName}</span>
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{acc.actionType} • ${acc.eav?.toLocaleString()} EAV</span>
-                                  </div>
-                                  
-                                  <div className="flex bg-slate-100 p-1 rounded-xl self-start sm:self-auto shrink-0 border">
-                                    {['WORKING', 'WON', 'LOST'].map((status) => (
-                                      <button
-                                        key={status}
-                                        onClick={() => handleFridayFocusAccountStatusChange(idx, status as any)}
-                                        className={cn("px-2.5 py-1 text-[9px] font-black uppercase rounded-lg transition-all",
-                                          acc.status === status 
-                                            ? status === 'WON' ? "bg-emerald-600 text-white shadow-sm"
-                                              : status === 'LOST' ? "bg-rose-600 text-white shadow-sm"
-                                              : "bg-white text-slate-800 shadow-sm"
-                                            : "text-slate-400 hover:text-slate-600"
-                                        )}
-                                      >
-                                        {status === 'WORKING' ? 'Working (Roll)' : status}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                                <Input
-                                  placeholder="Progress notes..."
-                                  value={acc.update || ''}
-                                  onChange={e => {
-                                    const updated = [...currentWeekFocusAccounts];
-                                    updated[idx].update = e.target.value;
-                                    setCurrentWeekFocusAccounts(updated);
-                                  }}
-                                  className="h-8 text-xs bg-slate-50/50"
-                                />
-                              </div>
-                            ))}
+                          <div className="space-y-1">
+                            <span className="text-[8px] font-black uppercase text-muted-foreground">Appts Target</span>
+                            <Input type="number" value={nextWeekKpiTargets.appointmentsToSet} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, appointmentsToSet: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
                           </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Performance Narrative */}
-                      <Card className="border shadow-md">
-                        <CardHeader className="bg-slate-50 border-b py-4">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                            <Star className="w-4 h-4 text-emerald-600" /> Weekly Synthesis Narrative
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6 space-y-4">
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-wider">
-                            Pre-populated from Thursday's TWTW Narrative. Avoid typing things twice!
-                          </p>
-                          <Textarea 
-                            placeholder="Final high-level performance commentary..." 
-                            value={fridayNarrative} 
-                            onChange={e => setFridayNarrative(e.target.value)}
-                            className="min-h-[120px] text-xs font-medium rounded-xl"
-                          />
-                        </CardContent>
-                      </Card>
-                    </TabsContent>
-
-                    {/* PHASE B: SETUP NEXT WEEK */}
-                    <TabsContent value="next" className="mt-4 space-y-6">
-                      
-                      {/* Next Week targets */}
-                      <Card className="border border-emerald-100 shadow-md">
-                        <CardHeader className="bg-slate-50 border-b py-4">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-emerald-600" /> Setup Next Week KPI Targets
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6">
-                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                            <div className="space-y-1">
-                              <span className="text-[8px] font-black uppercase text-muted-foreground">Calls Target</span>
-                              <Input type="number" value={nextWeekKpiTargets.callsToMake} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, callsToMake: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[8px] font-black uppercase text-muted-foreground">Appts Target</span>
-                              <Input type="number" value={nextWeekKpiTargets.appointmentsToSet} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, appointmentsToSet: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[8px] font-black uppercase text-muted-foreground">Proposals Target</span>
-                              <Input type="number" value={nextWeekKpiTargets.proposalsToSend} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, proposalsToSend: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[8px] font-black uppercase text-muted-foreground">Deals Target</span>
-                              <Input type="number" value={nextWeekKpiTargets.dealsToClose} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, dealsToClose: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                            </div>
-                            <div className="space-y-1 col-span-2 sm:col-span-1">
-                              <span className="text-[8px] font-black uppercase text-muted-foreground">Revenue ($)</span>
-                              <Input type="number" value={nextWeekKpiTargets.revenueTarget} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, revenueTarget: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                            </div>
+                          <div className="space-y-1">
+                            <span className="text-[8px] font-black uppercase text-muted-foreground">Proposals Target</span>
+                            <Input type="number" value={nextWeekKpiTargets.proposalsToSend} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, proposalsToSend: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
                           </div>
-                        </CardContent>
-                      </Card>
+                          <div className="space-y-1">
+                            <span className="text-[8px] font-black uppercase text-muted-foreground">Deals Target</span>
+                            <Input type="number" value={nextWeekKpiTargets.dealsToClose} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, dealsToClose: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
+                          </div>
+                          <div className="space-y-1 col-span-2 sm:col-span-1">
+                            <span className="text-[8px] font-black uppercase text-muted-foreground">Revenue ($)</span>
+                            <Input type="number" value={nextWeekKpiTargets.revenueTarget} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, revenueTarget: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                      {/* Next Week Focus Accounts */}
-                      <Card className="border border-emerald-100 shadow-md">
-                        <CardHeader className="bg-slate-50 border-b py-4">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                            <Target className="w-4 h-4 text-emerald-600" /> Setup Next Week Focus Accounts
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6 space-y-4">
-                          {nextWeekFocusAccounts.map((acc, index) => (
-                            <div key={acc.id} className="p-4 bg-slate-50 border rounded-2xl space-y-3 relative group">
-                              <div className="flex justify-between items-center gap-2">
-                                <Input placeholder="Account Name..." value={acc.accountName} onChange={e => {
+                    {/* Next Week Focus Accounts */}
+                    <Card className="border border-emerald-100 shadow-md">
+                      <CardHeader className="bg-slate-50 border-b py-4">
+                        <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                          <Target className="w-4 h-4 text-emerald-600" /> Setup Next Week Focus Accounts
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        {nextWeekFocusAccounts.map((acc, index) => (
+                          <div key={acc.id} className="p-4 bg-slate-50 border rounded-2xl space-y-3 relative group">
+                            <div className="flex justify-between items-center gap-2">
+                              <Input placeholder="Account Name..." value={acc.accountName} onChange={e => {
+                                const list = [...nextWeekFocusAccounts];
+                                list[index].accountName = e.target.value;
+                                setNextWeekFocusAccounts(list);
+                              }} className="h-9 text-xs font-bold bg-white" />
+                              <Button variant="ghost" size="icon" onClick={() => setNextWeekFocusAccounts(nextWeekFocusAccounts.filter(fa => fa.id !== acc.id))} className="h-8 w-8 text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <select 
+                                value={acc.actionType} 
+                                onChange={e => {
                                   const list = [...nextWeekFocusAccounts];
-                                  list[index].accountName = e.target.value;
+                                  list[index].actionType = e.target.value;
                                   setNextWeekFocusAccounts(list);
-                                }} className="h-9 text-xs font-bold bg-white" />
-                                <Button variant="ghost" size="icon" onClick={() => setNextWeekFocusAccounts(nextWeekFocusAccounts.filter(fa => fa.id !== acc.id))} className="h-8 w-8 text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                <select 
-                                  value={acc.actionType} 
-                                  onChange={e => {
-                                    const list = [...nextWeekFocusAccounts];
-                                    list[index].actionType = e.target.value;
-                                    setNextWeekFocusAccounts(list);
-                                  }}
-                                  className="h-9 text-[10px] font-black uppercase rounded-lg border bg-white px-2"
-                                >
-                                  {ACTION_TYPES.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                                </select>
-                                <Input type="number" placeholder="EAV ($)" value={acc.eav || ''} onChange={e => {
-                                  const list = [...nextWeekFocusAccounts];
-                                  list[index].eav = parseFloat(e.target.value) || 0;
-                                  setNextWeekFocusAccounts(list);
-                                }} className="h-9 text-xs bg-white" />
-                              </div>
+                                }}
+                                className="h-9 text-[10px] font-black uppercase rounded-lg border bg-white px-2"
+                              >
+                                {ACTION_TYPES.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                              </select>
+                              <Input type="number" placeholder="EAV ($)" value={acc.eav || ''} onChange={e => {
+                                const list = [...nextWeekFocusAccounts];
+                                list[index].eav = parseFloat(e.target.value) || 0;
+                                setNextWeekFocusAccounts(list);
+                              }} className="h-9 text-xs bg-white" />
                             </div>
-                          ))}
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setNextWeekFocusAccounts([...nextWeekFocusAccounts, { id: crypto.randomUUID(), accountName: '', actionType: 'Prospect', eav: 0, aboutAccount: '' }])}
-                            className="w-full h-11 border-dashed border-2 rounded-xl text-[10px] font-black uppercase text-slate-500 bg-slate-50/50 hover:bg-slate-50"
-                          >
-                            + Add Focus Account
-                          </Button>
-                        </CardContent>
-                      </Card>
+                          </div>
+                        ))}
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setNextWeekFocusAccounts([...nextWeekFocusAccounts, { id: crypto.randomUUID(), accountName: '', actionType: 'Prospect', eav: 0, aboutAccount: '' }])}
+                          className="w-full h-11 border-dashed border-2 rounded-xl text-[10px] font-black uppercase text-slate-500 bg-slate-50/50 hover:bg-slate-50"
+                        >
+                          + Add Focus Account
+                        </Button>
+                      </CardContent>
+                    </Card>
 
-                      {/* Next Week Monday commitments */}
-                      <Card className="border border-emerald-100 shadow-md">
-                        <CardHeader className="bg-slate-50 border-b py-4">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                            <ClipboardCheck className="w-4 h-4 text-emerald-600" /> Setup Next Week Actions (Monday Plan)
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6 space-y-3">
-                          {nextWeekActions.map((act, index) => (
-                            <div key={index} className="flex gap-3 items-center group">
-                              <Badge className="bg-slate-100 text-slate-700 font-black text-[9px] uppercase border shrink-0">Action {index + 1}</Badge>
-                              <Input placeholder="Enter tactical action..." value={act} onChange={e => {
-                                const list = [...nextWeekActions];
-                                list[index] = e.target.value;
-                                setNextWeekActions(list);
-                              }} className="h-9 text-xs font-bold" />
-                              {nextWeekActions.length > 5 && (
-                                <Button variant="ghost" size="icon" onClick={() => setNextWeekActions(nextWeekActions.filter((_, i) => i !== index))} className="h-8 w-8 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></Button>
-                              )}
-                            </div>
-                          ))}
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setNextWeekActions([...nextWeekActions, ''])}
-                            className="h-9 text-[10px] font-black uppercase border-dashed border-2 rounded-xl text-slate-500 gap-1.5"
-                          >
-                            <Plus className="w-3.5 h-3.5" /> Add Additional Action
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </TabsContent>
-                  </Tabs>
+                    {/* Next Week Monday commitments */}
+                    <Card className="border border-emerald-100 shadow-md">
+                      <CardHeader className="bg-slate-50 border-b py-4">
+                        <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                          <ClipboardCheck className="w-4 h-4 text-emerald-600" /> Setup Next Week Actions (Monday Plan)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-3">
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-wider">
+                          Pre-populated from Thursday's Priorities for the Week Ahead. Feel free to refine.
+                        </p>
+                        {nextWeekActions.map((act, index) => (
+                          <div key={index} className="flex gap-3 items-center group">
+                            <Badge className="bg-slate-100 text-slate-700 font-black text-[9px] uppercase border shrink-0">Action {index + 1}</Badge>
+                            <Input placeholder="Enter tactical action..." value={act} onChange={e => {
+                              const list = [...nextWeekActions];
+                              list[index] = e.target.value;
+                              setNextWeekActions(list);
+                            }} className="h-9 text-xs font-bold" />
+                            {nextWeekActions.length > 5 && (
+                              <Button variant="ghost" size="icon" onClick={() => setNextWeekActions(nextWeekActions.filter((_, i) => i !== index))} className="h-8 w-8 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setNextWeekActions([...nextWeekActions, ''])}
+                          className="h-9 text-[10px] font-black uppercase border-dashed border-2 rounded-xl text-slate-500 gap-1.5"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Additional Action
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Next Week Roadblocks & Support */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-red-600 tracking-wider flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5 text-red-500" /> Anticipated Roadblocks
+                        </label>
+                        <Textarea 
+                          placeholder="Anticipated roadblocks for next week..." 
+                          value={nextWeekRoadblocks} 
+                          onChange={e => setNextWeekRoadblocks(e.target.value)} 
+                          className="min-h-[90px] text-xs font-medium rounded-xl" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-blue-600 tracking-wider flex items-center gap-1">
+                          <LifeBuoy className="w-3.5 h-3.5 text-blue-500" /> Management Support Needed
+                        </label>
+                        <Textarea 
+                          placeholder="What can leadership help clear next week?" 
+                          value={nextWeekSupport} 
+                          onChange={e => setNextWeekSupport(e.target.value)} 
+                          className="min-h-[90px] text-xs font-medium rounded-xl" 
+                        />
+                      </div>
+                    </div>
+
+                  </div>
 
                   {/* Submit Pack */}
                   <div className="flex justify-end gap-3 pt-6 border-t">
@@ -1287,7 +1288,10 @@ export function DemoDashView() {
                     <p><strong>Risks:</strong> {risks.length} logged</p>
                     <p><strong>Priorities:</strong> {priorities.length} items</p>
                     {simUserRole === 'REGISTERED' && (
-                      <p className="text-[10px] text-indigo-800 italic">Registered extra BDM metrics loaded: KPI actuals tracking is active.</p>
+                      <>
+                        <p><strong>Completed Commitments:</strong> {currentWeekActions.filter(c => c.completed).length} / {currentWeekActions.length}</p>
+                        <p><strong>Working Focus Accounts:</strong> {currentWeekFocusAccounts.filter(fa => fa.status === 'WORKING').length}</p>
+                      </>
                     )}
                   </div>
 
@@ -1302,9 +1306,8 @@ export function DemoDashView() {
                         {fridayStatus}
                       </Badge>
                     </h4>
-                    <p className="border-t border-emerald-100 pt-1.5 mt-1.5"><strong>Completed Actions:</strong> {currentWeekActions.filter(c => c.completed).length} / {currentWeekActions.length}</p>
-                    <p><strong>Working Focus Accounts:</strong> {currentWeekFocusAccounts.filter(fa => fa.status === 'WORKING').length} (to rollover)</p>
-                    <p><strong>Next Week Focus Setup:</strong> {nextWeekFocusAccounts.length} added</p>
+                    <p className="border-t border-emerald-100 pt-1.5 mt-1.5"><strong>Next Week Focus Setup:</strong> {nextWeekFocusAccounts.length} added</p>
+                    <p><strong>Next Week Actions:</strong> {nextWeekActions.filter(a => a.trim()).length} planned</p>
                   </div>
                 </CardContent>
               </Card>
