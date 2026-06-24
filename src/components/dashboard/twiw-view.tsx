@@ -109,7 +109,16 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
       const sub = allSubmissions?.find(s => s.id === subId);
       if (!sub) return;
       const items = [...(sub[arrayField] || [])];
-      const idx = items.findIndex((i: any) => i.id === itemId);
+      let idx = items.findIndex((i: any) => i.id === itemId);
+      
+      if (idx === -1 && itemId && itemId.includes('-')) {
+        const parts = itemId.split('-');
+        const parsedIdx = parseInt(parts[parts.length - 1]);
+        if (!isNaN(parsedIdx) && parsedIdx >= 0 && parsedIdx < items.length) {
+          idx = parsedIdx;
+        }
+      }
+      
       if (idx === -1) return;
       
       items[idx] = { ...items[idx], [stateField]: !items[idx][stateField] };
@@ -141,6 +150,18 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     return query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek));
   }, [db, isLeader, selectedWeek]);
   const { data: allSubmissions } = useCollection(allSubmissionsQuery);
+
+  const mappedSubmissions = useMemo(() => {
+    if (!allSubmissions) return null;
+    return allSubmissions.map(sub => ({
+      ...sub,
+      wins: (sub.wins || []).map((w: any, idx: number) => ({ ...w, id: w.id || `win-${idx}` })),
+      risks: (sub.risks || []).map((r: any, idx: number) => ({ ...r, id: r.id || `risk-${idx}` })),
+      majorUpdates: (sub.majorUpdates || []).map((m: any, idx: number) => ({ ...m, id: m.id || `update-${idx}` })),
+      projectedWins: (sub.projectedWins || []).map((p: any, idx: number) => ({ ...p, id: p.id || `projected-${idx}` })),
+      priorities: (sub.priorities || []).map((pr: any, idx: number) => ({ ...pr, id: pr.id || `priority-${idx}` }))
+    }));
+  }, [allSubmissions]);
 
   // Fetch BDM Profile (for displayName)
   const [bdmName, setBdmName] = useState('BDM');
@@ -449,11 +470,11 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
   // Collate all submissions (Leaders only)
   const submissionsByState = useMemo(() => {
-    if (!allSubmissions || allSubmissions.length === 0) return {};
+    if (!mappedSubmissions || mappedSubmissions.length === 0) return {};
     const grouped: Record<string, any[]> = {};
     
     // Filter and group by state
-    allSubmissions.forEach(sub => {
+    mappedSubmissions.forEach(sub => {
       // Only include if they actually submitted or saved a draft
       if (sub.status === 'NONE' && !sub.wins?.length && !sub.risks?.length) return; 
       
@@ -472,7 +493,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     });
 
     return grouped;
-  }, [allSubmissions, selectedWeek]);
+  }, [mappedSubmissions, selectedWeek]);
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -505,7 +526,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     // Retrieve starred items for Key Standouts page
     const getStarredItems = (arrayField: string) => {
       const items: any[] = [];
-      allSubmissions?.forEach(sub => {
+      mappedSubmissions?.forEach(sub => {
         const arr = sub[arrayField as keyof typeof sub] as any[];
         if (arr) {
           arr.filter((i: any) => i.isStarred && !i.isHidden).forEach((i: any) => items.push({ ...i, subId: sub.id, state: sub.state }));
@@ -1854,7 +1875,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   }
 
   function renderCollationHub() {
-    const collatedSubmissionsCount = allSubmissions?.length || 0;
+    const collatedSubmissionsCount = mappedSubmissions?.length || 0;
     const teamUsers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER') || [];
 
     const renderItem = (item: any, type: string, subId: string, content: React.ReactNode) => {
@@ -1892,7 +1913,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
             <CardContent className="p-4 space-y-4">
               <div className="divide-y divide-slate-100">
                 {teamUsers.map(u => {
-                  const sub = allSubmissions?.find(s => s.userId === u.id);
+                  const sub = mappedSubmissions?.find(s => s.userId === u.id);
                   const subStatus = sub ? sub.status : 'NONE';
                   return (
                     <div key={u.id} className="flex justify-between items-center py-3">
@@ -2040,7 +2061,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   function renderKeyStandouts() {
     const getStarred = (arrayField: string) => {
       const items: any[] = [];
-      allSubmissions?.forEach(sub => {
+      mappedSubmissions?.forEach(sub => {
         const arr = sub[arrayField as keyof typeof sub] as any[];
         if (arr) {
           arr.filter(i => i.isStarred).forEach(i => items.push({ ...i, subId: sub.id, state: sub.state }));
