@@ -164,12 +164,12 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         const subDoc = await getDoc(doc(db, 'twiwSubmissions', `${userId}_${selectedWeek}`));
         if (subDoc.exists()) {
           const data = subDoc.data();
-          setWins(data.wins || []);
-          setRisks(data.risks || []);
+          setWins((data.wins || []).map((w: any) => ({ ...w, id: w.id || crypto.randomUUID() })));
+          setRisks((data.risks || []).map((r: any) => ({ ...r, id: r.id || crypto.randomUUID() })));
           setUpdates(data.updates || '');
-          setMajorUpdates(data.majorUpdates || []);
-          setProjectedWins(data.projectedWins || []);
-          setPriorities(data.priorities || []);
+          setMajorUpdates((data.majorUpdates || []).map((m: any) => ({ ...m, id: m.id || crypto.randomUUID() })));
+          setProjectedWins((data.projectedWins || []).map((p: any) => ({ ...p, id: p.id || crypto.randomUUID() })));
+          setPriorities((data.priorities || []).map((pr: any) => ({ ...pr, id: pr.id || crypto.randomUUID() })));
           setStatus(data.status || 'DRAFT');
         } else {
           // Reset fields

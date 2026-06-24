@@ -28,12 +28,12 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
 
   useEffect(() => {
     if (submission) {
-      setWins(submission.wins || []);
-      setRisks(submission.risks || []);
+      setWins((submission.wins || []).map((w: any) => ({ ...w, id: w.id || crypto.randomUUID() })));
+      setRisks((submission.risks || []).map((r: any) => ({ ...r, id: r.id || crypto.randomUUID() })));
       setUpdates(submission.updates || '');
-      setMajorUpdates(submission.majorUpdates || []);
-      setProjectedWins(submission.projectedWins || []);
-      setPriorities(submission.priorities || []);
+      setMajorUpdates((submission.majorUpdates || []).map((m: any) => ({ ...m, id: m.id || crypto.randomUUID() })));
+      setProjectedWins((submission.projectedWins || []).map((p: any) => ({ ...p, id: p.id || crypto.randomUUID() })));
+      setPriorities((submission.priorities || []).map((pr: any) => ({ ...pr, id: pr.id || crypto.randomUUID() })));
     }
   }, [submission]);
 
