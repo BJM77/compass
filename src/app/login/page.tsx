@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
+  const [guestName, setGuestName] = useState('');
   const [guestState, setGuestState] = useState('QLD');
   const router = useRouter();
   const auth = useFirebaseAuth();
@@ -125,6 +126,7 @@ export default function LoginPage() {
       if (db && cred.user) {
         await setDoc(doc(db, 'users', cred.user.uid), {
           email: lowerEmail,
+          name: guestName,
           state: guestState,
           role: 'GUEST',
           isGuest: true,
@@ -243,6 +245,18 @@ export default function LoginPage() {
                       type="email" 
                       value={guestEmail}
                       onChange={(e) => setGuestEmail(e.target.value)}
+                      className="bg-muted/30 border-transparent focus:border-primary/20 transition-all"
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="guestName" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your Name</Label>
+                    <Input 
+                      id="guestName" 
+                      type="text" 
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="e.g. John Doe"
                       className="bg-muted/30 border-transparent focus:border-primary/20 transition-all"
                       required 
                     />

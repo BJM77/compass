@@ -20,10 +20,14 @@ import {
 // Type definitions
 interface WinItem {
   id: string;
-  account: string;
+  customer: string;
   value: number;
-  notes: string;
+  businessUnits: string[];
+  updateText: string;
+  salespersonName: string;
 }
+
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier'];
 
 interface RiskItem {
   id: string;

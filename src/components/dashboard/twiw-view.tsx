@@ -27,10 +27,14 @@ interface TWIWViewProps {
 
 interface WinItem {
   id: string;
-  account: string;
+  customer: string;
   value: number;
-  notes: string;
+  businessUnits: string[];
+  updateText: string;
+  salespersonName: string;
 }
+
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier'];
 
 interface RiskItem {
   id: string;
@@ -139,9 +143,11 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         const data = d.data();
         return {
           id: d.id,
-          account: data.accountName || 'Unknown Win',
+          customer: data.accountName || 'Unknown Win',
           value: Number(data.eav) || 0,
-          notes: 'Signed contract win'
+          updateText: 'Signed contract win',
+          businessUnits: [],
+          salespersonName: bdmName || 'Salesperson'
         };
       });
 
@@ -150,20 +156,24 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         .filter(deal => deal.stage === 'Closed Won')
         .map(deal => ({
           id: deal.id,
-          account: deal.pipeline,
+          customer: deal.pipeline,
           value: Number(deal.value) || 0,
-          notes: 'CRM Closed Won'
+          updateText: 'CRM Closed Won',
+          businessUnits: [],
+          salespersonName: bdmName || 'Salesperson'
         }));
 
       // Combine and filter unique
       const combined = [...wins];
       [...signedWins, ...crmWins].forEach(suggest => {
-        if (!combined.some(w => w.account.toLowerCase() === suggest.account.toLowerCase())) {
+        if (!combined.some(w => w.customer.toLowerCase() === suggest.customer.toLowerCase())) {
           combined.push({
             id: crypto.randomUUID(),
-            account: suggest.account,
+            customer: suggest.customer,
             value: suggest.value,
-            notes: suggest.notes
+            updateText: suggest.updateText,
+            businessUnits: suggest.businessUnits,
+            salespersonName: suggest.salespersonName
           });
         }
       });
@@ -284,8 +294,17 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   };
 
   // List editing functions
-  const addWinRow = () => setWins([...wins, { id: crypto.randomUUID(), account: '', value: 0, notes: '' }]);
+  const addWinRow = () => setWins([...wins, { id: crypto.randomUUID(), customer: '', value: 0, updateText: '', businessUnits: [], salespersonName: bdmName || 'Salesperson' }]);
   const removeWinRow = (id: string) => setWins(wins.filter(w => w.id !== id));
+  const toggleBusinessUnit = (id: string, bu: string) => {
+    setWins(wins.map(w => {
+      if (w.id !== id) return w;
+      const bus = w.businessUnits || [];
+      const newBus = bus.includes(bu) ? bus.filter(b => b !== bu) : [...bus, bu];
+      return { ...w, businessUnits: newBus };
+    }));
+  };
+
   const updateWinField = (id: string, field: keyof WinItem, val: any) => {
     setWins(wins.map(w => w.id === id ? { ...w, [field]: val } : w));
   };
@@ -322,7 +341,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         email: profile?.email || user?.email || 'Guest',
         state: profile?.state || 'WA',
         week: selectedWeek,
-        wins: wins.filter(w => w.account.trim()),
+        wins: wins.filter(w => w.customer.trim()),
         risks: risks.filter(r => r.account.trim()),
         updates: updates.trim(),
         projectedWins: projectedWins.filter(p => p.account.trim()),
@@ -527,10 +546,12 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
-                      <th className="text-left pb-2 w-[40%]">Account / Cust</th>
-                      <th className="text-right pb-2 w-[25%]">EAV ($)</th>
-                      <th className="text-left pb-2 w-[25%]">Notes</th>
-                      <th className="text-center pb-2 w-[10%]">Action</th>
+                      <th className="text-left pb-2 w-[25%]">Customer</th>
+                      <th className="text-right pb-2 w-[15%]">EAV ($)</th>
+                      <th className="text-left pb-2 w-[20%]">Business Unit</th>
+                      <th className="text-left pb-2 w-[20%]">Update</th>
+                      <th className="text-left pb-2 w-[15%]">Salesperson</th>
+                      <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -538,8 +559,8 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                       <tr key={w.id}>
                         <td className="py-2 pr-2">
                           <Input 
-                            value={w.account} 
-                            onChange={(e) => updateWinField(w.id, 'account', e.target.value)} 
+                            value={w.customer} 
+                            onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
                             className="h-8 text-xs font-semibold"
                           />
@@ -554,10 +575,32 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           />
                         </td>
                         <td className="py-2 pr-2">
+                          <div className="flex flex-wrap gap-1">
+                            {BUSINESS_UNITS.map(bu => (
+                              <Badge 
+                                key={bu} 
+                                variant={(w.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                                className="cursor-pointer text-[9px] px-1 py-0"
+                                onClick={() => toggleBusinessUnit(w.id, bu)}
+                              >
+                                {bu}
+                              </Badge>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-2 pr-2">
                           <Input 
-                            value={w.notes} 
-                            onChange={(e) => updateWinField(w.id, 'notes', e.target.value)} 
+                            value={w.updateText} 
+                            onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
                             placeholder="e.g. Signed contract win" 
+                            className="h-8 text-xs"
+                          />
+                        </td>
+                        <td className="py-2 pr-2">
+                          <Input 
+                            value={w.salespersonName} 
+                            onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
+                            placeholder="Name" 
                             className="h-8 text-xs"
                           />
                         </td>
@@ -590,15 +633,31 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                       </Button>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Account / Cust</label>
+                      <label className="text-[9px] font-black uppercase text-slate-400">Customer</label>
                       <Input 
-                        value={w.account} 
-                        onChange={(e) => updateWinField(w.id, 'account', e.target.value)} 
+                        value={w.customer} 
+                        onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
                         placeholder="e.g. Acme Corp" 
                         className="h-8 text-xs font-semibold bg-white"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Business Unit</label>
+                      <div className="flex flex-wrap gap-1">
+                        {BUSINESS_UNITS.map(bu => (
+                          <Badge 
+                            key={bu} 
+                            variant={(w.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                            className="cursor-pointer text-[10px] px-2 py-0.5 bg-white shadow-sm hover:bg-slate-100 text-slate-600"
+                            style={(w.businessUnits || []).includes(bu) ? { backgroundColor: '#1e293b', color: 'white', borderColor: 'transparent' } : {}}
+                            onClick={() => toggleBusinessUnit(w.id, bu)}
+                          >
+                            {bu}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-1">
                         <label className="text-[9px] font-black uppercase text-slate-400">EAV ($)</label>
                         <Input 
@@ -610,11 +669,20 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Notes</label>
+                        <label className="text-[9px] font-black uppercase text-slate-400">Update</label>
                         <Input 
-                          value={w.notes} 
-                          onChange={(e) => updateWinField(w.id, 'notes', e.target.value)} 
-                          placeholder="Notes" 
+                          value={w.updateText} 
+                          onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
+                          placeholder="Update text" 
+                          className="h-8 text-xs bg-white"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <Input 
+                          value={w.salespersonName} 
+                          onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
+                          placeholder="Name" 
                           className="h-8 text-xs bg-white"
                         />
                       </div>
@@ -1120,7 +1188,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                               <tr key={idx} className="hover:bg-slate-50/50 align-top transition-colors">
                                 <td className="p-3 font-bold text-slate-800 break-words">{sub.email || sub.userName}</td>
                                 <td className="p-3 text-slate-600 whitespace-pre-line">
-                                  {(sub.wins || []).map((w: any) => `• ${w.account} - ${formatEAV(w.value)}`).join('\n') || '-'}
+                                  {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)}
+  BU: ${(w.businessUnits || []).join(', ') || 'N/A'}
+  Rep: ${w.salespersonName || 'N/A'}
+  Update: ${w.updateText || '-'}`).join('\n\n') || '-'}
                                 </td>
                                 <td className="p-3 text-slate-600 whitespace-pre-line text-rose-600/90">
                                   {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
@@ -1168,7 +1239,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                             <tr key={idx} className="avoid-break">
                               <td style={{fontWeight: 'bold'}}>{sub.email || sub.userName}</td>
                               <td className="whitespace-pre-line">
-                                {(sub.wins || []).map((w: any) => `• ${w.account} - ${formatEAV(w.value)}`).join('\n') || '-'}
+                                {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)}<br>&nbsp;&nbsp;BU: ${(w.businessUnits || []).join(', ') || 'N/A'}<br>&nbsp;&nbsp;Rep: ${w.salespersonName || 'N/A'}<br>&nbsp;&nbsp;Update: ${w.updateText || '-'}`).join('<br><br>') || '-'}
                               </td>
                               <td className="whitespace-pre-line">
                                 {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
