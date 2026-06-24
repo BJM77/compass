@@ -15,8 +15,10 @@ import {
   Sparkles, Beaker, Check, Plus, Trash2, Calendar, ClipboardCheck, 
   ArrowRight, Shield, Star, Users, Phone, Map, AlertTriangle, 
   LifeBuoy, TrendingUp, Info, HelpCircle, Save, Send, RefreshCw,
-  Target, Database
+  Target, Database, Calendar as CalendarIcon, EyeOff, Edit3, Award
 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarUI } from '@/components/ui/calendar';
 
 // Type definitions
 interface WinItem {
@@ -26,15 +28,31 @@ interface WinItem {
   businessUnits: string[];
   updateText: string;
   salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
 }
 
-const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier'];
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
 
 interface RiskItem {
   id: string;
   account: string;
   value: number;
   mitigation: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
+}
+
+interface MajorUpdateItem {
+  id: string;
+  customer: string;
+  value: number;
+  businessUnits: string[];
+  updateText: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
 }
 
 interface ProjectedWin {
@@ -42,6 +60,18 @@ interface ProjectedWin {
   account: string;
   value: number;
   expectedDate: string;
+  updateText: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
+}
+
+interface PriorityItem {
+  id: string;
+  text: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
 }
 
 interface FocusAccount {
@@ -120,9 +150,11 @@ export function DemoDashView() {
   const [wins, setWins] = useState<WinItem[]>([]);
   const [risks, setRisks] = useState<RiskItem[]>([]);
   const [updates, setUpdates] = useState('');
+  const [majorUpdates, setMajorUpdates] = useState<MajorUpdateItem[]>([]);
   const [projectedWins, setProjectedWins] = useState<ProjectedWin[]>([]);
-  const [priorities, setPriorities] = useState<string[]>([]);
+  const [priorities, setPriorities] = useState<PriorityItem[]>([]);
   const [newPriority, setNewPriority] = useState('');
+  const [newPrioritySalesperson, setNewPrioritySalesperson] = useState('');
   const [twtwStatus, setTwtwStatus] = useState<'NONE' | 'DRAFT' | 'SUBMITTED'>('NONE');
 
   // Thursday TWTW Registered-only Extra Data
@@ -170,6 +202,7 @@ export function DemoDashView() {
     setWins([]);
     setRisks([]);
     setUpdates('');
+    setMajorUpdates([]);
     setProjectedWins([]);
     setPriorities([]);
     setTwtwStatus('NONE');
@@ -205,7 +238,7 @@ export function DemoDashView() {
   // --- Thursday Pre-population triggers ---
   const handleLoadPreviousFridayData = () => {
     // 1. Priorities are populated from previous actions
-    setPriorities([...dbPrevFridayPlan.actionPlan]);
+    setPriorities(dbPrevFridayPlan.actionPlan.map(act => ({ id: crypto.randomUUID(), text: act, salespersonName: 'Me' })));
     // 2. Focus accounts loaded for review
     setCurrentWeekFocusAccounts(dbPrevFridayPlan.focusAccounts.map(acc => ({ ...acc, status: 'WORKING', update: '' })));
     // 3. Actions checklist loaded (since Phase A is on Thursday now)
@@ -225,13 +258,16 @@ export function DemoDashView() {
 
     // Auto-fill Wins, Risks, Projected using CRM Logic
     setWins([
-      { id: 'w1', account: 'ACME LOGISTICS', value: 150000, notes: 'Signed develop agreement, trial scheduled!' }
+      { id: 'w1', customer: 'ACME LOGISTICS', value: 150000, businessUnits: ['Road Express'], updateText: 'Signed develop agreement, trial scheduled!', salespersonName: 'Me' }
     ]);
     setRisks([
-      { id: 'r1', account: 'GLOBAL CARRIERS', value: 80000, mitigation: 'Reviewing rates & negotiating spot discounts.' }
+      { id: 'r1', account: 'GLOBAL CARRIERS', value: 80000, mitigation: 'Reviewing rates & negotiating spot discounts.', salespersonName: 'Me' }
+    ]);
+    setMajorUpdates([
+      { id: 'm1', customer: 'BHP Billiton', value: 340000, businessUnits: ['Freight'], updateText: 'Contract negotiations advanced.', salespersonName: 'Me' }
     ]);
     setProjectedWins([
-      { id: 'p1', account: 'ZENITH MANUFACTURING', value: 280000, expectedDate: 'End of month' }
+      { id: 'p1', account: 'ZENITH MANUFACTURING', value: 280000, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: 'Proposals finalized', salespersonName: 'Me' }
     ]);
 
     // Pre-populate performance narrative with bullet points of the previous Friday's action plan
@@ -318,12 +354,12 @@ export function DemoDashView() {
     setFridaySupport(twtwSupport || dbPrevFridayPlan.supportNeeded || '');
     
     // Opportunities, signed deals, and new business pulled from CRM/Thursday wins
-    setFridaySignedDeals(wins.map(w => ({ id: w.id, accountName: w.account, eav: w.value, notes: w.notes })));
+    setFridaySignedDeals(wins.map(w => ({ id: w.id, accountName: w.customer, eav: w.value, notes: w.updateText })));
     setFridayOpportunities(projectedWins.map(p => ({ id: p.id, accountName: p.account, eav: p.value, stage: 'Propose', probability: 50 })));
     
     // Automatically import Priorities from Thursday TWTW into Next Week Actions
     if (priorities.length > 0) {
-      const newActions = [...priorities];
+      const newActions = priorities.map(p => p.text);
       while (newActions.length < 5) {
         newActions.push('');
       }
@@ -376,21 +412,53 @@ export function DemoDashView() {
   };
 
   // --- Add/Delete handlers for lists ---
-  const handleAddWin = () => setWins([...wins, { id: crypto.randomUUID(), account: '', value: 0, notes: '' }]);
-  const handleDeleteWin = (id: string) => setWins(wins.filter(w => w.id !== id));
-
-  const handleAddRisk = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '' }]);
-  const handleDeleteRisk = (id: string) => setRisks(risks.filter(r => r.id !== id));
-
-  const handleAddProjected = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: '' }]);
-  const handleDeleteProjected = (id: string) => setProjectedWins(projectedWins.filter(p => p.id !== id));
-
-  const handleAddPriority = () => {
-    if (!newPriority.trim()) return;
-    setPriorities([...priorities, newPriority.trim()]);
-    setNewPriority('');
+  const addWinRow = () => setWins([...wins, { id: crypto.randomUUID(), customer: '', value: 0, updateText: '', businessUnits: [], salespersonName: 'Me' }]);
+  const removeWinRow = (id: string) => setWins(wins.filter(w => w.id !== id));
+  const toggleBusinessUnit = (id: string, bu: string) => {
+    setWins(wins.map(w => {
+      if (w.id !== id) return w;
+      const bus = w.businessUnits || [];
+      const newBus = bus.includes(bu) ? bus.filter(b => b !== bu) : [...bus, bu];
+      return { ...w, businessUnits: newBus };
+    }));
   };
-  const handleDeletePriority = (idx: number) => setPriorities(priorities.filter((_, i) => i !== idx));
+  const updateWinField = (id: string, field: keyof WinItem, val: any) => {
+    setWins(wins.map(w => w.id === id ? { ...w, [field]: val } : w));
+  };
+
+  const addRiskRow = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '', salespersonName: 'Me' }]);
+  const removeRiskRow = (id: string) => setRisks(risks.filter(r => r.id !== id));
+  const updateRiskField = (id: string, field: keyof RiskItem, val: any) => {
+    setRisks(risks.map(r => r.id === id ? { ...r, [field]: val } : r));
+  };
+
+  const addMajorUpdateRow = () => setMajorUpdates([...majorUpdates, { id: crypto.randomUUID(), customer: '', value: 0, businessUnits: [], updateText: '', salespersonName: 'Me' }]);
+  const removeMajorUpdateRow = (id: string) => setMajorUpdates(majorUpdates.filter(m => m.id !== id));
+  const toggleMajorUpdateBU = (id: string, bu: string) => {
+    setMajorUpdates(majorUpdates.map(m => {
+      if (m.id !== id) return m;
+      const bus = m.businessUnits || [];
+      const newBus = bus.includes(bu) ? bus.filter(b => b !== bu) : [...bus, bu];
+      return { ...m, businessUnits: newBus };
+    }));
+  };
+  const updateMajorUpdateField = (id: string, field: keyof MajorUpdateItem, val: any) => {
+    setMajorUpdates(majorUpdates.map(m => m.id === id ? { ...m, [field]: val } : m));
+  };
+
+  const addProjectedRow = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: '', salespersonName: 'Me' }]);
+  const removeProjectedRow = (id: string) => setProjectedWins(projectedWins.filter(p => p.id !== id));
+  const updateProjectedField = (id: string, field: keyof ProjectedWin, val: any) => {
+    setProjectedWins(projectedWins.map(p => p.id === id ? { ...p, [field]: val } : p));
+  };
+
+  const addPriority = () => {
+    if (!newPriority.trim()) return;
+    setPriorities([...priorities, { id: crypto.randomUUID(), text: newPriority.trim(), salespersonName: newPrioritySalesperson || 'Me' }]);
+    setNewPriority('');
+    setNewPrioritySalesperson('');
+  };
+  const removePriority = (id: string) => setPriorities(priorities.filter(p => p.id !== id));
 
   // --- PDF Export helper ---
   const handleExportPdf = () => {
@@ -451,12 +519,22 @@ export function DemoDashView() {
   // Mock collation dataset (combining user inputs with 2 other mock BDMs)
   const collatedMockSubmissions = useMemo(() => {
     // 1. Map user submission
-    const userWinsFormatted = wins.map(w => `• ${w.account || 'TBC'} ($${w.value.toLocaleString()}) - ${w.notes}`).join('\n') || '-';
+    const userWinsFormatted = wins.map(w => `• ${w.customer || 'TBC'} ($${w.value.toLocaleString()}) - ${w.updateText}`).join('\n') || '-';
     const userRisksFormatted = risks.map(r => `• ${r.account || 'TBC'} ($${r.value.toLocaleString()})\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-';
-    const userProjectedFormatted = projectedWins.map(p => `• ${p.account || 'TBC'} ($${p.value.toLocaleString()}) (${p.expectedDate})`).join('\n') || '-';
+    const userProjectedFormatted = projectedWins.map(p => `• ${p.account || 'TBC'} ($${p.value.toLocaleString()}) (${p.expectedDate}) - ${p.updateText}`).join('\n') || '-';
     
-    let userPrioritiesFormatted = priorities.map(p => `• ${p}`).join('\n') || '-';
-    let userUpdatesFormatted = updates || '-';
+    let userPrioritiesFormatted = priorities.map(p => `• ${p.text}`).join('\n') || '-';
+    
+    let userUpdatesFormatted = '';
+    if (updates) {
+      userUpdatesFormatted += `${updates}\n\n`;
+    }
+    if (majorUpdates.length > 0) {
+      userUpdatesFormatted += majorUpdates.map(m => `• ${m.customer || 'TBC'} ($${m.value.toLocaleString()}) - ${m.updateText}`).join('\n');
+    }
+    if (!userUpdatesFormatted) {
+      userUpdatesFormatted = '-';
+    }
 
     // If registered user, append extra monday/friday metrics to details for collation
     if (simUserRole === 'REGISTERED') {
@@ -700,168 +778,433 @@ export function DemoDashView() {
                     </div>
                   </header>
 
-                  {/* Standard Questions - All Users */}
+                  {/* Key Wins */}
                   <Card className="border shadow-md">
                     <CardHeader className="bg-slate-50 border-b py-4">
                       <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                        <Star className="w-4 h-4 text-amber-500" /> Standard TWTW Core (Wins & Risks)
+                        <Award className="w-4 h-4 text-emerald-500" /> Key Wins
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                      
-                      {/* Wins Table */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-black uppercase text-slate-800 tracking-wider">Key Wins (This Week)</label>
-                          <Button variant="outline" size="sm" onClick={handleAddWin} className="h-7 text-[9px] font-black uppercase gap-1.5 border-dashed border-2 rounded-lg">
-                            <Plus className="w-3 h-3" /> Add Win Row
-                          </Button>
-                        </div>
-                        <div className="space-y-3">
-                          {wins.map((w, index) => (
-                            <div key={w.id} className="grid grid-cols-12 gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl relative group align-center">
-                              <div className="col-span-4">
-                                <Input placeholder="Account Name..." value={w.account} onChange={e => {
-                                  const list = [...wins];
-                                  list[index].account = e.target.value;
-                                  setWins(list);
-                                }} className="h-9 text-xs font-bold bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-3 relative">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">$</span>
-                                <Input type="number" placeholder="Value..." value={w.value || ''} onChange={e => {
-                                  const list = [...wins];
-                                  list[index].value = parseFloat(e.target.value) || 0;
-                                  setWins(list);
-                                }} className="h-9 pl-6 text-xs font-bold bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-4">
-                                <Input placeholder="Wins Notes..." value={w.notes} onChange={e => {
-                                  const list = [...wins];
-                                  list[index].notes = e.target.value;
-                                  setWins(list);
-                                }} className="h-9 text-xs font-medium bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-1 flex items-center justify-end">
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteWin(w.id)} className="h-8 w-8 text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                              </div>
-                            </div>
-                          ))}
-                          {wins.length === 0 && <p className="text-[10px] text-muted-foreground italic">No wins added. Load previous Friday data or add manually.</p>}
-                        </div>
+                    <CardContent className="p-4 space-y-4">
+                      <div className="hidden sm:block overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                              <th className="text-left pb-2 w-[25%]">Customer</th>
+                              <th className="text-right pb-2 w-[15%]">EAV ($)</th>
+                              <th className="text-left pb-2 w-[20%]">Business Unit</th>
+                              <th className="text-left pb-2 w-[20%]">Update</th>
+                              <th className="text-left pb-2 w-[15%]">Salesperson</th>
+                              <th className="text-center pb-2 w-[5%]">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {wins.map((w) => (
+                              <tr key={w.id}>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={w.customer} 
+                                    onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
+                                    placeholder="e.g. Acme Corp" 
+                                    className="h-8 text-xs font-semibold"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    type="number"
+                                    value={w.value || ''} 
+                                    onChange={(e) => updateWinField(w.id, 'value', parseFloat(e.target.value) || 0)} 
+                                    placeholder="Value" 
+                                    className="h-8 text-xs font-black text-right text-emerald-600"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <div className="flex flex-wrap gap-1">
+                                    {BUSINESS_UNITS.map(bu => (
+                                      <Badge 
+                                        key={bu} 
+                                        variant={(w.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                                        className="cursor-pointer text-[9px] px-1 py-0"
+                                        onClick={() => toggleBusinessUnit(w.id, bu)}
+                                      >
+                                        {bu}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <div className="relative">
+                                    <Input 
+                                      value={w.updateText || ''} 
+                                      onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
+                                      placeholder="e.g. Signed contract win" 
+                                      className="h-8 text-xs"
+                                      maxLength={200}
+                                    />
+                                    <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(w.updateText || '').length}/200</div>
+                                  </div>
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={w.salespersonName} 
+                                    onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
+                                    placeholder="Name" 
+                                    className="h-8 text-xs"
+                                  />
+                                </td>
+                                <td className="py-2 text-center">
+                                  <Button variant="ghost" size="icon" onClick={() => removeWinRow(w.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            {wins.length === 0 && (
+                              <tr>
+                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                  No Wins reported yet. Add a custom row.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       </div>
+                      <Button onClick={addWinRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Win
+                      </Button>
+                    </CardContent>
+                  </Card>
 
-                      {/* Risks Table */}
-                      <div className="space-y-3 pt-4 border-t">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-black uppercase text-slate-800 tracking-wider">Churn Risks / Competitor Activity</label>
-                          <Button variant="outline" size="sm" onClick={handleAddRisk} className="h-7 text-[9px] font-black uppercase gap-1.5 border-dashed border-2 rounded-lg">
-                            <Plus className="w-3 h-3" /> Add Risk Row
-                          </Button>
-                        </div>
-                        <div className="space-y-3">
-                          {risks.map((r, index) => (
-                            <div key={r.id} className="grid grid-cols-12 gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl relative group">
-                              <div className="col-span-4">
-                                <Input placeholder="Account Name..." value={r.account} onChange={e => {
-                                  const list = [...risks];
-                                  list[index].account = e.target.value;
-                                  setRisks(list);
-                                }} className="h-9 text-xs font-bold bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-3 relative">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">$</span>
-                                <Input type="number" placeholder="Value..." value={r.value || ''} onChange={e => {
-                                  const list = [...risks];
-                                  list[index].value = parseFloat(e.target.value) || 0;
-                                  setRisks(list);
-                                }} className="h-9 pl-6 text-xs font-bold bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-4">
-                                <Input placeholder="Mitigation Strategy..." value={r.mitigation} onChange={e => {
-                                  const list = [...risks];
-                                  list[index].mitigation = e.target.value;
-                                  setRisks(list);
-                                }} className="h-9 text-xs font-medium bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-1 flex items-center justify-end">
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteRisk(r.id)} className="h-8 w-8 text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                              </div>
-                            </div>
-                          ))}
-                          {risks.length === 0 && <p className="text-[10px] text-muted-foreground italic">No churn risks added.</p>}
-                        </div>
+                  {/* Churn Risks */}
+                  <Card className="border shadow-md">
+                    <CardHeader className="bg-slate-50 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-rose-500" /> Churn Risk Flags
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-4">
+                      <div className="hidden sm:block overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                              <th className="text-left pb-2 w-[35%]">Account / Cust</th>
+                              <th className="text-right pb-2 w-[20%]">Value at Risk ($)</th>
+                              <th className="text-left pb-2 w-[20%]">Mitigation</th>
+                              <th className="text-left pb-2 w-[20%]">Salesperson</th>
+                              <th className="text-center pb-2 w-[5%]">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {risks.map((r) => (
+                              <tr key={r.id}>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={r.account} 
+                                    onChange={(e) => updateRiskField(r.id, 'account', e.target.value)} 
+                                    placeholder="e.g. Acme Corp" 
+                                    className="h-8 text-xs font-semibold"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    type="number"
+                                    value={r.value || ''} 
+                                    onChange={(e) => updateRiskField(r.id, 'value', parseFloat(e.target.value) || 0)} 
+                                    placeholder="Value" 
+                                    className="h-8 text-xs font-black text-right text-rose-600"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={r.mitigation} 
+                                    onChange={(e) => updateRiskField(r.id, 'mitigation', e.target.value)} 
+                                    placeholder="e.g. Setup review meeting" 
+                                    className="h-8 text-xs"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={r.salespersonName} 
+                                    onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
+                                    placeholder="Name" 
+                                    className="h-8 text-xs"
+                                  />
+                                </td>
+                                <td className="py-2 text-center">
+                                  <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            {risks.length === 0 && (
+                              <tr>
+                                <td colSpan={5} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                  No Risks flagged yet. Add a custom row.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       </div>
+                      <Button onClick={addRiskRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Risk
+                      </Button>
+                    </CardContent>
+                  </Card>
 
-                      {/* Projected Wins */}
-                      <div className="space-y-3 pt-4 border-t">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-black uppercase text-slate-800 tracking-wider">30-Day Projected High-Value Wins</label>
-                          <Button variant="outline" size="sm" onClick={handleAddProjected} className="h-7 text-[9px] font-black uppercase gap-1.5 border-dashed border-2 rounded-lg">
-                            <Plus className="w-3 h-3" /> Add Projected Row
-                          </Button>
+                  {/* Major Pipeline & Customer Updates */}
+                  <Card className="border shadow-md">
+                    <CardHeader className="bg-slate-50 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700">
+                        Major Pipeline &amp; Customer Updates
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      {updates && majorUpdates.length === 0 && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                          <p className="text-xs text-amber-800 font-medium mb-1">Legacy Update Format (Read-Only):</p>
+                          <p className="text-xs text-amber-700 whitespace-pre-wrap">{updates}</p>
                         </div>
-                        <div className="space-y-3">
-                          {projectedWins.map((p, index) => (
-                            <div key={p.id} className="grid grid-cols-12 gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl relative group">
-                              <div className="col-span-5">
-                                <Input placeholder="Account Name..." value={p.account} onChange={e => {
-                                  const list = [...projectedWins];
-                                  list[index].account = e.target.value;
-                                  setProjectedWins(list);
-                                }} className="h-9 text-xs font-bold bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-3 relative">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">$</span>
-                                <Input type="number" placeholder="Value..." value={p.value || ''} onChange={e => {
-                                  const list = [...projectedWins];
-                                  list[index].value = parseFloat(e.target.value) || 0;
-                                  setProjectedWins(list);
-                                }} className="h-9 pl-6 text-xs font-bold bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-3">
-                                <Input placeholder="Expected Close Date..." value={p.expectedDate} onChange={e => {
-                                  const list = [...projectedWins];
-                                  list[index].expectedDate = e.target.value;
-                                  setProjectedWins(list);
-                                }} className="h-9 text-xs font-medium bg-white rounded-xl" />
-                              </div>
-                              <div className="col-span-1 flex items-center justify-end">
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteProjected(p.id)} className="h-8 w-8 text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                              </div>
-                            </div>
-                          ))}
-                          {projectedWins.length === 0 && <p className="text-[10px] text-muted-foreground italic">No projected wins added.</p>}
-                        </div>
+                      )}
+                      <div className="hidden sm:block overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                              <th className="text-left pb-2 w-[25%]">Customer</th>
+                              <th className="text-right pb-2 w-[15%]">EAV ($)</th>
+                              <th className="text-left pb-2 w-[20%]">Business Unit</th>
+                              <th className="text-left pb-2 w-[20%]">Update</th>
+                              <th className="text-left pb-2 w-[15%]">Salesperson</th>
+                              <th className="text-center pb-2 w-[5%]">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {majorUpdates.map((m) => (
+                              <tr key={m.id}>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={m.customer} 
+                                    onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
+                                    placeholder="e.g. Acme Corp" 
+                                    className="h-8 text-xs font-semibold"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    type="number"
+                                    value={m.value || ''} 
+                                    onChange={(e) => updateMajorUpdateField(m.id, 'value', parseFloat(e.target.value) || 0)} 
+                                    placeholder="Value" 
+                                    className="h-8 text-xs font-black text-right text-emerald-600"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <div className="flex flex-wrap gap-1">
+                                    {BUSINESS_UNITS.map(bu => (
+                                      <Badge 
+                                        key={bu} 
+                                        variant={(m.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                                        className="cursor-pointer text-[9px] px-1 py-0"
+                                        onClick={() => toggleMajorUpdateBU(m.id, bu)}
+                                      >
+                                        {bu}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <div className="relative">
+                                    <Input 
+                                      value={m.updateText || ''} 
+                                      onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
+                                      placeholder="e.g. Signed contract win" 
+                                      className="h-8 text-xs"
+                                      maxLength={200}
+                                    />
+                                    <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(m.updateText || '').length}/200</div>
+                                  </div>
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={m.salespersonName} 
+                                    onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
+                                    placeholder="Name" 
+                                    className="h-8 text-xs"
+                                  />
+                                </td>
+                                <td className="py-2 text-center">
+                                  <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            {majorUpdates.length === 0 && (
+                              <tr>
+                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                  No updates reported yet. Add a custom row.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       </div>
+                      <Button onClick={addMajorUpdateRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Update
+                      </Button>
+                    </CardContent>
+                  </Card>
 
-                      {/* Performance Narrative */}
-                      <div className="space-y-2 pt-4 border-t">
-                        <label className="text-[10px] font-black uppercase text-slate-800 tracking-wider">Performance Narrative (Major Updates)</label>
-                        <Textarea 
-                          placeholder="Provide a high-level summary of shifts and wins achieved this week..." 
-                          value={updates}
-                          onChange={e => setUpdates(e.target.value)}
-                          className="min-h-[100px] text-xs font-medium rounded-xl border-slate-200" 
+                  {/* 30 Day Projected Wins */}
+                  <Card className="border shadow-md">
+                    <CardHeader className="bg-slate-50 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-blue-500" /> 30 Day Projected Wins &gt;$200k
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-4">
+                      <div className="hidden sm:block overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                              <th className="text-left pb-2 w-[30%]">Account / Cust</th>
+                              <th className="text-right pb-2 w-[15%]">EAV ($)</th>
+                              <th className="text-left pb-2 pl-2 w-[15%]">Date</th>
+                              <th className="text-left pb-2 pl-2 w-[20%]">Update</th>
+                              <th className="text-left pb-2 w-[15%]">Salesperson</th>
+                              <th className="text-center pb-2 w-[5%]">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {projectedWins.map((p) => {
+                              const dateParts = p.expectedDate ? p.expectedDate.split('-') : [];
+                              const selectedDate = dateParts.length === 3 ? new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])) : undefined;
+                              return (
+                                <tr key={p.id}>
+                                  <td className="py-2 pr-2">
+                                    <Input 
+                                      value={p.account} 
+                                      onChange={(e) => updateProjectedField(p.id, 'account', e.target.value)} 
+                                      placeholder="e.g. Acme Corp" 
+                                      className="h-8 text-xs font-semibold"
+                                    />
+                                  </td>
+                                  <td className="py-2 pr-2">
+                                    <Input 
+                                      type="number"
+                                      value={p.value || ''} 
+                                      onChange={(e) => updateProjectedField(p.id, 'value', parseFloat(e.target.value) || 0)} 
+                                      placeholder="Value" 
+                                      className="h-8 text-xs font-black text-right text-blue-600"
+                                    />
+                                  </td>
+                                  <td className="py-2 pl-2 pr-2">
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button variant="outline" className={cn("w-full h-8 px-2 text-left font-normal text-xs", !p.expectedDate && "text-muted-foreground")}>
+                                          <CalendarIcon className="mr-2 h-3 w-3" />
+                                          {p.expectedDate ? p.expectedDate : <span>Pick date</span>}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarUI
+                                          mode="single"
+                                          selected={selectedDate}
+                                          onSelect={(d) => updateProjectedField(p.id, 'expectedDate', d ? format(d, 'dd-MM-yyyy') : '')}
+                                          initialFocus
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
+                                  </td>
+                                  <td className="py-2 pr-2">
+                                    <div className="relative">
+                                      <Input 
+                                        value={p.updateText || ''} 
+                                        onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
+                                        placeholder="Update" 
+                                        className="h-8 text-xs"
+                                        maxLength={200}
+                                      />
+                                      <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(p.updateText || '').length}/200</div>
+                                    </div>
+                                  </td>
+                                  <td className="py-2 pr-2">
+                                    <Input 
+                                      value={p.salespersonName} 
+                                      onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
+                                      placeholder="Name" 
+                                      className="h-8 text-xs"
+                                    />
+                                  </td>
+                                  <td className="py-2 text-center">
+                                    <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {projectedWins.length === 0 && (
+                              <tr>
+                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                  No projected wins found. Add a custom row.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                      <Button onClick={addProjectedRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Projected Win
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Priorities */}
+                  <Card className="border shadow-md">
+                    <CardHeader className="bg-slate-50 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                        <Target className="w-4 h-4 text-accent" /> Priorities for Week Ahead
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-4">
+                      <div className="grid grid-cols-3 gap-2">
+                        <Input 
+                          value={newPriority}
+                          onChange={e => setNewPriority(e.target.value)}
+                          placeholder="e.g. Focus on Neerabup zone wins"
+                          className="h-8 text-xs font-semibold col-span-2"
+                          onKeyDown={e => e.key === 'Enter' && addPriority()}
                         />
-                      </div>
-
-                      {/* Next Week Priorities */}
-                      <div className="space-y-3 pt-4 border-t">
-                        <label className="text-[10px] font-black uppercase text-slate-800 tracking-wider">Priorities for the Week Ahead</label>
                         <div className="flex gap-2">
-                          <Input placeholder="Enter priority focus area..." value={newPriority} onChange={e => setNewPriority(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddPriority()} className="h-9 text-xs" />
-                          <Button onClick={handleAddPriority} className="h-9 px-4 text-xs font-bold uppercase shrink-0">Add</Button>
+                          <Input 
+                            value={newPrioritySalesperson}
+                            onChange={e => setNewPrioritySalesperson(e.target.value)}
+                            placeholder="Salesperson"
+                            className="h-8 text-xs font-semibold"
+                            onKeyDown={e => e.key === 'Enter' && addPriority()}
+                          />
+                          <Button size="sm" onClick={addPriority} className="h-8 text-xs font-black uppercase bg-primary px-3 rounded-xl">Add</Button>
                         </div>
-                        <div className="space-y-1.5 mt-2">
-                          {priorities.map((p, idx) => (
-                            <div key={idx} className="flex justify-between items-center p-2 bg-slate-50 rounded-lg border text-xs font-semibold text-slate-700">
-                              <span>• {p}</span>
-                              <Button variant="ghost" size="icon" onClick={() => handleDeletePriority(idx)} className="h-6 w-6 text-red-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></Button>
+                      </div>
+                      <div className="space-y-2">
+                        {priorities.map((p) => (
+                          <div key={p.id} className="flex justify-between items-center gap-3 p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold">
+                            <div className="flex-1 flex justify-between gap-4">
+                              <span className="text-slate-800 leading-tight">{p.text}</span>
+                              <span className="text-slate-500">{p.salespersonName}</span>
                             </div>
-                          ))}
-                          {priorities.length === 0 && <p className="text-[10px] text-muted-foreground italic">No priorities added. Loaded priorities from previous Friday will show here.</p>}
-                        </div>
+                            <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
+                        {priorities.length === 0 && (
+                          <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                            No priorities added yet.
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
