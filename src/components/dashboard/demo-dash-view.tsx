@@ -787,6 +787,20 @@ export function DemoDashView() {
             tbody tr {
               border-bottom: 12px solid white;
             }
+            /* Tailwind Print Utilities */
+            .mb-2 { margin-bottom: 12px !important; display: block; }
+            .mt-1 { margin-top: 4px !important; }
+            .mt-2 { margin-top: 8px !important; }
+            .p-2 { padding: 8px !important; }
+            .font-bold, .font-semibold { font-weight: bold !important; }
+            .text-emerald-600 { color: #059669 !important; }
+            .text-rose-600 { color: #e11d48 !important; }
+            .text-blue-600 { color: #2563eb !important; }
+            .text-slate-500, .text-slate-400 { color: #64748b !important; }
+            .bg-slate-50 { background-color: #f8fafc !important; }
+            .border { border: 1px solid #e2e8f0 !important; }
+            .rounded-lg { border-radius: 6px !important; }
+
             .item-block {
               border-bottom: 1px solid #e2e8f0;
               padding-bottom: 4px;
