@@ -1860,7 +1860,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     const renderItem = (item: any, type: string, subId: string, content: React.ReactNode) => {
       if (item.isHidden) return null;
       return (
-        <div key={item.id} className="relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all">
+        <div key={`${subId}-${type}-${item.id}`} className="relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all">
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-10">
             <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-white", item.isStarred ? "border-amber-400 text-amber-500" : "border-slate-200 text-slate-400 hover:text-amber-500")} onClick={() => toggleItemState(subId, type as any, item.id, 'isStarred')}>
               <Star className={cn("w-3 h-3", item.isStarred && "fill-current")} />
