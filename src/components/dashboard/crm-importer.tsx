@@ -55,9 +55,17 @@ function getField(row: any, ...candidates: string[]): string {
 function matchUser(users: any[], ownerName: string): any | null {
   if (!ownerName) return null;
   const lower = ownerName.trim().toLowerCase();
+  
   // Exact match first
   let found = users.find(u => (u.name || '').trim().toLowerCase() === lower);
   if (found) return found;
+  
+  // Check for Isaac DePina specifically
+  if (lower.includes('isaac') && lower.includes('depina')) {
+    found = users.find(u => (u.name || '').trim().toLowerCase().includes('isaac'));
+    if (found) return found;
+  }
+  
   // Partial match (first+last name subset)
   found = users.find(u => {
     const uname = (u.name || '').trim().toLowerCase();

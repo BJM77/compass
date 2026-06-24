@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import {
+  useState, useMemo, useEffect } from 'react';
+import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, doc, setDoc, serverTimestamp, query, where, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
+import { TwiwEditDialog } from './twiw-edit-dialog';
+import { FridayPerformanceReview } from './friday-performance-review';
+import { getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
+import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,7 +22,7 @@ import {
   Sparkles, Beaker, Check, Plus, Trash2, Calendar, ClipboardCheck, 
   ArrowRight, Shield, Star, Users, Phone, Map, AlertTriangle, 
   LifeBuoy, TrendingUp, Info, HelpCircle, Save, Send, RefreshCw,
-  Target, Database, Calendar as CalendarIcon, EyeOff, Edit3, Award
+  Target, Database, Calendar as CalendarIcon, EyeOff, Edit3, Award, ClipboardList, PieChart, DollarSign, FileText
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
@@ -111,37 +118,196 @@ const ACTION_TYPES = [
 ];
 
 export function DemoDashView() {
-  const { isLeader } = useAuth();
+  const { isLeader, user, profile, isGuest } = useAuth();
   const { toast } = useToast();
+  const db = useFirestore();
 
-  // --- Simulation Controls State ---
-  const [simUserRole, setSimUserRole] = useState<'REGISTERED' | 'GUEST'>('REGISTERED');
-  const [simDay, setSimDay] = useState<'THURSDAY' | 'FRIDAY'>('THURSDAY');
+  const isRegisteredUser = !isGuest && (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER');
+  const currentWeek = getCurrentWeek();
 
-  // --- Mock Database / State ---
+  // Helper to get previous week key
+  function getPreviousWeekKey(weekKey: string): string {
+    const [yearStr, weekStr] = weekKey.split('-');
+    const year = parseInt(yearStr, 10);
+    const weekNum = parseInt(weekStr, 10);
+    if (weekNum > 1) {
+      return `${year}-${String(weekNum - 1).padStart(2, '0')}`;
+    } else {
+      return `${year - 1}-52`;
+    }
+  }
+  const previousWeek = getPreviousWeekKey(currentWeek);
+
+  // 🛡️ Guard: If db is not yet available, show a loading state
+  if (!db) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const activeUserId = user?.uid;
+
+  // KPI Review State - only for registered users
+  const [kpiReview, setKpiReview] = useState<KPIReview>({
+    callsTarget: 0, appointmentsTarget: 0, proposalsTarget: 0, dealsTarget: 0, revenueTarget: 0,
+    callsActual: 0, appointmentsActual: 0, proposalsActual: 0, dealsActual: 0, revenueActual: 0, kpiNotes: ''
+  });
+
+
+  useEffect(() => {
+    async function loadPreviousFridayData() {
+      if (!db || !activeUserId || !isRegisteredUser) return;
+      try {
+        const { getDoc, getDocs, query, collection, where, doc } = await import('firebase/firestore');
+        const prevCommitRef = doc(db, 'weeklyCommitments', `${activeUserId}_${previousWeek}`);
+        const prevCommitSnap = await getDoc(prevCommitRef);
+        if (prevCommitSnap.exists()) {
+          const prevData = prevCommitSnap.data();
+          const kpiTargets = prevData.kpiTargets || {};
+          setKpiReview(prev => ({
+            ...prev,
+            callsTarget: kpiTargets.callsToMake || 0,
+            appointmentsTarget: kpiTargets.appointmentsToSet || 0,
+            proposalsTarget: kpiTargets.proposalsToSend || 0,
+            dealsTarget: kpiTargets.dealsToClose || 0,
+            revenueTarget: kpiTargets.revenueTarget || 0
+          }));
+          if (prevData.actionPlan) {
+            setCurrentWeekActions(prevData.actionPlan.map((act: string) => ({ text: act, completed: false, update: '' })));
+          }
+          if (prevData.focusAccounts) {
+            setCurrentWeekFocusAccounts(prevData.focusAccounts.map((fa: any) => ({ ...fa, status: 'WORKING', update: '' })));
+          }
+        }
+        
+        const prevProgressRef = doc(db, 'weeklyProgress', `${activeUserId}_${previousWeek}`);
+        const prevProgressSnap = await getDoc(prevProgressRef);
+        if (prevProgressSnap.exists()) {
+          const progressData = prevProgressSnap.data();
+          setKpiReview(prev => ({
+            ...prev,
+            callsActual: progressData.calls || 0,
+            appointmentsActual: progressData.apps || 0,
+            proposalsActual: progressData.proposals || 0,
+            dealsActual: progressData.deals || 0
+          }));
+        }
+        
+        const prevPipelineSnap = await getDocs(query(collection(db, 'pipelineReviews'), where('userId', '==', activeUserId), where('week', '==', previousWeek)));
+        const wonRevenue = prevPipelineSnap.docs.map(d => d.data()).filter(d => d.stage === 'Closed Won').reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+        setKpiReview(prev => ({ ...prev, revenueActual: wonRevenue || 0 }));
+      } catch (error) { console.error(error); }
+    }
+    loadPreviousFridayData();
+  }, [db, activeUserId, previousWeek, isRegisteredUser]);
+
+  const updateKPI = (field: keyof Omit<KPIReview, 'kpiNotes'>, value: number) => {
+    if (!isRegisteredUser) return;
+    setKpiReview(prev => ({ ...prev, [field]: value }));
+  };
+
+  const renderKPIReview = () => {
+    if (!isRegisteredUser) return null;
+    return (
+      <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white mb-6">
+        <CardHeader className="bg-slate-50/50 border-b py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <Target className="w-4 h-4 text-emerald-600" /> Weekly KPI Review (vs Previous Friday's Plan)
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Review your performance against the KPI targets set last Friday
+              </CardDescription>
+            </div>
+            <Badge className="bg-slate-100 text-slate-600 font-black text-[9px] uppercase">Week {previousWeek.split('-')[1]} Targets</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-blue-500" /><div className="text-[9px] font-black uppercase text-slate-500">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-purple-500" /><div className="text-[9px] font-black uppercase text-slate-500">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-amber-500" /><div className="text-[9px] font-black uppercase text-slate-500">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Revenue</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-lg font-black text-slate-800">${(kpiReview.revenueTarget / 1000).toFixed(0)}K</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.revenueActual || ''} onChange={(e) => updateKPI('revenueActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-[10px] font-black uppercase text-slate-500">Weekly KPI Notes & Commentary</div>
+            <Textarea placeholder="Provide notes on your KPI performance this week..." value={kpiReview.kpiNotes} onChange={(e) => setKpiReview(prev => ({ ...prev, kpiNotes: e.target.value }))} className="min-h-[80px] text-xs font-medium rounded-xl" />
+          </div>
+
+        </CardContent>
+      </Card>
+    );
+  };
+  const activeUserName = profile?.name || user?.email || 'Unknown';
+  const activeUserRole = profile?.role || 'BDM';
+  const activeUserState = profile?.state || 'WA';
+  const selectedWeek = getCurrentWeek();
+
+  // Load existing submission for current user
+  const submissionDocId = activeUserId ? `${activeUserId}_${selectedWeek}` : null;
+  
+  const mySubmissionRef = useMemoFirebase(() => {
+    if (!db || !submissionDocId) return null;
+    return doc(db, 'twiwSubmissions', submissionDocId);
+  }, [db, submissionDocId]);
+  
+  const { data: mySubmission } = useDoc(mySubmissionRef);
+
+  // Load all team submissions for collation (leaders only)
+  const twiwQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    return query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek));
+  }, [db, isLeader, selectedWeek]);
+  
+  const { data: allSubmissions } = useCollection(twiwQuery);
+
+  const submissionsByState = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    const submissionsList = allSubmissions || [];
+    submissionsList.forEach(sub => {
+      const state = sub.state || 'Unassigned';
+      if (!groups[state]) groups[state] = [];
+      groups[state].push(sub);
+    });
+    return groups;
+  }, [allSubmissions]);
+
+  const [editingSubmission, setEditingSubmission] = useState<any>(null);
+
+  // Load data into state when available
+  useEffect(() => {
+    if (mySubmission) {
+      setWins(mySubmission.wins || []);
+      setRisks(mySubmission.risks || []);
+      setUpdates(mySubmission.updates || '');
+      setMajorUpdates(mySubmission.majorUpdates || []);
+      setProjectedWins(mySubmission.projectedWins || []);
+      setPriorities(mySubmission.priorities || []);
+      setTwtwStatus(mySubmission.status || 'NONE');
+      setNextWeekActions(mySubmission.nextWeekActions || ['']);
+      setNextWeekRoadblocks(mySubmission.nextWeekRoadblocks || '');
+      setNextWeekSupport(mySubmission.nextWeekSupport || '');
+    } else {
+      setTwtwStatus('NONE');
+    }
+  }, [mySubmission]);
   // Previous Friday's Plan
   const defaultPrevFridayPlan = {
-    focusAccounts: [
-      { id: 'fa1', accountName: 'ACME LOGISTICS', actionType: 'Develop', eav: 150000, aboutAccount: 'Meet operations director to discuss trial route.' },
-      { id: 'fa2', accountName: 'ZENITH MANUFACTURING', actionType: 'Propose', eav: 280000, aboutAccount: 'Submit final contract terms by Wednesday.' },
-      { id: 'fa3', accountName: 'PACIFIC DISTRIBUTORS', actionType: 'Prospect', eav: 95000, aboutAccount: 'Introductory discovery call.' }
-    ] as FocusAccount[],
+    focusAccounts: [] as FocusAccount[],
     kpiTargets: {
-      callsToMake: 50,
-      appointmentsToSet: 15,
-      proposalsToSend: 8,
-      dealsToClose: 3,
-      revenueTarget: 250000
+      callsToMake: 0,
+      appointmentsToSet: 0,
+      proposalsToSend: 0,
+      dealsToClose: 0,
+      revenueTarget: 0
     } as KPITargets,
-    actionPlan: [
-      'Conduct ACME trial presentation on Tuesday morning',
-      'Finalise Zenith proposal pricing markup',
-      'Follow up on Pacific Distributors call schedule',
-      'Audit Western trade region whitespace list',
-      'Attend Thursday leadership pipeline sync'
-    ] as string[],
-    roadblocks: 'Direct competitor offering 10% spot discount in Western region.',
-    supportNeeded: 'Need commercial credit approval for Zenith credit limit extension.'
+    actionPlan: [] as string[],
+    roadblocks: '',
+    supportNeeded: ''
   };
 
   const [dbPrevFridayPlan, setDbPrevFridayPlan] = useState(defaultPrevFridayPlan);
@@ -153,8 +319,6 @@ export function DemoDashView() {
   const [majorUpdates, setMajorUpdates] = useState<MajorUpdateItem[]>([]);
   const [projectedWins, setProjectedWins] = useState<ProjectedWin[]>([]);
   const [priorities, setPriorities] = useState<PriorityItem[]>([]);
-  const [newPriority, setNewPriority] = useState('');
-  const [newPrioritySalesperson, setNewPrioritySalesperson] = useState('');
   const [twtwStatus, setTwtwStatus] = useState<'NONE' | 'DRAFT' | 'SUBMITTED'>('NONE');
 
   // Thursday TWTW Registered-only Extra Data
@@ -231,8 +395,6 @@ export function DemoDashView() {
     setNextWeekRoadblocks('');
     setNextWeekSupport('');
     setFridayStatus('NONE');
-
-    toast({ title: "Reset Complete", description: "Simulation database reset to defaults." });
   };
 
   // --- Thursday Pre-population triggers ---
@@ -452,58 +614,268 @@ export function DemoDashView() {
     setProjectedWins(projectedWins.map(p => p.id === id ? { ...p, [field]: val } : p));
   };
 
-  const addPriority = () => {
-    if (!newPriority.trim()) return;
-    setPriorities([...priorities, { id: crypto.randomUUID(), text: newPriority.trim(), salespersonName: newPrioritySalesperson || 'Me' }]);
-    setNewPriority('');
-    setNewPrioritySalesperson('');
-  };
+  const addPriorityRow = () => setPriorities([...priorities, { id: crypto.randomUUID(), text: '', salespersonName: 'Me' }]);
   const removePriority = (id: string) => setPriorities(priorities.filter(p => p.id !== id));
+  const updatePriorityField = (id: string, field: string, val: any) => {
+    setPriorities(priorities.map(p => p.id === id ? { ...p, [field]: val } : p));
+  };
 
   // --- PDF Export helper ---
   const handleExportPdf = () => {
-    const printContents = document.getElementById('twtw-demo-print-area')?.innerHTML;
-    if (!printContents) {
-      toast({ variant: "destructive", title: "Error", description: "No data available to print." });
+    // Get the collation table content directly from the DOM
+    const collationContent = document.querySelector('.collation-print-area');
+    
+    if (!collationContent) {
+      toast({ 
+        variant: "destructive", 
+        title: "Nothing to Print", 
+        description: "No collation data available to export. Please ensure you have submissions to display." 
+      });
       return;
     }
+
+    // Clone the content to avoid modifying the live DOM
+    const contentClone = collationContent.cloneNode(true) as HTMLElement;
     
+    // Remove any action buttons from the clone (Edit/Delete buttons)
+    const actionButtons = contentClone.querySelectorAll('[data-print-hidden="true"]');
+    actionButtons.forEach(el => el.remove());
+
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
-      toast({ variant: "destructive", title: "Popup Blocked", description: "Please allow popups to export to PDF." });
+      toast({ 
+        variant: "destructive", 
+        title: "Popup Blocked", 
+        description: "Please allow popups to export to PDF." 
+      });
       return;
+    }
+
+    // Get the current week for the title
+    const weekLabel = selectedWeek.split('-')[1];
+
+    // Generate Key Standouts HTML dynamically
+    let standoutsHtml = '';
+    const standoutsList: any[] = [];
+    Object.entries(submissionsByState).forEach(([state, subs]) => {
+      subs.forEach(sub => {
+        (sub.wins || []).forEach((w: any) => { if (w.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Win', ...w }); });
+        (sub.risks || []).forEach((r: any) => { if (r.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Risk', ...r }); });
+        (sub.majorUpdates || []).forEach((m: any) => { if (m.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Update', ...m }); });
+        (sub.projectedWins || []).forEach((p: any) => { if (p.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Projected', ...p }); });
+        (sub.priorities || []).forEach((p: any) => { if (p.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Priority', ...p }); });
+      });
+    });
+
+    if (standoutsList.length > 0) {
+      standoutsHtml = `
+        <div class="region-section">
+          <div class="report-header" style="margin-top: 40px; background-color: #d97706;">
+            <h1>Key Standouts</h1>
+            <p style="color: #fef3c7;">Curated Highlights Across All Regions</p>
+          </div>
+          <table>
+             <thead>
+               <tr><th style="width: 15%;">Category</th><th style="width: 25%;">Representative</th><th>Details</th></tr>
+             </thead>
+             <tbody>
+               ${standoutsList.map(item => `
+                 <tr>
+                   <td><strong style="color: #b45309;">${item.type.toUpperCase()}</strong></td>
+                   <td><strong>${item.rep}</strong><br/><span style="color:#64748b; font-size:7px;">${item.state}</span></td>
+                   <td>
+                      <div class="item-customer">${item.customer || item.account || item.text || 'N/A'}</div>
+                      ${item.value ? `<div class="item-value">${formatEAV(item.value)}</div>` : ''}
+                      ${item.updateText ? `<div class="item-desc">${item.updateText}</div>` : ''}
+                      ${item.mitigation ? `<div class="item-desc">Mitigation: ${item.mitigation}</div>` : ''}
+                   </td>
+                 </tr>
+               `).join('')}
+             </tbody>
+          </table>
+        </div>
+      `;
     }
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>TWTW Demo Master Collation - Landscape</title>
+          <title>Executive TWTW Collation - Week ${weekLabel}</title>
           <style>
-            @page { size: landscape; margin: 12mm; }
+            @page { 
+              size: landscape; 
+              margin: 10mm; 
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
             body { 
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
               color: #1e293b;
               margin: 0;
-              padding: 0;
-              font-size: 10px;
+              padding: 20px;
+              font-size: 9px;
+              background: white;
             }
-            h1 { font-size: 18px; font-weight: 900; margin-bottom: 2px; text-transform: uppercase; letter-spacing: -0.5px; }
-            p.subtitle { font-size: 9px; font-weight: bold; color: #64748b; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-            .region-title { font-size: 13px; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-top: 20px; margin-bottom: 8px; color: #0f172a; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
-            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; font-size: 9px; vertical-align: top; text-align: left; word-wrap: break-word; overflow-wrap: break-word; }
-            th { background-color: #f8fafc; font-weight: 800; text-transform: uppercase; font-size: 8px; letter-spacing: 0.5px; color: #475569; }
-            .bold { font-weight: bold; }
-            .rose { color: #be123c; }
-            .blue { color: #1d4ed8; }
-            .whitespace-pre-line { white-space: pre-line; }
+            .report-header {
+              text-align: center;
+              background-color: #0f172a;
+              color: white;
+              padding: 15px;
+              margin-bottom: 20px;
+              border-radius: 8px;
+            }
+            .report-header h1 {
+              margin: 0;
+              font-size: 18px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              font-weight: 900;
+            }
+            .report-header p {
+              margin: 4px 0 0 0;
+              font-size: 9px;
+              color: #94a3b8;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 2px;
+            }
+            .region-title {
+              font-size: 13px;
+              font-weight: 900;
+              text-transform: uppercase;
+              border-bottom: 2px solid #e2e8f0;
+              padding-bottom: 4px;
+              margin-top: 20px;
+              margin-bottom: 8px;
+              color: #0f172a;
+            }
+            .region-title .badge {
+              font-size: 8px;
+              font-weight: 900;
+              background-color: #f1f5f9;
+              border: 1px solid #cbd5e1;
+              color: #475569;
+              padding: 1px 6px;
+              border-radius: 4px;
+              margin-left: 6px;
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-bottom: 16px; 
+              table-layout: fixed;
+            }
+            th, td { 
+              border: 1px solid #cbd5e1; 
+              padding: 5px 6px; 
+              font-size: 8px; 
+              vertical-align: top; 
+              text-align: left; 
+              word-wrap: break-word; 
+              overflow-wrap: break-word;
+            }
+            th { 
+              background-color: #f1f5f9; 
+              font-weight: 800; 
+              text-transform: uppercase; 
+              font-size: 7px; 
+              letter-spacing: 0.5px; 
+              color: #475569;
+            }
+            tbody tr {
+              border-bottom: 12px solid white;
+            }
+            .item-block {
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 4px;
+              margin-bottom: 4px;
+            }
+            .item-block:last-child {
+              border-bottom: none;
+              padding-bottom: 0;
+              margin-bottom: 0;
+            }
+            .item-customer {
+              font-weight: bold;
+              color: #0f172a;
+            }
+            .item-value {
+              font-weight: 800;
+              margin-top: 1px;
+            }
+            .win-text { color: #166534; }
+            .risk-text { color: #9f1239; }
+            .update-text { color: #1e40af; }
+            .projected-text { color: #6b21a8; }
+            .item-salesperson {
+              font-size: 7px;
+              color: #64748b;
+              font-weight: bold;
+              margin-top: 1.5px;
+            }
+            .item-bu {
+              font-size: 7px;
+              color: #94a3b8;
+              margin-top: 1.5px;
+              font-weight: bold;
+              text-transform: uppercase;
+            }
+            .item-desc {
+              margin-top: 2px;
+              color: #334155;
+            }
+            .empty-text {
+              color: #94a3b8;
+              font-style: italic;
+              text-align: center;
+              font-size: 8px;
+              padding: 2px 0;
+            }
+            .legacy-update {
+              background-color: #fffbeb;
+              border: 1px solid #fef3c7;
+              padding: 4px;
+              border-radius: 4px;
+              font-size: 8px;
+              color: #92400e;
+              margin-bottom: 4px;
+              white-space: pre-wrap;
+            }
             .avoid-break { page-break-inside: avoid; }
+            .submission-footer {
+              font-size: 7px;
+              color: #94a3b8;
+              margin-top: 2px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            .print-actions {
+              display: none !important;
+            }
+            .text-emerald-600 { color: #059669; }
+            .text-rose-600 { color: #be123c; }
+            .text-blue-600 { color: #1d4ed8; }
+            .text-purple-600 { color: #7c3aed; }
+            .font-bold { font-weight: 700; }
+            .italic { font-style: italic; }
+            .mt-1 { margin-top: 2px; }
+            .mt-2 { margin-top: 4px; }
+            .region-section + .region-section { page-break-before: always; }
           </style>
         </head>
         <body>
-          <h1>The Week That Was - Executive Weekly Briefing</h1>
-          <p class="subtitle">Consolidated Team Summary • Landscape Report</p>
-          ${printContents}
+          <div class="report-header">
+            <h1>Master Executive TWTW Collation</h1>
+            <p>Week ${weekLabel} • Consolidated Team Performance Report</p>
+          </div>
+          ${contentClone.innerHTML}
+          ${standoutsHtml}
+          <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 7px; color: #94a3b8;">
+            Generated on ${new Date().toLocaleString()} • Confidential Management Report
+          </div>
           <script>
             window.onload = function() {
               window.print();
@@ -513,6 +885,7 @@ export function DemoDashView() {
         </body>
       </html>
     `);
+    
     printWindow.document.close();
   };
 
@@ -537,7 +910,7 @@ export function DemoDashView() {
     }
 
     // If registered user, append extra monday/friday metrics to details for collation
-    if (simUserRole === 'REGISTERED') {
+    if (true) {
       const kpis = `[KPI Actuals: ${twtwKpiActuals.callsMade}/${twtwKpiActuals.callsToMake} Calls, ${twtwKpiActuals.appointmentsSet}/${twtwKpiActuals.appointmentsToSet} Appts]`;
       const faCount = currentWeekFocusAccounts.length > 0 ? `\n[Focus Accounts Active: ${currentWeekFocusAccounts.length}]` : '';
       const rb = twtwRoadblocks ? `\n[Roadblocks: ${twtwRoadblocks}]` : '';
@@ -574,97 +947,140 @@ export function DemoDashView() {
         }
       ]
     };
-  }, [wins, risks, updates, projectedWins, priorities, simUserRole, twtwKpiActuals, currentWeekFocusAccounts, twtwRoadblocks]);
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20 relative">
-      
-      {/* Simulation Control Banner */}
-      <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="p-1 bg-amber-500 text-slate-950 rounded-lg"><Beaker className="w-4 h-4 animate-pulse" /></span>
-            <h2 className="text-sm font-black uppercase tracking-widest text-amber-400">Consolidated Reporting Simulator</h2>
-          </div>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Use these switches to test what happens when staff roles and days change.</p>
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-4">
-          {/* User Type Toggle */}
-          <div className="space-y-1">
-            <label className="text-[8px] font-black uppercase text-slate-400 tracking-wider block">Staff User Role</label>
-            <div className="flex bg-slate-850 p-1 rounded-xl border border-slate-700">
-              <button 
-                onClick={() => setSimUserRole('REGISTERED')}
-                className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
-                  simUserRole === 'REGISTERED' ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-400 hover:text-white"
-                )}
+  }, [wins, risks, updates, projectedWins, priorities, twtwKpiActuals, currentWeekFocusAccounts, twtwRoadblocks]);
+  const renderItem = (item: any, type: string, subId: string, content: React.ReactNode) => {
+    if (item.isHidden) return null;
+    return (
+      <div key={`${subId}-${type}-${item.id}`} className="relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all">
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-10 print-actions" data-print-hidden="true">
+          {isLeader && (
+            <>
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className={cn(
+                  "w-6 h-6 shadow-sm border bg-white", 
+                  item.isStarred ? "border-amber-400 text-amber-500" : "border-slate-200 text-slate-400 hover:text-amber-500"
+                )} 
+                onClick={() => toggleItemState(subId, type as any, item.id, 'isStarred')}
               >
-                Registered Staff
-              </button>
-              <button 
-                onClick={() => {
-                  setSimUserRole('GUEST');
-                  setSimDay('THURSDAY');
-                }}
-                className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
-                  simUserRole === 'GUEST' ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-400 hover:text-white"
-                )}
+                <Star className={cn("w-3 h-3", item.isStarred && "fill-current")} />
+              </Button>
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className="w-6 h-6 shadow-sm border border-slate-200 bg-white hover:text-slate-600 text-slate-400" 
+                onClick={() => toggleItemState(subId, type as any, item.id, 'isHidden')}
               >
-                Guest User
-              </button>
-            </div>
-          </div>
-
-          {/* Simulated Day Toggle */}
-          {simUserRole === 'REGISTERED' && (
-            <div className="space-y-1">
-              <label className="text-[8px] font-black uppercase text-slate-400 tracking-wider block">Simulation Phase</label>
-              <div className="flex bg-slate-850 p-1 rounded-xl border border-slate-700">
-                <button 
-                  onClick={() => setSimDay('THURSDAY')}
-                  className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
-                    simDay === 'THURSDAY' ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
-                  )}
-                >
-                  Thursday (TWTW)
-                </button>
-                <button 
-                  onClick={() => setSimDay('FRIDAY')}
-                  className={cn("px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", 
-                    simDay === 'FRIDAY' ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
-                  )}
-                >
-                  Friday (Combined Pack)
-                </button>
-              </div>
-            </div>
+                <EyeOff className="w-3 h-3" />
+              </Button>
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className="w-6 h-6 shadow-sm border border-red-200 bg-white hover:bg-red-50 text-red-400 hover:text-red-600" 
+                onClick={() => deleteItem(subId, type as any, item.id)}
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </>
           )}
-
-          <Button 
-            variant="outline" 
-            onClick={resetAllData} 
-            className="h-10 text-[9px] font-black uppercase tracking-wider border-slate-700 hover:bg-slate-800 text-slate-300 gap-1.5 rounded-xl self-end"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Reset Demo
-          </Button>
+        </div>
+        <div className="pr-8">
+          {content}
         </div>
       </div>
+    );
+  };
 
+  const toggleItemState = async (subId: string, arrayField: string, itemId: string, stateField: 'isHidden' | 'isStarred') => {
+    if (!db) return;
+    try {
+      const sub = allSubmissions?.find(s => s.id === subId);
+      if (!sub) return;
+      
+      const items = [...(sub[arrayField as keyof typeof sub] || [])];
+      let idx = items.findIndex((i: any) => i.id === itemId);
+      
+      if (idx === -1 && itemId && itemId.includes('-')) {
+        const parts = itemId.split('-');
+        const parsedIdx = parseInt(parts[parts.length - 1]);
+        if (!isNaN(parsedIdx) && parsedIdx >= 0 && parsedIdx < items.length) {
+          idx = parsedIdx;
+        }
+      }
+      
+      if (idx === -1) return;
+      
+      items[idx] = { ...items[idx], [stateField]: !items[idx][stateField] };
+      await updateDoc(doc(db, 'twiwSubmissions', subId), { [arrayField]: items });
+      toast({ title: "Updated successfully", description: "Item visibility/starred state updated." });
+    } catch(e) {
+      toast({ variant: "destructive", title: "Failed to update item state." });
+    }
+  };
+
+  const deleteItem = async (subId: string, arrayField: string, itemId: string) => {
+    if (!db || !isLeader) {
+      toast({ variant: "destructive", title: "Permission Denied", description: "Only leaders can delete items." });
+      return;
+    }
+    
+    if (!confirm("Are you sure you want to delete this item? This action cannot be undone.")) return;
+    
+    try {
+      const sub = allSubmissions?.find(s => s.id === subId);
+      if (!sub) return;
+      
+      const items = [...(sub[arrayField as keyof typeof sub] || [])];
+      const filteredItems = items.filter((i: any) => i.id !== itemId);
+      
+      await updateDoc(doc(db, 'twiwSubmissions', subId), { [arrayField]: filteredItems });
+      toast({ title: "Item Deleted", description: "The item has been removed from the submission." });
+    } catch(e) {
+      console.error(e);
+      toast({ variant: "destructive", title: "Failed to delete item." });
+    }
+  };
+
+  const handleDeleteSubmission = async (id: string) => {
+    if (!db || !isLeader) return;
+    if (confirm("Are you sure you want to delete this submission?")) {
+      try {
+        await deleteDoc(doc(db, 'twiwSubmissions', id));
+        toast({ title: "Submission Deleted" });
+      } catch (err) {
+        toast({ variant: "destructive", title: "Failed to delete submission" });
+      }
+    }
+  };
+
+  const handleEditSubmission = (sub: any) => {
+    setEditingSubmission(sub);
+  };
+
+  return (
+    <>
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20 relative">
+      
       {/* Main Tabs */}
-      <Tabs defaultValue="simulator" className="w-full">
+      <Tabs defaultValue="thursday" className="w-full">
         <TabsList className="bg-white border p-1.5 rounded-2xl shadow-sm mb-6 w-full md:w-auto flex flex-col md:flex-row gap-1">
-          <TabsTrigger value="simulator" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
-            <Beaker className="w-3.5 h-3.5 text-indigo-600" /> BDM Simulator
+          <TabsTrigger value="thursday" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
+            <Calendar className="w-3.5 h-3.5" /> Thursday TWTW
+          </TabsTrigger>
+          <TabsTrigger value="friday" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
+            <ClipboardList className="w-3.5 h-3.5" /> Friday FW (Combined Pack)
           </TabsTrigger>
           {isLeader && (
             <TabsTrigger value="collation" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
-              <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" /> Executive Collation (TWTW PDF)
+              <PieChart className="w-3.5 h-3.5" /> Executive Collation
             </TabsTrigger>
           )}
-          <TabsTrigger value="guide" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
-            <Info className="w-3.5 h-3.5 text-amber-500" /> Architectural Design
-          </TabsTrigger>
+          {isLeader && (
+            <TabsTrigger value="standouts" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
+              <Star className="w-3.5 h-3.5" /> Key Standouts
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* --- TAB 1: HOW IT WORKS GUIDE --- */}
@@ -747,15 +1163,32 @@ export function DemoDashView() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="friday" className="mt-0">
+          {!user || profile?.role === 'GUEST' ? (
+            <Card className="border shadow-md bg-white p-12 text-center">
+              <div className="flex flex-col items-center gap-4">
+                <Shield className="w-16 h-16 text-slate-300" />
+                <h3 className="text-xl font-black text-slate-600 uppercase tracking-tight">Access Restricted</h3>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  The Friday Performance Review is only available to registered team members. 
+                  Please log in with your corporate credentials to access this feature.
+                </p>
+              </div>
+            </Card>
+          ) : (
+            <FridayPerformanceReview 
+              userId={user?.uid || ''}
+              userName={profile?.name || user?.email || 'User'}
+              userRole={profile?.role || 'BDM'}
+              userState={profile?.state || 'WA'}
+              selectedWeek={selectedWeek}
+              isRegisteredUser={isRegisteredUser}
+            />
+          )}
+        </TabsContent>
+
         {/* --- TAB 2: INTERACTIVE SIMULATOR --- */}
-        <TabsContent value="simulator" className="mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Left Side - Current Day View */}
-            <div className="lg:col-span-8 space-y-6">
-              
-              {/* --- THURSDAY TWTW REPORT FORM --- */}
-              {simDay === 'THURSDAY' && (
+        <TabsContent value="thursday" className="mt-0">
                 <div className="space-y-6">
                   <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden gap-4">
                     <div className="absolute top-0 right-0 p-8 opacity-5"><TrendingUp className="w-32 h-32" /></div>
@@ -765,7 +1198,7 @@ export function DemoDashView() {
                       </Badge>
                       <h3 className="text-xl font-black uppercase tracking-tight">The Week That Was (TWTW)</h3>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                        Role View: {simUserRole === 'GUEST' ? 'Guest User (Standard Questions)' : 'Registered Staff (Extended Context)'}
+                        Role View: Registered Staff (Extended Context)
                       </p>
                     </div>
                     <div className="flex gap-2 relative z-10 w-full sm:w-auto">
@@ -777,6 +1210,31 @@ export function DemoDashView() {
                       </Button>
                     </div>
                   </header>
+
+
+                  {/* KPI Review Section (Registered Only) */}
+                  {isRegisteredUser && renderKPIReview()}
+                  
+                  {isGuest && (
+                    <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white mb-6">
+                      <CardHeader className="bg-slate-50/50 border-b py-4">
+                        <div className="flex items-center gap-2">
+                          <Shield className="w-5 h-5 text-slate-400" />
+                          <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-600">Guest Access</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 text-center">
+                        <div className="flex flex-col items-center gap-4 py-8">
+                          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><Shield className="w-8 h-8 text-slate-400" /></div>
+                          <div className="space-y-2 max-w-md">
+                            <h3 className="text-lg font-black text-slate-700">TWTW Report</h3>
+                            <p className="text-sm text-slate-500">As a guest user, you can submit your weekly TWTW report. KPI tracking and advanced features are available for registered BDM and AM users.</p>
+                            <Badge className="bg-emerald-500/10 text-emerald-600 font-black text-[9px] uppercase mt-2">Submit your weekly update below</Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Key Wins */}
                   <Card className="border shadow-md">
@@ -1168,49 +1626,93 @@ export function DemoDashView() {
                         <Target className="w-4 h-4 text-accent" /> Priorities for Week Ahead
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-4 space-y-4">
-                      <div className="grid grid-cols-3 gap-2">
-                        <Input 
-                          value={newPriority}
-                          onChange={e => setNewPriority(e.target.value)}
-                          placeholder="e.g. Focus on Neerabup zone wins"
-                          className="h-8 text-xs font-semibold col-span-2"
-                          onKeyDown={e => e.key === 'Enter' && addPriority()}
-                        />
-                        <div className="flex gap-2">
-                          <Input 
-                            value={newPrioritySalesperson}
-                            onChange={e => setNewPrioritySalesperson(e.target.value)}
-                            placeholder="Salesperson"
-                            className="h-8 text-xs font-semibold"
-                            onKeyDown={e => e.key === 'Enter' && addPriority()}
-                          />
-                          <Button size="sm" onClick={addPriority} className="h-8 text-xs font-black uppercase bg-primary px-3 rounded-xl">Add</Button>
-                        </div>
+                    <CardContent className="p-0">
+                      <div className="hidden sm:block overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                              <th className="text-left pb-2 w-[60%]">Priority</th>
+                              <th className="text-left pb-2 w-[30%]">Salesperson</th>
+                              <th className="text-center pb-2 w-[10%]">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {priorities.map((p) => (
+                              <tr key={p.id}>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={p.text} 
+                                    onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
+                                    placeholder="e.g. Focus on Neerabup zone wins" 
+                                    className="h-8 text-xs font-semibold"
+                                  />
+                                </td>
+                                <td className="py-2 pr-2">
+                                  <Input 
+                                    value={p.salespersonName} 
+                                    onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
+                                    placeholder="Salesperson" 
+                                    className="h-8 text-xs"
+                                  />
+                                </td>
+                                <td className="py-2 text-center">
+                                  <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            {priorities.length === 0 && (
+                              <tr>
+                                <td colSpan={3} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                  No priorities added yet. Add a custom row.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       </div>
-                      <div className="space-y-2">
-                        {priorities.map((p) => (
-                          <div key={p.id} className="flex justify-between items-center gap-3 p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold">
-                            <div className="flex-1 flex justify-between gap-4">
-                              <span className="text-slate-800 leading-tight">{p.text}</span>
-                              <span className="text-slate-500">{p.salespersonName}</span>
+
+                      {/* Mobile Stacked View */}
+                      <div className="block sm:hidden space-y-4">
+                        {priorities.map((p, idx) => (
+                          <div key={p.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-black uppercase text-slate-400">Priority #{idx + 1}</span>
+                              <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-6 w-6 text-red-500 rounded-lg">
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black uppercase text-slate-400">Priority</label>
+                              <Input 
+                                value={p.text} 
+                                onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
+                                placeholder="e.g. Focus on Neerabup zone wins" 
+                                className="h-8 text-xs font-semibold bg-white"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                              <Input 
+                                value={p.salespersonName} 
+                                onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
+                                placeholder="Name" 
+                                className="h-8 text-xs bg-white"
+                              />
+                            </div>
                           </div>
                         ))}
-                        {priorities.length === 0 && (
-                          <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                            No priorities added yet.
-                          </div>
-                        )}
                       </div>
+
+                      <Button onClick={addPriorityRow} variant="outline" size="sm" className="w-full mt-4 text-xs font-black uppercase text-slate-500 border-dashed rounded-xl py-6 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors">
+                        <Plus className="w-4 h-4 mr-2" /> Add Priority Row
+                      </Button>
                     </CardContent>
                   </Card>
 
                   {/* ADDITIONAL REGISTERED USER ONLY FIELDS */}
-                  {simUserRole === 'REGISTERED' && (
+                  {true && (
                     <div className="space-y-6 animate-in slide-in-from-top-4 duration-300">
                       
                       {/* KPI Performance Section */}
@@ -1258,7 +1760,7 @@ export function DemoDashView() {
                       <Card className="border border-indigo-100 shadow-md">
                         <CardHeader className="bg-indigo-900 text-indigo-100 py-4 rounded-t-3xl">
                           <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
-                            <ClipboardCheck className="w-4 h-4" /> Review Monday Commitments (Phase A)
+                            <ClipboardCheck className="w-4 h-4" /> This Weeks Actions
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-4">
@@ -1309,7 +1811,7 @@ export function DemoDashView() {
                       <Card className="border border-indigo-100 shadow-md">
                         <CardHeader className="bg-indigo-900 text-indigo-100 py-4 rounded-t-3xl">
                           <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
-                            <Target className="w-4 h-4 font-black" /> Focus Account Progress Review (Phase A)
+                            <Target className="w-4 h-4 font-black" /> Focus Account Progress Review
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-4">
@@ -1392,287 +1894,8 @@ export function DemoDashView() {
                     </Button>
                   </div>
                 </div>
-              )}
-
-              {/* --- FRIDAY COMBINED PACK FORM --- */}
-              {simDay === 'FRIDAY' && (
-                <div className="space-y-6">
-                  <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden gap-4">
-                    <div className="absolute top-0 right-0 p-8 opacity-5"><TrendingUp className="w-32 h-32" /></div>
-                    <div className="relative z-10 space-y-1">
-                      <Badge className="bg-emerald-500 text-slate-950 font-black text-[9px] uppercase tracking-widest px-2.5 mb-1">
-                        Friday Pack & Monday Planning
-                      </Badge>
-                      <h3 className="text-xl font-black uppercase tracking-tight">Combined Weekly Wrap & Next Plan</h3>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                        Complete your Week Review and set up Next Week Monday Plan in one go.
-                      </p>
-                    </div>
-                    <div className="flex gap-2 relative z-10 w-full sm:w-auto">
-                      <Button 
-                        onClick={handlePreFillFridayFromThursday}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest h-12 px-5 rounded-2xl shadow-lg w-full sm:w-auto gap-2"
-                      >
-                        <RefreshCw className="w-4 h-4" /> Pull Thursday TWTW Data
-                      </Button>
-                    </div>
-                  </header>
-
-                  {/* Thursday Review Reference Card */}
-                  <Card className="border border-slate-200 bg-slate-50/50 shadow-sm">
-                    <CardHeader className="py-3">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                        <Info className="w-3.5 h-3.5 text-slate-500" /> Reference: Thursday TWTW Submission Summary
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-slate-600">
-                      <div className="bg-white p-2.5 rounded-xl border">
-                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Narrative Updates</span>
-                        <span className="truncate block font-bold mt-0.5">{updates || 'None provided'}</span>
-                      </div>
-                      <div className="bg-white p-2.5 rounded-xl border">
-                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Wins Logged</span>
-                        <span className="font-bold text-emerald-600 block mt-0.5">{wins.length} Wins (${wins.reduce((sum, w) => sum + w.value, 0).toLocaleString()})</span>
-                      </div>
-                      <div className="bg-white p-2.5 rounded-xl border">
-                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Risks Logged</span>
-                        <span className="font-bold text-rose-600 block mt-0.5">{risks.length} Risks</span>
-                      </div>
-                      <div className="bg-white p-2.5 rounded-xl border">
-                        <span className="text-[8px] font-black uppercase text-muted-foreground block">Commitments Checked</span>
-                        <span className="font-bold text-indigo-600 block mt-0.5">
-                          {currentWeekActions.filter(a => a.completed).length} / {currentWeekActions.length} Completed
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* NEXT WEEK GOALS PLANNING FORM (Monday Plan) */}
-                  <div className="space-y-6">
-                    
-                    {/* Next Week targets */}
-                    <Card className="border border-emerald-100 shadow-md">
-                      <CardHeader className="bg-slate-50 border-b py-4">
-                        <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-emerald-600" /> Setup Next Week KPI Targets
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                          <div className="space-y-1">
-                            <span className="text-[8px] font-black uppercase text-muted-foreground">Calls Target</span>
-                            <Input type="number" value={nextWeekKpiTargets.callsToMake} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, callsToMake: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[8px] font-black uppercase text-muted-foreground">Appts Target</span>
-                            <Input type="number" value={nextWeekKpiTargets.appointmentsToSet} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, appointmentsToSet: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[8px] font-black uppercase text-muted-foreground">Proposals Target</span>
-                            <Input type="number" value={nextWeekKpiTargets.proposalsToSend} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, proposalsToSend: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[8px] font-black uppercase text-muted-foreground">Deals Target</span>
-                            <Input type="number" value={nextWeekKpiTargets.dealsToClose} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, dealsToClose: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                          </div>
-                          <div className="space-y-1 col-span-2 sm:col-span-1">
-                            <span className="text-[8px] font-black uppercase text-muted-foreground">Revenue ($)</span>
-                            <Input type="number" value={nextWeekKpiTargets.revenueTarget} onChange={e => setNextWeekKpiTargets({ ...nextWeekKpiTargets, revenueTarget: parseInt(e.target.value) || 0 })} className="h-9 text-xs font-black" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Next Week Focus Accounts */}
-                    <Card className="border border-emerald-100 shadow-md">
-                      <CardHeader className="bg-slate-50 border-b py-4">
-                        <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                          <Target className="w-4 h-4 text-emerald-600" /> Setup Next Week Focus Accounts
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-4">
-                        {nextWeekFocusAccounts.map((acc, index) => (
-                          <div key={acc.id} className="p-4 bg-slate-50 border rounded-2xl space-y-3 relative group">
-                            <div className="flex justify-between items-center gap-2">
-                              <Input placeholder="Account Name..." value={acc.accountName} onChange={e => {
-                                const list = [...nextWeekFocusAccounts];
-                                list[index].accountName = e.target.value;
-                                setNextWeekFocusAccounts(list);
-                              }} className="h-9 text-xs font-bold bg-white" />
-                              <Button variant="ghost" size="icon" onClick={() => setNextWeekFocusAccounts(nextWeekFocusAccounts.filter(fa => fa.id !== acc.id))} className="h-8 w-8 text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <select 
-                                value={acc.actionType} 
-                                onChange={e => {
-                                  const list = [...nextWeekFocusAccounts];
-                                  list[index].actionType = e.target.value;
-                                  setNextWeekFocusAccounts(list);
-                                }}
-                                className="h-9 text-[10px] font-black uppercase rounded-lg border bg-white px-2"
-                              >
-                                {ACTION_TYPES.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                              </select>
-                              <Input type="number" placeholder="EAV ($)" value={acc.eav || ''} onChange={e => {
-                                const list = [...nextWeekFocusAccounts];
-                                list[index].eav = parseFloat(e.target.value) || 0;
-                                setNextWeekFocusAccounts(list);
-                              }} className="h-9 text-xs bg-white" />
-                            </div>
-                          </div>
-                        ))}
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setNextWeekFocusAccounts([...nextWeekFocusAccounts, { id: crypto.randomUUID(), accountName: '', actionType: 'Prospect', eav: 0, aboutAccount: '' }])}
-                          className="w-full h-11 border-dashed border-2 rounded-xl text-[10px] font-black uppercase text-slate-500 bg-slate-50/50 hover:bg-slate-50"
-                        >
-                          + Add Focus Account
-                        </Button>
-                      </CardContent>
-                    </Card>
-
-                    {/* Next Week Monday commitments */}
-                    <Card className="border border-emerald-100 shadow-md">
-                      <CardHeader className="bg-slate-50 border-b py-4">
-                        <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                          <ClipboardCheck className="w-4 h-4 text-emerald-600" /> Setup Next Week Actions (Monday Plan)
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-3">
-                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-wider">
-                          Pre-populated from Thursday's Priorities for the Week Ahead. Feel free to refine.
-                        </p>
-                        {nextWeekActions.map((act, index) => (
-                          <div key={index} className="flex gap-3 items-center group">
-                            <Badge className="bg-slate-100 text-slate-700 font-black text-[9px] uppercase border shrink-0">Action {index + 1}</Badge>
-                            <Input placeholder="Enter tactical action..." value={act} onChange={e => {
-                              const list = [...nextWeekActions];
-                              list[index] = e.target.value;
-                              setNextWeekActions(list);
-                            }} className="h-9 text-xs font-bold" />
-                            {nextWeekActions.length > 5 && (
-                              <Button variant="ghost" size="icon" onClick={() => setNextWeekActions(nextWeekActions.filter((_, i) => i !== index))} className="h-8 w-8 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></Button>
-                            )}
-                          </div>
-                        ))}
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setNextWeekActions([...nextWeekActions, ''])}
-                          className="h-9 text-[10px] font-black uppercase border-dashed border-2 rounded-xl text-slate-500 gap-1.5"
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Add Additional Action
-                        </Button>
-                      </CardContent>
-                    </Card>
-
-                    {/* Next Week Roadblocks & Support */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-red-600 tracking-wider flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5 text-red-500" /> Anticipated Roadblocks
-                        </label>
-                        <Textarea 
-                          placeholder="Anticipated roadblocks for next week..." 
-                          value={nextWeekRoadblocks} 
-                          onChange={e => setNextWeekRoadblocks(e.target.value)} 
-                          className="min-h-[90px] text-xs font-medium rounded-xl" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-blue-600 tracking-wider flex items-center gap-1">
-                          <LifeBuoy className="w-3.5 h-3.5 text-blue-500" /> Management Support Needed
-                        </label>
-                        <Textarea 
-                          placeholder="What can leadership help clear next week?" 
-                          value={nextWeekSupport} 
-                          onChange={e => setNextWeekSupport(e.target.value)} 
-                          className="min-h-[90px] text-xs font-medium rounded-xl" 
-                        />
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Submit Pack */}
-                  <div className="flex justify-end gap-3 pt-6 border-t">
-                    <Button variant="outline" onClick={() => handleFridaySubmit('DRAFT')} className="font-black h-12 px-6 uppercase tracking-wider text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50">
-                      Save Draft
-                    </Button>
-                    <Button onClick={() => handleFridaySubmit('SUBMITTED')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-black h-12 px-8 uppercase tracking-wider text-xs shadow-lg shadow-emerald-100">
-                      Submit Friday Pack
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Side - Live Simulated Database State */}
-            <div className="lg:col-span-4 space-y-6">
-              
-              <Card className="border shadow-lg bg-white sticky top-24">
-                <CardHeader className="bg-slate-50 border-b py-4">
-                  <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                    <Database className="w-4 h-4 text-indigo-600" /> Simulated Database State
-                  </CardTitle>
-                  <CardDescription className="text-[9px] uppercase tracking-wider font-bold">Watch how data is preserved/shared across reports</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 space-y-5">
-                  
-                  {/* Prev Friday Data */}
-                  <div className="space-y-2 bg-slate-50 p-3.5 border rounded-2xl text-[11px] font-medium text-slate-700">
-                    <h4 className="font-black text-[9px] text-slate-900 uppercase tracking-widest flex items-center justify-between">
-                      <span>Loaded Database Draft (Previous Friday)</span>
-                      <Badge className="bg-indigo-100 text-indigo-800 border-none text-[8px] font-black uppercase">Active</Badge>
-                    </h4>
-                    <p className="border-t pt-1.5 mt-1.5"><strong>Actions Logged:</strong> {dbPrevFridayPlan.actionPlan.length}</p>
-                    <p><strong>Focus Accounts:</strong> {dbPrevFridayPlan.focusAccounts.map(fa => fa.accountName).join(', ') || 'None'}</p>
-                    <p><strong>KPI Revenue Target:</strong> ${dbPrevFridayPlan.kpiTargets.revenueTarget.toLocaleString()}</p>
-                  </div>
-
-                  {/* Active Thursday TWTW Submissions */}
-                  <div className="space-y-2 bg-indigo-50/50 p-3.5 border border-indigo-100 rounded-2xl text-[11px] font-medium text-indigo-950">
-                    <h4 className="font-black text-[9px] text-indigo-900 uppercase tracking-widest flex items-center justify-between">
-                      <span>Simulated Thursday TWTW doc</span>
-                      <Badge className={cn("border-none text-[8px] font-black uppercase",
-                        twtwStatus === 'SUBMITTED' ? "bg-green-100 text-green-700" :
-                        twtwStatus === 'DRAFT' ? "bg-amber-100 text-amber-700" : "bg-slate-200 text-slate-600"
-                      )}>
-                        {twtwStatus}
-                      </Badge>
-                    </h4>
-                    <p className="border-t border-indigo-100 pt-1.5 mt-1.5"><strong>Wins:</strong> {wins.length} logged</p>
-                    <p><strong>Risks:</strong> {risks.length} logged</p>
-                    <p><strong>Priorities:</strong> {priorities.length} items</p>
-                    {simUserRole === 'REGISTERED' && (
-                      <>
-                        <p><strong>Completed Commitments:</strong> {currentWeekActions.filter(c => c.completed).length} / {currentWeekActions.length}</p>
-                        <p><strong>Working Focus Accounts:</strong> {currentWeekFocusAccounts.filter(fa => fa.status === 'WORKING').length}</p>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Active Friday pack */}
-                  <div className="space-y-2 bg-emerald-50/30 p-3.5 border border-emerald-100 rounded-2xl text-[11px] font-medium text-emerald-950">
-                    <h4 className="font-black text-[9px] text-emerald-900 uppercase tracking-widest flex items-center justify-between">
-                      <span>Simulated Friday Pack doc</span>
-                      <Badge className={cn("border-none text-[8px] font-black uppercase",
-                        fridayStatus === 'SUBMITTED' ? "bg-green-100 text-green-700" :
-                        fridayStatus === 'DRAFT' ? "bg-amber-100 text-amber-700" : "bg-slate-200 text-slate-600"
-                      )}>
-                        {fridayStatus}
-                      </Badge>
-                    </h4>
-                    <p className="border-t border-emerald-100 pt-1.5 mt-1.5"><strong>Next Week Focus Setup:</strong> {nextWeekFocusAccounts.length} added</p>
-                    <p><strong>Next Week Actions:</strong> {nextWeekActions.filter(a => a.trim()).length} planned</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-            </div>
-          </div>
         </TabsContent>
 
-        {/* --- TAB 3: EXECUTIVE COLLATION TAB --- */}
         {isLeader && (
         <TabsContent value="collation" className="mt-0">
           <Card className="border shadow-md bg-white">
@@ -1692,82 +1915,240 @@ export function DemoDashView() {
                 <ClipboardCheck className="w-4 h-4" /> Export to Landscape PDF
               </Button>
             </CardHeader>
-            <CardContent className="p-0">
-              
-              {/* Display Table in 6-column landscape format */}
-              <div className="p-6 space-y-10">
-                {Object.entries(collatedMockSubmissions).map(([state, subs]) => (
-                  <div key={state} className="space-y-3">
-                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-1.5 flex items-center gap-2">
-                      {state} Region <Badge className="bg-slate-100 text-slate-600 font-bold border">{subs.length} Reps</Badge>
-                    </h3>
-                    
-                    <div className="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
-                      <table className="w-full text-xs text-left">
-                        <thead className="bg-slate-50 border-b border-slate-200">
-                          <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
-                            <th className="p-3 w-[15%]">Rep Name</th>
+            <CardContent className="p-0 flex flex-col md:flex-row h-[800px]">
+              {/* Sidebar for Submitted Users */}
+              <div className="w-full md:w-64 border-r border-slate-200 bg-slate-50/50 p-4 overflow-y-auto shrink-0 print:hidden">
+                 <h4 className="text-xs font-black uppercase text-slate-500 mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-indigo-500" /> Submitted Reports</h4>
+                 <div className="space-y-2">
+                   {(allSubmissions || []).length === 0 && <p className="text-[10px] text-slate-400 italic">No submissions yet.</p>}
+                   {(allSubmissions || []).map(sub => (
+                     <div key={sub.id} className="p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm flex items-center justify-between">
+                       <div className="min-w-0">
+                         <p className="text-xs font-bold text-slate-800 truncate">{sub.userName}</p>
+                         <div className="flex gap-1.5 mt-1">
+                           <Badge variant="outline" className="text-[8px] font-black uppercase px-1 py-0 border-slate-200 text-slate-500">{sub.state || 'WA'}</Badge>
+                           {sub.isGuest || sub.userRole === 'GUEST' ? (
+                             <Badge variant="secondary" className="text-[8px] font-black uppercase px-1 py-0 bg-amber-100 text-amber-700">Guest</Badge>
+                           ) : (
+                             <Badge variant="secondary" className="text-[8px] font-black uppercase px-1 py-0 bg-indigo-100 text-indigo-700">Reg</Badge>
+                           )}
+                         </div>
+                       </div>
+                       {sub.status === 'DRAFT' ? (
+                         <Badge variant="secondary" className="text-[7px] font-black uppercase px-1 py-0 bg-slate-100 text-slate-500">Draft</Badge>
+                       ) : (
+                         <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                       )}
+                     </div>
+                   ))}
+                 </div>
+              </div>
+
+              {/* Main Collation Area */}
+              <div className="flex-1 collation-print-area p-6 space-y-12 overflow-y-auto bg-white">
+                {Object.entries(submissionsByState).length === 0 ? (
+                   <div className="text-center py-24 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                     No submissions available to collate yet.
+                   </div>
+                ) : (
+                  Object.entries(submissionsByState).map(([state, subs]) => (
+                    <div key={state} className="space-y-4 region-section">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <h3 className="text-lg font-black uppercase text-slate-800 flex items-center gap-2">
+                          {state} Region <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-500 font-black">{subs.length} Reps</Badge>
+                        </h3>
+                        {isLeader && (
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="text-[9px] font-black uppercase h-7 print-actions"
+                            data-print-hidden="true"
+                            onClick={() => {
+                              if (confirm(`⚠️ Delete ALL submissions for ${state} region? This cannot be undone.`)) {
+                                subs.forEach(sub => handleDeleteSubmission(sub.id));
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" /> Delete All
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table className="w-full text-xs text-left">
+                          <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
                             <th className="p-3 w-[18%]">Key Wins</th>
                             <th className="p-3 w-[18%]">Churn Risk</th>
                             <th className="p-3 w-[18%]">Major Updates</th>
                             <th className="p-3 w-[18%]">30 Day Projected</th>
-                            <th className="p-3 w-[15%] font-black">Priorities</th>
+                            <th className="p-3 w-[18%]">Priorities</th>
+                            {isLeader && <th className="p-3 w-[10%] text-center print-actions" data-print-hidden="true">Actions</th>}
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 bg-white">
-                          {subs.map((sub, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50/50 align-top transition-colors">
-                              <td className="p-3 font-black text-slate-850 break-words">{sub.name}</td>
-                              <td className="p-3 text-slate-600 whitespace-pre-line leading-relaxed">{sub.wins}</td>
-                              <td className="p-3 text-rose-600 whitespace-pre-line leading-relaxed">{sub.risks}</td>
-                              <td className="p-3 text-slate-600 whitespace-pre-line leading-relaxed font-medium">{sub.updates}</td>
-                              <td className="p-3 text-indigo-700 whitespace-pre-line leading-relaxed">{sub.projected}</td>
-                              <td className="p-3 text-slate-600 whitespace-pre-line leading-relaxed">{sub.priorities}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 bg-white">
+                            {subs.map((sub, idx) => (
+                              <tr key={idx} className="align-top relative group">
+                                <td className="p-3 text-slate-600">
+                                  {(sub.wins || []).map((w: any) => renderItem(w, 'wins', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{w.customer}</div>
+                                      <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{w.salespersonName || 'N/A'}</div>
+                                      {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {w.businessUnits.join(', ')}</div>}
+                                      {w.updateText && <div className="mt-1">{w.updateText}</div>}
+                                    </>
+                                  )))}
+                                </td>
+                                <td className="p-3 text-slate-600">
+                                  {(sub.risks || []).map((r: any) => renderItem(r, 'risks', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{r.account}</div>
+                                      <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{r.salespersonName || 'N/A'}</div>
+                                      <div className="mt-1 text-slate-500">Mitigation: {r.mitigation}</div>
+                                    </>
+                                  )))}
+                                </td>
+                                <td className="p-3 text-slate-600">
+                                  {sub.updates && (
+                                    <div className="p-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
+                                  )}
+                                  {(sub.majorUpdates || []).map((m: any) => renderItem(m, 'majorUpdates', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{m.customer}</div>
+                                      {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
+                                      <div className="text-[10px] text-slate-500 mt-1">{m.salespersonName || 'N/A'}</div>
+                                      {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {m.businessUnits.join(', ')}</div>}
+                                      {m.updateText && <div className="mt-1">{m.updateText}</div>}
+                                    </>
+                                  )))}
+                                </td>
+                                <td className="p-3 text-slate-600">
+                                  {(sub.projectedWins || []).map((p: any) => renderItem(p, 'projectedWins', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{p.account}</div>
+                                      <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                      <div className="mt-1 text-slate-500">Expected: {p.expectedDate}</div>
+                                      {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
+                                    </>
+                                  )))}
+                                </td>
+                                <td className="p-3 text-slate-600">
+                                  {(sub.priorities || []).map((p: any) => renderItem(p, 'priorities', sub.id, (
+                                    <>
+                                      <div>{p.text}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                    </>
+                                  )))}
+                                  {(sub.priorities || []).length === 0 && <div className="text-[10px] text-slate-400 font-medium italic">-</div>}
+                                </td>
+                                {isLeader && (
+                                  <td className="p-3 print-actions" data-print-hidden="true">
+                                    <div className="flex flex-col gap-1.5">
+                                      <Button size="sm" variant="outline" className="w-full text-[9px] uppercase font-black h-7 border-indigo-200 text-indigo-600 hover:bg-indigo-50" onClick={() => handleEditSubmission(sub)}>
+                                        <Edit3 className="w-3 h-3 mr-1" /> Edit
+                                      </Button>
+                                      <Button size="sm" variant="destructive" className="w-full text-[9px] uppercase font-black h-7 bg-red-600 hover:bg-red-700" onClick={() => handleDeleteSubmission(sub.id)}>
+                                        <Trash2 className="w-3 h-3 mr-1" /> Delete
+                                      </Button>
+                                    </div>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-
-              {/* Hidden Print Container */}
-              <div id="twtw-demo-print-area" className="hidden">
-                ${Object.entries(collatedMockSubmissions).map(([state, subs]) => `
-                  <div class="avoid-break">
-                    <div class="region-title">${state} Region</div>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style="width: 15%">Rep Name</th>
-                          <th style="width: 18%">Key Wins</th>
-                          <th style="width: 18%">Churn Risk</th>
-                          <th style="width: 18%">Major Updates</th>
-                          <th style="width: 18%">30 Day Projected</th>
-                          <th style="width: 15%">Priorities</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${subs.map(sub => `
-                          <tr>
-                            <td class="bold">${sub.name}</td>
-                            <td class="whitespace-pre-line">${sub.wins.replace(/\n/g, '<br>')}</td>
-                            <td class="whitespace-pre-line rose">${sub.risks.replace(/\n/g, '<br>')}</td>
-                            <td class="whitespace-pre-line">${sub.updates.replace(/\n/g, '<br>')}</td>
-                            <td class="whitespace-pre-line blue">${sub.projected.replace(/\n/g, '<br>')}</td>
-                            <td class="whitespace-pre-line">${sub.priorities.replace(/\n/g, '<br>')}</td>
-                          </tr>
-                        `).join('')}
-                      </tbody>
-                    </table>
-                  </div>
-                `).join('')}
-              </div>
-
             </CardContent>
           </Card>
         </TabsContent>
+        )}
+
+        {/* ==========================================
+         * KEY STANDOUTS VIEW
+         * ========================================== */}
+        {isLeader && (
+          <TabsContent value="standouts" className="mt-0">
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+              <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
+                <div className="relative z-10 space-y-2">
+                  <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
+                    <Star className="w-8 h-8 fill-current text-amber-200" /> Key Standouts
+                  </h2>
+                  <p className="text-amber-100 font-medium max-w-xl text-sm leading-relaxed">
+                    A curated selection of the most significant wins, risks, and updates highlighted across all submissions.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Object.entries(submissionsByState).map(([state, subs]) => 
+                  subs.flatMap(sub => {
+                    const standouts: any[] = [];
+                    (sub.wins || []).forEach((w: any) => {
+                      if (w.isStarred) standouts.push({ type: 'Win', ...w });
+                    });
+                    (sub.risks || []).forEach((r: any) => {
+                      if (r.isStarred) standouts.push({ type: 'Risk', ...r });
+                    });
+                    (sub.majorUpdates || []).forEach((m: any) => {
+                      if (m.isStarred) standouts.push({ type: 'Update', ...m });
+                    });
+                    (sub.projectedWins || []).forEach((p: any) => {
+                      if (p.isStarred) standouts.push({ type: 'Projected', ...p });
+                    });
+                    (sub.priorities || []).forEach((p: any) => {
+                      if (p.isStarred) standouts.push({ type: 'Priority', ...p });
+                    });
+
+                    return standouts.map((item, idx) => (
+                      <div key={`${sub.id}-${idx}`} className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm relative group flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start gap-2">
+                            <Badge className={
+                              item.type === 'Win' ? "bg-emerald-100 text-emerald-700 uppercase font-black text-[9px]" :
+                              item.type === 'Risk' ? "bg-rose-100 text-rose-700 uppercase font-black text-[9px]" :
+                              item.type === 'Projected' ? "bg-blue-100 text-blue-700 uppercase font-black text-[9px]" :
+                              item.type === 'Priority' ? "bg-amber-100 text-amber-700 uppercase font-black text-[9px]" :
+                              "bg-indigo-100 text-indigo-700 uppercase font-black text-[9px]"
+                            }>
+                              {item.type}
+                            </Badge>
+                            <Star className="w-4 h-4 text-amber-500 fill-current" />
+                          </div>
+                          
+                          <div>
+                            <div className="font-bold text-slate-800 line-clamp-2 leading-tight">
+                              {item.customer || item.account || item.text}
+                            </div>
+                            {item.value ? (
+                              <div className={
+                                item.type === 'Risk' ? "text-rose-600 font-black mt-1" : 
+                                item.type === 'Win' ? "text-emerald-600 font-black mt-1" :
+                                "text-blue-600 font-black mt-1"
+                              }>
+                                {formatEAV(item.value)}
+                              </div>
+                            ) : null}
+                            <div className="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-wider">{item.salespersonName || sub.userName || 'N/A'}</div>
+                            {item.businessUnits && item.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wider">BU: {item.businessUnits.join(', ')}</div>}
+                            {item.updateText && <div className="text-xs text-slate-600 mt-2 line-clamp-3">{item.updateText}</div>}
+                            {item.mitigation && <div className="text-xs text-slate-600 mt-2 line-clamp-3"><span className="font-bold text-slate-700">Mitigation:</span> {item.mitigation}</div>}
+                          </div>
+                        </div>
+                      </div>
+                    ));
+                  })
+                )}
+              </div>
+            </div>
+          </TabsContent>
         )}
       </Tabs>
 
@@ -1827,5 +2208,14 @@ export function DemoDashView() {
       </Dialog>
 
     </div>
+    
+    <TwiwEditDialog
+      submission={editingSubmission}
+      open={editingSubmission !== null}
+      onOpenChange={(open) => {
+        if (!open) setEditingSubmission(null);
+      }}
+    />
+    </>
   );
 }

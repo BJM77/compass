@@ -74,9 +74,9 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   const { data: stats, isLoading: isStatsLoading } = useDoc(statsDocRef);
 
   const settingsDocRef = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !authUser) return null;
     return doc(db, 'appSettings', 'global');
-  }, [db]);
+  }, [db, authUser]);
   const { data: globalSettings } = useDoc(settingsDocRef);
   const rawLayout = (globalSettings?.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT) as DashboardWidgetConfig[];
   

@@ -33,7 +33,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck, Beaker
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck, Beaker, Upload
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -55,7 +55,7 @@ const NAV_ITEMS = [
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
   { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'main' },
   { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
-  { view: 'TWIW' as DashboardView,              label: 'The Week That Was', icon: CalendarCheck,    adminOnly: false, group: 'main' },
+  { view: 'DEMO_DASH' as DashboardView,         label: 'The Week',          icon: CalendarCheck,    adminOnly: false, group: 'main' },
   { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
   { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
   { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
@@ -68,11 +68,7 @@ const NAV_ITEMS = [
   { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true,  group: 'admin' },
   { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true,  group: 'admin' },
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true,  group: 'admin' },
-  { view: 'OPS_REVIEW' as DashboardView,        label: 'Ops Review',        icon: ClipboardList,    adminOnly: true,  group: 'admin' },
-  { view: 'STRATEGIC_ARCHIVE' as DashboardView, label: 'Strategic Archive', icon: Archive,          adminOnly: false, group: 'admin' },
-  { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false, group: 'admin' },
-  { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true,  group: 'admin' },
-  { view: 'DEMO_DASH' as DashboardView,         label: 'The Week',          icon: LayoutDashboard,  adminOnly: false, group: 'main' },
+  { view: 'UPLOAD' as DashboardView,            label: 'CRM Import',        icon: Upload,           adminOnly: true,  group: 'admin' },
 ];
 
 function DashboardContent() {
@@ -106,7 +102,7 @@ function DashboardContent() {
   const { data: allUsers } = useCollection(usersQuery);
   const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);
   
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'appSettings', 'global') : null, [db]);
+  const settingsRef = useMemoFirebase(() => (db && user) ? doc(db, 'appSettings', 'global') : null, [db, user]);
   const { data: settingsData } = useDoc(settingsRef);
 
   const handleSignOut = async () => { 
@@ -173,7 +169,10 @@ function DashboardContent() {
                     </SidebarMenuItem>
                   )}
                   {NAV_ITEMS.filter(item => {
-                    if (profile?.role === 'GUEST') return item.view === 'TWIW';
+                    if (profile?.role === 'GUEST') {
+                      const guestAllowedViews = ['DEMO_DASH', 'OPS_REPORT', 'WHITE_SPACE'];
+                      return guestAllowedViews.includes(item.view);
+                    }
                     return item.group === 'main' && (item.adminOnly ? isLeader : true);
                   }).map(nav => (
                     <SidebarMenuItem key={nav.view}>

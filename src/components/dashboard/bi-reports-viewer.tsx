@@ -45,14 +45,14 @@ const FIELD_MAP: Record<string, string> = {
 };
 
 export function BIReportsViewer() {
-  const { profile, isLeader, isGM } = useAuth();
+  const { profile, isLeader, isGM, user } = useAuth();
   const db = useFirestore();
   const currentWeek = getCurrentWeek();
   const isAdmin = isLeader || isGM;
   const [isSeeding, setIsSeeding] = useState(false);
 
   // Load configuration
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'appSettings', 'global') : null, [db]);
+  const settingsRef = useMemoFirebase(() => (db && user) ? doc(db, 'appSettings', 'global') : null, [db, user]);
   const { data: settingsData, isLoading: isSettingsLoading } = useDoc(settingsRef);
 
   // Filter dashboards by role visibility

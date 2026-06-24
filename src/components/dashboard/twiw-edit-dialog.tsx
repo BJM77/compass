@@ -24,16 +24,19 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
   const [majorUpdates, setMajorUpdates] = useState<any[]>([]);
   const [projectedWins, setProjectedWins] = useState<any[]>([]);
   const [priorities, setPriorities] = useState<any[]>([]);
+  const [nextWeekActions, setNextWeekActions] = useState<string[]>([]);
+  const [nextWeekRoadblocks, setNextWeekRoadblocks] = useState('');
+  const [nextWeekSupport, setNextWeekSupport] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (submission) {
-      setWins((submission.wins || []).map((w: any) => ({ ...w, id: w.id || crypto.randomUUID() })));
-      setRisks((submission.risks || []).map((r: any) => ({ ...r, id: r.id || crypto.randomUUID() })));
-      setUpdates(submission.updates || '');
-      setMajorUpdates((submission.majorUpdates || []).map((m: any) => ({ ...m, id: m.id || crypto.randomUUID() })));
-      setProjectedWins((submission.projectedWins || []).map((p: any) => ({ ...p, id: p.id || crypto.randomUUID() })));
-      setPriorities((submission.priorities || []).map((pr: any) => ({ ...pr, id: pr.id || crypto.randomUUID() })));
+      setWins((submission.wins || []).map((w: any) => typeof w === 'string' ? { id: crypto.randomUUID(), customer: w, value: 0, salespersonName: '' } : { ...w, id: w.id || crypto.randomUUID() }));
+      setRisks((submission.risks || []).map((r: any) => typeof r === 'string' ? { id: crypto.randomUUID(), account: r, value: 0, salespersonName: '' } : { ...r, id: r.id || crypto.randomUUID() }));
+      setUpdates(typeof submission.updates === 'string' ? submission.updates : '');
+      setMajorUpdates((submission.majorUpdates || []).map((m: any) => typeof m === 'string' ? { id: crypto.randomUUID(), updateText: m, customer: '', value: 0 } : { ...m, id: m.id || crypto.randomUUID() }));
+      setProjectedWins((submission.projectedWins || []).map((p: any) => typeof p === 'string' ? { id: crypto.randomUUID(), account: p, expectedDate: '', salespersonName: '' } : { ...p, id: p.id || crypto.randomUUID() }));
+      setPriorities((submission.priorities || []).map((pr: any) => typeof pr === 'string' ? { id: crypto.randomUUID(), text: pr, salespersonName: '' } : { ...pr, id: pr.id || crypto.randomUUID() }));
     }
   }, [submission]);
 
@@ -50,6 +53,9 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
         majorUpdates: majorUpdates.filter(m => m.customer.trim() || m.updateText.trim()),
         projectedWins: projectedWins.filter(p => p.account.trim()),
         priorities: priorities.filter(p => p.text.trim()),
+        nextWeekActions: nextWeekActions.filter(a => typeof a === 'string' && a.trim() !== ''),
+        nextWeekRoadblocks,
+        nextWeekSupport,
         updatedAt: serverTimestamp()
       }, { merge: true });
       toast({ title: "Submission Updated", description: "The report has been successfully updated." });
@@ -223,6 +229,36 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
                 </div>
               ))}
               <Button onClick={addPriorityRow} variant="outline" size="sm" className="w-full text-xs"><Plus className="w-3 h-3 mr-1" /> Add Priority</Button>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-4 border-t">
+            <h3 className="text-sm font-bold uppercase text-indigo-700">Friday Pack Fields</h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold">Next Week Actions</label>
+                {nextWeekActions.map((action, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input value={action} onChange={e => {
+                      const newA = [...nextWeekActions];
+                      newA[i] = e.target.value;
+                      setNextWeekActions(newA);
+                    }} className="h-8 text-xs flex-1" />
+                    <Button variant="ghost" size="icon" onClick={() => setNextWeekActions(nextWeekActions.filter((_, idx) => idx !== i))} className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                  </div>
+                ))}
+                <Button onClick={() => setNextWeekActions([...nextWeekActions, ''])} variant="outline" size="sm" className="w-full text-xs"><Plus className="w-3 h-3 mr-1" /> Add Action</Button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold">Roadblocks</label>
+                <Textarea value={nextWeekRoadblocks} onChange={e => setNextWeekRoadblocks(e.target.value)} placeholder="Any roadblocks for next week?" className="text-xs min-h-[60px]" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold">Support Needed</label>
+                <Textarea value={nextWeekSupport} onChange={e => setNextWeekSupport(e.target.value)} placeholder="Management support needed?" className="text-xs min-h-[60px]" />
+              </div>
             </div>
           </div>
 
