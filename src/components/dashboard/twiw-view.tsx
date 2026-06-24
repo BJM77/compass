@@ -11,13 +11,16 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import { getCurrentWeek, getNextWeekKey, formatEAV, cn } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
-  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3
+  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, EyeOff, Star, CalendarIcon
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 
@@ -33,6 +36,8 @@ interface WinItem {
   businessUnits: string[];
   updateText: string;
   salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
 }
 
 const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
@@ -42,6 +47,20 @@ interface RiskItem {
   account: string;
   value: number;
   mitigation: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
+}
+
+interface MajorUpdateItem {
+  id: string;
+  customer: string;
+  value: number;
+  businessUnits: string[];
+  updateText: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
 }
 
 interface ProjectedWin {
@@ -49,6 +68,18 @@ interface ProjectedWin {
   account: string;
   value: number;
   expectedDate: string;
+  updateText: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
+}
+
+interface PriorityItem {
+  id: string;
+  text: string;
+  salespersonName: string;
+  isHidden?: boolean;
+  isStarred?: boolean;
 }
 
 export function TWIWView({ userId, isLeader }: TWIWViewProps) {
@@ -64,10 +95,32 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   // Submission Form State
   const [wins, setWins] = useState<WinItem[]>([]);
   const [risks, setRisks] = useState<RiskItem[]>([]);
-  const [updates, setUpdates] = useState('');
+  const [updates, setUpdates] = useState(''); // Legacy fallback
+  const [majorUpdates, setMajorUpdates] = useState<MajorUpdateItem[]>([]);
   const [projectedWins, setProjectedWins] = useState<ProjectedWin[]>([]);
-  const [priorities, setPriorities] = useState<string[]>([]);
+  const [priorities, setPriorities] = useState<PriorityItem[]>([]);
   const [newPriority, setNewPriority] = useState('');
+  const [newPrioritySalesperson, setNewPrioritySalesperson] = useState('');
+  const [activeTab, setActiveTab] = useState<'FORM' | 'COLLATION' | 'STANDOUTS'>(isLeader ? 'COLLATION' : 'FORM');
+
+  const toggleItemState = async (subId: string, arrayField: 'wins'|'risks'|'majorUpdates'|'projectedWins'|'priorities', itemId: string, stateField: 'isHidden'|'isStarred') => {
+    if (!db) return;
+    try {
+      const sub = allSubmissions?.find(s => s.id === subId);
+      if (!sub) return;
+      const items = [...(sub[arrayField] || [])];
+      const idx = items.findIndex((i: any) => i.id === itemId);
+      if (idx === -1) return;
+      
+      items[idx] = { ...items[idx], [stateField]: !items[idx][stateField] };
+      
+      const { doc, updateDoc } = await import('firebase/firestore');
+      await updateDoc(doc(db, 'twiwSubmissions', subId), { [arrayField]: items });
+      toast({ title: "Updated successfully", description: "Item visibility/starred state updated." });
+    } catch(e) {
+      toast({ variant: "destructive", title: "Failed to update item state." });
+    }
+  };
   const [status, setStatus] = useState<'DRAFT' | 'SUBMITTED' | 'NONE'>('NONE');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -114,6 +167,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           setWins(data.wins || []);
           setRisks(data.risks || []);
           setUpdates(data.updates || '');
+          setMajorUpdates(data.majorUpdates || []);
           setProjectedWins(data.projectedWins || []);
           setPriorities(data.priorities || []);
           setStatus(data.status || 'DRAFT');
@@ -122,6 +176,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           setWins([]);
           setRisks([]);
           setUpdates('');
+          setMajorUpdates([]);
           setProjectedWins([]);
           setPriorities([]);
           setStatus('NONE');
@@ -203,7 +258,8 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         id: deal.id,
         account: deal.pipeline,
         value: Number(deal.value) || 0,
-        mitigation: deal.barriers || 'Flagged for stalling momentum.'
+        mitigation: deal.barriers || 'Flagged for stalling momentum.',
+        salespersonName: bdmName || 'Salesperson'
       }));
 
     const combined = [...risks];
@@ -213,7 +269,8 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           id: crypto.randomUUID(),
           account: suggest.account,
           value: suggest.value,
-          mitigation: suggest.mitigation
+          mitigation: suggest.mitigation,
+          salespersonName: suggest.salespersonName
         });
       }
     });
@@ -242,7 +299,9 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         id: deal.id,
         account: deal.pipeline,
         value: Number(deal.value) || 0,
-        expectedDate: deal.expectedDate || 'Within 30 Days'
+        expectedDate: deal.expectedDate || format(new Date(new Date().getTime() + 15 * 24 * 60 * 60 * 1000), 'dd-MM-yyyy'),
+        updateText: 'Projected Close',
+        salespersonName: bdmName || 'Salesperson'
       }));
 
     const combined = [...projectedWins];
@@ -252,7 +311,9 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           id: crypto.randomUUID(),
           account: suggest.account,
           value: suggest.value,
-          expectedDate: suggest.expectedDate
+          expectedDate: suggest.expectedDate,
+          updateText: suggest.updateText,
+          salespersonName: suggest.salespersonName
         });
       }
     });
@@ -283,8 +344,8 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
       const combined = [...priorities];
       suggested.forEach(p => {
-        if (!combined.includes(p)) {
-          combined.push(p);
+        if (!combined.some(cp => cp.text.toLowerCase() === p.toLowerCase())) {
+          combined.push({ id: crypto.randomUUID(), text: p, salespersonName: bdmName || 'Salesperson' });
         }
       });
 
@@ -311,13 +372,27 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     setWins(wins.map(w => w.id === id ? { ...w, [field]: val } : w));
   };
 
-  const addRiskRow = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '' }]);
+  const addRiskRow = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '', salespersonName: bdmName || 'Salesperson' }]);
   const removeRiskRow = (id: string) => setRisks(risks.filter(r => r.id !== id));
   const updateRiskField = (id: string, field: keyof RiskItem, val: any) => {
     setRisks(risks.map(r => r.id === id ? { ...r, [field]: val } : r));
   };
 
-  const addProjectedRow = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: '' }]);
+  const addMajorUpdateRow = () => setMajorUpdates([...majorUpdates, { id: crypto.randomUUID(), customer: '', value: 0, businessUnits: [], updateText: '', salespersonName: bdmName || 'Salesperson' }]);
+  const removeMajorUpdateRow = (id: string) => setMajorUpdates(majorUpdates.filter(m => m.id !== id));
+  const toggleMajorUpdateBU = (id: string, bu: string) => {
+    setMajorUpdates(majorUpdates.map(m => {
+      if (m.id !== id) return m;
+      const bus = m.businessUnits || [];
+      const newBus = bus.includes(bu) ? bus.filter(b => b !== bu) : [...bus, bu];
+      return { ...m, businessUnits: newBus };
+    }));
+  };
+  const updateMajorUpdateField = (id: string, field: keyof MajorUpdateItem, val: any) => {
+    setMajorUpdates(majorUpdates.map(m => m.id === id ? { ...m, [field]: val } : m));
+  };
+
+  const addProjectedRow = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: '', salespersonName: bdmName || 'Salesperson' }]);
   const removeProjectedRow = (id: string) => setProjectedWins(projectedWins.filter(p => p.id !== id));
   const updateProjectedField = (id: string, field: keyof ProjectedWin, val: any) => {
     setProjectedWins(projectedWins.map(p => p.id === id ? { ...p, [field]: val } : p));
@@ -325,10 +400,11 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
   const addPriority = () => {
     if (!newPriority.trim()) return;
-    setPriorities([...priorities, newPriority.trim()]);
+    setPriorities([...priorities, { id: crypto.randomUUID(), text: newPriority.trim(), salespersonName: newPrioritySalesperson || bdmName || 'Salesperson' }]);
     setNewPriority('');
+    setNewPrioritySalesperson('');
   };
-  const removePriority = (index: number) => setPriorities(priorities.filter((_, idx) => idx !== index));
+  const removePriority = (id: string) => setPriorities(priorities.filter(p => p.id !== id));
 
   // Save Submission
   const handleSave = async (submitState: 'DRAFT' | 'SUBMITTED') => {
@@ -346,8 +422,9 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         wins: wins.filter(w => w.customer.trim()),
         risks: risks.filter(r => r.account.trim()),
         updates: updates.trim(),
+        majorUpdates: majorUpdates.filter(m => m.customer.trim() || m.updateText.trim()),
         projectedWins: projectedWins.filter(p => p.account.trim()),
-        priorities: priorities.filter(p => p.trim()),
+        priorities: priorities.filter(p => p.text.trim()),
         status: submitState,
         updatedAt: serverTimestamp()
       }, { merge: true });
@@ -516,9 +593,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
       {isLeader ? (
         <Tabs defaultValue="my-report" className="w-full">
-          <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-2 max-w-md mb-8 h-12 border">
+          <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-3 max-w-2xl mb-8 h-12 border">
             <TabsTrigger value="my-report" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">My Report</TabsTrigger>
             <TabsTrigger value="collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Collation Hub</TabsTrigger>
+            <TabsTrigger value="standouts" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Key Standouts</TabsTrigger>
           </TabsList>
 
           <TabsContent value="my-report">
@@ -531,6 +609,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
           <TabsContent value="collation">
             {renderCollationHub()}
+          </TabsContent>
+
+          <TabsContent value="standouts">
+            {renderKeyStandouts()}
           </TabsContent>
         </Tabs>
       ) : (
@@ -745,10 +827,11 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
-                      <th className="text-left pb-2 w-[40%]">Account / Cust</th>
-                      <th className="text-right pb-2 w-[25%]">Value at Risk ($)</th>
-                      <th className="text-left pb-2 w-[25%]">Mitigation</th>
-                      <th className="text-center pb-2 w-[10%]">Action</th>
+                      <th className="text-left pb-2 w-[35%]">Account / Cust</th>
+                      <th className="text-right pb-2 w-[20%]">Value at Risk ($)</th>
+                      <th className="text-left pb-2 w-[20%]">Mitigation</th>
+                      <th className="text-left pb-2 w-[20%]">Salesperson</th>
+                      <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -779,6 +862,14 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                             className="h-8 text-xs"
                           />
                         </td>
+                        <td className="py-2 pr-2">
+                          <Input 
+                            value={r.salespersonName} 
+                            onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
+                            placeholder="Name" 
+                            className="h-8 text-xs"
+                          />
+                        </td>
                         <td className="py-2 text-center">
                           <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-8 w-8 text-red-500 rounded-xl">
                             <Trash2 className="w-3.5 h-3.5" />
@@ -788,7 +879,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     ))}
                     {risks.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                        <td colSpan={5} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
                           No Risks flagged yet. Add a custom row.
                         </td>
                       </tr>
@@ -836,6 +927,15 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           className="h-8 text-xs bg-white"
                         />
                       </div>
+                      <div className="space-y-1 col-span-2">
+                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <Input 
+                          value={r.salespersonName} 
+                          onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
+                          placeholder="Name" 
+                          className="h-8 text-xs bg-white"
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -863,13 +963,176 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4">
-              <Textarea 
-                value={updates}
-                onChange={e => setUpdates(e.target.value)}
-                placeholder="Include a concise summary of key updates on accounts and major opportunities..."
-                rows={5}
-                className="text-xs font-semibold"
-              />
+              
+              {updates && majorUpdates.length === 0 && (
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                  <p className="text-xs text-amber-800 font-medium mb-1">Legacy Update Format (Read-Only):</p>
+                  <p className="text-xs text-amber-700 whitespace-pre-wrap">{updates}</p>
+                </div>
+              )}
+<div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                      <th className="text-left pb-2 w-[25%]">Customer</th>
+                      <th className="text-right pb-2 w-[15%]">EAV ($)</th>
+                      <th className="text-left pb-2 w-[20%]">Business Unit</th>
+                      <th className="text-left pb-2 w-[20%]">Update</th>
+                      <th className="text-left pb-2 w-[15%]">Salesperson</th>
+                      <th className="text-center pb-2 w-[5%]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {majorUpdates.map((m) => (
+                      <tr key={m.id}>
+                        <td className="py-2 pr-2">
+                          <Input 
+                            value={m.customer} 
+                            onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
+                            placeholder="e.g. Acme Corp" 
+                            className="h-8 text-xs font-semibold"
+                          />
+                        </td>
+                        <td className="py-2 pr-2">
+                          <Input 
+                            type="number"
+                            value={m.value || ''} 
+                            onChange={(e) => updateMajorUpdateField(m.id, 'value', parseFloat(e.target.value) || 0)} 
+                            placeholder="Value" 
+                            className="h-8 text-xs font-black text-right text-emerald-600"
+                          />
+                        </td>
+                        <td className="py-2 pr-2">
+                          <div className="flex flex-wrap gap-1">
+                            {BUSINESS_UNITS.map(bu => (
+                              <Badge 
+                                key={bu} 
+                                variant={(m.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                                className="cursor-pointer text-[9px] px-1 py-0"
+                                onClick={() => toggleMajorUpdateBU(m.id, bu)}
+                              >
+                                {bu}
+                              </Badge>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-2 pr-2">
+                          <div className="relative">
+                            <Input 
+                              value={m.updateText || ''} 
+                              onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
+                              placeholder="e.g. Signed contract win" 
+                              className="h-8 text-xs"
+                              maxLength={200}
+                            />
+                            <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(m.updateText || '').length}/200</div>
+                          </div>
+                        </td>
+                        <td className="py-2 pr-2">
+                          <Input 
+                            value={m.salespersonName} 
+                            onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
+                            placeholder="Name" 
+                            className="h-8 text-xs"
+                          />
+                        </td>
+                        <td className="py-2 text-center">
+                          <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                    {majorUpdates.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                          No Wins reported yet. Add a custom rom.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Stacked View */}
+              <div className="block sm:hidden space-y-4">
+                {majorUpdates.map((m, idx) => (
+                  <div key={m.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-black uppercase text-slate-400">Update #{idx + 1}</span>
+                      <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Customer</label>
+                      <Input 
+                        value={m.customer} 
+                        onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
+                        placeholder="e.g. Acme Corp" 
+                        className="h-8 text-xs font-semibold bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Business Unit</label>
+                      <div className="flex flex-wrap gap-1">
+                        {BUSINESS_UNITS.map(bu => (
+                          <Badge 
+                            key={bu} 
+                            variant={(m.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                            className="cursor-pointer text-[10px] px-2 py-0.5 bg-white shadow-sm hover:bg-slate-100 text-slate-600"
+                            style={(m.businessUnits || []).includes(bu) ? { backgroundColor: '#1e293b', color: 'white', borderColor: 'transparent' } : {}}
+                            onClick={() => toggleMajorUpdateBU(m.id, bu)}
+                          >
+                            {bu}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase text-slate-400">EAV ($)</label>
+                        <Input 
+                          type="number"
+                          value={m.value || ''} 
+                          onChange={(e) => updateMajorUpdateField(m.id, 'value', parseFloat(e.target.value) || 0)} 
+                          placeholder="Value" 
+                          className="h-8 text-xs font-black text-emerald-600 bg-white"
+                        />
+                      </div>
+                      <div className="space-y-1 relative">
+                        <label className="text-[9px] font-black uppercase text-slate-400">Update</label>
+                        <Input 
+                          value={m.updateText || ''} 
+                          onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
+                          placeholder="Update text" 
+                          className="h-8 text-xs bg-white"
+                          maxLength={200}
+                        />
+                        <div className="text-right text-[8px] text-slate-400 font-bold mt-0.5">{(m.updateText || '').length}/200</div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <Input 
+                          value={m.salespersonName} 
+                          onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
+                          placeholder="Name" 
+                          className="h-8 text-xs bg-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {majorUpdates.length === 0 && (
+                  <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                    No Wins reported yet. Add a custom rom.
+                  </div>
+                )}
+              </div>
+
+              <Button onClick={addMajorUpdateRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Update
+              </Button>
             </CardContent>
           </Card>
 
@@ -891,14 +1154,19 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
-                      <th className="text-left pb-2 w-[40%]">Account / Cust</th>
-                      <th className="text-right pb-2 w-[25%]">EAV ($)</th>
-                      <th className="text-left pb-2 w-[25%]">Est. Close Date</th>
-                      <th className="text-center pb-2 w-[10%]">Action</th>
+                      <th className="text-left pb-2 w-[30%]">Account / Cust</th>
+                      <th className="text-right pb-2 w-[15%]">EAV ($)</th>
+                      <th className="text-left pb-2 pl-2 w-[15%]">Date</th>
+                      <th className="text-left pb-2 pl-2 w-[20%]">Update</th>
+                      <th className="text-left pb-2 w-[15%]">Salesperson</th>
+                      <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {projectedWins.map((p) => (
+                    {projectedWins.map((p) => {
+                      const dateParts = p.expectedDate ? p.expectedDate.split('-') : [];
+                      const selectedDate = dateParts.length === 3 ? new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])) : undefined;
+                      return (
                       <tr key={p.id}>
                         <td className="py-2 pr-2">
                           <Input 
@@ -917,11 +1185,41 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                             className="h-8 text-xs font-black text-right text-blue-600"
                           />
                         </td>
+                        <td className="py-2 pl-2 pr-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className={cn("w-full h-8 px-2 text-left font-normal text-xs", !p.expectedDate && "text-muted-foreground")}>
+                                <CalendarIcon className="mr-2 h-3 w-3" />
+                                {p.expectedDate ? p.expectedDate : <span>Pick date</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <CalendarUI
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(d) => updateProjectedField(p.id, 'expectedDate', d ? format(d, 'dd-MM-yyyy') : '')}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </td>
+                        <td className="py-2 pr-2">
+                          <div className="relative">
+                            <Input 
+                              value={p.updateText || ''} 
+                              onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
+                              placeholder="Update" 
+                              className="h-8 text-xs"
+                              maxLength={200}
+                            />
+                            <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(p.updateText || '').length}/200</div>
+                          </div>
+                        </td>
                         <td className="py-2 pr-2">
                           <Input 
-                            value={p.expectedDate} 
-                            onChange={(e) => updateProjectedField(p.id, 'expectedDate', e.target.value)} 
-                            placeholder="e.g. 2026-07-15" 
+                            value={p.salespersonName} 
+                            onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
+                            placeholder="Name" 
                             className="h-8 text-xs"
                           />
                         </td>
@@ -931,10 +1229,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           </Button>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                     {projectedWins.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                        <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
                           No projected wins &gt;$200k found. Add a custom row.
                         </td>
                       </tr>
@@ -945,7 +1243,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
               {/* Mobile Stacked View */}
               <div className="block sm:hidden space-y-4">
-                {projectedWins.map((p, idx) => (
+                {projectedWins.map((p, idx) => {
+                  const dateParts = p.expectedDate ? p.expectedDate.split('-') : [];
+                  const selectedDate = dateParts.length === 3 ? new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])) : undefined;
+                  return (
                   <div key={p.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] font-black uppercase text-slate-400">Projected Win #{idx + 1}</span>
@@ -974,17 +1275,48 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Est. Close Date</label>
+                        <label className="text-[9px] font-black uppercase text-slate-400">Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className={cn("w-full h-8 px-2 text-left font-normal text-xs bg-white", !p.expectedDate && "text-muted-foreground")}>
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {p.expectedDate ? p.expectedDate : <span>Pick date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarUI
+                              mode="single"
+                              selected={selectedDate}
+                              onSelect={(d) => updateProjectedField(p.id, 'expectedDate', d ? format(d, 'dd-MM-yyyy') : '')}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1 relative">
+                        <label className="text-[9px] font-black uppercase text-slate-400">Update</label>
                         <Input 
-                          value={p.expectedDate} 
-                          onChange={(e) => updateProjectedField(p.id, 'expectedDate', e.target.value)} 
-                          placeholder="e.g. 2026-07-15" 
+                          value={p.updateText || ''} 
+                          onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
+                          placeholder="Update" 
+                          className="h-8 text-xs bg-white"
+                          maxLength={200}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <Input 
+                          value={p.salespersonName} 
+                          onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
+                          placeholder="Name" 
                           className="h-8 text-xs bg-white"
                         />
                       </div>
                     </div>
                   </div>
-                ))}
+                )})}
                 {projectedWins.length === 0 && (
                   <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
                     No projected wins &gt;$200k found. Add a custom row.
@@ -1012,23 +1344,35 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Input row */}
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Input 
                   value={newPriority}
                   onChange={e => setNewPriority(e.target.value)}
                   placeholder="e.g. Focus on Neerabup zone wins"
-                  className="h-8 text-xs font-semibold"
+                  className="h-8 text-xs font-semibold col-span-2"
                   onKeyDown={e => e.key === 'Enter' && addPriority()}
                 />
-                <Button size="sm" onClick={addPriority} className="h-8 text-xs font-black uppercase bg-primary px-3 rounded-xl">Add</Button>
+                <div className="flex gap-2">
+                  <Input 
+                    value={newPrioritySalesperson}
+                    onChange={e => setNewPrioritySalesperson(e.target.value)}
+                    placeholder="Salesperson"
+                    className="h-8 text-xs font-semibold"
+                    onKeyDown={e => e.key === 'Enter' && addPriority()}
+                  />
+                  <Button size="sm" onClick={addPriority} className="h-8 text-xs font-black uppercase bg-primary px-3 rounded-xl">Add</Button>
+                </div>
               </div>
 
               {/* Items List */}
               <div className="space-y-2">
-                {priorities.map((p, idx) => (
-                  <div key={idx} className="flex justify-between items-center gap-3 p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold">
-                    <span className="text-slate-800 leading-tight">{p}</span>
-                    <Button variant="ghost" size="icon" onClick={() => removePriority(idx)} className="h-6 w-6 text-red-500 rounded-lg">
+                {priorities.map((p) => (
+                  <div key={p.id} className="flex justify-between items-center gap-3 p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold">
+                    <div className="flex-1 flex justify-between gap-4">
+                      <span className="text-slate-800 leading-tight">{p.text}</span>
+                      <span className="text-slate-500">{p.salespersonName}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-6 w-6 text-red-500 rounded-lg">
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
@@ -1117,6 +1461,25 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     const collatedSubmissionsCount = allSubmissions?.length || 0;
     const teamUsers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER') || [];
 
+    const renderItem = (item: any, type: string, subId: string, content: React.ReactNode) => {
+      if (item.isHidden) return null;
+      return (
+        <div key={item.id} className="relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-10">
+            <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-white", item.isStarred ? "border-amber-400 text-amber-500" : "border-slate-200 text-slate-400 hover:text-amber-500")} onClick={() => toggleItemState(subId, type as any, item.id, 'isStarred')}>
+              <Star className={cn("w-3 h-3", item.isStarred && "fill-current")} />
+            </Button>
+            <Button size="icon" variant="secondary" className="w-6 h-6 shadow-sm border border-slate-200 bg-white hover:text-slate-600 text-slate-400" onClick={() => toggleItemState(subId, type as any, item.id, 'isHidden')}>
+              <EyeOff className="w-3 h-3" />
+            </Button>
+          </div>
+          <div className="pr-8">
+            {content}
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column: Team status overview */}
@@ -1151,26 +1514,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     </div>
                   );
                 })}
-                {allSubmissions?.filter(s => !teamUsers.some(u => u.id === s.userId)).map(sub => (
-                  <div key={sub.id} className="flex justify-between items-center py-3">
-                    <div>
-                      <p className="text-xs font-black text-slate-800">{sub.userName || 'Guest'}</p>
-                      <p className="text-[9px] text-muted-foreground font-bold uppercase mt-0.5">{sub.email || 'No email'}</p>
-                    </div>
-                    <Badge className={cn(
-                      "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
-                      sub.status === 'SUBMITTED' ? "bg-green-100 text-green-700" :
-                      sub.status === 'DRAFT' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"
-                    )}>
-                      {sub.status === 'SUBMITTED' ? 'Submitted' : sub.status === 'DRAFT' ? 'Draft' : 'Pending'}
-                    </Badge>
-                  </div>
-                ))}
-                {teamUsers.length === 0 && (!allSubmissions || allSubmissions.length === 0) && (
-                  <div className="text-center py-8 text-xs font-bold text-slate-400 uppercase">
-                    No active BDM/AM accounts found.
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -1198,7 +1541,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
               </Button>
             </CardHeader>
             <CardContent className="p-0">
-              {/* Display View */}
               <div className="p-6 space-y-12 max-h-[800px] overflow-y-auto">
                 {Object.entries(submissionsByState).length === 0 ? (
                    <div className="text-center py-24 text-slate-400 text-xs font-bold uppercase tracking-widest">
@@ -1224,24 +1566,63 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           </thead>
                           <tbody className="divide-y divide-slate-100 bg-white">
                             {subs.map((sub, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50/50 align-top transition-colors relative group">
-                                <td className="p-3 text-slate-600 whitespace-pre-line">
-                                  {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)} - ${w.salespersonName || 'N/A'}\nBU's: ${(w.businessUnits || []).join(', ') || 'N/A'}\nUpdate: ${w.updateText || '-'}`).join('\n\n') || '-'}
+                              <tr key={idx} className="align-top relative group">
+                                <td className="p-3 text-slate-600">
+                                  {(sub.wins || []).map((w: any) => renderItem(w, 'wins', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{w.customer}</div>
+                                      <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{w.salespersonName || 'N/A'}</div>
+                                      {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {w.businessUnits.join(', ')}</div>}
+                                      {w.updateText && <div className="mt-1">{w.updateText}</div>}
+                                    </>
+                                  )))}
                                 </td>
-                                <td className="p-3 text-slate-600 whitespace-pre-line text-rose-600/90">
-                                  {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
+                                <td className="p-3 text-slate-600">
+                                  {(sub.risks || []).map((r: any) => renderItem(r, 'risks', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{r.account}</div>
+                                      <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{r.salespersonName || 'N/A'}</div>
+                                      <div className="mt-1 text-slate-500">Mitigation: {r.mitigation}</div>
+                                    </>
+                                  )))}
                                 </td>
-                                <td className="p-3 text-slate-600 whitespace-pre-line">
-                                  {sub.updates || '-'}
+                                <td className="p-3 text-slate-600">
+                                  {sub.updates && (
+                                    <div className="p-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
+                                  )}
+                                  {(sub.majorUpdates || []).map((m: any) => renderItem(m, 'majorUpdates', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{m.customer}</div>
+                                      {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
+                                      <div className="text-[10px] text-slate-500 mt-1">{m.salespersonName || 'N/A'}</div>
+                                      {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {m.businessUnits.join(', ')}</div>}
+                                      {m.updateText && <div className="mt-1">{m.updateText}</div>}
+                                    </>
+                                  )))}
                                 </td>
-                                <td className="p-3 text-slate-600 whitespace-pre-line text-blue-600/90">
-                                  {(sub.projectedWins || []).map((p: any) => `• ${p.account} - ${formatEAV(p.value)}\n  (${p.expectedDate})`).join('\n\n') || '-'}
+                                <td className="p-3 text-slate-600">
+                                  {(sub.projectedWins || []).map((p: any) => renderItem(p, 'projectedWins', sub.id, (
+                                    <>
+                                      <div className="font-bold text-slate-800">{p.account}</div>
+                                      <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                      <div className="mt-1 text-slate-500">Expected: {p.expectedDate}</div>
+                                      {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
+                                    </>
+                                  )))}
                                 </td>
-                                <td className="p-3 text-slate-600 whitespace-pre-line">
-                                  {(sub.priorities || []).map((p: string) => `• ${p}`).join('\n') || '-'}
-                                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-                                    <Button size="icon" variant="secondary" className="w-6 h-6 shadow-sm border border-slate-200 bg-white hover:bg-slate-50 text-slate-600" onClick={() => handleEditSubmission(sub)}><Edit3 className="w-3 h-3" /></Button>
-                                    <Button size="icon" variant="destructive" className="w-6 h-6 shadow-sm opacity-90" onClick={() => handleDeleteSubmission(sub.id)}><Trash2 className="w-3 h-3" /></Button>
+                                <td className="p-3 text-slate-600">
+                                  {(sub.priorities || []).map((p: any) => renderItem(p, 'priorities', sub.id, (
+                                    <>
+                                      <div>{p.text}</div>
+                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                    </>
+                                  )))}
+                                  <div className="mt-4 flex gap-2">
+                                    <Button size="sm" variant="outline" className="w-full text-[10px] uppercase font-black" onClick={() => handleEditSubmission(sub)}><Edit3 className="w-3.5 h-3.5 mr-1" /> Edit</Button>
+                                    <Button size="sm" variant="destructive" className="w-full text-[10px] uppercase font-black" onClick={() => handleDeleteSubmission(sub.id)}><Trash2 className="w-3.5 h-3.5 mr-1" /> Delete</Button>
                                   </div>
                                 </td>
                               </tr>
@@ -1253,61 +1634,129 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   ))
                 )}
               </div>
-
-              {/* Hidden Print Area (used by handleExportPdf) */}
-              <div id="twtw-print-area" className="hidden">
-                {Object.entries(submissionsByState).map(([state, subs]) => (
-                  <div key={state} className="state-container">
-                    <h2>{state} Region</h2>
-                    {subs.length === 0 ? (
-                      <div className="empty-state">No data available for this region.</div>
-                    ) : (
-                      <table>
-                        <thead>
-                          <tr>
-                            <th style={{width: '20%'}}>Key Wins</th>
-                            <th style={{width: '20%'}}>Churn Risk</th>
-                            <th style={{width: '20%'}}>Major Updates</th>
-                            <th style={{width: '20%'}}>30 Day Projected</th>
-                            <th style={{width: '20%'}}>Priorities</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {subs.map((sub, idx) => (
-                            <tr key={idx} className="avoid-break">
-                              <td className="whitespace-pre-line">
-                                {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)} - ${w.salespersonName || 'N/A'}\nBU's: ${(w.businessUnits || []).join(', ') || 'N/A'}\nUpdate: ${w.updateText || '-'}`).join('\n\n') || '-'}
-                              </td>
-                              <td className="whitespace-pre-line">
-                                {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
-                              </td>
-                              <td className="whitespace-pre-line">
-                                {sub.updates || '-'}
-                              </td>
-                              <td className="whitespace-pre-line">
-                                {(sub.projectedWins || []).map((p: any) => `• ${p.account} - ${formatEAV(p.value)}\n  (${p.expectedDate})`).join('\n\n') || '-'}
-                              </td>
-                              <td className="whitespace-pre-line">
-                                {(sub.priorities || []).map((p: string) => `• ${p}`).join('\n') || '-'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </div>
-        {editingSubmission && (
-          <TwiwEditDialog 
-            submission={editingSubmission} 
-            open={!!editingSubmission} 
-            onOpenChange={(open) => !open && setEditingSubmission(null)} 
-          />
-        )}
+      </div>
+    );
+  }
+
+  function renderKeyStandouts() {
+    const getStarred = (arrayField: string) => {
+      const items: any[] = [];
+      allSubmissions?.forEach(sub => {
+        const arr = sub[arrayField as keyof typeof sub] as any[];
+        if (arr) {
+          arr.filter(i => i.isStarred).forEach(i => items.push({ ...i, subId: sub.id, state: sub.state }));
+        }
+      });
+      return items;
+    };
+
+    const starredWins = getStarred('wins');
+    const starredRisks = getStarred('risks');
+    const starredUpdates = getStarred('majorUpdates');
+    const starredProjected = getStarred('projectedWins');
+    const starredPriorities = getStarred('priorities');
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {/* Wins Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Key Wins <Badge>{starredWins.length}</Badge></h3>
+            {starredWins.map(w => (
+              <Card key={w.id} className="border-amber-200 bg-amber-50 shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(w.subId, 'wins', w.id, 'isStarred')}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{w.state}</Badge>
+                  <div className="font-bold text-slate-800">{w.customer}</div>
+                  <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
+                  <div className="text-[10px] text-slate-500">{w.salespersonName || 'N/A'}</div>
+                  {w.updateText && <div className="text-xs text-slate-600 mt-2">{w.updateText}</div>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Risks Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Churn Risks <Badge>{starredRisks.length}</Badge></h3>
+            {starredRisks.map(r => (
+              <Card key={r.id} className="border-rose-200 bg-rose-50 shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(r.subId, 'risks', r.id, 'isStarred')}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{r.state}</Badge>
+                  <div className="font-bold text-slate-800">{r.account}</div>
+                  <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
+                  <div className="text-[10px] text-slate-500">{r.salespersonName || 'N/A'}</div>
+                  <div className="text-xs text-slate-600 mt-2">Mitigation: {r.mitigation}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Updates Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Major Updates <Badge>{starredUpdates.length}</Badge></h3>
+            {starredUpdates.map(m => (
+              <Card key={m.id} className="border-blue-200 bg-blue-50 shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(m.subId, 'majorUpdates', m.id, 'isStarred')}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{m.state}</Badge>
+                  <div className="font-bold text-slate-800">{m.customer}</div>
+                  {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
+                  <div className="text-[10px] text-slate-500">{m.salespersonName || 'N/A'}</div>
+                  {m.updateText && <div className="text-xs text-slate-600 mt-2">{m.updateText}</div>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Projected Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">30 Day Projected <Badge>{starredProjected.length}</Badge></h3>
+            {starredProjected.map(p => (
+              <Card key={p.id} className="border-purple-200 bg-purple-50 shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'projectedWins', p.id, 'isStarred')}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
+                  <div className="font-bold text-slate-800">{p.account}</div>
+                  <div className="text-purple-600 font-semibold">{formatEAV(p.value)}</div>
+                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                  <div className="text-xs text-slate-600 mt-2 font-bold">{p.expectedDate}</div>
+                  {p.updateText && <div className="text-xs text-slate-600 mt-1">{p.updateText}</div>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Priorities Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Priorities <Badge>{starredPriorities.length}</Badge></h3>
+            {starredPriorities.map(p => (
+              <Card key={p.id} className="border-indigo-200 bg-indigo-50 shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'priorities', p.id, 'isStarred')}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
+                  <div className="font-bold text-slate-800 text-sm">{p.text}</div>
+                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+        </div>
       </div>
     );
   }
