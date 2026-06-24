@@ -400,7 +400,7 @@ export function DemoDashView() {
   // --- Thursday Pre-population triggers ---
   const handleLoadPreviousFridayData = () => {
     // 1. Priorities are populated from previous actions
-    setPriorities(dbPrevFridayPlan.actionPlan.map(act => ({ id: crypto.randomUUID(), text: act, salespersonName: 'Me' })));
+    setPriorities(dbPrevFridayPlan.actionPlan.map(act => ({ id: crypto.randomUUID(), text: act, salespersonName: activeUserName })));
     // 2. Focus accounts loaded for review
     setCurrentWeekFocusAccounts(dbPrevFridayPlan.focusAccounts.map(acc => ({ ...acc, status: 'WORKING', update: '' })));
     // 3. Actions checklist loaded (since Phase A is on Thursday now)
@@ -420,16 +420,16 @@ export function DemoDashView() {
 
     // Auto-fill Wins, Risks, Projected using CRM Logic
     setWins([
-      { id: 'w1', customer: 'ACME LOGISTICS', value: 150000, businessUnits: ['Road Express'], updateText: 'Signed develop agreement, trial scheduled!', salespersonName: 'Me' }
+      { id: 'w1', customer: 'ACME LOGISTICS', value: 150000, businessUnits: ['Road Express'], updateText: 'Signed develop agreement, trial scheduled!', salespersonName: activeUserName }
     ]);
     setRisks([
-      { id: 'r1', account: 'GLOBAL CARRIERS', value: 80000, mitigation: 'Reviewing rates & negotiating spot discounts.', salespersonName: 'Me' }
+      { id: 'r1', account: 'GLOBAL CARRIERS', value: 80000, mitigation: 'Reviewing rates & negotiating spot discounts.', salespersonName: activeUserName }
     ]);
     setMajorUpdates([
-      { id: 'm1', customer: 'BHP Billiton', value: 340000, businessUnits: ['Freight'], updateText: 'Contract negotiations advanced.', salespersonName: 'Me' }
+      { id: 'm1', customer: 'BHP Billiton', value: 340000, businessUnits: ['Freight'], updateText: 'Contract negotiations advanced.', salespersonName: activeUserName }
     ]);
     setProjectedWins([
-      { id: 'p1', account: 'ZENITH MANUFACTURING', value: 280000, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: 'Proposals finalized', salespersonName: 'Me' }
+      { id: 'p1', account: 'ZENITH MANUFACTURING', value: 280000, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: 'Proposals finalized', salespersonName: activeUserName }
     ]);
 
     // Pre-populate performance narrative with bullet points of the previous Friday's action plan
@@ -574,7 +574,7 @@ export function DemoDashView() {
   };
 
   // --- Add/Delete handlers for lists ---
-  const addWinRow = () => setWins([...wins, { id: crypto.randomUUID(), customer: '', value: 0, updateText: '', businessUnits: [], salespersonName: 'Me' }]);
+  const addWinRow = () => setWins([...wins, { id: crypto.randomUUID(), customer: '', value: 0, updateText: '', businessUnits: [], salespersonName: activeUserName }]);
   const removeWinRow = (id: string) => setWins(wins.filter(w => w.id !== id));
   const toggleBusinessUnit = (id: string, bu: string) => {
     setWins(wins.map(w => {
@@ -588,13 +588,13 @@ export function DemoDashView() {
     setWins(wins.map(w => w.id === id ? { ...w, [field]: val } : w));
   };
 
-  const addRiskRow = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '', salespersonName: 'Me' }]);
+  const addRiskRow = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '', salespersonName: activeUserName }]);
   const removeRiskRow = (id: string) => setRisks(risks.filter(r => r.id !== id));
   const updateRiskField = (id: string, field: keyof RiskItem, val: any) => {
     setRisks(risks.map(r => r.id === id ? { ...r, [field]: val } : r));
   };
 
-  const addMajorUpdateRow = () => setMajorUpdates([...majorUpdates, { id: crypto.randomUUID(), customer: '', value: 0, businessUnits: [], updateText: '', salespersonName: 'Me' }]);
+  const addMajorUpdateRow = () => setMajorUpdates([...majorUpdates, { id: crypto.randomUUID(), customer: '', value: 0, businessUnits: [], updateText: '', salespersonName: activeUserName }]);
   const removeMajorUpdateRow = (id: string) => setMajorUpdates(majorUpdates.filter(m => m.id !== id));
   const toggleMajorUpdateBU = (id: string, bu: string) => {
     setMajorUpdates(majorUpdates.map(m => {
@@ -608,13 +608,13 @@ export function DemoDashView() {
     setMajorUpdates(majorUpdates.map(m => m.id === id ? { ...m, [field]: val } : m));
   };
 
-  const addProjectedRow = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: '', salespersonName: 'Me' }]);
+  const addProjectedRow = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: '', salespersonName: activeUserName }]);
   const removeProjectedRow = (id: string) => setProjectedWins(projectedWins.filter(p => p.id !== id));
   const updateProjectedField = (id: string, field: keyof ProjectedWin, val: any) => {
     setProjectedWins(projectedWins.map(p => p.id === id ? { ...p, [field]: val } : p));
   };
 
-  const addPriorityRow = () => setPriorities([...priorities, { id: crypto.randomUUID(), text: '', salespersonName: 'Me' }]);
+  const addPriorityRow = () => setPriorities([...priorities, { id: crypto.randomUUID(), text: '', salespersonName: activeUserName }]);
   const removePriority = (id: string) => setPriorities(priorities.filter(p => p.id !== id));
   const updatePriorityField = (id: string, field: string, val: any) => {
     setPriorities(priorities.map(p => p.id === id ? { ...p, [field]: val } : p));
@@ -1719,8 +1719,8 @@ export function DemoDashView() {
                         ))}
                       </div>
 
-                      <Button onClick={addPriorityRow} variant="outline" size="sm" className="w-full mt-4 text-xs font-black uppercase text-slate-500 border-dashed rounded-xl py-6 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors">
-                        <Plus className="w-4 h-4 mr-2" /> Add Priority Row
+                      <Button onClick={addPriorityRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                        <Plus className="w-4 h-4 mr-2" /> Add Custom Priority
                       </Button>
                     </CardContent>
                   </Card>
