@@ -1039,6 +1039,13 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           renderSubmissionForm()
         )
       )}
+      <TwiwEditDialog
+        submission={editingSubmission}
+        open={editingSubmission !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingSubmission(null);
+        }}
+      />
     </div>
   );
 
