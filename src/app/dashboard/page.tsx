@@ -72,7 +72,7 @@ const NAV_ITEMS = [
   { view: 'STRATEGIC_ARCHIVE' as DashboardView, label: 'Strategic Archive', icon: Archive,          adminOnly: false, group: 'admin' },
   { view: 'REPORTS' as DashboardView,           label: 'BI Dashboards',     icon: BarChart4,        adminOnly: false, group: 'admin' },
   { view: 'UPLOAD' as DashboardView,            label: 'Upload CRM',        icon: Database,         adminOnly: true,  group: 'admin' },
-  { view: 'DEMO_DASH' as DashboardView,         label: 'Demo Dash',         icon: Beaker,           adminOnly: true,  group: 'admin' },
+  { view: 'DEMO_DASH' as DashboardView,         label: 'The Week',          icon: LayoutDashboard,  adminOnly: false, group: 'main' },
 ];
 
 function DashboardContent() {
@@ -143,7 +143,7 @@ function DashboardContent() {
     if (activeView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
     if (activeView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
     if (activeView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
-    if (activeView === 'DEMO_DASH' && isLeader) return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
+    if (activeView === 'DEMO_DASH') return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;

@@ -97,7 +97,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
               <div className="divide-y">{users?.map(u => (
                 <div key={u.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{u.name.charAt(0)}</div>
+                    <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
                     <div>
                       <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-[9px] uppercase ml-2">{u.role}</Badge></div>
                       <div className="text-[10px] text-muted-foreground font-black uppercase mt-1"><Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} • Target: ${(Number(u.target) || 0).toLocaleString()}</div>

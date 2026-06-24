@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, setDoc, serverTimestamp, getDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, doc, setDoc, serverTimestamp, getDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,8 +17,9 @@ import { useAuth } from '@/contexts/auth-context';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
-  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target
+  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3
 } from 'lucide-react';
+import { TwiwEditDialog } from './twiw-edit-dialog';
 
 interface TWIWViewProps {
   userId: string;
@@ -34,7 +35,7 @@ interface WinItem {
   salespersonName: string;
 }
 
-const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier'];
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
 
 interface RiskItem {
   id: string;
@@ -72,6 +73,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [editingSubmission, setEditingSubmission] = useState<any>(null);
 
   // Sourced Team Profiles (for Collation)
   const usersQuery = useMemoFirebase(() => {
@@ -396,6 +398,23 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   }, [allSubmissions, selectedWeek]);
 
   const [isExporting, setIsExporting] = useState(false);
+
+  const handleDeleteSubmission = async (id: string) => {
+    if (!db || !isLeader) return;
+    if (confirm("Are you sure you want to delete this submission?")) {
+      try {
+        await deleteDoc(doc(db, 'twiwSubmissions', id));
+        toast({ title: "Submission Deleted" });
+      } catch (err) {
+        toast({ variant: "destructive", title: "Failed to delete submission" });
+      }
+    }
+  };
+
+  const handleEditSubmission = (sub: any) => {
+    setEditingSubmission(sub);
+  };
+
   const handleExportPdf = () => {
     setIsExporting(true);
     const printContents = document.getElementById('twtw-print-area')?.innerHTML;
@@ -589,12 +608,16 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           </div>
                         </td>
                         <td className="py-2 pr-2">
-                          <Input 
-                            value={w.updateText} 
-                            onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
-                            placeholder="e.g. Signed contract win" 
-                            className="h-8 text-xs"
-                          />
+                          <div className="relative">
+                            <Input 
+                              value={w.updateText || ''} 
+                              onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
+                              placeholder="e.g. Signed contract win" 
+                              className="h-8 text-xs"
+                              maxLength={200}
+                            />
+                            <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(w.updateText || '').length}/200</div>
+                          </div>
                         </td>
                         <td className="py-2 pr-2">
                           <Input 
@@ -668,14 +691,16 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           className="h-8 text-xs font-black text-emerald-600 bg-white"
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 relative">
                         <label className="text-[9px] font-black uppercase text-slate-400">Update</label>
                         <Input 
-                          value={w.updateText} 
+                          value={w.updateText || ''} 
                           onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
                           placeholder="Update text" 
                           className="h-8 text-xs bg-white"
+                          maxLength={200}
                         />
+                        <div className="text-right text-[8px] text-slate-400 font-bold mt-0.5">{(w.updateText || '').length}/200</div>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
@@ -1126,7 +1151,22 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     </div>
                   );
                 })}
-                {teamUsers.length === 0 && (
+                {allSubmissions?.filter(s => !teamUsers.some(u => u.id === s.userId)).map(sub => (
+                  <div key={sub.id} className="flex justify-between items-center py-3">
+                    <div>
+                      <p className="text-xs font-black text-slate-800">{sub.userName || 'Guest'}</p>
+                      <p className="text-[9px] text-muted-foreground font-bold uppercase mt-0.5">{sub.email || 'No email'}</p>
+                    </div>
+                    <Badge className={cn(
+                      "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
+                      sub.status === 'SUBMITTED' ? "bg-green-100 text-green-700" :
+                      sub.status === 'DRAFT' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"
+                    )}>
+                      {sub.status === 'SUBMITTED' ? 'Submitted' : sub.status === 'DRAFT' ? 'Draft' : 'Pending'}
+                    </Badge>
+                  </div>
+                ))}
+                {teamUsers.length === 0 && (!allSubmissions || allSubmissions.length === 0) && (
                   <div className="text-center py-8 text-xs font-bold text-slate-400 uppercase">
                     No active BDM/AM accounts found.
                   </div>
@@ -1175,23 +1215,18 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                         <table className="w-full text-xs text-left">
                           <thead className="bg-slate-50 border-b border-slate-200">
                             <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
-                              <th className="p-3 w-[15%]">Email/Name</th>
-                              <th className="p-3 w-[17%]">Key Wins</th>
-                              <th className="p-3 w-[17%]">Churn Risk</th>
-                              <th className="p-3 w-[17%]">Major Updates</th>
-                              <th className="p-3 w-[17%]">30 Day Projected</th>
-                              <th className="p-3 w-[17%]">Priorities</th>
+                              <th className="p-3 w-[20%]">Key Wins</th>
+                              <th className="p-3 w-[20%]">Churn Risk</th>
+                              <th className="p-3 w-[20%]">Major Updates</th>
+                              <th className="p-3 w-[20%]">30 Day Projected</th>
+                              <th className="p-3 w-[20%]">Priorities</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 bg-white">
                             {subs.map((sub, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50/50 align-top transition-colors">
-                                <td className="p-3 font-bold text-slate-800 break-words">{sub.email || sub.userName}</td>
+                              <tr key={idx} className="hover:bg-slate-50/50 align-top transition-colors relative group">
                                 <td className="p-3 text-slate-600 whitespace-pre-line">
-                                  {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)}
-  BU: ${(w.businessUnits || []).join(', ') || 'N/A'}
-  Rep: ${w.salespersonName || 'N/A'}
-  Update: ${w.updateText || '-'}`).join('\n\n') || '-'}
+                                  {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)} - ${w.salespersonName || 'N/A'}\nBU's: ${(w.businessUnits || []).join(', ') || 'N/A'}\nUpdate: ${w.updateText || '-'}`).join('\n\n') || '-'}
                                 </td>
                                 <td className="p-3 text-slate-600 whitespace-pre-line text-rose-600/90">
                                   {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
@@ -1204,6 +1239,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                                 </td>
                                 <td className="p-3 text-slate-600 whitespace-pre-line">
                                   {(sub.priorities || []).map((p: string) => `• ${p}`).join('\n') || '-'}
+                                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
+                                    <Button size="icon" variant="secondary" className="w-6 h-6 shadow-sm border border-slate-200 bg-white hover:bg-slate-50 text-slate-600" onClick={() => handleEditSubmission(sub)}><Edit3 className="w-3 h-3" /></Button>
+                                    <Button size="icon" variant="destructive" className="w-6 h-6 shadow-sm opacity-90" onClick={() => handleDeleteSubmission(sub.id)}><Trash2 className="w-3 h-3" /></Button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
@@ -1226,20 +1265,18 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                       <table>
                         <thead>
                           <tr>
-                            <th style={{width: '15%'}}>Email/Name</th>
-                            <th style={{width: '17%'}}>Key Wins</th>
-                            <th style={{width: '17%'}}>Churn Risk</th>
-                            <th style={{width: '17%'}}>Major Updates</th>
-                            <th style={{width: '17%'}}>30 Day Projected</th>
-                            <th style={{width: '17%'}}>Priorities</th>
+                            <th style={{width: '20%'}}>Key Wins</th>
+                            <th style={{width: '20%'}}>Churn Risk</th>
+                            <th style={{width: '20%'}}>Major Updates</th>
+                            <th style={{width: '20%'}}>30 Day Projected</th>
+                            <th style={{width: '20%'}}>Priorities</th>
                           </tr>
                         </thead>
                         <tbody>
                           {subs.map((sub, idx) => (
                             <tr key={idx} className="avoid-break">
-                              <td style={{fontWeight: 'bold'}}>{sub.email || sub.userName}</td>
                               <td className="whitespace-pre-line">
-                                {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)}<br>&nbsp;&nbsp;BU: ${(w.businessUnits || []).join(', ') || 'N/A'}<br>&nbsp;&nbsp;Rep: ${w.salespersonName || 'N/A'}<br>&nbsp;&nbsp;Update: ${w.updateText || '-'}`).join('<br><br>') || '-'}
+                                {(sub.wins || []).map((w: any) => `• ${w.customer} - ${formatEAV(w.value)} - ${w.salespersonName || 'N/A'}\nBU's: ${(w.businessUnits || []).join(', ') || 'N/A'}\nUpdate: ${w.updateText || '-'}`).join('\n\n') || '-'}
                               </td>
                               <td className="whitespace-pre-line">
                                 {(sub.risks || []).map((r: any) => `• ${r.account} - ${formatEAV(r.value)}\n  Mitigation: ${r.mitigation}`).join('\n\n') || '-'}
@@ -1264,6 +1301,13 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
             </CardContent>
           </Card>
         </div>
+        {editingSubmission && (
+          <TwiwEditDialog 
+            submission={editingSubmission} 
+            open={!!editingSubmission} 
+            onOpenChange={(open) => !open && setEditingSubmission(null)} 
+          />
+        )}
       </div>
     );
   }
