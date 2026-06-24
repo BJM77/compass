@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -80,6 +81,7 @@ const ACTION_TYPES = [
 ];
 
 export function DemoDashView() {
+  const { isLeader } = useAuth();
   const { toast } = useToast();
 
   // --- Simulation Controls State ---
@@ -577,9 +579,11 @@ export function DemoDashView() {
           <TabsTrigger value="simulator" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
             <Beaker className="w-3.5 h-3.5 text-indigo-600" /> BDM Simulator
           </TabsTrigger>
-          <TabsTrigger value="collation" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
-            <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" /> Executive Collation (TWTW PDF)
-          </TabsTrigger>
+          {isLeader && (
+            <TabsTrigger value="collation" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
+              <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" /> Executive Collation (TWTW PDF)
+            </TabsTrigger>
+          )}
           <TabsTrigger value="guide" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
             <Info className="w-3.5 h-3.5 text-amber-500" /> Architectural Design
           </TabsTrigger>
@@ -1326,6 +1330,7 @@ export function DemoDashView() {
         </TabsContent>
 
         {/* --- TAB 3: EXECUTIVE COLLATION TAB --- */}
+        {isLeader && (
         <TabsContent value="collation" className="mt-0">
           <Card className="border shadow-md bg-white">
             <CardHeader className="bg-slate-50/50 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between py-5 gap-4">
@@ -1420,6 +1425,7 @@ export function DemoDashView() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
       </Tabs>
 
       {/* --- SUCCESS DIALOGS --- */}
