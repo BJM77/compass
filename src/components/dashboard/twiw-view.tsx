@@ -1082,7 +1082,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     tempDiv.style.position = 'absolute';
     tempDiv.style.left = '-99999px';
     tempDiv.style.top = '0';
-    tempDiv.style.width = '1134px'; // 30cm at 96 dpi
+    tempDiv.style.width = '1323px'; // 35cm at 96 dpi
     tempDiv.style.backgroundColor = '#ffffff';
 
     const stateOrder = ['QLD', 'SA', 'WA', 'SME'];
@@ -1411,12 +1411,12 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        width: 1134,
-        windowWidth: 1134
+        width: 1323,
+        windowWidth: 1323
       });
 
       const imgData = canvas.toDataURL('image/jpeg', 0.90);
-      const imgWidthPt = 850.39;
+      const imgWidthPt = 992.12;
       const imgHeightPt = (canvas.height * imgWidthPt) / canvas.width;
 
       const pdf = new jsPDF({
