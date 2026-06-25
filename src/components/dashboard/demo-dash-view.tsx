@@ -6,6 +6,8 @@ import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase
 import { collection, doc, setDoc, serverTimestamp, query, where, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { FridayPerformanceReview } from './friday-performance-review';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import { getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { format } from 'date-fns';
@@ -1063,6 +1065,393 @@ export function DemoDashView() {
         </body>
       </html>
     `);
+  };
+
+  const handleExportOversizedPdf = async () => {
+    toast({ title: "Generating PDF...", description: "Building high-resolution single-sheet PDF. Please wait." });
+
+    // Retrieve starred items for Key Standouts page
+    const getStarredItems = (arrayField: string) => {
+      const items: any[] = [];
+      Object.entries(submissionsByState).forEach(([state, subs]) => {
+        subs.forEach(sub => {
+          const arr = sub[arrayField as keyof typeof sub] as any[];
+          if (arr) {
+            arr.filter((i: any) => i.isStarred && !i.isHidden).forEach((i: any) => 
+              items.push({ ...i, subId: sub.id, state, salespersonName: sub.userName || 'N/A' })
+            );
+          }
+        });
+      });
+      return items;
+    };
+
+    const starredWins = getStarredItems('wins');
+    const starredRisks = getStarredItems('risks');
+    const starredUpdates = getStarredItems('majorUpdates');
+    const starredProjected = getStarredItems('projectedWins');
+    const starredPriorities = getStarredItems('priorities');
+
+    const hasStandouts = starredWins.length > 0 || starredRisks.length > 0 || starredUpdates.length > 0 || starredProjected.length > 0 || starredPriorities.length > 0;
+
+    // Create offscreen container
+    const tempDiv = document.createElement('div');
+    tempDiv.id = 'temp-oversized-print';
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-99999px';
+    tempDiv.style.top = '0';
+    tempDiv.style.width = '1134px'; // 30cm at 96 dpi
+    tempDiv.style.backgroundColor = '#ffffff';
+
+    const stateOrder = ['QLD', 'SA', 'WA', 'SME'];
+    const sortedEntries = Object.entries(submissionsByState).sort((a, b) => {
+      const idxA = stateOrder.indexOf(a[0]);
+      const idxB = stateOrder.indexOf(b[0]);
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+
+    const regionsHtml = sortedEntries.map(([state, subs]) => {
+      const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStateUpdates = subs.flatMap(sub => {
+        const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.salespersonName || sub.userName || 'N/A' }] : [];
+        const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
+        return [...legacy, ...updates];
+      });
+      const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
+
+      return `
+        <div class="page-container">
+          <div class="region-header">
+            <h2>${state} Region <span class="badge">${subs.length} Reps</span></h2>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 20%">Key Wins</th>
+                <th style="width: 20%">Churn Risk</th>
+                <th style="width: 20%">Major Updates</th>
+                <th style="width: 20%">30 Day Projected</th>
+                <th style="width: 20%">Priorities</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  ${allStateWins.map(w => `
+                    <div class="item-block">
+                      <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
+                      <div class="item-salesperson">${w.rep}</div>
+                      ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
+                      ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${allStateRisks.map(r => `
+                    <div class="item-block">
+                      <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
+                      <div class="item-salesperson">${r.rep}</div>
+                      <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${allStateUpdates.map(m => m.isLegacy ? `
+                    <div class="legacy-update">${m.text}</div>
+                  ` : `
+                    <div class="item-block">
+                      <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
+                      <div class="item-salesperson">${m.rep}</div>
+                      ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
+                      ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${allStateProjected.map(p => `
+                    <div class="item-block">
+                      <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
+                      <div class="item-salesperson">${p.rep}</div>
+                      ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
+                      ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${allStatePriorities.map(pr => `
+                    <div class="item-block">
+                      <div class="item-desc">${pr.text}</div>
+                      <div class="item-salesperson">${pr.rep}</div>
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }).join('');
+
+    tempDiv.innerHTML = `
+      <style>
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+          color: #1e293b;
+          margin: 0;
+          padding: 20px;
+          font-size: 10px;
+          background-color: #ffffff;
+        }
+        .report-header {
+          text-align: center;
+          background-color: #0f172a;
+          color: white;
+          padding: 15px;
+          margin-bottom: 20px;
+          border-radius: 12px;
+        }
+        .report-header h1 {
+          margin: 0;
+          font-size: 18px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          font-weight: 900;
+        }
+        .report-header p {
+          margin: 4px 0 0 0;
+          font-size: 9px;
+          color: #94a3b8;
+          font-weight: bold;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+        }
+        .standouts-header {
+          border-bottom: 3px solid #f59e0b;
+          padding-bottom: 6px;
+          margin-bottom: 15px;
+        }
+        .standouts-title {
+          font-size: 16px;
+          font-weight: 900;
+          color: #0f172a;
+          text-transform: uppercase;
+          letter-spacing: -0.5px;
+        }
+        .standouts-subtitle {
+          font-size: 9px;
+          font-weight: bold;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .card-badge {
+          display: inline-block;
+          font-size: 6px;
+          font-weight: 900;
+          padding: 1px 3px;
+          border-radius: 2px;
+          background-color: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          text-transform: uppercase;
+          margin-bottom: 3px;
+          color: #475569;
+        }
+        .region-header h2 {
+          font-size: 14px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: -0.5px;
+          color: #0f172a;
+          border-bottom: 3px solid #3b82f6;
+          padding-bottom: 4px;
+          margin-top: 20px;
+          margin-bottom: 10px;
+        }
+        .region-header h2 .badge {
+          font-size: 8px;
+          font-weight: 900;
+          background-color: #f1f5f9;
+          border: 1px solid #cbd5e1;
+          color: #475569;
+          padding: 1px 4px;
+          border-radius: 4px;
+          margin-left: 6px;
+          vertical-align: middle;
+        }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+        th, td { border: 1px solid #cbd5e1; padding: 6px; text-align: left; vertical-align: top; }
+        th { background-color: #1e293b; font-weight: 900; text-transform: uppercase; color: white; font-size: 8px; letter-spacing: 0.5px; }
+        td { line-height: 1.35; word-break: break-word; }
+        .item-block {
+          border-bottom: 1px solid #e2e8f0;
+          padding-bottom: 6px;
+          margin-bottom: 6px;
+          font-size: 8.5px;
+        }
+        .item-block:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
+          margin-bottom: 0;
+        }
+        .item-customer {
+          font-weight: bold;
+          color: #0f172a;
+        }
+        .win-text { color: #166534; }
+        .risk-text { color: #9f1239; }
+        .update-text { color: #1e40af; }
+        .projected-text { color: #6b21a8; }
+        .item-salesperson {
+          font-size: 7.5px;
+          color: #64748b;
+          font-weight: bold;
+          margin-top: 1.5px;
+        }
+        .item-bu {
+          font-size: 7.5px;
+          color: #94a3b8;
+          margin-top: 1.5px;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+        .item-desc {
+          margin-top: 3px;
+          color: #334155;
+        }
+        .legacy-update {
+          background-color: #fffbeb;
+          border: 1px solid #fef3c7;
+          padding: 5px;
+          border-radius: 5px;
+          font-size: 8.5px;
+          color: #92400e;
+          margin-bottom: 6px;
+          white-space: pre-wrap;
+        }
+        .empty-text {
+          color: #94a3b8;
+          font-style: italic;
+          text-align: center;
+          font-size: 10px;
+          padding: 4px 0;
+        }
+      </style>
+      <div class="report-header">
+        <h1>The Week That Was (TWTW) - Week ${selectedWeek.split('-')[1]}</h1>
+        <p>Consolidated Executive Weekly Briefing (Oversized Single Sheet)</p>
+      </div>
+
+      <!-- STANDOUTS -->
+      ${hasStandouts ? `
+      <div class="page-container">
+        <div class="standouts-header">
+          <div class="standouts-title">Key Standouts &amp; Highlights</div>
+          <div class="standouts-subtitle">Curated items from the week's submissions</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%">Key Wins (${starredWins.length})</th>
+              <th style="width: 20%">Churn Risk (${starredRisks.length})</th>
+              <th style="width: 20%">Major Updates (${starredUpdates.length})</th>
+              <th style="width: 20%">30 Day Projected (${starredProjected.length})</th>
+              <th style="width: 20%">Priorities (${starredPriorities.length})</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                ${starredWins.map(w => `
+                  <div class="item-block">
+                    <span class="card-badge">${w.state}</span>
+                    <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
+                    <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
+                    ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="empty-text">-</div>'}
+              </td>
+              <td>
+                ${starredRisks.map(r => `
+                  <div class="item-block">
+                    <span class="card-badge">${r.state}</span>
+                    <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
+                    <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
+                    ${r.updateText ? `<div class="item-desc">${r.updateText}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="empty-text">-</div>'}
+              </td>
+              <td>
+                ${starredUpdates.map(m => `
+                  <div class="item-block">
+                    <span class="card-badge">${m.state}</span>
+                    <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
+                    <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
+                    ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="empty-text">-</div>'}
+              </td>
+              <td>
+                ${starredProjected.map(p => `
+                  <div class="item-block">
+                    <span class="card-badge">${p.state}</span>
+                    <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
+                    <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
+                    ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="empty-text">-</div>'}
+              </td>
+              <td>
+                ${starredPriorities.map(pr => `
+                  <div class="item-block">
+                    <span class="card-badge">${pr.state}</span>
+                    <div class="item-desc">${pr.text}</div>
+                    <div class="item-salesperson">${pr.salespersonName || 'N/A'}</div>
+                  </div>
+                `).join('') || '<div class="empty-text">-</div>'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      ` : ''}
+
+      <!-- REGIONS -->
+      ${regionsHtml}
+    `;
+
+    document.body.appendChild(tempDiv);
+
+    try {
+      const canvas = await html2canvas(tempDiv, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: 1134,
+        windowWidth: 1134
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.90);
+      const imgWidthPt = 850.39;
+      const imgHeightPt = (canvas.height * imgWidthPt) / canvas.width;
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: [imgWidthPt, imgHeightPt]
+      });
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidthPt, imgHeightPt);
+      pdf.save(`TWTW_Oversized_Week_${selectedWeek.split('-')[1]}.pdf`);
+      toast({ title: "PDF Export Complete", description: "The oversized single-sheet PDF has been downloaded." });
+    } catch (err) {
+      console.error(err);
+      toast({ variant: "destructive", title: "PDF Export Failed", description: "Could not generate oversized PDF." });
+    } finally {
+      document.body.removeChild(tempDiv);
+    }
   };
 
   const handleExportCondensedPdf = () => {
@@ -2420,6 +2809,12 @@ export function DemoDashView() {
                   className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
                   <ClipboardCheck className="w-4 h-4" /> Export to Landscape PDF
+                </Button>
+                <Button 
+                  onClick={handleExportOversizedPdf}
+                  className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                >
+                  <FileText className="w-4 h-4" /> Exprt PDF
                 </Button>
                 <Button 
                   onClick={handleExportCondensedPdf}
