@@ -663,49 +663,29 @@ export function DemoDashView() {
     // Get the current week for the title
     const weekLabel = selectedWeek.split('-')[1];
 
-    // Generate Key Standouts HTML dynamically
-    let standoutsHtml = '';
-    const standoutsList: any[] = [];
-    Object.entries(submissionsByState).forEach(([state, subs]) => {
-      subs.forEach(sub => {
-        const rep = sub.userName || sub.userId || 'N/A';
-        (sub.wins || []).forEach((w: any) => { if (w.isStarred && !w.isHidden) standoutsList.push({ state, rep, type: 'Win', ...w }); });
-        (sub.risks || []).forEach((r: any) => { if (r.isStarred && !r.isHidden) standoutsList.push({ state, rep, type: 'Risk', ...r }); });
-        (sub.majorUpdates || []).forEach((m: any) => { if (m.isStarred && !m.isHidden) standoutsList.push({ state, rep, type: 'Update', ...m }); });
-        (sub.projectedWins || []).forEach((p: any) => { if (p.isStarred && !p.isHidden) standoutsList.push({ state, rep, type: 'Projected', ...p }); });
-        (sub.priorities || []).forEach((p: any) => { if (p.isStarred && !p.isHidden) standoutsList.push({ state, rep, type: 'Priority', ...p }); });
+    // Retrieve starred items for Key Standouts page
+    const getStarredItems = (arrayField: string) => {
+      const items: any[] = [];
+      Object.entries(submissionsByState).forEach(([state, subs]) => {
+        subs.forEach(sub => {
+          const arr = sub[arrayField as keyof typeof sub] as any[];
+          if (arr) {
+            arr.filter((i: any) => i.isStarred && !i.isHidden).forEach((i: any) => 
+              items.push({ ...i, subId: sub.id, state, salespersonName: sub.userName || 'N/A' })
+            );
+          }
+        });
       });
-    });
+      return items;
+    };
 
-    if (standoutsList.length > 0) {
-      standoutsHtml = `
-        <div class="region-section">
-          <div class="report-header" style="margin-top: 40px; background-color: #d97706;">
-            <h1>Key Standouts</h1>
-            <p style="color: #fef3c7;">Curated Highlights Across All Regions</p>
-          </div>
-          <table>
-             <thead>
-               <tr><th style="width: 15%;">Category</th><th style="width: 25%;">Representative</th><th>Details</th></tr>
-             </thead>
-             <tbody>
-               ${standoutsList.map(item => `
-                 <tr>
-                   <td><strong style="color: #b45309;">${item.type.toUpperCase()}</strong></td>
-                   <td><strong>${item.rep}</strong><br/><span style="color:#64748b; font-size:7px;">${item.state}</span></td>
-                   <td>
-                      <div class="item-customer">${item.customer || item.account || item.text || 'N/A'}</div>
-                      ${item.value ? `<div class="item-value">${formatEAV(item.value)}</div>` : ''}
-                      ${item.updateText ? `<div class="item-desc">${item.updateText}</div>` : ''}
-                      ${item.mitigation ? `<div class="item-desc">Mitigation: ${item.mitigation}</div>` : ''}
-                   </td>
-                 </tr>
-               `).join('')}
-             </tbody>
-          </table>
-        </div>
-      `;
-    }
+    const starredWins = getStarredItems('wins');
+    const starredRisks = getStarredItems('risks');
+    const starredUpdates = getStarredItems('majorUpdates');
+    const starredProjected = getStarredItems('projectedWins');
+    const starredPriorities = getStarredItems('priorities');
+
+    const hasStandouts = starredWins.length > 0 || starredRisks.length > 0 || starredUpdates.length > 0 || starredProjected.length > 0 || starredPriorities.length > 0;
 
     printWindow.document.write(`
       <html>
@@ -751,6 +731,116 @@ export function DemoDashView() {
               text-transform: uppercase;
               letter-spacing: 2px;
             }
+            
+            /* Standouts Grid */
+            .standouts-header {
+              border-bottom: 3px solid #f59e0b;
+              padding-bottom: 6px;
+              margin-bottom: 15px;
+            }
+            .standouts-title {
+              font-size: 16px;
+              font-weight: 900;
+              color: #0f172a;
+              text-transform: uppercase;
+              letter-spacing: -0.5px;
+            }
+            .standouts-subtitle {
+              font-size: 9px;
+              font-weight: bold;
+              color: #64748b;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            }
+            .standouts-grid {
+              display: grid;
+              grid-template-cols: repeat(5, 1fr);
+              gap: 12px;
+            }
+            .standout-column {
+              background-color: #f8fafc;
+              border-radius: 10px;
+              padding: 10px;
+              border: 1px solid #e2e8f0;
+            }
+            .column-title {
+              font-size: 10px;
+              font-weight: 950;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              border-bottom: 2px solid #cbd5e1;
+              padding-bottom: 4px;
+              margin-bottom: 10px;
+              color: #334155;
+              text-align: center;
+            }
+            .standout-card {
+              border-radius: 6px;
+              padding: 6px;
+              margin-bottom: 8px;
+              font-size: 8.5px;
+              border-width: 1px;
+              border-style: solid;
+              position: relative;
+            }
+            .card-badge {
+              display: inline-block;
+              font-size: 6.5px;
+              font-weight: 900;
+              padding: 1px 4px;
+              border-radius: 3px;
+              background-color: white;
+              border: 1px solid #cbd5e1;
+              text-transform: uppercase;
+              margin-bottom: 4px;
+            }
+            .card-customer {
+              font-weight: bold;
+              color: #0f172a;
+              margin-bottom: 2px;
+            }
+            .card-value {
+              font-weight: 800;
+              margin-bottom: 1px;
+            }
+            .card-salesperson {
+              font-size: 7.5px;
+              color: #64748b;
+              font-weight: bold;
+              margin-bottom: 4px;
+            }
+            .card-date {
+              font-size: 7.5px;
+              color: #475569;
+              margin-bottom: 3px;
+            }
+            .card-text {
+              color: #334155;
+              border-top: 1px dashed rgba(0,0,0,0.08);
+              padding-top: 3px;
+              margin-top: 3px;
+              line-height: 1.25;
+            }
+            
+            /* Card Theme Colors */
+            .win-card { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+            .win-card .card-value { color: #15803d; }
+            .risk-card { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+            .risk-card .card-value { color: #be123c; }
+            .update-card { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+            .update-card .card-value { color: #1d4ed8; }
+            .projected-card { background-color: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }
+            .projected-card .card-value { color: #7e22ce; }
+            .priority-card { background-color: #fffbeb; border-color: #fef3c7; color: #92400e; }
+
+            .page-container {
+              page-break-after: always;
+              clear: both;
+            }
+            .page-container:last-child {
+              page-break-after: avoid;
+            }
+
             .region-title {
               font-size: 13px;
               font-weight: 900;
@@ -864,6 +954,86 @@ export function DemoDashView() {
             <p>Week ${weekLabel} • Consolidated Team Performance Report</p>
           </div>
           
+          <!-- PAGE 1: KEY STANDOUTS -->
+          ${hasStandouts ? `
+          <div class="page-container">
+            <div class="standouts-header">
+              <div class="standouts-title">Key Standouts &amp; Highlights</div>
+              <div class="standouts-subtitle">Curated items from the week's submissions</div>
+            </div>
+            <div class="standouts-grid">
+              <!-- Key Wins -->
+              <div class="standout-column">
+                <div class="column-title">Key Wins (${starredWins.length})</div>
+                ${starredWins.map(w => `
+                  <div class="standout-card win-card">
+                    <div class="card-badge">${w.state}</div>
+                    <div class="card-customer">${w.customer}</div>
+                    <div class="card-value">${formatEAV(w.value)}</div>
+                    <div class="card-salesperson">${w.salespersonName || 'N/A'}</div>
+                    ${w.updateText ? `<div class="card-text">${w.updateText}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="empty-text">No standouts</div>'}
+              </div>
+              
+              <!-- Churn Risks -->
+              <div class="standout-column">
+                <div class="column-title">Churn Risks (${starredRisks.length})</div>
+                ${starredRisks.map(r => `
+                  <div class="standout-card risk-card">
+                    <div class="card-badge">${r.state}</div>
+                    <div class="card-customer">${r.account}</div>
+                    <div class="card-value">${formatEAV(r.value)}</div>
+                    <div class="card-salesperson">${r.salespersonName || 'N/A'}</div>
+                    <div class="card-text">Mitigation: ${r.mitigation}</div>
+                  </div>
+                `).join('') || '<div class="empty-text">No standouts</div>'}
+              </div>
+
+              <!-- Major Updates -->
+              <div class="standout-column">
+                <div class="column-title">Major Updates (${starredUpdates.length})</div>
+                ${starredUpdates.map(m => `
+                  <div class="standout-card update-card">
+                    <div class="card-badge">${m.state}</div>
+                    <div class="card-customer">${m.customer}</div>
+                    ${m.value > 0 ? `<div class="card-value">${formatEAV(m.value)}</div>` : ''}
+                    <div class="card-salesperson">${m.salespersonName || 'N/A'}</div>
+                    ${m.updateText ? `<div class="card-text">${m.updateText}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="empty-text">No standouts</div>'}
+              </div>
+
+              <!-- 30d Projected -->
+              <div class="standout-column">
+                <div class="column-title">30d Projected (${starredProjected.length})</div>
+                ${starredProjected.map(p => `
+                  <div class="standout-card projected-card">
+                    <div class="card-badge">${p.state}</div>
+                    <div class="card-customer">${p.account}</div>
+                    <div class="card-value">${formatEAV(p.value)}</div>
+                    <div class="card-salesperson">${p.salespersonName || 'N/A'}</div>
+                    ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
+                    ${p.updateText ? `<div class="card-text">${p.updateText}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="empty-text">No standouts</div>'}
+              </div>
+
+              <!-- Priorities -->
+              <div class="standout-column">
+                <div class="column-title">Priorities (${starredPriorities.length})</div>
+                ${starredPriorities.map(p => `
+                  <div class="standout-card priority-card">
+                    <div class="card-badge">${p.state}</div>
+                    <div class="card-customer">${p.text}</div>
+                    <div class="card-salesperson">${p.salespersonName || 'N/A'}</div>
+                  </div>
+                `).join('') || '<div class="empty-text">No standouts</div>'}
+              </div>
+            </div>
+          </div>
+          ` : ''}
+          
           ${Object.entries(submissionsByState).length === 0 ? `
             <div class="empty-text" style="font-size: 14px; margin-top: 50px;">No submissions available to collate yet.</div>
           ` : Object.entries(submissionsByState).map(([state, subs]) => {
@@ -954,7 +1124,6 @@ export function DemoDashView() {
             `;
           }).join('')}
 
-          ${standoutsHtml}
           <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 7px; color: #94a3b8;">
             Generated on ${new Date().toLocaleString()} • Confidential Management Report
           </div>
