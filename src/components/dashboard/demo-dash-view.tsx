@@ -752,87 +752,7 @@ export function DemoDashView() {
               text-transform: uppercase;
               letter-spacing: 1px;
             }
-            .standouts-grid {
-              display: grid;
-              grid-template-cols: repeat(5, 1fr);
-              gap: 12px;
-            }
-            .standout-column {
-              background-color: #f8fafc;
-              border-radius: 10px;
-              padding: 10px;
-              border: 1px solid #e2e8f0;
-            }
-            .column-title {
-              font-size: 10px;
-              font-weight: 950;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-              border-bottom: 2px solid #cbd5e1;
-              padding-bottom: 4px;
-              margin-bottom: 10px;
-              color: #334155;
-              text-align: center;
-            }
-            .standout-card {
-              border-radius: 6px;
-              padding: 6px;
-              margin-bottom: 8px;
-              font-size: 8.5px;
-              border-width: 1px;
-              border-style: solid;
-              position: relative;
-            }
-            .card-badge {
-              display: inline-block;
-              font-size: 6.5px;
-              font-weight: 900;
-              padding: 1px 4px;
-              border-radius: 3px;
-              background-color: white;
-              border: 1px solid #cbd5e1;
-              text-transform: uppercase;
-              margin-bottom: 4px;
-            }
-            .card-customer {
-              font-weight: bold;
-              color: #0f172a;
-              margin-bottom: 2px;
-            }
-            .card-value {
-              font-weight: 800;
-              margin-bottom: 1px;
-            }
-            .card-salesperson {
-              font-size: 7.5px;
-              color: #64748b;
-              font-weight: bold;
-              margin-bottom: 4px;
-            }
-            .card-date {
-              font-size: 7.5px;
-              color: #475569;
-              margin-bottom: 3px;
-            }
-            .card-text {
-              color: #334155;
-              border-top: 1px dashed rgba(0,0,0,0.08);
-              padding-top: 3px;
-              margin-top: 3px;
-              line-height: 1.25;
-            }
             
-            /* Card Theme Colors */
-            .win-card { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-            .win-card .card-value { color: #15803d; }
-            .risk-card { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
-            .risk-card .card-value { color: #be123c; }
-            .update-card { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
-            .update-card .card-value { color: #1d4ed8; }
-            .projected-card { background-color: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }
-            .projected-card .card-value { color: #7e22ce; }
-            .priority-card { background-color: #fffbeb; border-color: #fef3c7; color: #92400e; }
-
             .page-container {
               page-break-after: always;
               clear: both;
@@ -850,6 +770,8 @@ export function DemoDashView() {
               margin-top: 20px;
               margin-bottom: 8px;
               color: #0f172a;
+              page-break-after: avoid;
+              break-after: avoid;
             }
             .region-title .badge {
               font-size: 8px;
@@ -945,7 +867,10 @@ export function DemoDashView() {
               white-space: pre-wrap;
             }
             .avoid-break { page-break-inside: avoid; }
-            .region-section + .region-section { page-break-before: always; }
+            .page-container {
+              page-break-before: always;
+              clear: both;
+            }
           </style>
         </head>
         <body>
@@ -956,173 +881,182 @@ export function DemoDashView() {
           
           <!-- PAGE 1: KEY STANDOUTS -->
           ${hasStandouts ? `
-          <div class="page-container">
+          <div class="page-container" style="page-break-before: avoid;">
             <div class="standouts-header">
               <div class="standouts-title">Key Standouts &amp; Highlights</div>
               <div class="standouts-subtitle">Curated items from the week's submissions</div>
             </div>
-            <div class="standouts-grid">
-              <!-- Key Wins -->
-              <div class="standout-column">
-                <div class="column-title">Key Wins (${starredWins.length})</div>
-                ${starredWins.map(w => `
-                  <div class="standout-card win-card">
-                    <div class="card-badge">${w.state}</div>
-                    <div class="card-customer">${w.customer}</div>
-                    <div class="card-value">${formatEAV(w.value)}</div>
-                    <div class="card-salesperson">${w.salespersonName || 'N/A'}</div>
-                    ${w.updateText ? `<div class="card-text">${w.updateText}</div>` : ''}
-                  </div>
-                `).join('') || '<div class="empty-text">No standouts</div>'}
-              </div>
-              
-              <!-- Churn Risks -->
-              <div class="standout-column">
-                <div class="column-title">Churn Risks (${starredRisks.length})</div>
-                ${starredRisks.map(r => `
-                  <div class="standout-card risk-card">
-                    <div class="card-badge">${r.state}</div>
-                    <div class="card-customer">${r.account}</div>
-                    <div class="card-value">${formatEAV(r.value)}</div>
-                    <div class="card-salesperson">${r.salespersonName || 'N/A'}</div>
-                    <div class="card-text">Mitigation: ${r.mitigation}</div>
-                  </div>
-                `).join('') || '<div class="empty-text">No standouts</div>'}
-              </div>
-
-              <!-- Major Updates -->
-              <div class="standout-column">
-                <div class="column-title">Major Updates (${starredUpdates.length})</div>
-                ${starredUpdates.map(m => `
-                  <div class="standout-card update-card">
-                    <div class="card-badge">${m.state}</div>
-                    <div class="card-customer">${m.customer}</div>
-                    ${m.value > 0 ? `<div class="card-value">${formatEAV(m.value)}</div>` : ''}
-                    <div class="card-salesperson">${m.salespersonName || 'N/A'}</div>
-                    ${m.updateText ? `<div class="card-text">${m.updateText}</div>` : ''}
-                  </div>
-                `).join('') || '<div class="empty-text">No standouts</div>'}
-              </div>
-
-              <!-- 30d Projected -->
-              <div class="standout-column">
-                <div class="column-title">30d Projected (${starredProjected.length})</div>
-                ${starredProjected.map(p => `
-                  <div class="standout-card projected-card">
-                    <div class="card-badge">${p.state}</div>
-                    <div class="card-customer">${p.account}</div>
-                    <div class="card-value">${formatEAV(p.value)}</div>
-                    <div class="card-salesperson">${p.salespersonName || 'N/A'}</div>
-                    ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
-                    ${p.updateText ? `<div class="card-text">${p.updateText}</div>` : ''}
-                  </div>
-                `).join('') || '<div class="empty-text">No standouts</div>'}
-              </div>
-
-              <!-- Priorities -->
-              <div class="standout-column">
-                <div class="column-title">Priorities (${starredPriorities.length})</div>
-                ${starredPriorities.map(p => `
-                  <div class="standout-card priority-card">
-                    <div class="card-badge">${p.state}</div>
-                    <div class="card-customer">${p.text}</div>
-                    <div class="card-salesperson">${p.salespersonName || 'N/A'}</div>
-                  </div>
-                `).join('') || '<div class="empty-text">No standouts</div>'}
-              </div>
-            </div>
+            
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 20%">Key Wins (${starredWins.length})</th>
+                  <th style="width: 20%">Churn Risk (${starredRisks.length})</th>
+                  <th style="width: 20%">Major Updates (${starredUpdates.length})</th>
+                  <th style="width: 20%">30 Day Projected (${starredProjected.length})</th>
+                  <th style="width: 20%">Priorities (${starredPriorities.length})</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="avoid-break">
+                  <td>
+                    ${starredWins.map(w => `
+                      <div class="item-block">
+                        <span class="card-badge">${w.state}</span>
+                        <div class="item-customer">${w.customer}</div>
+                        <div class="item-value win-text">${formatEAV(w.value)}</div>
+                        <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
+                        ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                      </div>
+                    `).join('') || '<div class="empty-text">-</div>'}
+                  </td>
+                  <td>
+                    ${starredRisks.map(r => `
+                      <div class="item-block">
+                        <span class="card-badge">${r.state}</span>
+                        <div class="item-customer">${r.account}</div>
+                        <div class="item-value risk-text">${formatEAV(r.value)}</div>
+                        <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
+                        <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                      </div>
+                    `).join('') || '<div class="empty-text">-</div>'}
+                  </td>
+                  <td>
+                    ${starredUpdates.map(m => `
+                      <div class="item-block">
+                        <span class="card-badge">${m.state}</span>
+                        <div class="item-customer">${m.customer}</div>
+                        ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
+                        <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
+                        ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                      </div>
+                    `).join('') || '<div class="empty-text">-</div>'}
+                  </td>
+                  <td>
+                    ${starredProjected.map(p => `
+                      <div class="item-block">
+                        <span class="card-badge">${p.state}</span>
+                        <div class="item-customer">${p.account}</div>
+                        <div class="item-value projected-text">${formatEAV(p.value)}</div>
+                        <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
+                        ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
+                        ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                      </div>
+                    `).join('') || '<div class="empty-text">-</div>'}
+                  </td>
+                  <td>
+                    ${starredPriorities.map(pr => `
+                      <div class="item-block">
+                        <span class="card-badge">${pr.state}</span>
+                        <div class="item-desc">${pr.text}</div>
+                        <div class="item-salesperson">${pr.salespersonName || 'N/A'}</div>
+                      </div>
+                    `).join('') || '<div class="empty-text">-</div>'}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
           ` : ''}
           
+          <!-- SUBSEQUENT PAGES: COLLATION BY REGION -->
           ${Object.entries(submissionsByState).length === 0 ? `
             <div class="empty-text" style="font-size: 14px; margin-top: 50px;">No submissions available to collate yet.</div>
-          ` : Object.entries(submissionsByState).map(([state, subs]) => {
-            const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden).map((w: any) => ({ ...w, rep: sub.userName || 'N/A' })));
-            const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden).map((r: any) => ({ ...r, rep: sub.userName || 'N/A' })));
-            const allStateUpdates = subs.flatMap(sub => {
-              const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.userName || 'N/A' }] : [];
-              const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden).map((m: any) => ({ ...m, rep: sub.userName || 'N/A' }));
-              return [...legacy, ...updates];
+          ` : (() => {
+            const stateOrder = ['QLD', 'SA', 'WA', 'SME'];
+            const sortedEntries = Object.entries(submissionsByState).sort((a, b) => {
+              const idxA = stateOrder.indexOf(a[0]);
+              const idxB = stateOrder.indexOf(b[0]);
+              return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
             });
-            const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden).map((p: any) => ({ ...p, rep: sub.userName || 'N/A' })));
-            const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden).map((pr: any) => ({ ...pr, rep: sub.userName || 'N/A' })));
+            return sortedEntries.map(([state, subs], idx) => {
+              const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden).map((w: any) => ({ ...w, rep: sub.userName || 'N/A' })));
+              const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden).map((r: any) => ({ ...r, rep: sub.userName || 'N/A' })));
+              const allStateUpdates = subs.flatMap(sub => {
+                const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.userName || 'N/A' }] : [];
+                const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden).map((m: any) => ({ ...m, rep: sub.userName || 'N/A' }));
+                return [...legacy, ...updates];
+              });
+              const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden).map((p: any) => ({ ...p, rep: sub.userName || 'N/A' })));
+              const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden).map((pr: any) => ({ ...pr, rep: sub.userName || 'N/A' })));
 
-            return `
-            <div class="region-section">
-              <div class="region-title">
-                ${state} Region <span class="badge">${subs.length} Reps</span>
+              return `
+              <div class="page-container" style="${idx === 0 && !hasStandouts ? 'page-break-before: avoid;' : ''}">
+                <div class="region-title">
+                  ${state} Region <span class="badge">${subs.length} Reps</span>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width: 20%">Key Wins</th>
+                      <th style="width: 20%">Churn Risk</th>
+                      <th style="width: 20%">Major Updates</th>
+                      <th style="width: 20%">30 Day Projected</th>
+                      <th style="width: 20%">Priorities</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="avoid-break">
+                      <td>
+                        ${allStateWins.map(w => `
+                          <div class="item-block">
+                            <div class="item-customer">${w.customer}</div>
+                            <div class="item-value win-text">${formatEAV(w.value)}</div>
+                            <div class="item-salesperson">${w.rep}</div>
+                            ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
+                            ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                          </div>
+                        `).join('') || '<div class="empty-text">-</div>'}
+                      </td>
+                      <td>
+                        ${allStateRisks.map(r => `
+                          <div class="item-block">
+                            <div class="item-customer">${r.account}</div>
+                            <div class="item-value risk-text">${formatEAV(r.value)}</div>
+                            <div class="item-salesperson">${r.rep}</div>
+                            <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                          </div>
+                        `).join('') || '<div class="empty-text">-</div>'}
+                      </td>
+                      <td>
+                        ${allStateUpdates.map(m => m.isLegacy ? `
+                          <div class="legacy-update">${m.text}</div>
+                        ` : `
+                          <div class="item-block">
+                            <div class="item-customer">${m.customer}</div>
+                            ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
+                            <div class="item-salesperson">${m.rep}</div>
+                            ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
+                            ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                          </div>
+                        `).join('') || '<div class="empty-text">-</div>'}
+                      </td>
+                      <td>
+                        ${allStateProjected.map(p => `
+                          <div class="item-block">
+                            <div class="item-customer">${p.account}</div>
+                            <div class="item-value projected-text">${formatEAV(p.value)}</div>
+                            <div class="item-salesperson">${p.rep}</div>
+                            ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
+                            ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                          </div>
+                        `).join('') || '<div class="empty-text">-</div>'}
+                      </td>
+                      <td>
+                        ${allStatePriorities.map(pr => `
+                          <div class="item-block">
+                            <div class="item-desc">${pr.text}</div>
+                            <div class="item-salesperson">${pr.rep}</div>
+                          </div>
+                        `).join('') || '<div class="empty-text">-</div>'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width: 20%">Key Wins</th>
-                    <th style="width: 20%">Churn Risk</th>
-                    <th style="width: 20%">Major Updates</th>
-                    <th style="width: 20%">30 Day Projected</th>
-                    <th style="width: 20%">Priorities</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="avoid-break">
-                    <td>
-                      ${allStateWins.map(w => `
-                        <div class="item-block">
-                          <div class="item-customer">${w.customer}</div>
-                          <div class="item-value win-text">${formatEAV(w.value)}</div>
-                          <div class="item-salesperson">${w.rep}</div>
-                          ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
-                          ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
-                        </div>
-                      `).join('') || '<div class="empty-text">-</div>'}
-                    </td>
-                    <td>
-                      ${allStateRisks.map(r => `
-                        <div class="item-block">
-                          <div class="item-customer">${r.account}</div>
-                          <div class="item-value risk-text">${formatEAV(r.value)}</div>
-                          <div class="item-salesperson">${r.rep}</div>
-                          <div class="item-desc">Mitigation: ${r.mitigation}</div>
-                        </div>
-                      `).join('') || '<div class="empty-text">-</div>'}
-                    </td>
-                    <td>
-                      ${allStateUpdates.map(m => m.isLegacy ? `
-                        <div class="legacy-update">${m.text}</div>
-                      ` : `
-                        <div class="item-block">
-                          <div class="item-customer">${m.customer}</div>
-                          ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
-                          <div class="item-salesperson">${m.rep}</div>
-                          ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
-                          ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
-                        </div>
-                      `).join('') || '<div class="empty-text">-</div>'}
-                    </td>
-                    <td>
-                      ${allStateProjected.map(p => `
-                        <div class="item-block">
-                          <div class="item-customer">${p.account}</div>
-                          <div class="item-value projected-text">${formatEAV(p.value)}</div>
-                          <div class="item-salesperson">${p.rep}</div>
-                          ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
-                          ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
-                        </div>
-                      `).join('') || '<div class="empty-text">-</div>'}
-                    </td>
-                    <td>
-                      ${allStatePriorities.map(pr => `
-                        <div class="item-block">
-                          <div class="item-desc">${pr.text}</div>
-                          <div class="item-salesperson">${pr.rep}</div>
-                        </div>
-                      `).join('') || '<div class="empty-text">-</div>'}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            `;
-          }).join('')}
+              `;
+            }).join('');
+          })()}
 
           <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 7px; color: #94a3b8;">
             Generated on ${new Date().toLocaleString()} • Confidential Management Report
@@ -2645,83 +2579,179 @@ export function DemoDashView() {
         {/* ==========================================
          * KEY STANDOUTS VIEW
          * ========================================== */}
-        {isLeader && (
-          <TabsContent value="standouts" className="mt-0">
-            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
-                <div className="relative z-10 space-y-2">
-                  <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
-                    <Star className="w-8 h-8 fill-current text-amber-200" /> Key Standouts
-                  </h2>
-                  <p className="text-amber-100 font-medium max-w-xl text-sm leading-relaxed">
-                    A curated selection of the most significant wins, risks, and updates highlighted across all submissions.
-                  </p>
+        {/* ==========================================
+         * KEY STANDOUTS VIEW
+         * ========================================== */}
+        {isLeader && (() => {
+          const getStarred = (arrayField: string) => {
+            const items: any[] = [];
+            Object.entries(submissionsByState).forEach(([state, subs]) => {
+              subs.forEach(sub => {
+                const arr = sub[arrayField as keyof typeof sub] as any[];
+                if (arr) {
+                  arr.filter(i => i.isStarred).forEach(i => 
+                    items.push({ ...i, subId: sub.id, state, salespersonName: sub.userName || 'N/A' })
+                  );
+                }
+              });
+            });
+            return items;
+          };
+
+          const starredWins = getStarred('wins');
+          const starredRisks = getStarred('risks');
+          const starredUpdates = getStarred('majorUpdates');
+          const starredProjected = getStarred('projectedWins');
+          const starredPriorities = getStarred('priorities');
+
+          return (
+            <TabsContent value="standouts" className="mt-0">
+              <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
+                  <div className="relative z-10 space-y-2">
+                    <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
+                      <Star className="w-8 h-8 fill-current text-amber-200" /> Key Standouts
+                    </h2>
+                    <p className="text-amber-100 font-medium max-w-xl text-sm leading-relaxed">
+                      A curated selection of the most significant wins, risks, and updates highlighted across all submissions.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                  {/* Wins Column */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
+                      Key Wins <Badge className="bg-emerald-100 text-emerald-700 font-black">{starredWins.length}</Badge>
+                    </h3>
+                    {starredWins.map(w => (
+                      <Card key={w.id} className="border-amber-200 bg-amber-50 shadow-sm relative group">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          onClick={() => toggleItemState(w.subId, 'wins', w.id, 'isStarred')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <CardContent className="p-4 space-y-2">
+                          <Badge variant="outline" className="text-[8px] bg-white font-black">{w.state}</Badge>
+                          <div className="font-bold text-slate-800 leading-snug">{w.customer}</div>
+                          <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
+                          <div className="text-[10px] text-slate-500">{w.salespersonName || 'N/A'}</div>
+                          {w.updateText && <div className="text-xs text-slate-600 mt-2">{w.updateText}</div>}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Risks Column */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
+                      Churn Risks <Badge className="bg-rose-100 text-rose-700 font-black">{starredRisks.length}</Badge>
+                    </h3>
+                    {starredRisks.map(r => (
+                      <Card key={r.id} className="border-rose-200 bg-rose-50 shadow-sm relative group">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          onClick={() => toggleItemState(r.subId, 'risks', r.id, 'isStarred')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <CardContent className="p-4 space-y-2">
+                          <Badge variant="outline" className="text-[8px] bg-white font-black">{r.state}</Badge>
+                          <div className="font-bold text-slate-800 leading-snug">{r.account}</div>
+                          <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
+                          <div className="text-[10px] text-slate-500">{r.salespersonName || 'N/A'}</div>
+                          <div className="text-xs text-slate-600 mt-2">Mitigation: {r.mitigation}</div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Updates Column */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
+                      Major Updates <Badge className="bg-blue-100 text-blue-700 font-black">{starredUpdates.length}</Badge>
+                    </h3>
+                    {starredUpdates.map(m => (
+                      <Card key={m.id} className="border-blue-200 bg-blue-50 shadow-sm relative group">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          onClick={() => toggleItemState(m.subId, 'majorUpdates', m.id, 'isStarred')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <CardContent className="p-4 space-y-2">
+                          <Badge variant="outline" className="text-[8px] bg-white font-black">{m.state}</Badge>
+                          <div className="font-bold text-slate-800 leading-snug">{m.customer}</div>
+                          {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
+                          <div className="text-[10px] text-slate-500">{m.salespersonName || 'N/A'}</div>
+                          {m.updateText && <div className="text-xs text-slate-600 mt-2">{m.updateText}</div>}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Projected Column */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
+                      30 Day Projected <Badge className="bg-purple-100 text-purple-700 font-black">{starredProjected.length}</Badge>
+                    </h3>
+                    {starredProjected.map(p => (
+                      <Card key={p.id} className="border-purple-200 bg-purple-50 shadow-sm relative group">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          onClick={() => toggleItemState(p.subId, 'projectedWins', p.id, 'isStarred')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <CardContent className="p-4 space-y-2">
+                          <Badge variant="outline" className="text-[8px] bg-white font-black">{p.state}</Badge>
+                          <div className="font-bold text-slate-800 leading-snug">{p.account}</div>
+                          <div className="text-purple-600 font-semibold">{formatEAV(p.value)}</div>
+                          <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                          {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
+                          {p.updateText && <div className="text-xs text-slate-600 mt-1">{p.updateText}</div>}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Priorities Column */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
+                      Priorities <Badge className="bg-amber-100 text-amber-700 font-black">{starredPriorities.length}</Badge>
+                    </h3>
+                    {starredPriorities.map(p => (
+                      <Card key={p.id} className="border-amber-200 bg-amber-50 shadow-sm relative group">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          onClick={() => toggleItemState(p.subId, 'priorities', p.id, 'isStarred')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <CardContent className="p-4 space-y-2">
+                          <Badge variant="outline" className="text-[8px] bg-white font-black">{p.state}</Badge>
+                          <div className="text-slate-800 font-medium text-xs leading-normal">{p.text}</div>
+                          <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {Object.entries(submissionsByState).map(([state, subs]) => 
-                  subs.flatMap(sub => {
-                    const standouts: any[] = [];
-                    (sub.wins || []).forEach((w: any) => {
-                      if (w.isStarred) standouts.push({ type: 'Win', ...w });
-                    });
-                    (sub.risks || []).forEach((r: any) => {
-                      if (r.isStarred) standouts.push({ type: 'Risk', ...r });
-                    });
-                    (sub.majorUpdates || []).forEach((m: any) => {
-                      if (m.isStarred) standouts.push({ type: 'Update', ...m });
-                    });
-                    (sub.projectedWins || []).forEach((p: any) => {
-                      if (p.isStarred) standouts.push({ type: 'Projected', ...p });
-                    });
-                    (sub.priorities || []).forEach((p: any) => {
-                      if (p.isStarred) standouts.push({ type: 'Priority', ...p });
-                    });
-
-                    return standouts.map((item, idx) => (
-                      <div key={`${sub.id}-${idx}`} className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm relative group flex flex-col justify-between">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-start gap-2">
-                            <Badge className={
-                              item.type === 'Win' ? "bg-emerald-100 text-emerald-700 uppercase font-black text-[9px]" :
-                              item.type === 'Risk' ? "bg-rose-100 text-rose-700 uppercase font-black text-[9px]" :
-                              item.type === 'Projected' ? "bg-blue-100 text-blue-700 uppercase font-black text-[9px]" :
-                              item.type === 'Priority' ? "bg-amber-100 text-amber-700 uppercase font-black text-[9px]" :
-                              "bg-indigo-100 text-indigo-700 uppercase font-black text-[9px]"
-                            }>
-                              {item.type}
-                            </Badge>
-                            <Star className="w-4 h-4 text-amber-500 fill-current" />
-                          </div>
-                          
-                          <div>
-                            <div className="font-bold text-slate-800 line-clamp-2 leading-tight">
-                              {item.customer || item.account || item.text}
-                            </div>
-                            {item.value ? (
-                              <div className={
-                                item.type === 'Risk' ? "text-rose-600 font-black mt-1" : 
-                                item.type === 'Win' ? "text-emerald-600 font-black mt-1" :
-                                "text-blue-600 font-black mt-1"
-                              }>
-                                {formatEAV(item.value)}
-                              </div>
-                            ) : null}
-                            <div className="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-wider">{item.salespersonName || sub.userName || 'N/A'}</div>
-                            {item.businessUnits && item.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wider">BU: {item.businessUnits.join(', ')}</div>}
-                            {item.updateText && <div className="text-xs text-slate-600 mt-2 line-clamp-3">{item.updateText}</div>}
-                            {item.mitigation && <div className="text-xs text-slate-600 mt-2 line-clamp-3"><span className="font-bold text-slate-700">Mitigation:</span> {item.mitigation}</div>}
-                          </div>
-                        </div>
-                      </div>
-                    ));
-                  })
-                )}
-              </div>
-            </div>
-          </TabsContent>
-        )}
+            </TabsContent>
+          );
+        })()}
       </Tabs>
 
       {/* --- SUCCESS DIALOGS --- */}
