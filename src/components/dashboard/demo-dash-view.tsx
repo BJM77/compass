@@ -1338,87 +1338,89 @@ export function DemoDashView() {
           padding: 4px 0;
         }
       </style>
-      <div class="report-header">
-        <h1>The Week That Was (TWTW) - Week ${selectedWeek.split('-')[1]}</h1>
-        <p>Consolidated Executive Weekly Briefing (Oversized Single Sheet)</p>
-      </div>
-
-      <!-- STANDOUTS -->
-      ${hasStandouts ? `
-      <div class="page-container">
-        <div class="standouts-header">
-          <div class="standouts-title">Key Standouts &amp; Highlights</div>
-          <div class="standouts-subtitle">Curated items from the week's submissions</div>
+      <div style="padding: 15px; box-sizing: border-box; background-color: #ffffff;">
+        <div class="report-header">
+          <h1>The Week That Was (TWTW) - Week ${selectedWeek.split('-')[1]}</h1>
+          <p>Consolidated Executive Weekly Briefing (Oversized Single Sheet)</p>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 20%">Key Wins (${starredWins.length})</th>
-              <th style="width: 20%">Churn Risk (${starredRisks.length})</th>
-              <th style="width: 20%">Major Updates (${starredUpdates.length})</th>
-              <th style="width: 20%">30 Day Projected (${starredProjected.length})</th>
-              <th style="width: 20%">Priorities (${starredPriorities.length})</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                ${starredWins.map(w => `
-                  <div class="item-block">
-                    <span class="card-badge">${w.state}</span>
-                    <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
-                    <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
-                    ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
-                  </div>
-                `).join('') || '<div class="empty-text">-</div>'}
-              </td>
-              <td>
-                ${starredRisks.map(r => `
-                  <div class="item-block">
-                    <span class="card-badge">${r.state}</span>
-                    <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
-                    <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
-                    ${r.updateText ? `<div class="item-desc">${r.updateText}</div>` : ''}
-                  </div>
-                `).join('') || '<div class="empty-text">-</div>'}
-              </td>
-              <td>
-                ${starredUpdates.map(m => `
-                  <div class="item-block">
-                    <span class="card-badge">${m.state}</span>
-                    <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
-                    <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
-                    ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
-                  </div>
-                `).join('') || '<div class="empty-text">-</div>'}
-              </td>
-              <td>
-                ${starredProjected.map(p => `
-                  <div class="item-block">
-                    <span class="card-badge">${p.state}</span>
-                    <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
-                    <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
-                    ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
-                  </div>
-                `).join('') || '<div class="empty-text">-</div>'}
-              </td>
-              <td>
-                ${starredPriorities.map(pr => `
-                  <div class="item-block">
-                    <span class="card-badge">${pr.state}</span>
-                    <div class="item-desc">${pr.text}</div>
-                    <div class="item-salesperson">${pr.salespersonName || 'N/A'}</div>
-                  </div>
-                `).join('') || '<div class="empty-text">-</div>'}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      ` : ''}
 
-      <!-- REGIONS -->
-      ${regionsHtml}
+        <!-- STANDOUTS -->
+        ${hasStandouts ? `
+        <div class="page-container">
+          <div class="standouts-header">
+            <div class="standouts-title">Key Standouts &amp; Highlights</div>
+            <div class="standouts-subtitle">Curated items from the week's submissions</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 20%">Key Wins (${starredWins.length})</th>
+                <th style="width: 20%">Churn Risk (${starredRisks.length})</th>
+                <th style="width: 20%">Major Updates (${starredUpdates.length})</th>
+                <th style="width: 20%">30 Day Projected (${starredProjected.length})</th>
+                <th style="width: 20%">Priorities (${starredPriorities.length})</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  ${starredWins.map(w => `
+                    <div class="item-block">
+                      <span class="card-badge">${w.state}</span>
+                      <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
+                      <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
+                      ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${starredRisks.map(r => `
+                    <div class="item-block">
+                      <span class="card-badge">${r.state}</span>
+                      <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
+                      <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
+                      ${r.updateText ? `<div class="item-desc">${r.updateText}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${starredUpdates.map(m => `
+                    <div class="item-block">
+                      <span class="card-badge">${m.state}</span>
+                      <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
+                      <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
+                      ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${starredProjected.map(p => `
+                    <div class="item-block">
+                      <span class="card-badge">${p.state}</span>
+                      <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
+                      <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
+                      ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+                <td>
+                  ${starredPriorities.map(pr => `
+                    <div class="item-block">
+                      <span class="card-badge">${pr.state}</span>
+                      <div class="item-desc">${pr.text}</div>
+                      <div class="item-salesperson">${pr.salespersonName || 'N/A'}</div>
+                    </div>
+                  `).join('') || '<div class="empty-text">-</div>'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        <!-- REGIONS -->
+        ${regionsHtml}
+      </div>
     `;
 
     document.body.appendChild(tempDiv);
