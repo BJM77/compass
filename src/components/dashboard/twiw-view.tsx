@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
-  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield
+  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 
@@ -189,6 +189,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   const [newPriority, setNewPriority] = useState('');
   const [newPrioritySalesperson, setNewPrioritySalesperson] = useState('');
   const [activeTab, setActiveTab] = useState<'FORM' | 'COLLATION' | 'STANDOUTS'>(isLeader ? 'COLLATION' : 'FORM');
+  const [showHiddenItems, setShowHiddenItems] = useState(false);
 
   const toggleItemState = async (subId: string, arrayField: 'wins'|'risks'|'majorUpdates'|'projectedWins'|'priorities', itemId: string, stateField: 'isHidden'|'isStarred') => {
     if (!db) return;
@@ -889,8 +890,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     ${starredWins.map(w => `
                       <div class="item-block">
                         <span class="card-badge">${w.state}</span>
-                        <div class="item-customer">${w.customer}</div>
-                        <div class="item-value win-text">${formatEAV(w.value)}</div>
+                        <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
                         <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
                         ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
                       </div>
@@ -900,8 +900,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     ${starredRisks.map(r => `
                       <div class="item-block">
                         <span class="card-badge">${r.state}</span>
-                        <div class="item-customer">${r.account}</div>
-                        <div class="item-value risk-text">${formatEAV(r.value)}</div>
+                        <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
                         <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
                         <div class="item-desc">Mitigation: ${r.mitigation}</div>
                       </div>
@@ -911,8 +910,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     ${starredUpdates.map(m => `
                       <div class="item-block">
                         <span class="card-badge">${m.state}</span>
-                        <div class="item-customer">${m.customer}</div>
-                        ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
+                        <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
                         <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
                         ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
                       </div>
@@ -922,8 +920,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     ${starredProjected.map(p => `
                       <div class="item-block">
                         <span class="card-badge">${p.state}</span>
-                        <div class="item-customer">${p.account}</div>
-                        <div class="item-value projected-text">${formatEAV(p.value)}</div>
+                        <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
                         <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
                         ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
                         ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
@@ -986,8 +983,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                       <td>
                         ${allStateWins.map(w => `
                           <div class="item-block">
-                            <div class="item-customer">${w.customer}</div>
-                            <div class="item-value win-text">${formatEAV(w.value)}</div>
+                            <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
                             <div class="item-salesperson">${w.rep}</div>
                             ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
                             ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
@@ -997,8 +993,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                       <td>
                         ${allStateRisks.map(r => `
                           <div class="item-block">
-                            <div class="item-customer">${r.account}</div>
-                            <div class="item-value risk-text">${formatEAV(r.value)}</div>
+                            <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
                             <div class="item-salesperson">${r.rep}</div>
                             <div class="item-desc">Mitigation: ${r.mitigation}</div>
                           </div>
@@ -1009,8 +1004,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           <div class="legacy-update">${m.text}</div>
                         ` : `
                           <div class="item-block">
-                            <div class="item-customer">${m.customer}</div>
-                            ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
+                            <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
                             <div class="item-salesperson">${m.rep}</div>
                             ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
                             ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
@@ -1020,8 +1014,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                       <td>
                         ${allStateProjected.map(p => `
                           <div class="item-block">
-                            <div class="item-customer">${p.account}</div>
-                            <div class="item-value projected-text">${formatEAV(p.value)}</div>
+                            <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
                             <div class="item-salesperson">${p.rep}</div>
                             ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
                             ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
@@ -2344,18 +2337,21 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     const teamUsers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER') || [];
 
     const renderItem = (item: any, type: string, subId: string, content: React.ReactNode) => {
-      if (item.isHidden) return null;
+      if (item.isHidden && !showHiddenItems) return null;
       return (
-        <div key={`${subId}-${type}-${item.id}`} className="relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all">
+        <div key={`${subId}-${type}-${item.id}`} className={cn(
+          "relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all",
+          item.isHidden && "opacity-50 border-dashed bg-slate-100/50"
+        )}>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-10">
             <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-white", item.isStarred ? "border-amber-400 text-amber-500" : "border-slate-200 text-slate-400 hover:text-amber-500")} onClick={() => toggleItemState(subId, type as any, item.id, 'isStarred')}>
               <Star className={cn("w-3 h-3", item.isStarred && "fill-current")} />
             </Button>
-            <Button size="icon" variant="secondary" className="w-6 h-6 shadow-sm border border-slate-200 bg-white hover:text-slate-600 text-slate-400" onClick={() => toggleItemState(subId, type as any, item.id, 'isHidden')}>
-              <EyeOff className="w-3 h-3" />
+            <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-white hover:text-slate-600", item.isHidden ? "border-red-400 text-red-500" : "border-slate-200 text-slate-400")} onClick={() => toggleItemState(subId, type as any, item.id, 'isHidden')}>
+              {item.isHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
             </Button>
           </div>
-          <div className="pr-8">
+          <div className={cn("pr-8", item.isHidden && "line-through text-slate-400")}>
             {content}
           </div>
         </div>
@@ -2413,7 +2409,19 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   Aggregated team performance data for executive reporting
                 </CardDescription>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex items-center gap-2 mr-4 bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 shadow-sm">
+                  <input
+                    type="checkbox"
+                    id="show-hidden-toggle"
+                    checked={showHiddenItems}
+                    onChange={(e) => setShowHiddenItems(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                  />
+                  <label htmlFor="show-hidden-toggle" className="text-[9px] font-black text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                    Show Hidden
+                  </label>
+                </div>
                 <Button 
                   onClick={handleExportPdf}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
