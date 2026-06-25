@@ -973,7 +973,18 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           <!-- SUBSEQUENT PAGES: COLLATION BY REGION -->
           ${Object.entries(submissionsByState).length === 0 ? `
             <div class="empty-text" style="font-size: 14px; margin-top: 50px;">No submissions available to collate yet.</div>
-          ` : Object.entries(submissionsByState).map(([state, subs]) => `
+          ` : Object.entries(submissionsByState).map(([state, subs]) => {
+            const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
+            const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
+            const allStateUpdates = subs.flatMap(sub => {
+              const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.salespersonName || sub.userName || 'N/A' }] : [];
+              const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
+              return [...legacy, ...updates];
+            });
+            const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
+            const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
+
+            return `
             <div class="page-container">
               <div class="region-header">
                 <h2>${state} Region <span class="badge">${subs.length} Reps</span></h2>
@@ -989,76 +1000,66 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  ${subs.map(sub => `
-                    <tr class="avoid-break">
-                      <td>
-                        ${(sub.wins || [])
-                          .filter((w: any) => !w.isHidden)
-                          .map((w: any) => `
-                            <div class="item-block">
-                              <div class="item-customer">${w.customer}</div>
-                              <div class="item-value win-text">${formatEAV(w.value)}</div>
-                              <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
-                              ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
-                              ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
-                            </div>
-                          `).join('') || '<div class="empty-text">-</div>'}
-                      </td>
-                      <td>
-                        ${(sub.risks || [])
-                          .filter((r: any) => !r.isHidden)
-                          .map((r: any) => `
-                            <div class="item-block">
-                              <div class="item-customer">${r.account}</div>
-                              <div class="item-value risk-text">${formatEAV(r.value)}</div>
-                              <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
-                              <div class="item-desc">Mitigation: ${r.mitigation}</div>
-                            </div>
-                          `).join('') || '<div class="empty-text">-</div>'}
-                      </td>
-                      <td>
-                        ${sub.updates ? `<div class="legacy-update">${sub.updates}</div>` : ''}
-                        ${(sub.majorUpdates || [])
-                          .filter((m: any) => !m.isHidden)
-                          .map((m: any) => `
-                            <div class="item-block">
-                              <div class="item-customer">${m.customer}</div>
-                              ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
-                              <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
-                              ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
-                              ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
-                            </div>
-                          `).join('') || (!sub.updates ? '<div class="empty-text">-</div>' : '')}
-                      </td>
-                      <td>
-                        ${(sub.projectedWins || [])
-                          .filter((p: any) => !p.isHidden)
-                          .map((p: any) => `
-                            <div class="item-block">
-                              <div class="item-customer">${p.account}</div>
-                              <div class="item-value projected-text">${formatEAV(p.value)}</div>
-                              <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
-                              ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
-                              ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
-                            </div>
-                          `).join('') || '<div class="empty-text">-</div>'}
-                      </td>
-                      <td>
-                        ${(sub.priorities || [])
-                          .filter((pr: any) => !pr.isHidden)
-                          .map((pr: any) => `
-                            <div class="item-block">
-                              <div class="item-desc">${pr.text}</div>
-                              <div class="item-salesperson">${pr.salespersonName || 'N/A'}</div>
-                            </div>
-                          `).join('') || '<div class="empty-text">-</div>'}
-                      </td>
-                    </tr>
-                  `).join('')}
+                  <tr class="avoid-break">
+                    <td>
+                      ${allStateWins.map(w => `
+                        <div class="item-block">
+                          <div class="item-customer">${w.customer}</div>
+                          <div class="item-value win-text">${formatEAV(w.value)}</div>
+                          <div class="item-salesperson">${w.rep}</div>
+                          ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
+                          ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStateRisks.map(r => `
+                        <div class="item-block">
+                          <div class="item-customer">${r.account}</div>
+                          <div class="item-value risk-text">${formatEAV(r.value)}</div>
+                          <div class="item-salesperson">${r.rep}</div>
+                          <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStateUpdates.map(m => m.isLegacy ? `
+                        <div class="legacy-update">${m.text}</div>
+                      ` : `
+                        <div class="item-block">
+                          <div class="item-customer">${m.customer}</div>
+                          ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
+                          <div class="item-salesperson">${m.rep}</div>
+                          ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
+                          ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStateProjected.map(p => `
+                        <div class="item-block">
+                          <div class="item-customer">${p.account}</div>
+                          <div class="item-value projected-text">${formatEAV(p.value)}</div>
+                          <div class="item-salesperson">${p.rep}</div>
+                          ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
+                          ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStatePriorities.map(pr => `
+                        <div class="item-block">
+                          <div class="item-desc">${pr.text}</div>
+                          <div class="item-salesperson">${pr.rep}</div>
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </body>
       </html>
     `);

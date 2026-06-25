@@ -650,25 +650,6 @@ export function DemoDashView() {
 
   // --- PDF Export helper ---
   const handleExportPdf = () => {
-    // Get the collation table content directly from the DOM
-    const collationContent = document.querySelector('.collation-print-area');
-    
-    if (!collationContent) {
-      toast({ 
-        variant: "destructive", 
-        title: "Nothing to Print", 
-        description: "No collation data available to export. Please ensure you have submissions to display." 
-      });
-      return;
-    }
-
-    // Clone the content to avoid modifying the live DOM
-    const contentClone = collationContent.cloneNode(true) as HTMLElement;
-    
-    // Remove any action buttons from the clone (Edit/Delete buttons)
-    const actionButtons = contentClone.querySelectorAll('[data-print-hidden="true"]');
-    actionButtons.forEach(el => el.remove());
-
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
       toast({ 
@@ -687,11 +668,12 @@ export function DemoDashView() {
     const standoutsList: any[] = [];
     Object.entries(submissionsByState).forEach(([state, subs]) => {
       subs.forEach(sub => {
-        (sub.wins || []).forEach((w: any) => { if (w.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Win', ...w }); });
-        (sub.risks || []).forEach((r: any) => { if (r.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Risk', ...r }); });
-        (sub.majorUpdates || []).forEach((m: any) => { if (m.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Update', ...m }); });
-        (sub.projectedWins || []).forEach((p: any) => { if (p.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Projected', ...p }); });
-        (sub.priorities || []).forEach((p: any) => { if (p.isStarred) standoutsList.push({ state, rep: sub.userName || sub.userId, type: 'Priority', ...p }); });
+        const rep = sub.userName || sub.userId || 'N/A';
+        (sub.wins || []).forEach((w: any) => { if (w.isStarred && !w.isHidden) standoutsList.push({ state, rep, type: 'Win', ...w }); });
+        (sub.risks || []).forEach((r: any) => { if (r.isStarred && !r.isHidden) standoutsList.push({ state, rep, type: 'Risk', ...r }); });
+        (sub.majorUpdates || []).forEach((m: any) => { if (m.isStarred && !m.isHidden) standoutsList.push({ state, rep, type: 'Update', ...m }); });
+        (sub.projectedWins || []).forEach((p: any) => { if (p.isStarred && !p.isHidden) standoutsList.push({ state, rep, type: 'Projected', ...p }); });
+        (sub.priorities || []).forEach((p: any) => { if (p.isStarred && !p.isHidden) standoutsList.push({ state, rep, type: 'Priority', ...p }); });
       });
     });
 
@@ -815,19 +797,6 @@ export function DemoDashView() {
             tbody tr {
               border-bottom: 12px solid white;
             }
-            /* Tailwind Print Utilities */
-            .mb-2 { margin-bottom: 12px !important; display: block; }
-            .mt-1 { margin-top: 4px !important; }
-            .mt-2 { margin-top: 8px !important; }
-            .p-2 { padding: 8px !important; }
-            .font-bold, .font-semibold { font-weight: bold !important; }
-            .text-emerald-600 { color: #059669 !important; }
-            .text-rose-600 { color: #e11d48 !important; }
-            .text-blue-600 { color: #2563eb !important; }
-            .text-slate-500, .text-slate-400 { color: #64748b !important; }
-            .bg-slate-50 { background-color: #f8fafc !important; }
-            .border { border: 1px solid #e2e8f0 !important; }
-            .rounded-lg { border-radius: 6px !important; }
 
             .item-block {
               border-bottom: 1px solid #e2e8f0;
@@ -886,25 +855,6 @@ export function DemoDashView() {
               white-space: pre-wrap;
             }
             .avoid-break { page-break-inside: avoid; }
-            .submission-footer {
-              font-size: 7px;
-              color: #94a3b8;
-              margin-top: 2px;
-              font-weight: bold;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-            }
-            .print-actions {
-              display: none !important;
-            }
-            .text-emerald-600 { color: #059669; }
-            .text-rose-600 { color: #be123c; }
-            .text-blue-600 { color: #1d4ed8; }
-            .text-purple-600 { color: #7c3aed; }
-            .font-bold { font-weight: 700; }
-            .italic { font-style: italic; }
-            .mt-1 { margin-top: 2px; }
-            .mt-2 { margin-top: 4px; }
             .region-section + .region-section { page-break-before: always; }
           </style>
         </head>
@@ -913,7 +863,97 @@ export function DemoDashView() {
             <h1>Master Executive TWTW Collation</h1>
             <p>Week ${weekLabel} • Consolidated Team Performance Report</p>
           </div>
-          ${contentClone.innerHTML}
+          
+          ${Object.entries(submissionsByState).length === 0 ? `
+            <div class="empty-text" style="font-size: 14px; margin-top: 50px;">No submissions available to collate yet.</div>
+          ` : Object.entries(submissionsByState).map(([state, subs]) => {
+            const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden).map((w: any) => ({ ...w, rep: sub.userName || 'N/A' })));
+            const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden).map((r: any) => ({ ...r, rep: sub.userName || 'N/A' })));
+            const allStateUpdates = subs.flatMap(sub => {
+              const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.userName || 'N/A' }] : [];
+              const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden).map((m: any) => ({ ...m, rep: sub.userName || 'N/A' }));
+              return [...legacy, ...updates];
+            });
+            const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden).map((p: any) => ({ ...p, rep: sub.userName || 'N/A' })));
+            const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden).map((pr: any) => ({ ...pr, rep: sub.userName || 'N/A' })));
+
+            return `
+            <div class="region-section">
+              <div class="region-title">
+                ${state} Region <span class="badge">${subs.length} Reps</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 20%">Key Wins</th>
+                    <th style="width: 20%">Churn Risk</th>
+                    <th style="width: 20%">Major Updates</th>
+                    <th style="width: 20%">30 Day Projected</th>
+                    <th style="width: 20%">Priorities</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="avoid-break">
+                    <td>
+                      ${allStateWins.map(w => `
+                        <div class="item-block">
+                          <div class="item-customer">${w.customer}</div>
+                          <div class="item-value win-text">${formatEAV(w.value)}</div>
+                          <div class="item-salesperson">${w.rep}</div>
+                          ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
+                          ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStateRisks.map(r => `
+                        <div class="item-block">
+                          <div class="item-customer">${r.account}</div>
+                          <div class="item-value risk-text">${formatEAV(r.value)}</div>
+                          <div class="item-salesperson">${r.rep}</div>
+                          <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStateUpdates.map(m => m.isLegacy ? `
+                        <div class="legacy-update">${m.text}</div>
+                      ` : `
+                        <div class="item-block">
+                          <div class="item-customer">${m.customer}</div>
+                          ${m.value > 0 ? `<div class="item-value update-text">${formatEAV(m.value)}</div>` : ''}
+                          <div class="item-salesperson">${m.rep}</div>
+                          ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
+                          ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStateProjected.map(p => `
+                        <div class="item-block">
+                          <div class="item-customer">${p.account}</div>
+                          <div class="item-value projected-text">${formatEAV(p.value)}</div>
+                          <div class="item-salesperson">${p.rep}</div>
+                          ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
+                          ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                    <td>
+                      ${allStatePriorities.map(pr => `
+                        <div class="item-block">
+                          <div class="item-desc">${pr.text}</div>
+                          <div class="item-salesperson">${pr.rep}</div>
+                        </div>
+                      `).join('') || '<div class="empty-text">-</div>'}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            `;
+          }).join('')}
+
           ${standoutsHtml}
           <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 7px; color: #94a3b8;">
             Generated on ${new Date().toLocaleString()} • Confidential Management Report
@@ -927,7 +967,6 @@ export function DemoDashView() {
         </body>
       </html>
     `);
-    
   };
 
   const handleExportCondensedPdf = () => {
