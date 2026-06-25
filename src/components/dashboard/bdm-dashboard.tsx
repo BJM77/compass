@@ -107,8 +107,13 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       }
     });
 
+    twiwWidget.name = 'Thursday TWTW';
+    fridayWidget.name = 'Friday FW';
+
     if (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER') {
-      twiwWidget.visible = false;
+      twiwWidget.visible = true;
+      fridayWidget.visible = true;
+      result = result.filter(w => w.id !== 'monday-planning');
     }
 
     // Find the insertion point (minimum index of the original positions)
@@ -510,8 +515,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
               'voice-logger': 'Logger',
               'crm-summary': 'Summary',
               'monday-planning': 'Monday Planning',
-              'friday-synthesis': 'Friday Synthesis',
-              'twiw': 'The Week That Was',
+              'friday-synthesis': 'Friday FW',
+              'twiw': 'Thursday TWTW',
               'call-prep': 'Planning',
               'smart-goals': 'Goals',
               'success-plan': 'Plan Details',
