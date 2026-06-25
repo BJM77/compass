@@ -82,25 +82,44 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   
   const layout = useMemo(() => {
     let result = [...rawLayout];
+    
     const twiwIdx = result.findIndex(w => w.id === 'twiw');
     const fridayIdx = result.findIndex(w => w.id === 'friday-synthesis');
+    const callPrepIdx = result.findIndex(w => w.id === 'call-prep');
     
-    // If twiw exists but is not right after friday-synthesis, remove it so we can re-insert it
     let twiwWidget: DashboardWidgetConfig = { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true };
-    if (twiwIdx !== -1) {
-      twiwWidget = result.splice(twiwIdx, 1)[0];
-    }
+    let fridayWidget: DashboardWidgetConfig = { id: 'friday-synthesis', name: 'Friday Synthesis (Weekly Submission)', width: 3, visible: false };
+    let callPrepWidget: DashboardWidgetConfig = { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false };
     
-    // Re-insert right after friday-synthesis, or push to end if not found
-    const newFridayIdx = result.findIndex(w => w.id === 'friday-synthesis');
-    if (newFridayIdx !== -1) {
-      result.splice(newFridayIdx + 1, 0, twiwWidget);
-    } else {
-      result.push(twiwWidget);
+    // Extract widgets in reverse index order to avoid shifting issues
+    const indices = [
+      { id: 'twiw', idx: twiwIdx },
+      { id: 'friday-synthesis', idx: fridayIdx },
+      { id: 'call-prep', idx: callPrepIdx }
+    ].sort((a, b) => b.idx - a.idx);
+    
+    indices.forEach(item => {
+      if (item.idx !== -1) {
+        const extracted = result.splice(item.idx, 1)[0];
+        if (item.id === 'twiw') twiwWidget = extracted;
+        else if (item.id === 'friday-synthesis') fridayWidget = extracted;
+        else if (item.id === 'call-prep') callPrepWidget = extracted;
+      }
+    });
+
+    if (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER') {
+      twiwWidget.visible = false;
     }
+
+    // Find the insertion point (minimum index of the original positions)
+    const originalIndices = [twiwIdx, fridayIdx, callPrepIdx].filter(idx => idx !== -1);
+    const insertIdx = originalIndices.length > 0 ? Math.min(...originalIndices) : result.length;
+    
+    // Insert them sequentially: twiw first, then friday-synthesis, then call-prep
+    result.splice(insertIdx, 0, twiwWidget, fridayWidget, callPrepWidget);
     
     return result;
-  }, [rawLayout]);
+  }, [rawLayout, profile]);
 
   const { pipelineReviews: allDeals } = usePipelineData();
 
@@ -478,12 +497,6 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
             <Badge className="bg-accent text-white border-none font-black text-[9px] uppercase tracking-widest">{profile?.territory?.replace('_', ' ')}</Badge>
             <p className="text-muted-foreground text-xs font-bold uppercase tracking-tight">{profile?.name}</p>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleExportPdf} disabled={isExporting} className="bg-slate-900 font-black h-11 px-6 shadow-lg text-sm">
-            {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileDown className="w-4 h-4 mr-2" />} 
-            {isExporting ? 'EXPORTING...' : 'WEEKLY PACK (PDF)'}
-          </Button>
         </div>
       </header>
 

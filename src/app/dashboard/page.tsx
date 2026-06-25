@@ -173,6 +173,9 @@ function DashboardContent() {
                       const guestAllowedViews = ['DEMO_DASH', 'OPS_REPORT', 'WHITE_SPACE'];
                       return guestAllowedViews.includes(item.view);
                     }
+                    if (item.view === 'DEMO_DASH' && (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER')) {
+                      return false;
+                    }
                     return item.group === 'main' && (item.adminOnly ? isLeader : true);
                   }).map(nav => (
                     <SidebarMenuItem key={nav.view}>
