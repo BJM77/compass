@@ -710,7 +710,7 @@ export function DemoDashView() {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Executive TWTW Collation - Week ${weekLabel}</title>
+          <title>TGE North Parcels - TWTW - Week ${weekLabel}</title>
           <style>
             @page { 
               size: landscape; 
@@ -860,7 +860,7 @@ export function DemoDashView() {
         </head>
         <body>
           <div class="report-header">
-            <h1>Master Executive TWTW Collation</h1>
+            <h1>TGE North Parcels - TWTW</h1>
             <p>Week ${weekLabel} • Consolidated Team Performance Report</p>
           </div>
           
