@@ -12,12 +12,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
 
 export function TwiwEditDialog({ submission, open, onOpenChange }: { submission: any, open: boolean, onOpenChange: (open: boolean) => void }) {
   const db = useFirestore();
   const { toast } = useToast();
+  const [submissionState, setSubmissionState] = useState('WA');
   const [wins, setWins] = useState<any[]>([]);
   const [risks, setRisks] = useState<any[]>([]);
   const [updates, setUpdates] = useState('');
@@ -31,12 +33,16 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
 
   useEffect(() => {
     if (submission) {
+      setSubmissionState(submission.state || 'WA');
       setWins((submission.wins || []).map((w: any) => typeof w === 'string' ? { id: crypto.randomUUID(), customer: w, value: 0, salespersonName: '' } : { ...w, id: w.id || crypto.randomUUID() }));
       setRisks((submission.risks || []).map((r: any) => typeof r === 'string' ? { id: crypto.randomUUID(), account: r, value: 0, salespersonName: '' } : { ...r, id: r.id || crypto.randomUUID() }));
       setUpdates(typeof submission.updates === 'string' ? submission.updates : '');
       setMajorUpdates((submission.majorUpdates || []).map((m: any) => typeof m === 'string' ? { id: crypto.randomUUID(), updateText: m, customer: '', value: 0 } : { ...m, id: m.id || crypto.randomUUID() }));
       setProjectedWins((submission.projectedWins || []).map((p: any) => typeof p === 'string' ? { id: crypto.randomUUID(), account: p, expectedDate: '', salespersonName: '' } : { ...p, id: p.id || crypto.randomUUID() }));
       setPriorities((submission.priorities || []).map((pr: any) => typeof pr === 'string' ? { id: crypto.randomUUID(), text: pr, salespersonName: '' } : { ...pr, id: pr.id || crypto.randomUUID() }));
+      setNextWeekActions(submission.nextWeekActions || []);
+      setNextWeekRoadblocks(submission.nextWeekRoadblocks || '');
+      setNextWeekSupport(submission.nextWeekSupport || '');
     }
   }, [submission]);
 
@@ -46,7 +52,9 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
     if (!db) return;
     setIsSaving(true);
     try {
+      // Update submission state
       await setDoc(doc(db, 'twiwSubmissions', submission.id), {
+        state: submissionState,
         wins: wins.filter(w => w.customer.trim()),
         risks: risks.filter(r => r.account.trim()),
         updates: updates.trim(),
@@ -58,7 +66,15 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
         nextWeekSupport,
         updatedAt: serverTimestamp()
       }, { merge: true });
-      toast({ title: "Submission Updated", description: "The report has been successfully updated." });
+
+      // If user profile is linked, update user profile state so future submissions default to the correct state
+      if (submission.userId) {
+        await setDoc(doc(db, 'users', submission.userId), {
+          state: submissionState
+        }, { merge: true });
+      }
+
+      toast({ title: "Submission Updated", description: "The report and profile state have been successfully updated." });
       onOpenChange(false);
     } catch (e) {
       toast({ variant: "destructive", title: "Failed to update submission" });
@@ -97,6 +113,29 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
         </DialogHeader>
         <div className="space-y-6 py-4">
           
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <h3 className="text-xs font-black uppercase text-indigo-700 tracking-wider">State Assignment</h3>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-normal">
+              Assign the correct state/region for this submission and user profile. Changing this will update the collation tab and PDF reports.
+            </p>
+            <div className="flex items-center gap-3">
+              <Select value={submissionState} onValueChange={setSubmissionState}>
+                <SelectTrigger className="h-9 font-bold text-xs bg-white w-48 border-slate-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="QLD" className="font-bold">QLD</SelectItem>
+                  <SelectItem value="SA" className="font-bold">SA</SelectItem>
+                  <SelectItem value="WA" className="font-bold">WA</SelectItem>
+                  <SelectItem value="SME" className="font-bold">SME</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-[10px] font-bold text-slate-500 italic">
+                Current Assigned State: <Badge className="ml-1 bg-indigo-100 text-indigo-800 border-none uppercase text-[9px] font-black">{submission.state || 'WA'}</Badge>
+              </span>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <h3 className="text-sm font-bold uppercase">Key Wins</h3>
             <div className="space-y-2">
