@@ -84,6 +84,7 @@ interface ProjectedWin {
   account: string;
   value: number;
   expectedDate: string;
+  businessUnits?: string[];
   updateText: string;
   salespersonName: string;
   isHidden?: boolean;
@@ -487,6 +488,19 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
   const addMajorUpdateRow = () => setMajorUpdates([...majorUpdates, { id: crypto.randomUUID(), customer: '', value: 0, businessUnits: [], updateText: '', salespersonName: bdmName || 'Salesperson' }]);
   const removeMajorUpdateRow = (id: string) => setMajorUpdates(majorUpdates.filter(m => m.id !== id));
+  const toggleProjectedWinBU = (id: string, bu: string) => {
+    setProjectedWins(wins => wins.map(w => {
+      if (w.id === id) {
+        const currentBUs = w.businessUnits || [];
+        const newBUs = currentBUs.includes(bu) 
+          ? currentBUs.filter(b => b !== bu)
+          : [...currentBUs, bu];
+        return { ...w, businessUnits: newBUs };
+      }
+      return w;
+    }));
+  };
+
   const toggleMajorUpdateBU = (id: string, bu: string) => {
     setMajorUpdates(majorUpdates.map(m => {
       if (m.id !== id) return m;
@@ -935,7 +949,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     <div class="card-customer">${p.account}</div>
                     <div class="card-value">${formatEAV(p.value)}</div>
                     <div class="card-salesperson">${p.salespersonName || 'N/A'}</div>
-                    <div class="card-date font-bold">${p.expectedDate}</div>
+                    ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
                     ${p.updateText ? `<div class="card-text">${p.updateText}</div>` : ''}
                   </div>
                 `).join('') || '<div class="empty-text">No standouts</div>'}
@@ -1024,7 +1038,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                               <div class="item-customer">${p.account}</div>
                               <div class="item-value projected-text">${formatEAV(p.value)}</div>
                               <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
-                              <div class="item-desc">Expected: ${p.expectedDate}</div>
+                              ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
                               ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
                             </div>
                           `).join('') || '<div class="empty-text">-</div>'}
@@ -1045,6 +1059,295 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
               </table>
             </div>
           `).join('')}
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+      setIsExporting(false);
+    }, 500);
+  };
+
+  const handleExportCondensedPdf = () => {
+    setIsExporting(true);
+    
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    if (!printWindow) {
+      toast({ variant: "destructive", title: "Popup Blocked", description: "Please allow popups to export to PDF." });
+      setIsExporting(false);
+      return;
+    }
+
+    // Combine data across all states/regions
+    const allWins: any[] = [];
+    const allRisks: any[] = [];
+    const allUpdates: any[] = [];
+    const allProjected: any[] = [];
+    const allPriorities: any[] = [];
+
+    mappedSubmissions?.forEach((sub: any) => {
+      const state = sub.state || 'N/A';
+      const rep = sub.salespersonName || sub.userName || 'N/A';
+      
+      (sub.wins || []).filter((w: any) => !w.isHidden).forEach((w: any) => {
+        allWins.push({ ...w, state, rep });
+      });
+      (sub.risks || []).filter((r: any) => !r.isHidden).forEach((r: any) => {
+        allRisks.push({ ...r, state, rep });
+      });
+      if (sub.updates) {
+        allUpdates.push({ customer: 'General Update', value: 0, updateText: sub.updates, state, rep, businessUnits: [] });
+      }
+      (sub.majorUpdates || []).filter((m: any) => !m.isHidden).forEach((m: any) => {
+        allUpdates.push({ ...m, state, rep });
+      });
+      (sub.projectedWins || []).filter((p: any) => !p.isHidden).forEach((p: any) => {
+        allProjected.push({ ...p, state, rep });
+      });
+      (sub.priorities || []).filter((pr: any) => !pr.isHidden).forEach((pr: any) => {
+        allPriorities.push({ ...pr, state, rep });
+      });
+    });
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Condensed TWTW Export - Week ${selectedWeek.split('-')[1]}</title>
+          <style>
+            @page { size: landscape; margin: 6mm; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+              -webkit-print-color-adjust: exact; 
+              color-adjust: exact; 
+              color: #1e293b;
+              margin: 0;
+              padding: 0;
+              font-size: 7.5px;
+            }
+            .report-header {
+              text-align: center;
+              background-color: #0f172a;
+              color: white;
+              padding: 10px;
+              margin-bottom: 12px;
+              border-radius: 8px;
+            }
+            .report-header h1 {
+              margin: 0;
+              font-size: 14px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              font-weight: 900;
+            }
+            .report-header p {
+              margin: 2px 0 0 0;
+              font-size: 7.5px;
+              color: #94a3b8;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 1.5px;
+            }
+            .section-container {
+              page-break-inside: avoid;
+              margin-bottom: 15px;
+            }
+            .section-title {
+              font-size: 11px;
+              font-weight: 900;
+              text-transform: uppercase;
+              letter-spacing: -0.5px;
+              color: #0f172a;
+              border-bottom: 2px solid #3b82f6;
+              padding-bottom: 3px;
+              margin-top: 0;
+              margin-bottom: 6px;
+            }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 8px; table-layout: fixed; }
+            th, td { border: 1px solid #cbd5e1; padding: 4px; text-align: left; vertical-align: top; }
+            th { background-color: #1e293b; font-weight: 900; text-transform: uppercase; color: white; font-size: 7.5px; letter-spacing: 0.5px; }
+            td { line-height: 1.25; word-break: break-word; }
+            .badge {
+              display: inline-block;
+              font-size: 6.5px;
+              font-weight: 900;
+              padding: 1px 4px;
+              border-radius: 3px;
+              background-color: #f1f5f9;
+              border: 1px solid #cbd5e1;
+              color: #475569;
+              text-transform: uppercase;
+            }
+            .win-text { color: #166534; font-weight: 850; }
+            .risk-text { color: #9f1239; font-weight: 850; }
+            .update-text { color: #1e40af; font-weight: 850; }
+            .projected-text { color: #6b21a8; font-weight: 850; }
+            .empty-text {
+              color: #94a3b8;
+              font-style: italic;
+              text-align: center;
+              font-size: 7.5px;
+              padding: 6px 0;
+              border: 1px solid #cbd5e1;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="report-header">
+            <h1>TGE Parcel North - The Week That Was - Week ${selectedWeek.split('-')[1]}</h1>
+            <p>Consolidated Executive Weekly Briefing</p>
+          </div>
+
+          <!-- SECTION 1: KEY WINS -->
+          <div class="section-container">
+            <div class="section-title">Key Wins</div>
+            ${allWins.length === 0 ? '<div class="empty-text">No Key Wins recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 20%">Customer</th>
+                  <th style="width: 12%">Value</th>
+                  <th style="width: 15%">BU</th>
+                  <th style="width: 30%">Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allWins.map(w => `
+                  <tr>
+                    <td><span class="badge">${w.state}</span></td>
+                    <td><strong>${w.rep}</strong></td>
+                    <td><strong>${w.customer}</strong></td>
+                    <td class="win-text">${formatEAV(w.value)}</td>
+                    <td>${w.businessUnits && w.businessUnits.length > 0 ? w.businessUnits.join(', ') : '-'}</td>
+                    <td>${w.updateText || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 2: CHURN RISKS -->
+          <div class="section-container">
+            <div class="section-title">Churn Risks</div>
+            ${allRisks.length === 0 ? '<div class="empty-text">No Churn Risks recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 22%">Account</th>
+                  <th style="width: 15%">Value</th>
+                  <th style="width: 40%">Mitigation Plan</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allRisks.map(r => `
+                  <tr>
+                    <td><span class="badge">${r.state}</span></td>
+                    <td><strong>${r.rep}</strong></td>
+                    <td><strong>${r.account}</strong></td>
+                    <td class="risk-text">${formatEAV(r.value)}</td>
+                    <td>${r.mitigation || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 3: MAJOR UPDATES -->
+          <div class="section-container">
+            <div class="section-title">Major Updates</div>
+            ${allUpdates.length === 0 ? '<div class="empty-text">No Major Updates recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 20%">Customer</th>
+                  <th style="width: 12%">Value</th>
+                  <th style="width: 15%">BU</th>
+                  <th style="width: 30%">Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allUpdates.map(u => `
+                  <tr>
+                    <td><span class="badge">${u.state}</span></td>
+                    <td><strong>${u.rep}</strong></td>
+                    <td><strong>${u.customer}</strong></td>
+                    <td class="update-text">${u.value > 0 ? formatEAV(u.value) : '-'}</td>
+                    <td>${u.businessUnits && u.businessUnits.length > 0 ? u.businessUnits.join(', ') : '-'}</td>
+                    <td>${u.updateText || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 4: 30 DAY PROJECTED -->
+          <div class="section-container">
+            <div class="section-title">30 Day Projected Wins</div>
+            ${allProjected.length === 0 ? '<div class="empty-text">No Projected Wins recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 20%">Account</th>
+                  <th style="width: 12%">Value</th>
+                  <th style="width: 15%">BU</th>
+                  <th style="width: 30%">Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allProjected.map(p => `
+                  <tr>
+                    <td><span class="badge">${p.state}</span></td>
+                    <td><strong>${p.rep}</strong></td>
+                    <td><strong>${p.account}</strong></td>
+                    <td class="projected-text">${formatEAV(p.value)}</td>
+                    <td>${p.businessUnits && p.businessUnits.length > 0 ? p.businessUnits.join(', ') : '-'}</td>
+                    <td>${p.updateText || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 5: PRIORITIES -->
+          <div class="section-container">
+            <div class="section-title">Priorities</div>
+            ${allPriorities.length === 0 ? '<div class="empty-text">No Priorities recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 17%">Representative</th>
+                  <th style="width: 75%">Priority / Objective</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allPriorities.map(pr => `
+                  <tr>
+                    <td><span class="badge">${pr.state}</span></td>
+                    <td><strong>${pr.rep}</strong></td>
+                    <td>${pr.text || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
         </body>
       </html>
     `);
@@ -1747,7 +2050,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
             <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
               <div>
                 <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-500" /> 30 Day Projected Wins &gt;$200k
+                  <TrendingUp className="w-4 h-4 text-blue-500" /> 30 Day Projected Wins
                 </CardTitle>
                 <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   High-value closures expected within the next 30 days
@@ -1762,7 +2065,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                     <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
                       <th className="text-left pb-2 w-[30%]">Account / Cust</th>
                       <th className="text-right pb-2 w-[15%]">EAV ($)</th>
-                      <th className="text-left pb-2 pl-2 w-[15%]">Date</th>
+                      <th className="text-left pb-2 pl-2 w-[15%]">BU</th>
                       <th className="text-left pb-2 pl-2 w-[20%]">Update</th>
                       <th className="text-left pb-2 w-[15%]">Salesperson</th>
                       <th className="text-center pb-2 w-[5%]">Action</th>
@@ -1770,8 +2073,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {projectedWins.map((p) => {
-                      const dateParts = p.expectedDate ? p.expectedDate.split('-') : [];
-                      const selectedDate = dateParts.length === 3 ? new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])) : undefined;
                       return (
                       <tr key={p.id}>
                         <td className="py-2 pr-2">
@@ -1792,22 +2093,18 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                           />
                         </td>
                         <td className="py-2 pl-2 pr-2">
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className={cn("w-full h-8 px-2 text-left font-normal text-xs", !p.expectedDate && "text-muted-foreground")}>
-                                <CalendarIcon className="mr-2 h-3 w-3" />
-                                {p.expectedDate ? p.expectedDate : <span>Pick date</span>}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <CalendarUI
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={(d) => updateProjectedField(p.id, 'expectedDate', d ? format(d, 'dd-MM-yyyy') : '')}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
+                          <div className="flex flex-wrap gap-1">
+                            {BUSINESS_UNITS.map(bu => (
+                              <Badge 
+                                key={bu} 
+                                variant={(p.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                                className="cursor-pointer text-[9px] px-1 py-0"
+                                onClick={() => toggleProjectedWinBU(p.id, bu)}
+                              >
+                                {bu}
+                              </Badge>
+                            ))}
+                          </div>
                         </td>
                         <td className="py-2 pr-2">
                           <div className="relative">
@@ -1850,8 +2147,6 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
               {/* Mobile Stacked View */}
               <div className="block sm:hidden space-y-4">
                 {projectedWins.map((p, idx) => {
-                  const dateParts = p.expectedDate ? p.expectedDate.split('-') : [];
-                  const selectedDate = dateParts.length === 3 ? new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])) : undefined;
                   return (
                   <div key={p.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
                     <div className="flex justify-between items-center">
@@ -1881,23 +2176,20 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Date</label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className={cn("w-full h-8 px-2 text-left font-normal text-xs bg-white", !p.expectedDate && "text-muted-foreground")}>
-                              <CalendarIcon className="mr-2 h-3 w-3" />
-                              {p.expectedDate ? p.expectedDate : <span>Pick date</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <CalendarUI
-                              mode="single"
-                              selected={selectedDate}
-                              onSelect={(d) => updateProjectedField(p.id, 'expectedDate', d ? format(d, 'dd-MM-yyyy') : '')}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <label className="text-[9px] font-black uppercase text-slate-400">Business Unit</label>
+                        <div className="flex flex-wrap gap-1">
+                          {BUSINESS_UNITS.map(bu => (
+                            <Badge 
+                              key={bu} 
+                              variant={(p.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                              className="cursor-pointer text-[10px] px-2 py-0.5 bg-white shadow-sm hover:bg-slate-100 text-slate-600"
+                              style={(p.businessUnits || []).includes(bu) ? { backgroundColor: '#1e293b', color: 'white', borderColor: 'transparent' } : {}}
+                              onClick={() => toggleProjectedWinBU(p.id, bu)}
+                            >
+                              {bu}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -2137,14 +2429,24 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   Aggregated team performance data for executive reporting
                 </CardDescription>
               </div>
-              <Button 
-                onClick={handleExportPdf}
-                disabled={collatedSubmissionsCount === 0 || isExporting}
-                className="bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
-              >
-                {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
-                Export to Landscape PDF
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  onClick={handleExportPdf}
+                  disabled={collatedSubmissionsCount === 0 || isExporting}
+                  className="bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+                >
+                  {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
+                  Export to Landscape PDF
+                </Button>
+                <Button 
+                  onClick={handleExportCondensedPdf}
+                  disabled={collatedSubmissionsCount === 0 || isExporting}
+                  className="bg-primary hover:bg-primary/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+                >
+                  {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                  Export to Condensed PDF
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               <div className="p-6 space-y-12 max-h-[800px] overflow-y-auto">
@@ -2214,7 +2516,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                                       <div className="font-bold text-slate-800">{p.account}</div>
                                       <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
                                       <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
-                                      <div className="mt-1 text-slate-500">Expected: {p.expectedDate}</div>
+                                      {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {p.businessUnits.join(', ')}</div>}
                                       {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
                                     </>
                                   )))}
@@ -2338,7 +2640,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   <div className="font-bold text-slate-800">{p.account}</div>
                   <div className="text-purple-600 font-semibold">{formatEAV(p.value)}</div>
                   <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
-                  <div className="text-xs text-slate-600 mt-2 font-bold">{p.expectedDate}</div>
+                  {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
                   {p.updateText && <div className="text-xs text-slate-600 mt-1">{p.updateText}</div>}
                 </CardContent>
               </Card>

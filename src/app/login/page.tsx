@@ -271,6 +271,7 @@ export default function LoginPage() {
                         <SelectItem value="QLD">Queensland (QLD)</SelectItem>
                         <SelectItem value="SA">South Australia (SA)</SelectItem>
                         <SelectItem value="WA">Western Australia (WA)</SelectItem>
+                        <SelectItem value="SME">SME</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

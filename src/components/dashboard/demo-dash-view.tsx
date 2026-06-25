@@ -22,10 +22,24 @@ import {
   Sparkles, Beaker, Check, Plus, Trash2, Calendar, ClipboardCheck, 
   ArrowRight, Shield, Star, Users, Phone, Map, AlertTriangle, 
   LifeBuoy, TrendingUp, Info, HelpCircle, Save, Send, RefreshCw,
-  Target, Database, Calendar as CalendarIcon, EyeOff, Edit3, Award, ClipboardList, PieChart, DollarSign, FileText
+  Target, Database, Calendar as CalendarIcon, EyeOff, Edit3, Award, ClipboardList, PieChart, DollarSign, FileText, Loader2
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
+
+interface KPIReview {
+  callsTarget: number;
+  appointmentsTarget: number;
+  proposalsTarget: number;
+  dealsTarget: number;
+  revenueTarget: number;
+  callsActual: number;
+  appointmentsActual: number;
+  proposalsActual: number;
+  dealsActual: number;
+  revenueActual: number;
+  kpiNotes: string;
+}
 
 // Type definitions
 interface WinItem {
@@ -67,6 +81,7 @@ interface ProjectedWin {
   account: string;
   value: number;
   expectedDate: string;
+  businessUnits?: string[];
   updateText: string;
   salespersonName: string;
   isHidden?: boolean;
@@ -166,7 +181,7 @@ export function DemoDashView() {
         if (prevCommitSnap.exists()) {
           const prevData = prevCommitSnap.data();
           const kpiTargets = prevData.kpiTargets || {};
-          setKpiReview(prev => ({
+          setKpiReview((prev: KPIReview) => ({
             ...prev,
             callsTarget: kpiTargets.callsToMake || 0,
             appointmentsTarget: kpiTargets.appointmentsToSet || 0,
@@ -186,7 +201,7 @@ export function DemoDashView() {
         const prevProgressSnap = await getDoc(prevProgressRef);
         if (prevProgressSnap.exists()) {
           const progressData = prevProgressSnap.data();
-          setKpiReview(prev => ({
+          setKpiReview((prev: KPIReview) => ({
             ...prev,
             callsActual: progressData.calls || 0,
             appointmentsActual: progressData.apps || 0,
@@ -197,7 +212,7 @@ export function DemoDashView() {
         
         const prevPipelineSnap = await getDocs(query(collection(db, 'pipelineReviews'), where('userId', '==', activeUserId), where('week', '==', previousWeek)));
         const wonRevenue = prevPipelineSnap.docs.map(d => d.data()).filter(d => d.stage === 'Closed Won').reduce((sum, d) => sum + (Number(d.value) || 0), 0);
-        setKpiReview(prev => ({ ...prev, revenueActual: wonRevenue || 0 }));
+        setKpiReview((prev: KPIReview) => ({ ...prev, revenueActual: wonRevenue || 0 }));
       } catch (error) { console.error(error); }
     }
     loadPreviousFridayData();
@@ -205,7 +220,7 @@ export function DemoDashView() {
 
   const updateKPI = (field: keyof Omit<KPIReview, 'kpiNotes'>, value: number) => {
     if (!isRegisteredUser) return;
-    setKpiReview(prev => ({ ...prev, [field]: value }));
+    setKpiReview((prev: KPIReview) => ({ ...prev, [field]: value }));
   };
 
   const renderKPIReview = () => {
@@ -608,6 +623,19 @@ export function DemoDashView() {
     setMajorUpdates(majorUpdates.map(m => m.id === id ? { ...m, [field]: val } : m));
   };
 
+  const toggleProjectedWinBU = (id: string, bu: string) => {
+    setProjectedWins(wins => wins.map(w => {
+      if (w.id === id) {
+        const currentBUs = w.businessUnits || [];
+        const newBUs = currentBUs.includes(bu) 
+          ? currentBUs.filter(b => b !== bu)
+          : [...currentBUs, bu];
+        return { ...w, businessUnits: newBUs };
+      }
+      return w;
+    }));
+  };
+
   const addProjectedRow = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: '', salespersonName: activeUserName }]);
   const removeProjectedRow = (id: string) => setProjectedWins(projectedWins.filter(p => p.id !== id));
   const updateProjectedField = (id: string, field: keyof ProjectedWin, val: any) => {
@@ -888,6 +916,327 @@ export function DemoDashView() {
           ${contentClone.innerHTML}
           ${standoutsHtml}
           <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 7px; color: #94a3b8;">
+            Generated on ${new Date().toLocaleString()} • Confidential Management Report
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    
+  };
+
+  const handleExportCondensedPdf = () => {
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    if (!printWindow) {
+      toast({ 
+        variant: "destructive", 
+        title: "Popup Blocked", 
+        description: "Please allow popups to export to PDF." 
+      });
+      return;
+    }
+
+    // Get the current week for the title
+    const weekLabel = selectedWeek.split('-')[1];
+
+    // Combine data across all states/regions
+    const allWins: any[] = [];
+    const allRisks: any[] = [];
+    const allUpdates: any[] = [];
+    const allProjected: any[] = [];
+    const allPriorities: any[] = [];
+
+    Object.entries(submissionsByState).forEach(([state, subs]) => {
+      subs.forEach((sub: any) => {
+        const rep = sub.userName || sub.userId || 'N/A';
+        
+        (sub.wins || []).filter((w: any) => !w.isHidden).forEach((w: any) => {
+          allWins.push({ ...w, state, rep });
+        });
+        (sub.risks || []).filter((r: any) => !r.isHidden).forEach((r: any) => {
+          allRisks.push({ ...r, state, rep });
+        });
+        if (sub.updates) {
+          allUpdates.push({ customer: 'General Update', value: 0, updateText: sub.updates, state, rep, businessUnits: [] });
+        }
+        (sub.majorUpdates || []).filter((m: any) => !m.isHidden).forEach((m: any) => {
+          allUpdates.push({ ...m, state, rep });
+        });
+        (sub.projectedWins || []).filter((p: any) => !p.isHidden).forEach((p: any) => {
+          allProjected.push({ ...p, state, rep });
+        });
+        (sub.priorities || []).filter((pr: any) => !pr.isHidden).forEach((pr: any) => {
+          allPriorities.push({ ...pr, state, rep });
+        });
+      });
+    });
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Condensed TWTW Collation - Week ${weekLabel}</title>
+          <style>
+            @page { 
+              size: landscape; 
+              margin: 6mm; 
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+              color: #1e293b;
+              margin: 0;
+              padding: 10px;
+              font-size: 7.5px;
+              background: white;
+            }
+            .report-header {
+              text-align: center;
+              background-color: #0f172a;
+              color: white;
+              padding: 10px;
+              margin-bottom: 12px;
+              border-radius: 6px;
+            }
+            .report-header h1 {
+              margin: 0;
+              font-size: 14px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              font-weight: 900;
+            }
+            .report-header p {
+              margin: 2px 0 0 0;
+              font-size: 7.5px;
+              color: #94a3b8;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 1.5px;
+            }
+            .section-container {
+              page-break-inside: avoid;
+              margin-bottom: 15px;
+            }
+            .section-title {
+              font-size: 11px;
+              font-weight: 900;
+              text-transform: uppercase;
+              letter-spacing: -0.5px;
+              color: #0f172a;
+              border-bottom: 2px solid #3b82f6;
+              padding-bottom: 3px;
+              margin-top: 0;
+              margin-bottom: 6px;
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-bottom: 8px; 
+              table-layout: fixed;
+            }
+            th, td { 
+              border: 1px solid #cbd5e1; 
+              padding: 3px 4px; 
+              font-size: 7px; 
+              vertical-align: top; 
+              text-align: left; 
+              word-wrap: break-word; 
+              overflow-wrap: break-word;
+            }
+            th { 
+              background-color: #f1f5f9; 
+              font-weight: 800; 
+              text-transform: uppercase; 
+              font-size: 6.5px; 
+              letter-spacing: 0.5px; 
+              color: #475569;
+            }
+            .badge {
+              display: inline-block;
+              font-size: 6.5px;
+              font-weight: 900;
+              padding: 1px 4px;
+              border-radius: 3px;
+              background-color: #f1f5f9;
+              border: 1px solid #cbd5e1;
+              color: #475569;
+              text-transform: uppercase;
+            }
+            .win-text { color: #166534; font-weight: 850; }
+            .risk-text { color: #9f1239; font-weight: 850; }
+            .update-text { color: #1e40af; font-weight: 850; }
+            .projected-text { color: #6b21a8; font-weight: 850; }
+            .empty-text {
+              color: #94a3b8;
+              font-style: italic;
+              text-align: center;
+              font-size: 7px;
+              padding: 6px 0;
+              border: 1px solid #cbd5e1;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="report-header">
+            <h1>TGE Parcel North - The Week That Was</h1>
+            <p>Week ${weekLabel} • Consolidated Team Performance Report</p>
+          </div>
+
+          <!-- SECTION 1: KEY WINS -->
+          <div class="section-container">
+            <div class="section-title">Key Wins</div>
+            ${allWins.length === 0 ? '<div class="empty-text">No Key Wins recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 20%">Customer</th>
+                  <th style="width: 12%">Value</th>
+                  <th style="width: 15%">BU</th>
+                  <th style="width: 30%">Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allWins.map(w => `
+                  <tr>
+                    <td><span class="badge">${w.state}</span></td>
+                    <td><strong>${w.rep}</strong></td>
+                    <td><strong>${w.customer}</strong></td>
+                    <td class="win-text">${formatEAV(w.value)}</td>
+                    <td>${w.businessUnits && w.businessUnits.length > 0 ? w.businessUnits.join(', ') : '-'}</td>
+                    <td>${w.updateText || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 2: CHURN RISKS -->
+          <div class="section-container">
+            <div class="section-title">Churn Risks</div>
+            ${allRisks.length === 0 ? '<div class="empty-text">No Churn Risks recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 22%">Account</th>
+                  <th style="width: 15%">Value</th>
+                  <th style="width: 40%">Mitigation Plan</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allRisks.map(r => `
+                  <tr>
+                    <td><span class="badge">${r.state}</span></td>
+                    <td><strong>${r.rep}</strong></td>
+                    <td><strong>${r.account}</strong></td>
+                    <td class="risk-text">${formatEAV(r.value)}</td>
+                    <td>${r.mitigation || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 3: MAJOR UPDATES -->
+          <div class="section-container">
+            <div class="section-title">Major Updates</div>
+            ${allUpdates.length === 0 ? '<div class="empty-text">No Major Updates recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 20%">Customer</th>
+                  <th style="width: 12%">Value</th>
+                  <th style="width: 15%">BU</th>
+                  <th style="width: 30%">Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allUpdates.map(u => `
+                  <tr>
+                    <td><span class="badge">${u.state}</span></td>
+                    <td><strong>${u.rep}</strong></td>
+                    <td><strong>${u.customer}</strong></td>
+                    <td class="update-text">${u.value > 0 ? formatEAV(u.value) : '-'}</td>
+                    <td>${u.businessUnits && u.businessUnits.length > 0 ? u.businessUnits.join(', ') : '-'}</td>
+                    <td>${u.updateText || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 4: 30 DAY PROJECTED -->
+          <div class="section-container">
+            <div class="section-title">30 Day Projected Wins</div>
+            ${allProjected.length === 0 ? '<div class="empty-text">No Projected Wins recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 15%">Representative</th>
+                  <th style="width: 20%">Account</th>
+                  <th style="width: 12%">Value</th>
+                  <th style="width: 15%">BU</th>
+                  <th style="width: 30%">Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allProjected.map(p => `
+                  <tr>
+                    <td><span class="badge">${p.state}</span></td>
+                    <td><strong>${p.rep}</strong></td>
+                    <td><strong>${p.account}</strong></td>
+                    <td class="projected-text">${formatEAV(p.value)}</td>
+                    <td>${p.businessUnits && p.businessUnits.length > 0 ? p.businessUnits.join(', ') : '-'}</td>
+                    <td>${p.updateText || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <!-- SECTION 5: PRIORITIES -->
+          <div class="section-container">
+            <div class="section-title">Priorities</div>
+            ${allPriorities.length === 0 ? '<div class="empty-text">No Priorities recorded.</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 8%">State</th>
+                  <th style="width: 17%">Representative</th>
+                  <th style="width: 75%">Priority / Objective</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allPriorities.map(pr => `
+                  <tr>
+                    <td><span class="badge">${pr.state}</span></td>
+                    <td><strong>${pr.rep}</strong></td>
+                    <td>${pr.text || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            `}
+          </div>
+
+          <div style="margin-top: 15px; padding-top: 6px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 6px; color: #94a3b8;">
             Generated on ${new Date().toLocaleString()} • Confidential Management Report
           </div>
           <script>
@@ -1196,7 +1545,6 @@ export function DemoDashView() {
               userRole={profile?.role || 'BDM'}
               userState={profile?.state || 'WA'}
               selectedWeek={selectedWeek}
-              isRegisteredUser={isRegisteredUser}
             />
           )}
         </TabsContent>
@@ -1532,7 +1880,7 @@ export function DemoDashView() {
                   <Card className="border shadow-md">
                     <CardHeader className="bg-slate-50 border-b py-4">
                       <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-blue-500" /> 30 Day Projected Wins &gt;$200k
+                        <TrendingUp className="w-4 h-4 text-blue-500" /> 30 Day Projected Wins
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 space-y-4">
@@ -1542,7 +1890,7 @@ export function DemoDashView() {
                             <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
                               <th className="text-left pb-2 w-[30%]">Account / Cust</th>
                               <th className="text-right pb-2 w-[15%]">EAV ($)</th>
-                              <th className="text-left pb-2 pl-2 w-[15%]">Date</th>
+                              <th className="text-left pb-2 pl-2 w-[15%]">BU</th>
                               <th className="text-left pb-2 pl-2 w-[20%]">Update</th>
                               <th className="text-left pb-2 w-[15%]">Salesperson</th>
                               <th className="text-center pb-2 w-[5%]">Action</th>
@@ -1550,8 +1898,6 @@ export function DemoDashView() {
                           </thead>
                           <tbody className="divide-y divide-slate-50">
                             {projectedWins.map((p) => {
-                              const dateParts = p.expectedDate ? p.expectedDate.split('-') : [];
-                              const selectedDate = dateParts.length === 3 ? new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])) : undefined;
                               return (
                                 <tr key={p.id}>
                                   <td className="py-2 pr-2">
@@ -1572,22 +1918,18 @@ export function DemoDashView() {
                                     />
                                   </td>
                                   <td className="py-2 pl-2 pr-2">
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <Button variant="outline" className={cn("w-full h-8 px-2 text-left font-normal text-xs", !p.expectedDate && "text-muted-foreground")}>
-                                          <CalendarIcon className="mr-2 h-3 w-3" />
-                                          {p.expectedDate ? p.expectedDate : <span>Pick date</span>}
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0" align="start">
-                                        <CalendarUI
-                                          mode="single"
-                                          selected={selectedDate}
-                                          onSelect={(d) => updateProjectedField(p.id, 'expectedDate', d ? format(d, 'dd-MM-yyyy') : '')}
-                                          initialFocus
-                                        />
-                                      </PopoverContent>
-                                    </Popover>
+                                    <div className="flex flex-wrap gap-1">
+                                      {BUSINESS_UNITS.map(bu => (
+                                        <Badge 
+                                          key={bu} 
+                                          variant={(p.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                                          className="cursor-pointer text-[9px] px-1 py-0"
+                                          onClick={() => toggleProjectedWinBU(p.id, bu)}
+                                        >
+                                          {bu}
+                                        </Badge>
+                                      ))}
+                                    </div>
                                   </td>
                                   <td className="py-2 pr-2">
                                     <div className="relative">
@@ -1922,12 +2264,20 @@ export function DemoDashView() {
                   How executive reports look with combined registered data vs guest data
                 </CardDescription>
               </div>
-              <Button 
-                onClick={handleExportPdf}
-                className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
-              >
-                <ClipboardCheck className="w-4 h-4" /> Export to Landscape PDF
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  onClick={handleExportPdf}
+                  className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                >
+                  <ClipboardCheck className="w-4 h-4" /> Export to Landscape PDF
+                </Button>
+                <Button 
+                  onClick={handleExportCondensedPdf}
+                  className="bg-primary hover:bg-primary/90 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                >
+                  <FileText className="w-4 h-4" /> Export to Condensed PDF
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0 flex flex-col md:flex-row h-[800px]">
               {/* Sidebar for Submitted Users */}
@@ -2044,7 +2394,7 @@ export function DemoDashView() {
                                       <div className="font-bold text-slate-800">{p.account}</div>
                                       <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
                                       <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
-                                      <div className="mt-1 text-slate-500">Expected: {p.expectedDate}</div>
+                                      {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {p.businessUnits.join(', ')}</div>}
                                       {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
                                     </>
                                   )))}
