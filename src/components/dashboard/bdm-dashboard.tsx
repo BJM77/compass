@@ -12,7 +12,7 @@ import { SmartGoalsView } from './smart-goals-view';
 import { PipelineReviewTable } from './pipeline-review-table';
 import { CallPlanning } from './call-planning';
 import { BehaviorAlerts } from './behavior-alerts';
-import { BDMWeeklySubmission } from './bdm-weekly-submission';
+import { FridayPerformanceReview } from './friday-performance-review';
 import { VoiceActionLogger } from './voice-action-logger';
 import { HistoricalActivity } from './historical-activity';
 import { AIDealWhisperer } from './ai-deal-whisperer';
@@ -479,7 +479,15 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
           </div>
         );
       case 'friday-synthesis':
-        return <BDMWeeklySubmission userId={userId || ''} userName={profile?.name || 'BDM'} />;
+        return (
+          <FridayPerformanceReview 
+            userId={userId || ''}
+            userName={profile?.name || 'BDM'}
+            userRole={profile?.role || 'BDM'}
+            userState={profile?.state || 'WA'}
+            selectedWeek={currentWeek}
+          />
+        );
       case 'twiw':
         return <TWIWView userId={userId || ''} isLeader={false} />;
       case 'call-prep':

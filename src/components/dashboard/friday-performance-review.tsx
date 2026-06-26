@@ -758,6 +758,27 @@ export function FridayPerformanceReview({
               className="min-h-[60px] text-xs font-medium rounded-xl"
             />
           </div>
+
+          {/* Bottom Save & Submit Buttons */}
+          <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center gap-4 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={handleSaveDraft} 
+              disabled={isSaving || isSubmitting} 
+              className="font-black h-12 px-6 rounded-xl shadow-sm gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs w-full sm:w-auto"
+            >
+              {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+              Save Draft
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting || isSaving} 
+              className="bg-accent hover:bg-accent/90 text-white font-black h-12 px-8 rounded-xl shadow-lg gap-2 text-xs w-full sm:w-auto"
+            >
+              {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : <Send className="w-4 h-4" />}
+              Submit Friday Pack
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
