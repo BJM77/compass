@@ -908,6 +908,7 @@ export function DemoDashView() {
                         <span class="card-badge">${w.state}</span>
                         <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
                         <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
+                        ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
                         ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
@@ -1369,6 +1370,7 @@ export function DemoDashView() {
                       <span class="card-badge">${w.state}</span>
                       <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
                       <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
+                      ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
                       ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
@@ -1399,6 +1401,7 @@ export function DemoDashView() {
                       <span class="card-badge">${p.state}</span>
                       <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
                       <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
+                      ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
                       ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
@@ -3044,6 +3047,7 @@ export function DemoDashView() {
                           <div className="font-bold text-slate-800 leading-snug">{w.customer}</div>
                           <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
                           <div className="text-[10px] text-slate-500">{w.salespersonName || 'N/A'}</div>
+                          {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
                           {w.updateText && <div className="text-xs text-slate-600 mt-2">{w.updateText}</div>}
                         </CardContent>
                       </Card>
