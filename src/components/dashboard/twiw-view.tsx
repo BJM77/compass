@@ -2762,75 +2762,77 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           </Card>
 
           {/* Strategy Document Compliance Check */}
-          <Card className="border-slate-200 shadow-lg rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50 border-b border-slate-200 py-4">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" /> Weekly Compliance Audit
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 space-y-6">
-              {/* Call Plans */}
-              <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
-                {cpPlans && cpPlans.length > 0 ? (
-                  <div className="space-y-2">
-                    {cpPlans.map((cp: any, idx: number) => {
-                      const dt = cp.createdAt?.toDate ? cp.createdAt.toDate() : (cp.createdAt ? new Date(cp.createdAt) : null);
-                      const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
-                      return (
-                        <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
-                          <span className="text-xs font-bold text-slate-700">{cp.accountName || cp.dealName || 'Unnamed Plan'}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Call Plans Created</p>
-                )}
-              </div>
+          {profile?.role !== 'GUEST' && (
+            <Card className="border-slate-200 shadow-lg rounded-3xl overflow-hidden bg-white">
+              <CardHeader className="bg-slate-50 border-b border-slate-200 py-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> Weekly Compliance Audit
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-5 space-y-6">
+                {/* Call Plans */}
+                <div className="space-y-2">
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
+                  {cpPlans && cpPlans.length > 0 ? (
+                    <div className="space-y-2">
+                      {cpPlans.map((cp: any, idx: number) => {
+                        const dt = cp.createdAt?.toDate ? cp.createdAt.toDate() : (cp.createdAt ? new Date(cp.createdAt) : null);
+                        const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        return (
+                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-slate-700">{cp.accountName || cp.dealName || 'Unnamed Plan'}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Call Plans Created</p>
+                  )}
+                </div>
 
-              {/* White Space */}
-              <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🗺️ White Space Reports</h5>
-                {wsPlans && wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).length > 0 ? (
-                  <div className="space-y-2">
-                    {wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).map((ws: any, idx: number) => {
-                      const dt = ws.createdAt?.toDate ? ws.createdAt.toDate() : (ws.createdAt ? new Date(ws.createdAt) : null);
-                      const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
-                      return (
-                        <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
-                          <span className="text-xs font-bold text-slate-700">{ws.accountName || 'Unnamed Diagnostic'}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No White Space Reports Created</p>
-                )}
-              </div>
+                {/* White Space */}
+                <div className="space-y-2">
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🗺️ White Space Reports</h5>
+                  {wsPlans && wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).length > 0 ? (
+                    <div className="space-y-2">
+                      {wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).map((ws: any, idx: number) => {
+                        const dt = ws.createdAt?.toDate ? ws.createdAt.toDate() : (ws.createdAt ? new Date(ws.createdAt) : null);
+                        const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        return (
+                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-slate-700">{ws.accountName || 'Unnamed Diagnostic'}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No White Space Reports Created</p>
+                  )}
+                </div>
 
-              {/* Ops Reports */}
-              <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
-                {opsReps && opsReps.length > 0 ? (
-                  <div className="space-y-2">
-                    {opsReps.map((ops: any, idx: number) => {
-                      const dt = ops.createdAt?.toDate ? ops.createdAt.toDate() : (ops.createdAt ? new Date(ops.createdAt) : null);
-                      const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
-                      return (
-                        <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
-                          <span className="text-xs font-bold text-slate-700">{ops.customerName || 'Ops Issue'}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
+                {/* Ops Reports */}
+                <div className="space-y-2">
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
+                  {opsReps && opsReps.length > 0 ? (
+                    <div className="space-y-2">
+                      {opsReps.map((ops: any, idx: number) => {
+                        const dt = ops.createdAt?.toDate ? ops.createdAt.toDate() : (ops.createdAt ? new Date(ops.createdAt) : null);
+                        const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        return (
+                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-slate-700">{ops.customerName || 'Ops Issue'}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Submission Panel */}
           <Card className="border-slate-200 shadow-lg rounded-3xl overflow-hidden bg-slate-900 text-white">
