@@ -256,13 +256,6 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
         />
       </div>
 
-      <div className="w-full flex justify-center py-4">
-        <img 
-          src="/network-map.png" 
-          alt="Team Global Express Parcel Network Western Australia" 
-          className="w-[60%] rounded-xl shadow-lg border"
-        />
-      </div>
 
       <Tabs defaultValue="dashboard" className="w-full space-y-6">
         <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 flex overflow-x-auto scrollbar-hide max-w-full">

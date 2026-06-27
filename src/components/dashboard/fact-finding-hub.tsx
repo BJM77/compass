@@ -116,6 +116,19 @@ export function FactFindingHub() {
           ))}
         </div>
       )}
+
+      {/* Network Map Segment */}
+      <div className="w-full flex flex-col items-center justify-center py-8 bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm gap-4">
+        <div className="text-center space-y-1">
+          <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Team Global Express Network Map</h3>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Western Australia logistics coverage and transit hub registry</p>
+        </div>
+        <img 
+          src="/network-map.png" 
+          alt="Team Global Express Parcel Network Western Australia" 
+          className="w-full max-w-4xl rounded-2xl shadow-md border"
+        />
+      </div>
     </div>
   );
 }

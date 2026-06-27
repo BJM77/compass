@@ -58,11 +58,11 @@ const NAV_ITEMS = [
   { view: 'DEMO_DASH' as DashboardView,         label: 'Friday FW',         icon: ClipboardList,    adminOnly: false, group: 'main' },
   { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
   { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
+  { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
   { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
   
   // Admin Menu / Submenu Items
   { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'admin' },
-  { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'admin' },
   { view: 'OPS_REVIEW' as DashboardView,        label: 'Ops Review Ledger', icon: Shield,           adminOnly: true,  group: 'admin' },
   { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true,  group: 'admin' },
   { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false, group: 'admin' },
