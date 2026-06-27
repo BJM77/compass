@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
-  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield
+  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { jsPDF } from 'jspdf';
@@ -226,6 +226,70 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [editingSubmission, setEditingSubmission] = useState<any>(null);
+
+  // --- ISO Week Calculation Helper ---
+  const getWeekKey = (date: Date): string => {
+    const d = new Date(date.getTime());
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return `${d.getFullYear()}-${String(weekNo).padStart(2, '0')}`;
+  };
+
+  const isCreatedThisWeek = (createdAt: any) => {
+    if (!createdAt) return false;
+    let d: Date;
+    if (typeof createdAt.toDate === 'function') {
+      d = createdAt.toDate();
+    } else if (createdAt instanceof Date) {
+      d = createdAt;
+    } else {
+      d = new Date(createdAt);
+    }
+    return getWeekKey(d) === selectedWeek;
+  };
+
+  // --- CRM & Compliance Document Queries ---
+  // Call Plans Query
+  const cpQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'callPlans'), where('userId', '==', userId), where('week', '==', selectedWeek));
+  }, [db, userId, selectedWeek]);
+  const { data: cpPlans } = useCollection(cpQuery);
+
+  // Whitespace Plans Query
+  const wsQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'whitespacePlans'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: wsPlans } = useCollection(wsQuery);
+
+  // Ops Reports Query
+  const opsReportsQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'opsReports'), where('userId', '==', userId), where('week', '==', selectedWeek));
+  }, [db, userId, selectedWeek]);
+  const { data: opsReps } = useCollection(opsReportsQuery);
+
+  // Leader / GM compliance audit (fetch everyone's docs for this week)
+  const allCallPlansQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    return query(collection(db, 'callPlans'), where('week', '==', selectedWeek));
+  }, [db, isLeader, selectedWeek]);
+  const { data: allCallPlans } = useCollection(allCallPlansQuery);
+
+  const allWhitespaceQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    return collection(db, 'whitespacePlans');
+  }, [db, isLeader]);
+  const { data: allWhitespacePlans } = useCollection(allWhitespaceQuery);
+
+  const allOpsReportsQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    return query(collection(db, 'opsReports'), where('week', '==', selectedWeek));
+  }, [db, isLeader, selectedWeek]);
+  const { data: allOpsReports } = useCollection(allOpsReportsQuery);
 
   // Sourced Team Profiles (for Collation)
   const usersQuery = useMemoFirebase(() => {
@@ -2697,6 +2761,77 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
             </CardContent>
           </Card>
 
+          {/* Strategy Document Compliance Check */}
+          <Card className="border-slate-200 shadow-lg rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="bg-slate-50 border-b border-slate-200 py-4">
+              <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" /> Weekly Compliance Audit
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-6">
+              {/* Call Plans */}
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
+                {cpPlans && cpPlans.length > 0 ? (
+                  <div className="space-y-2">
+                    {cpPlans.map((cp: any, idx: number) => {
+                      const dt = cp.createdAt?.toDate ? cp.createdAt.toDate() : (cp.createdAt ? new Date(cp.createdAt) : null);
+                      const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                      return (
+                        <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
+                          <span className="text-xs font-bold text-slate-700">{cp.accountName || cp.dealName || 'Unnamed Plan'}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Call Plans Created</p>
+                )}
+              </div>
+
+              {/* White Space */}
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🗺️ White Space Reports</h5>
+                {wsPlans && wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).length > 0 ? (
+                  <div className="space-y-2">
+                    {wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).map((ws: any, idx: number) => {
+                      const dt = ws.createdAt?.toDate ? ws.createdAt.toDate() : (ws.createdAt ? new Date(ws.createdAt) : null);
+                      const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                      return (
+                        <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
+                          <span className="text-xs font-bold text-slate-700">{ws.accountName || 'Unnamed Diagnostic'}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No White Space Reports Created</p>
+                )}
+              </div>
+
+              {/* Ops Reports */}
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
+                {opsReps && opsReps.length > 0 ? (
+                  <div className="space-y-2">
+                    {opsReps.map((ops: any, idx: number) => {
+                      const dt = ops.createdAt?.toDate ? ops.createdAt.toDate() : (ops.createdAt ? new Date(ops.createdAt) : null);
+                      const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                      return (
+                        <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
+                          <span className="text-xs font-bold text-slate-700">{ops.customerName || 'Ops Issue'}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Submission Panel */}
           <Card className="border-slate-200 shadow-lg rounded-3xl overflow-hidden bg-slate-900 text-white">
             <CardHeader className="border-b border-slate-800 py-4">
@@ -2901,76 +3036,139 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                         <table className="w-full text-xs text-left">
                           <thead className="bg-slate-50 border-b border-slate-200">
                             <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
-                              <th className="p-3 w-[20%]">Key Wins</th>
-                              <th className="p-3 w-[20%]">Churn Risk</th>
-                              <th className="p-3 w-[20%]">Major Updates</th>
-                              <th className="p-3 w-[20%]">30 Day Projected</th>
-                              <th className="p-3 w-[20%]">Priorities</th>
+                              <th className="p-3 w-[16%]">Key Wins</th>
+                              <th className="p-3 w-[16%]">Churn Risk</th>
+                              <th className="p-3 w-[16%]">Major Updates</th>
+                              <th className="p-3 w-[16%]">30 Day Projected</th>
+                              <th className="p-3 w-[16%]">Priorities</th>
+                              <th className="p-3 w-[20%]">Governance Verification</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 bg-white">
-                            {subs.map((sub, idx) => (
-                              <tr key={idx} className="align-top relative group">
-                                <td className="p-3 text-slate-600">
-                                  {(sub.wins || []).map((w: any) => renderItem(w, 'wins', sub.id, (
-                                    <>
-                                      <div className="font-bold text-slate-800">{w.customer}</div>
-                                      <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{w.salespersonName || 'N/A'}</div>
-                                      {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {w.businessUnits.join(', ')}</div>}
-                                      {w.updateText && <div className="mt-1">{w.updateText}</div>}
-                                    </>
-                                  )))}
-                                </td>
-                                <td className="p-3 text-slate-600">
-                                  {(sub.risks || []).map((r: any) => renderItem(r, 'risks', sub.id, (
-                                    <>
-                                      <div className="font-bold text-slate-800">{r.account}</div>
-                                      <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{r.salespersonName || 'N/A'}</div>
-                                      <div className="mt-1 text-slate-500">Mitigation: {r.mitigation}</div>
-                                    </>
-                                  )))}
-                                </td>
-                                <td className="p-3 text-slate-600">
-                                  {sub.updates && (
-                                    <div className="p-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
-                                  )}
-                                  {(sub.majorUpdates || []).map((m: any) => renderItem(m, 'majorUpdates', sub.id, (
-                                    <>
-                                      <div className="font-bold text-slate-800">{m.customer}</div>
-                                      {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
-                                      <div className="text-[10px] text-slate-500 mt-1">{m.salespersonName || 'N/A'}</div>
-                                      {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {m.businessUnits.join(', ')}</div>}
-                                      {m.updateText && <div className="mt-1">{m.updateText}</div>}
-                                    </>
-                                  )))}
-                                </td>
-                                <td className="p-3 text-slate-600">
-                                  {(sub.projectedWins || []).map((p: any) => renderItem(p, 'projectedWins', sub.id, (
-                                    <>
-                                      <div className="font-bold text-slate-800">{p.account}</div>
-                                      <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
-                                      {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {p.businessUnits.join(', ')}</div>}
-                                      {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
-                                    </>
-                                  )))}
-                                </td>
-                                <td className="p-3 text-slate-600">
-                                  {(sub.priorities || []).map((p: any) => renderItem(p, 'priorities', sub.id, (
-                                    <>
-                                      <div>{p.text}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
-                                    </>
-                                  )))}
-                                  <div className="mt-4 flex gap-2">
-                                    <Button size="sm" variant="outline" className="w-full text-[10px] uppercase font-black" onClick={() => handleEditSubmission(sub)}><Edit3 className="w-3.5 h-3.5 mr-1" /> Edit</Button>
-                                    <Button size="sm" variant="destructive" className="w-full text-[10px] uppercase font-black" onClick={() => handleDeleteSubmission(sub.id)}><Trash2 className="w-3.5 h-3.5 mr-1" /> Delete</Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
+                            {subs.map((sub, idx) => {
+                              const subCP = allCallPlans?.filter((cp: any) => cp.userId === sub.userId) || [];
+                              const subWS = allWhitespacePlans?.filter((ws: any) => ws.userId === sub.userId && isCreatedThisWeek(ws.createdAt)) || [];
+                              const subOps = allOpsReports?.filter((ops: any) => ops.userId === sub.userId) || [];
+
+                              return (
+                                <tr key={idx} className="align-top relative group">
+                                  <td className="p-3 text-slate-600">
+                                    {(sub.wins || []).map((w: any) => renderItem(w, 'wins', sub.id, (
+                                      <>
+                                        <div className="font-bold text-slate-800">{w.customer}</div>
+                                        <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
+                                        <div className="text-[10px] text-slate-500 mt-1">{w.salespersonName || 'N/A'}</div>
+                                        {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {w.businessUnits.join(', ')}</div>}
+                                        {w.updateText && <div className="mt-1">{w.updateText}</div>}
+                                      </>
+                                    )))}
+                                  </td>
+                                  <td className="p-3 text-slate-600">
+                                    {(sub.risks || []).map((r: any) => renderItem(r, 'risks', sub.id, (
+                                      <>
+                                        <div className="font-bold text-slate-800">{r.account}</div>
+                                        <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
+                                        <div className="text-[10px] text-slate-500 mt-1">{r.salespersonName || 'N/A'}</div>
+                                        <div className="mt-1 text-slate-500">Mitigation: {r.mitigation}</div>
+                                      </>
+                                    )))}
+                                  </td>
+                                  <td className="p-3 text-slate-600">
+                                    {sub.updates && (
+                                      <div className="p-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
+                                    )}
+                                    {(sub.majorUpdates || []).map((m: any) => renderItem(m, 'majorUpdates', sub.id, (
+                                      <>
+                                        <div className="font-bold text-slate-800">{m.customer}</div>
+                                        {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
+                                        <div className="text-[10px] text-slate-500 mt-1">{m.salespersonName || 'N/A'}</div>
+                                        {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {m.businessUnits.join(', ')}</div>}
+                                        {m.updateText && <div className="mt-1">{m.updateText}</div>}
+                                      </>
+                                    )))}
+                                  </td>
+                                  <td className="p-3 text-slate-600">
+                                    {(sub.projectedWins || []).map((p: any) => renderItem(p, 'projectedWins', sub.id, (
+                                      <>
+                                        <div className="font-bold text-slate-800">{p.account}</div>
+                                        <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
+                                        <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                        {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {p.businessUnits.join(', ')}</div>}
+                                        {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
+                                      </>
+                                    )))}
+                                  </td>
+                                  <td className="p-3 text-slate-600">
+                                    {(sub.priorities || []).map((p: any) => renderItem(p, 'priorities', sub.id, (
+                                      <>
+                                        <div>{p.text}</div>
+                                        <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                      </>
+                                    )))}
+                                    <div className="mt-4 flex gap-2">
+                                      <Button size="sm" variant="outline" className="w-full text-[10px] uppercase font-black" onClick={() => handleEditSubmission(sub)}><Edit3 className="w-3.5 h-3.5 mr-1" /> Edit</Button>
+                                      <Button size="sm" variant="destructive" className="w-full text-[10px] uppercase font-black" onClick={() => handleDeleteSubmission(sub.id)}><Trash2 className="w-3.5 h-3.5 mr-1" /> Delete</Button>
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-slate-600 space-y-3 bg-slate-50/50">
+                                    {/* Call Plans */}
+                                    <div className="space-y-1">
+                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">📞 Call Plans</div>
+                                      {subCP.length > 0 ? (
+                                        subCP.map((cp: any, i: number) => {
+                                          const dt = cp.createdAt?.toDate ? cp.createdAt.toDate() : (cp.createdAt ? new Date(cp.createdAt) : null);
+                                          const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                                          return (
+                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                              <span className="font-bold truncate">{cp.accountName || cp.dealName}</span>
+                                              <span className="text-[8px] text-slate-400">Created: {timeStr}</span>
+                                            </div>
+                                          );
+                                        })
+                                      ) : (
+                                        <span className="text-[10px] font-black text-red-600 bg-red-50 p-2 rounded-xl border border-red-100 block">No Call Plans Created</span>
+                                      )}
+                                    </div>
+
+                                    {/* Whitespace */}
+                                    <div className="space-y-1">
+                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">🗺️ Whitespace</div>
+                                      {subWS.length > 0 ? (
+                                        subWS.map((ws: any, i: number) => {
+                                          const dt = ws.createdAt?.toDate ? ws.createdAt.toDate() : (ws.createdAt ? new Date(ws.createdAt) : null);
+                                          const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                                          return (
+                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                              <span className="font-bold truncate">{ws.accountName}</span>
+                                              <span className="text-[8px] text-slate-400">Created: {timeStr}</span>
+                                            </div>
+                                          );
+                                        })
+                                      ) : (
+                                        <span className="text-[10px] font-black text-red-600 bg-red-50 p-2 rounded-xl border border-red-100 block">No White Space Reports Created</span>
+                                      )}
+                                    </div>
+
+                                    {/* Ops Reports */}
+                                    <div className="space-y-1">
+                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">⚠️ Ops Reports</div>
+                                      {subOps.length > 0 ? (
+                                        subOps.map((ops: any, i: number) => {
+                                          const dt = ops.createdAt?.toDate ? ops.createdAt.toDate() : (ops.createdAt ? new Date(ops.createdAt) : null);
+                                          const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                                          return (
+                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                              <span className="font-bold truncate">{ops.customerName}</span>
+                                              <span className="text-[8px] text-slate-400">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
+                                            </div>
+                                          );
+                                        })
+                                      ) : null}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
