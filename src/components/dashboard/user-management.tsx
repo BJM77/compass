@@ -24,7 +24,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users, isLoading } = useCollection(usersQuery);
 
-  const [formData, setFormData] = useState({ id: '', name: '', email: '', role: 'BDM', territory: 'FLEX', target: '2500000' });
+  const [formData, setFormData] = useState({ id: '', name: '', email: '', role: 'BDM', territory: 'FLEX', state: 'WA', target: '2500000' });
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -40,20 +40,21 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
           name: formData.name, 
           email: formData.email,
           territory: formData.territory, 
+          state: formData.state,
           role: formData.role, 
           target, 
           updatedAt: serverTimestamp() 
         }, { merge: true });
       }
       toast({ title: "Node Provisioned" });
-      setFormData({ id: '', name: '', email: '', role: 'BDM', territory: 'FLEX', target: '2500000' });
+      setFormData({ id: '', name: '', email: '', role: 'BDM', territory: 'FLEX', state: 'WA', target: '2500000' });
     } catch (e) {
       toast({ variant: "destructive", title: "Save Failed" });
     } finally { setIsSaving(false); }
   };
 
   const handleEdit = (u: any) => {
-    setFormData({ id: u.id, name: u.name, email: u.email || '', role: u.role, territory: u.territory || 'FLEX', target: u.target?.toString() || '2500000' });
+    setFormData({ id: u.id, name: u.name, email: u.email || '', role: u.role, territory: u.territory || 'FLEX', state: u.state || 'WA', target: u.target?.toString() || '2500000' });
   };
 
   const handleRemove = async (u: any) => {
@@ -77,9 +78,10 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                   <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Firebase UID</Label><Input value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} required /></div>
                   <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Full Name</Label><Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required /></div>
                   <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Email</Label><Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required /></div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Role</Label><Select value={formData.role} onValueChange={v => setFormData({...formData, role: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="BDM">BDM</SelectItem><SelectItem value="ACCOUNT_MANAGER">AM</SelectItem><SelectItem value="LEADER">Leader</SelectItem><SelectItem value="GM">GM</SelectItem></SelectContent></Select></div>
                     <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Territory</Label><Select value={formData.territory} onValueChange={v => setFormData({...formData, territory: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="METRO_NORTH">North</SelectItem><SelectItem value="METRO_SOUTH">South</SelectItem><SelectItem value="WESTERN_TRADE_COAST">Trade Coast</SelectItem><SelectItem value="REGIONAL">Regional</SelectItem><SelectItem value="FLEX">Flex</SelectItem></SelectContent></Select></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">State</Label><Select value={formData.state} onValueChange={v => setFormData({...formData, state: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="WA">WA</SelectItem><SelectItem value="NSW">NSW</SelectItem><SelectItem value="QLD">QLD</SelectItem><SelectItem value="VIC">VIC</SelectItem><SelectItem value="SA">SA</SelectItem><SelectItem value="TAS">TAS</SelectItem></SelectContent></Select></div>
                   </div>
                   <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Target</Label><Input type="number" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} required /></div>
                 </div>
@@ -100,7 +102,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                     <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
                     <div>
                       <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-[9px] uppercase ml-2">{u.role}</Badge></div>
-                      <div className="text-[10px] text-muted-foreground font-black uppercase mt-1"><Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} • Target: ${(Number(u.target) || 0).toLocaleString()}</div>
+                      <div className="text-[10px] text-muted-foreground font-black uppercase mt-1"><Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} ({u.state || 'WA'}) • Target: ${(Number(u.target) || 0).toLocaleString()}</div>
                     </div>
                   </div>
                   <div className="flex gap-1">
