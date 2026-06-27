@@ -12,10 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   Archive, ChevronDown, ChevronRight, Target, Send, Phone,
   CalendarCheck, FileText, Award, TrendingUp, MessageSquare,
-  Loader2, AlertTriangle, LifeBuoy, Briefcase, Users, Clock
+  Loader2, AlertTriangle, LifeBuoy, Briefcase, Users, Clock, Mail
 } from 'lucide-react';
 import { format, startOfWeek, subWeeks, addDays } from 'date-fns';
-import { getCurrentWeek, getWeekForDate } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 // ─── Generate last N weeks as selectable options ──────────────────────────────
 function generateWeekOptions(count: number) {
@@ -38,18 +39,23 @@ function generateWeekOptions(count: number) {
 interface ArchivedWeek {
   userId: string;
   userName: string;
-  // Monday Planning
-  mondayStatus: string;
+  // TWTW
+  twtwStatus: string;
+  twtwSubmittedAt: any;
+  twtwWins: any[];
+  twtwRisks: any[];
+  twtwMajorUpdates: string;
+  twtwProjectedWins: any[];
+  twtwPriorities: string[];
+  // Friday FW
+  fridayStatus: string;
+  fridaySubmittedAt: any;
   focusAccounts: any[];
   kpiTargets: any;
   actionPlan: string[];
   roadblocks: string;
   supportNeeded: string;
-  // Friday Synthesis
-  fridayStatus: string;
-  weeklyNotes: string;
-  summary: any;
-  stillWorkingAccounts: any[];
+  strategicFocus: string;
   gmFeedback: string;
   // Activity
   calls: number;
@@ -58,20 +64,13 @@ interface ArchivedWeek {
   crmApps?: number;
   proposals: number;
   deals: number;
-  // Opportunities / Wins / New Business
-  opportunities: any[];
-  signedPaperwork: any[];
-  newBusiness: any[];
 }
 
 const EMPTY_ARCHIVE: ArchivedWeek = {
   userId: '', userName: '',
-  mondayStatus: '', focusAccounts: [], kpiTargets: null,
-  actionPlan: [], roadblocks: '', supportNeeded: '',
-  fridayStatus: '', weeklyNotes: '', summary: null,
-  stillWorkingAccounts: [], gmFeedback: '',
+  twtwStatus: '', twtwSubmittedAt: null, twtwWins: [], twtwRisks: [], twtwMajorUpdates: '', twtwProjectedWins: [], twtwPriorities: [],
+  fridayStatus: '', fridaySubmittedAt: null, focusAccounts: [], kpiTargets: null, actionPlan: [], roadblocks: '', supportNeeded: '', strategicFocus: '', gmFeedback: '',
   calls: 0, apps: 0, crmCalls: 0, crmApps: 0, proposals: 0, deals: 0,
-  opportunities: [], signedPaperwork: [], newBusiness: [],
 };
 
 // ─── Stat Pill ────────────────────────────────────────────────────────────────
@@ -94,8 +93,8 @@ function StatPill({ icon: Icon, label, value, subValue, color }: { icon: any; la
 
 // ─── BDM Card ─────────────────────────────────────────────────────────────────
 function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; isExpanded: boolean; onToggle: () => void }) {
-  const hasMondayData = data.mondayStatus !== '';
-  const hasFridayData = data.fridayStatus !== '';
+  const hasTwtwData = data.twtwStatus !== 'NOT_STARTED';
+  const hasFridayData = data.fridayStatus !== 'NOT_STARTED';
 
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
@@ -111,11 +110,11 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
           <div>
             <p className="text-sm font-black uppercase text-primary tracking-tight">{data.userName}</p>
             <div className="flex gap-2 mt-1">
-              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${hasMondayData ? (data.mondayStatus === 'SUBMITTED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700') : 'bg-slate-100 text-slate-400'}`}>
-                MON {hasMondayData ? data.mondayStatus : 'NONE'}
+              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${data.twtwStatus === 'SUBMITTED' ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'}`}>
+                TWTW: {data.twtwStatus === 'SUBMITTED' ? 'SUBMITTED' : 'LATE/DUE'}
               </Badge>
-              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${hasFridayData ? (data.fridayStatus === 'SUBMITTED' ? 'bg-green-100 text-green-700' : data.fridayStatus === 'REVIEWED' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700') : 'bg-slate-100 text-slate-400'}`}>
-                FRI {hasFridayData ? data.fridayStatus : 'NONE'}
+              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${data.fridayStatus === 'SUBMITTED' ? 'bg-green-100 text-green-700' : data.fridayStatus === 'DRAFT' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+                FRI FW: {data.fridayStatus}
               </Badge>
             </div>
           </div>
@@ -143,125 +142,150 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
             <StatPill icon={Award} label="Wins" value={data.deals} color="bg-orange-50 text-orange-600 border-orange-100" />
           </div>
 
-          {/* Two-column: Monday vs Friday */}
+          {/* Two-column: TWTW vs Friday FW */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Monday Planning */}
+            {/* TWTW (Thursday 2pm) */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-primary" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Monday Planning</p>
+                <CalendarCheck className="w-4 h-4 text-rose-500" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-rose-700">TWTW - The Week That Was (Thu 2pm)</p>
               </div>
 
-              {data.focusAccounts.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Focus Accounts</p>
-                  {data.focusAccounts.map((acc: any, i: number) => (
-                    <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-black uppercase text-slate-800">{acc.accountName || 'Unnamed'}</p>
-                        <Badge className="text-[7px] font-black bg-primary/10 text-primary border-none">{acc.actionType}</Badge>
-                      </div>
-                      {acc.eav > 0 && <p className="text-[9px] font-bold text-accent">EAV: ${acc.eav.toLocaleString()}</p>}
-                      {acc.aboutAccount && <p className="text-[9px] text-slate-500 leading-relaxed">{acc.aboutAccount}</p>}
+              {hasTwtwData ? (
+                <div className="space-y-4">
+                  {/* Wins */}
+                  {data.twtwWins.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Wins This Week</p>
+                      {data.twtwWins.map((win: any, idx: number) => (
+                        <div key={idx} className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-1">
+                          <div className="flex justify-between items-start">
+                            <p className="text-[10px] font-black text-slate-800 uppercase">{win.customer || 'Unnamed'}</p>
+                            <span className="text-[9px] font-black text-emerald-700">${(Number(win.value) || 0).toLocaleString()}</span>
+                          </div>
+                          {win.updateText && <p className="text-[9px] text-slate-600 font-medium leading-relaxed">{win.updateText}</p>}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+
+                  {/* Risks */}
+                  {data.twtwRisks.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest text-rose-600">Risks & Barriers</p>
+                      {data.twtwRisks.map((risk: any, idx: number) => (
+                        <div key={idx} className="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-1">
+                          <div className="flex justify-between items-start">
+                            <p className="text-[10px] font-black text-rose-800 uppercase">{risk.account || 'Unnamed'}</p>
+                            {risk.impact && <span className="text-[9px] font-black text-rose-600">${(Number(risk.impact) || 0).toLocaleString()}</span>}
+                          </div>
+                          {risk.mitigation && <p className="text-[9px] text-slate-600 font-medium leading-relaxed">{risk.mitigation}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Major Updates */}
+                  {data.twtwMajorUpdates && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Major Updates</p>
+                      <p className="text-[9px] text-slate-700 leading-relaxed">{data.twtwMajorUpdates}</p>
+                    </div>
+                  )}
+
+                  {/* Priorities */}
+                  {data.twtwPriorities.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Next Week's Priorities</p>
+                      <div className="space-y-1">
+                        {data.twtwPriorities.map((item: string, idx: number) => (
+                          <div key={idx} className="flex gap-2 items-center text-[9px] font-medium text-slate-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <p className="text-[10px] text-slate-400 italic">No Monday data submitted</p>
-              )}
-
-              {data.actionPlan.filter(a => a.trim()).length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Commitments</p>
-                  {data.actionPlan.filter(a => a.trim()).map((action, i) => (
-                    <div key={i} className="flex gap-2 items-start">
-                      <Badge variant="outline" className="text-[7px] font-black w-5 h-5 p-0 flex items-center justify-center shrink-0">{i + 1}</Badge>
-                      <p className="text-[9px] font-medium text-slate-600 leading-relaxed">{action}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {data.roadblocks && (
-                <div className="p-3 bg-red-50 rounded-xl border border-red-100">
-                  <div className="flex items-center gap-1 mb-1">
-                    <AlertTriangle className="w-3 h-3 text-red-500" />
-                    <p className="text-[8px] font-black uppercase text-red-600 tracking-widest">Roadblocks</p>
-                  </div>
-                  <p className="text-[9px] text-red-700 leading-relaxed">{data.roadblocks}</p>
-                </div>
-              )}
-
-              {data.supportNeeded && (
-                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                  <div className="flex items-center gap-1 mb-1">
-                    <LifeBuoy className="w-3 h-3 text-blue-500" />
-                    <p className="text-[8px] font-black uppercase text-blue-600 tracking-widest">Support Needed</p>
-                  </div>
-                  <p className="text-[9px] text-blue-700 leading-relaxed">{data.supportNeeded}</p>
-                </div>
+                <p className="text-[10px] text-slate-400 italic">No TWTW data submitted</p>
               )}
             </div>
 
-            {/* Friday Synthesis */}
-            <div className="space-y-4">
+            {/* Friday FW (Friday 12pm) */}
+            <div className="space-y-4 border-l pl-5 border-slate-100">
               <div className="flex items-center gap-2">
-                <Send className="w-4 h-4 text-accent" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-accent">Friday Synthesis</p>
+                <Target className="w-4 h-4 text-primary" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Friday FW - Performance Review (Fri 12pm)</p>
               </div>
 
-              {data.weeklyNotes ? (
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Week Summary</p>
-                  <p className="text-[10px] text-slate-700 leading-relaxed whitespace-pre-line">{data.weeklyNotes}</p>
+              {hasFridayData ? (
+                <div className="space-y-4">
+                  {/* Focus Accounts */}
+                  {data.focusAccounts.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Focus Accounts & Commitments</p>
+                      {data.focusAccounts.map((acc: any, i: number) => (
+                        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase text-slate-800">{acc.accountName || 'Unnamed'}</p>
+                            <Badge className="text-[7px] font-black bg-primary/10 text-primary border-none">{acc.actionType || 'Close'}</Badge>
+                          </div>
+                          {acc.eav > 0 && <p className="text-[9px] font-bold text-accent">EAV: ${acc.eav.toLocaleString()}</p>}
+                          {acc.aboutAccount && <p className="text-[9px] text-slate-500 leading-relaxed">{acc.aboutAccount}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Monday Action Plan */}
+                  {data.actionPlan.filter(a => a.trim()).length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Monday Action Plan</p>
+                      {data.actionPlan.filter(a => a.trim()).map((action, i) => (
+                        <div key={i} className="flex gap-2 items-start">
+                          <Badge variant="outline" className="text-[7px] font-black w-5 h-5 p-0 flex items-center justify-center shrink-0">{i + 1}</Badge>
+                          <p className="text-[9px] font-medium text-slate-600 leading-relaxed">{action}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Roadblocks & Support */}
+                  {data.roadblocks && (
+                    <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                      <div className="flex items-center gap-1 mb-1">
+                        <AlertTriangle className="w-3 h-3 text-red-500" />
+                        <p className="text-[8px] font-black uppercase text-red-600 tracking-widest">Roadblocks</p>
+                      </div>
+                      <p className="text-[9px] text-red-700 leading-relaxed">{data.roadblocks}</p>
+                    </div>
+                  )}
+
+                  {data.supportNeeded && (
+                    <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                      <div className="flex items-center gap-1 mb-1">
+                        <LifeBuoy className="w-3 h-3 text-blue-500" />
+                        <p className="text-[8px] font-black uppercase text-blue-600 tracking-widest">Support Needed</p>
+                      </div>
+                      <p className="text-[9px] text-blue-700 leading-relaxed">{data.supportNeeded}</p>
+                    </div>
+                  )}
+
+                  {/* GM Feedback */}
+                  {data.gmFeedback && (
+                    <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+                      <div className="flex items-center gap-1 mb-1">
+                        <MessageSquare className="w-3 h-3 text-primary" />
+                        <p className="text-[8px] font-black uppercase text-primary tracking-widest">GM Feedback</p>
+                      </div>
+                      <p className="text-[9px] text-primary/80 leading-relaxed whitespace-pre-line">{data.gmFeedback}</p>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <p className="text-[10px] text-slate-400 italic">No Friday data submitted</p>
-              )}
-
-              {data.summary && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2 bg-green-50 rounded-lg border border-green-100 text-center">
-                    <p className="text-lg font-black text-green-700">{data.summary.signedPaperworkCount || 0}</p>
-                    <p className="text-[7px] font-black uppercase text-green-600 tracking-widest">Signed Wins</p>
-                  </div>
-                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100 text-center">
-                    <p className="text-lg font-black text-blue-700">{data.summary.newOpportunitiesCount || 0}</p>
-                    <p className="text-[7px] font-black uppercase text-blue-600 tracking-widest">New Opps</p>
-                  </div>
-                  <div className="p-2 bg-purple-50 rounded-lg border border-purple-100 text-center">
-                    <p className="text-lg font-black text-purple-700">{data.summary.newBusinessCount || 0}</p>
-                    <p className="text-[7px] font-black uppercase text-purple-600 tracking-widest">Live Trading</p>
-                  </div>
-                  <div className="p-2 bg-amber-50 rounded-lg border border-amber-100 text-center">
-                    <p className="text-lg font-black text-amber-700">{data.summary.stillWorkingCount || 0}</p>
-                    <p className="text-[7px] font-black uppercase text-amber-600 tracking-widest">Still Working</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Still Working Accounts from Friday */}
-              {data.stillWorkingAccounts.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Still Working</p>
-                  {data.stillWorkingAccounts.map((acc: any, i: number) => (
-                    <div key={i} className="p-2 bg-amber-50/50 rounded-lg border border-amber-100 flex items-center justify-between">
-                      <p className="text-[9px] font-bold uppercase text-slate-700">{acc.accountName}</p>
-                      {acc.eav > 0 && <p className="text-[8px] font-black text-amber-600">${acc.eav.toLocaleString()}</p>}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* GM Feedback */}
-              {data.gmFeedback && (
-                <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-                  <div className="flex items-center gap-1 mb-1">
-                    <MessageSquare className="w-3 h-3 text-primary" />
-                    <p className="text-[8px] font-black uppercase text-primary tracking-widest">GM Feedback</p>
-                  </div>
-                  <p className="text-[9px] text-primary/80 leading-relaxed whitespace-pre-line">{data.gmFeedback}</p>
-                </div>
+                <p className="text-[10px] text-slate-400 italic">No Friday FW data submitted</p>
               )}
             </div>
           </div>
@@ -285,7 +309,21 @@ export function WeeklyArchive() {
 
 
 
+  const { toast } = useToast();
   const canViewAll = isLeader || isGM;
+
+  const handleRemindLate = () => {
+    const lateUsers = archiveData.filter(d => d.twtwStatus !== 'SUBMITTED' || d.fridayStatus !== 'SUBMITTED');
+    if (lateUsers.length === 0) {
+      toast({ title: "No Action Needed", description: "All active team nodes have submitted TWTW and Friday FW." });
+      return;
+    }
+    const names = lateUsers.map(u => u.userName).join(', ');
+    toast({
+      title: "Reminders Dispatched",
+      description: `Dispatched email notifications to late submitters: ${names}.`
+    });
+  };
 
   // Fetch all Firestore data for the selected users
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
@@ -300,44 +338,45 @@ export function WeeklyArchive() {
           ? allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER')
           : allUsers.filter(u => u.id === user?.uid);
 
-        // Parallel fetch all collections for the selected week
-        const [commitmentsSnap, reportsSnap, progressSnap, oppsSnap, paperworkSnap, businessSnap] = await Promise.all([
+        // Parallel fetch TWTW, Friday FW (commitments), and activity metrics
+        const [commitmentsSnap, twtwSnap, progressSnap] = await Promise.all([
           getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'weeklyReports'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'opportunities'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'signedPaperwork'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'newBusiness'), where('week', '==', selectedWeek))),
         ]);
 
         const results: ArchivedWeek[] = targetUsers.map(u => {
           const commitment = commitmentsSnap.docs.find(d => d.data().userId === u.id)?.data();
-          const report = reportsSnap.docs.find(d => d.data().userId === u.id)?.data();
+          const twtw = twtwSnap.docs.find(d => d.data().userId === u.id)?.data();
           const progress = progressSnap.docs.find(d => d.data().userId === u.id)?.data();
 
-          const userOpps = oppsSnap.docs.filter(d => d.data().userId === u.id).map(d => d.data());
-          const userPaperwork = paperworkSnap.docs.filter(d => d.data().userId === u.id).map(d => d.data());
-          const userBusiness = businessSnap.docs.filter(d => d.data().userId === u.id).map(d => d.data());
-
-          const crmCalls = progress?.crmCalls !== undefined ? progress.crmCalls : (report?.summary?.crmCalls || 0);
-          const crmApps = progress?.crmApps !== undefined ? progress.crmApps : (report?.summary?.crmApps || 0);
+          const crmCalls = progress?.crmCalls !== undefined ? progress.crmCalls : 0;
+          const crmApps = progress?.crmApps !== undefined ? progress.crmApps : 0;
 
           return {
             userId: u.id,
             userName: u.name || u.id,
-            // Monday
-            mondayStatus: commitment?.status || '',
+            
+            // TWTW
+            twtwStatus: twtw?.status || 'NOT_STARTED',
+            twtwSubmittedAt: twtw?.submittedAt || null,
+            twtwWins: twtw?.wins || [],
+            twtwRisks: twtw?.risks || [],
+            twtwMajorUpdates: twtw?.majorUpdates || '',
+            twtwProjectedWins: twtw?.projectedWins || [],
+            twtwPriorities: twtw?.priorities || [],
+
+            // Friday FW
+            fridayStatus: commitment?.status || 'NOT_STARTED',
+            fridaySubmittedAt: commitment?.submittedAt || null,
             focusAccounts: commitment?.focusAccounts || [],
             kpiTargets: commitment?.kpiTargets || null,
             actionPlan: commitment?.actionPlan || [],
             roadblocks: commitment?.roadblocks || '',
             supportNeeded: commitment?.supportNeeded || '',
-            // Friday
-            fridayStatus: report?.status || '',
-            weeklyNotes: report?.weeklyNotes || '',
-            summary: report?.summary || null,
-            stillWorkingAccounts: report?.stillWorkingAccounts || [],
-            gmFeedback: report?.gmFeedback || '',
+            strategicFocus: commitment?.strategicFocus || '',
+            gmFeedback: commitment?.gmFeedback || '',
+
             // Activity
             calls: Number(progress?.calls) || 0,
             apps: Number(progress?.apps) || 0,
@@ -345,10 +384,6 @@ export function WeeklyArchive() {
             crmApps,
             proposals: Number(progress?.proposals) || 0,
             deals: Number(progress?.deals) || 0,
-            // Collections
-            opportunities: userOpps,
-            signedPaperwork: userPaperwork,
-            newBusiness: userBusiness,
           };
         });
 
@@ -383,10 +418,10 @@ export function WeeklyArchive() {
         crmApps: acc.crmApps + (d.crmApps || 0),
         proposals: acc.proposals + d.proposals,
         deals: acc.deals + d.deals,
-        mondaySubmitted: acc.mondaySubmitted + (d.mondayStatus === 'SUBMITTED' ? 1 : 0),
-        fridaySubmitted: acc.fridaySubmitted + (d.fridayStatus === 'SUBMITTED' || d.fridayStatus === 'REVIEWED' ? 1 : 0),
+        twtwSubmitted: acc.twtwSubmitted + (d.twtwStatus === 'SUBMITTED' ? 1 : 0),
+        fridaySubmitted: acc.fridaySubmitted + (d.fridayStatus === 'SUBMITTED' ? 1 : 0),
       }),
-      { calls: 0, apps: 0, crmCalls: 0, crmApps: 0, proposals: 0, deals: 0, mondaySubmitted: 0, fridaySubmitted: 0 }
+      { calls: 0, apps: 0, crmCalls: 0, crmApps: 0, proposals: 0, deals: 0, twtwSubmitted: 0, fridaySubmitted: 0 }
     );
   }, [archiveData]);
 
@@ -403,11 +438,20 @@ export function WeeklyArchive() {
             <Archive className="w-8 h-8" /> Weekly Archive
           </h1>
           <p className="text-xs text-muted-foreground font-bold">
-            {canViewAll ? 'Full team' : 'Your'} Monday commitments, Friday outcomes, and activity metrics
+            {canViewAll ? 'Full team' : 'Your'} TWTW submissions, Friday FW reviews, and activity metrics
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          {canViewAll && archiveData.length > 0 && (
+            <Button
+              onClick={handleRemindLate}
+              className="h-12 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-lg gap-2"
+            >
+              <Mail className="w-4 h-4" />
+              Remind Late Submissions
+            </Button>
+          )}
           <Select value={selectedWeek} onValueChange={setSelectedWeek}>
             <SelectTrigger className="w-64 h-12 font-bold text-sm bg-white shadow-lg border-none rounded-xl">
               <SelectValue />
@@ -463,12 +507,12 @@ export function WeeklyArchive() {
                   <p className="text-[7px] uppercase tracking-widest text-slate-400">Wins</p>
                 </div>
                 <div className="border-l border-slate-700 pl-4 text-center">
-                  <p className="text-xl font-black text-green-400">{teamTotals.mondaySubmitted}/{archiveData.length}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Mon Plans</p>
+                  <p className="text-xl font-black text-green-400">{teamTotals.twtwSubmitted}/{archiveData.length}</p>
+                  <p className="text-[7px] uppercase tracking-widest text-slate-400">TWTW Submissions</p>
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-blue-400">{teamTotals.fridaySubmitted}/{archiveData.length}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Fri Reports</p>
+                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Friday FW</p>
                 </div>
               </div>
             </div>
