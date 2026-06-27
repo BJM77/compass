@@ -24,6 +24,7 @@ import {
   Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
+import { DemoDashView } from './demo-dash-view';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -1850,9 +1851,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
 
       {isLeader ? (
         <Tabs defaultValue="my-report" className="w-full">
-          <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-3 max-w-2xl mb-8 h-12 border">
+          <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-4 max-w-3xl mb-8 h-12 border">
             <TabsTrigger value="my-report" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">My Report</TabsTrigger>
             <TabsTrigger value="collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Collation Hub</TabsTrigger>
+            <TabsTrigger value="new-collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">New Collation</TabsTrigger>
             <TabsTrigger value="standouts" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Key Standouts</TabsTrigger>
           </TabsList>
 
@@ -1868,6 +1870,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
           </TabsContent>
 
           <TabsContent value="collation">
+            <DemoDashView embeddedCollationOnly />
+          </TabsContent>
+
+          <TabsContent value="new-collation">
             {renderCollationHub()}
           </TabsContent>
 

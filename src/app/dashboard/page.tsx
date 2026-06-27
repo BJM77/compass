@@ -25,6 +25,7 @@ import { OpsReportForm } from '@/components/dashboard/ops-report-form';
 import { OpsReportReview } from '@/components/dashboard/ops-report-review';
 import { TWIWView } from '@/components/dashboard/twiw-view';
 import { DemoDashView } from '@/components/dashboard/demo-dash-view';
+import { SystemBroadcast } from '@/components/dashboard/system-broadcast';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -33,7 +34,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck, Beaker, Upload
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck, Beaker, Upload, Megaphone
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -49,7 +50,7 @@ import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST';
 
 const NAV_ITEMS = [
   // Core Pages (Main Menu)
@@ -71,6 +72,7 @@ const NAV_ITEMS = [
   { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true,  group: 'admin' },
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true,  group: 'admin' },
   { view: 'UPLOAD' as DashboardView,            label: 'CRM Import',        icon: Upload,           adminOnly: true,  group: 'admin' },
+  { view: 'BROADCAST' as DashboardView,         label: 'Broadcast Admin',   icon: Megaphone,        adminOnly: true,  group: 'admin' },
 ];
 
 function DashboardContent() {
@@ -142,6 +144,7 @@ function DashboardContent() {
     if (activeView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
     if (activeView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
     if (activeView === 'DEMO_DASH') return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
+    if (activeView === 'BROADCAST' && isLeader) return <div className="w-full p-4 md:p-8 max-w-xl mx-auto"><SystemBroadcast /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
