@@ -33,7 +33,7 @@ import { doc, collection, query, where, orderBy, limit } from 'firebase/firestor
 import { format } from 'date-fns';
 import { jsPDF } from "jspdf";
 import { computeMomentum } from '@/lib/momentum';
-import { getCurrentWeek, formatEAV, getWidgetSpanClass } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, getWidgetSpanClass } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -72,6 +72,21 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     return doc(db, 'bdmStats', userId);
   }, [db, userId]);
   const { data: stats, isLoading: isStatsLoading } = useDoc(statsDocRef);
+
+  const twtwDocRef = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return doc(db, 'twiwSubmissions', `${userId}_${currentWeek}`);
+  }, [db, userId, currentWeek]);
+  const { data: twtwData } = useDoc(twtwDocRef);
+  const twtwStatus = twtwData?.status || 'NOT_STARTED';
+
+  const nextWeekKey = getNextWeekKey(currentWeek);
+  const commitmentsDocRef = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return doc(db, 'weeklyCommitments', `${userId}_${nextWeekKey}`);
+  }, [db, userId, nextWeekKey]);
+  const { data: commitmentsData } = useDoc(commitmentsDocRef);
+  const fridayStatus = commitmentsData?.status || 'NOT_STARTED';
 
   const settingsDocRef = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -512,6 +527,90 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
           </div>
         </div>
       </header>
+
+      {/* 📍 QUICK NAVIGATION - 5 Core Pages */}
+      <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl border border-slate-800 space-y-4">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">📍 Quick Navigation - 5 Core Pages</p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+          >
+            <Gauge className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-wider">Dashboard</span>
+            <Badge className="bg-indigo-500/20 text-indigo-300 border-none font-bold text-[8px] uppercase">Active</Badge>
+          </button>
+          
+          <button
+            onClick={() => {
+              setCollapsedWidgets(prev => ({ ...prev, 'twiw': false }));
+              setTimeout(() => {
+                const element = document.getElementById('widget-twiw');
+                if (element) {
+                  const yOffset = -160;
+                  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                  window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+              }, 100);
+            }}
+            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+          >
+            <FileDown className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-wider">TWTW</span>
+            <Badge className={cn("border-none font-bold text-[8px] uppercase", 
+              twtwStatus === 'SUBMITTED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+            )}>
+              {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due'}
+            </Badge>
+          </button>
+
+          <button
+            onClick={() => {
+              setCollapsedWidgets(prev => ({ ...prev, 'friday-synthesis': false }));
+              setTimeout(() => {
+                const element = document.getElementById('widget-friday-synthesis');
+                if (element) {
+                  const yOffset = -160;
+                  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                  window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+              }, 100);
+            }}
+            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+          >
+            <ListChecks className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-wider">Friday FW</span>
+            <Badge className={cn("border-none font-bold text-[8px] uppercase", 
+              fridayStatus === 'SUBMITTED' ? 'bg-emerald-500/20 text-emerald-300' : 
+              fridayStatus === 'DRAFT' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'
+            )}>
+              {fridayStatus === 'SUBMITTED' ? 'Done' : fridayStatus === 'DRAFT' ? 'Draft' : 'Due'}
+            </Badge>
+          </button>
+
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'WHITE_SPACE' } }));
+            }}
+            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+          >
+            <Compass className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-wider">White Space</span>
+            <Badge className="bg-emerald-500/20 text-emerald-300 border-none font-bold text-[8px] uppercase">Gaps Map</Badge>
+          </button>
+
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'CALL_PLANNING' } }));
+            }}
+            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+          >
+            <PhoneCall className="w-5 h-5 text-sky-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-wider">Call Plan</span>
+            <Badge className="bg-sky-500/20 text-sky-300 border-none font-bold text-[8px] uppercase">SPIN prep</Badge>
+          </button>
+        </div>
+      </div>
 
       <div className="space-y-6">
         {/* Dynamic Sticky Anchor Navigation Bar */}
