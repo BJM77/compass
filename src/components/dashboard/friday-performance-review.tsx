@@ -17,7 +17,7 @@ import {
   Loader2, TrendingUp, DollarSign, Target, Phone, CalendarCheck, 
   Users, Briefcase, AlertTriangle, CheckCircle2, ArrowRight,
   FileText, Calendar, RefreshCw, Save, Send, ChevronRight,
-  Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy
+  Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy, ClipboardCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -50,6 +50,7 @@ export function FridayPerformanceReview({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<'DRAFT' | 'SUBMITTED' | 'NOT_STARTED'>('NOT_STARTED');
   
   // ─── CRM Data (from existing hooks) ──────────────────────────────────────
   const { pipelineReviews: allDeals, weeklyProgresses: allActivity } = usePipelineData();
@@ -176,6 +177,7 @@ export function FridayPerformanceReview({
         
         // 6. Load next week planning data (if exists)
         if (nextWeekData && Object.keys(nextWeekData).length > 0) {
+          setStatus(nextWeekData.status || 'NOT_STARTED');
           setNextWeekPlan({
             focusAccounts: nextWeekData.focusAccounts || [],
             kpiTargets: nextWeekData.kpiTargets || {
@@ -228,6 +230,7 @@ export function FridayPerformanceReview({
       }, { merge: true });
       
       toast({ title: "Draft Saved", description: "Next week's plan has been saved as a draft." });
+      setStatus('DRAFT');
     } catch (error) {
       console.error(error);
       toast({ variant: "destructive", title: "Save Failed" });
@@ -284,7 +287,7 @@ export function FridayPerformanceReview({
         title: "✅ Friday Pack Submitted", 
         description: "Your weekly review has been submitted and next week's plan is locked in." 
       });
-      
+      setStatus('SUBMITTED');
     } catch (error) {
       console.error(error);
       toast({ variant: "destructive", title: "Submission Failed" });
@@ -759,25 +762,47 @@ export function FridayPerformanceReview({
             />
           </div>
 
-          {/* Bottom Save & Submit Buttons */}
-          <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center gap-4 justify-end">
-            <Button 
-              variant="outline" 
-              onClick={handleSaveDraft} 
-              disabled={isSaving || isSubmitting} 
-              className="font-black h-12 px-6 rounded-xl shadow-sm gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs w-full sm:w-auto"
-            >
-              {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
-              Save Draft
-            </Button>
-            <Button 
-              onClick={handleSubmit} 
-              disabled={isSubmitting || isSaving} 
-              className="bg-accent hover:bg-accent/90 text-white font-black h-12 px-8 rounded-xl shadow-lg gap-2 text-xs w-full sm:w-auto"
-            >
-              {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : <Send className="w-4 h-4" />}
-              Submit Friday Pack
-            </Button>
+          {/* Publication Status Panel (uniform with TWTW) */}
+          <div className="mt-8 pt-6 border-t flex justify-end">
+            <Card className="border-slate-800 shadow-xl rounded-3xl overflow-hidden bg-slate-900 text-white w-full sm:max-w-md">
+              <CardHeader className="border-b border-slate-800 py-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                  <ClipboardCheck className="w-4 h-4" /> Publication Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <div className="flex justify-between items-center bg-white/5 border border-white/10 rounded-2xl p-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Status</span>
+                  <Badge className={cn(
+                    "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
+                    status === 'SUBMITTED' ? "bg-green-500/20 text-green-300 border-green-500/30" :
+                    status === 'DRAFT' ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-slate-500/20 text-slate-300"
+                  )}>
+                    {status === 'SUBMITTED' ? 'Submitted' : status === 'DRAFT' ? 'Draft' : 'Not Started'}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2.5 pt-2">
+                  <Button 
+                    onClick={handleSaveDraft} 
+                    disabled={isSaving || isSubmitting}
+                    className="w-full bg-slate-800 hover:bg-slate-700 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-sm border border-slate-700"
+                  >
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-slate-300" />}
+                    Save Draft
+                  </Button>
+
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={isSaving || isSubmitting}
+                    className="w-full bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20"
+                  >
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    {status === 'SUBMITTED' ? 'Update Submission' : 'Submit Friday Pack'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </CardContent>
       </Card>

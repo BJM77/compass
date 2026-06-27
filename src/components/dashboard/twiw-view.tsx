@@ -523,10 +523,10 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   };
 
   const addPriority = () => {
-    if (!newPriority.trim()) return;
-    setPriorities([...priorities, { id: crypto.randomUUID(), text: newPriority.trim(), salespersonName: newPrioritySalesperson || bdmName || 'Salesperson' }]);
-    setNewPriority('');
-    setNewPrioritySalesperson('');
+    setPriorities([...priorities, { id: crypto.randomUUID(), text: '', salespersonName: bdmName || 'Salesperson' }]);
+  };
+  const updatePriorityField = (id: string, field: 'text' | 'salespersonName', val: string) => {
+    setPriorities(priorities.map(p => p.id === id ? { ...p, [field]: val } : p));
   };
   const removePriority = (id: string) => setPriorities(priorities.filter(p => p.id !== id));
 
@@ -2610,46 +2610,90 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
               </div>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
-              {/* Input row */}
-              <div className="grid grid-cols-3 gap-2">
-                <Input 
-                  value={newPriority}
-                  onChange={e => setNewPriority(e.target.value)}
-                  placeholder="e.g. Focus on Neerabup zone wins"
-                  className="h-8 text-xs font-semibold col-span-2"
-                  onKeyDown={e => e.key === 'Enter' && addPriority()}
-                />
-                <div className="flex gap-2">
-                  <Input 
-                    value={newPrioritySalesperson}
-                    onChange={e => setNewPrioritySalesperson(e.target.value)}
-                    placeholder="Salesperson"
-                    className="h-8 text-xs font-semibold"
-                    onKeyDown={e => e.key === 'Enter' && addPriority()}
-                  />
-                  <Button size="sm" onClick={addPriority} className="h-8 text-xs font-black uppercase bg-primary px-3 rounded-xl">Add</Button>
-                </div>
+              {/* Desktop Table View */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                      <th className="text-left pb-2 w-[70%]">Priority / Focus Area</th>
+                      <th className="text-left pb-2 w-[25%]">Salesperson</th>
+                      <th className="text-center pb-2 w-[5%]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {priorities.map((p) => (
+                      <tr key={p.id}>
+                        <td className="py-2 pr-2">
+                          <Input 
+                            value={p.text || ''} 
+                            onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
+                            placeholder="e.g. Focus on Neerabup zone wins" 
+                            className="h-8 text-xs font-semibold"
+                          />
+                        </td>
+                        <td className="py-2 pr-2">
+                          <Input 
+                            value={p.salespersonName} 
+                            onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
+                            placeholder="Name" 
+                            className="h-8 text-xs"
+                          />
+                        </td>
+                        <td className="py-2 text-center">
+                          <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                    {priorities.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                          No priorities added yet. Add a row below.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Items List */}
-              <div className="space-y-2">
+              {/* Mobile Card List View */}
+              <div className="block sm:hidden space-y-3">
                 {priorities.map((p) => (
-                  <div key={p.id} className="flex justify-between items-center gap-3 p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold">
-                    <div className="flex-1 flex justify-between gap-4">
-                      <span className="text-slate-800 leading-tight">{p.text}</span>
-                      <span className="text-slate-500">{p.salespersonName}</span>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                  <div key={p.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 relative">
+                    <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="absolute top-2 right-2 h-6 w-6 text-red-500 rounded-lg">
                       <Trash2 className="w-3 h-3" />
                     </Button>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Priority / Focus Area</label>
+                      <Input 
+                        value={p.text || ''} 
+                        onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
+                        placeholder="e.g. Focus on Neerabup zone wins" 
+                        className="h-8 text-xs bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                      <Input 
+                        value={p.salespersonName} 
+                        onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
+                        placeholder="Name" 
+                        className="h-8 text-xs bg-white"
+                      />
+                    </div>
                   </div>
                 ))}
                 {priorities.length === 0 && (
                   <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
-                    No priorities added yet.
+                    No priorities added yet. Add a row below.
                   </div>
                 )}
               </div>
+
+              <Button onClick={addPriority} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                <Plus className="w-3.5 h-3.5 mr-1" /> Add Priority Focus
+              </Button>
             </CardContent>
           </Card>
 
