@@ -176,8 +176,20 @@ export function FridayPerformanceReview({
         });
         
         // 6. Load next week planning data (if exists)
+        const twtwPriorities = twtwData.priorities || [];
+        const twtwActions = twtwPriorities.map((p: any) => typeof p === 'string' ? p : p.text).filter((t: string) => t && t.trim());
+
         if (nextWeekData && Object.keys(nextWeekData).length > 0) {
           setStatus(nextWeekData.status || 'NOT_STARTED');
+          
+          let actionPlan = nextWeekData.actionPlan || [];
+          if ((actionPlan.length === 0 || actionPlan.every((a: string) => !a.trim())) && twtwActions.length > 0) {
+            actionPlan = twtwActions;
+          }
+          if (actionPlan.length === 0) {
+            actionPlan = ['', '', '', '', ''];
+          }
+
           setNextWeekPlan({
             focusAccounts: nextWeekData.focusAccounts || [],
             kpiTargets: nextWeekData.kpiTargets || {
@@ -187,10 +199,26 @@ export function FridayPerformanceReview({
               dealsToClose: 3,
               revenueTarget: 250000
             },
-            actionPlan: nextWeekData.actionPlan || ['', '', '', '', ''],
+            actionPlan: actionPlan,
             roadblocks: nextWeekData.roadblocks || '',
             supportNeeded: nextWeekData.supportNeeded || '',
             strategicFocus: nextWeekData.strategicFocus || '',
+          });
+        } else {
+          const initialActions = twtwActions.length > 0 ? twtwActions : ['', '', '', '', ''];
+          setNextWeekPlan({
+            focusAccounts: [],
+            kpiTargets: {
+              callsToMake: userRole === 'BDM' ? 50 : 30,
+              appointmentsToSet: userRole === 'BDM' ? 15 : 10,
+              proposalsToSend: 8,
+              dealsToClose: 3,
+              revenueTarget: 250000
+            },
+            actionPlan: initialActions,
+            roadblocks: '',
+            supportNeeded: '',
+            strategicFocus: '',
           });
         }
         
@@ -556,7 +584,7 @@ export function FridayPerformanceReview({
                 Week {nextWeek.split('-')[1]} Planning
               </CardTitle>
               <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                Set your KPI targets, focus accounts, and action plan for the coming week
+                Set your KPI targets, focus accounts, and actions for the coming week
               </CardDescription>
             </div>
           </div>
@@ -688,13 +716,10 @@ export function FridayPerformanceReview({
             </div>
           </div>
           
-          {/* Action Plan */}
+          {/* This Weeks Actions */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-black uppercase text-slate-700">Action Plan (Monday Plan)</h4>
-              <Button size="sm" variant="outline" onClick={addAction} className="h-7 text-[9px] font-black uppercase">
-                <Plus className="w-3 h-3 mr-1" /> Add Action
-              </Button>
+              <h4 className="text-xs font-black uppercase text-slate-700">This Weeks Actions</h4>
             </div>
             <div className="space-y-2">
               {nextWeekPlan.actionPlan.map((action, index) => (
@@ -720,6 +745,16 @@ export function FridayPerformanceReview({
                   )}
                 </div>
               ))}
+              <div className="pt-1">
+                <Button 
+                  onClick={addAction} 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-[10px] font-black uppercase tracking-wider h-9 border-dashed border-slate-300 hover:border-slate-400 bg-white shadow-sm hover:bg-slate-50 text-slate-700 flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Action Item
+                </Button>
+              </div>
             </div>
           </div>
           
