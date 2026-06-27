@@ -96,6 +96,19 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
   const hasTwtwData = data.twtwStatus !== 'NOT_STARTED';
   const hasFridayData = data.fridayStatus !== 'NOT_STARTED';
 
+  const targets = data.kpiTargets || {};
+  const callsGoal = Number(targets.callsToMake) || 0;
+  const appsGoal = Number(targets.appointmentsToSet) || 0;
+  const proposalsGoal = Number(targets.proposalsToSend) || 0;
+  const dealsGoal = Number(targets.dealsToClose) || 0;
+  const revenueGoal = Number(targets.revenueTarget) || 0;
+
+  const actualCalls = data.crmCalls !== undefined && data.crmCalls > 0 ? data.crmCalls : data.calls;
+  const actualApps = data.crmApps !== undefined && data.crmApps > 0 ? data.crmApps : data.apps;
+  const actualProposals = data.proposals || 0;
+  const actualDeals = data.deals || 0;
+  const actualRevenue = data.twtwWins.reduce((acc: number, win: any) => acc + (Number(win.value) || 0), 0);
+
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
       {/* Header — always visible */}
@@ -120,12 +133,13 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {/* Quick stats */}
+          {/* Quick stats with comparison targets */}
           <div className="hidden md:flex items-center gap-3 text-[9px] font-black text-slate-400 uppercase">
-            <span><Phone className="w-3 h-3 inline mr-0.5" /> {data.crmCalls !== undefined ? data.crmCalls : data.calls}{data.crmCalls !== undefined ? ` (Man: ${data.calls})` : ''}</span>
-            <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> {data.crmApps !== undefined ? data.crmApps : data.apps}{data.crmApps !== undefined ? ` (Man: ${data.apps})` : ''}</span>
-            <span><FileText className="w-3 h-3 inline mr-0.5" /> {data.proposals}</span>
-            <span><Award className="w-3 h-3 inline mr-0.5" /> {data.deals}</span>
+            <span><Phone className="w-3 h-3 inline mr-0.5" /> Calls: {actualCalls}/{callsGoal}</span>
+            <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> Apps: {actualApps}/{appsGoal}</span>
+            <span><FileText className="w-3 h-3 inline mr-0.5" /> Opps: {actualProposals}/{proposalsGoal}</span>
+            <span><Award className="w-3 h-3 inline mr-0.5" /> Wins: {actualDeals}/{dealsGoal}</span>
+            <span><TrendingUp className="w-3 h-3 inline mr-0.5" /> Rev: ${actualRevenue.toLocaleString()}/${revenueGoal.toLocaleString()}</span>
           </div>
           {isExpanded ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
         </div>
@@ -134,12 +148,43 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
       {/* Expanded content */}
       {isExpanded && (
         <CardContent className="px-5 pb-6 pt-0 space-y-6 border-t border-slate-100">
-          {/* Activity Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
-            <StatPill icon={Phone} label="Calls" value={data.crmCalls !== undefined ? data.crmCalls : data.calls} subValue={data.crmCalls !== undefined ? `Man: ${data.calls}` : null} color="bg-blue-50 text-blue-600 border-blue-100" />
-            <StatPill icon={CalendarCheck} label="Apps" value={data.crmApps !== undefined ? data.crmApps : data.apps} subValue={data.crmApps !== undefined ? `Man: ${data.apps}` : null} color="bg-green-50 text-green-600 border-green-100" />
-            <StatPill icon={FileText} label="Opps" value={data.proposals} color="bg-purple-50 text-purple-600 border-purple-100" />
-            <StatPill icon={Award} label="Wins" value={data.deals} color="bg-orange-50 text-orange-600 border-orange-100" />
+          {/* Activity Scorecard Grid comparing CRM Actuals with Goals */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4">
+            <StatPill 
+              icon={Phone} 
+              label="Calls Actual/Goal" 
+              value={`${actualCalls} / ${callsGoal}`} 
+              subValue={actualCalls >= callsGoal ? "Goal Met! 🎉" : `${callsGoal - actualCalls} behind`}
+              color={actualCalls >= callsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+            />
+            <StatPill 
+              icon={CalendarCheck} 
+              label="Apps Actual/Goal" 
+              value={`${actualApps} / ${appsGoal}`} 
+              subValue={actualApps >= appsGoal ? "Goal Met! 🎉" : `${appsGoal - actualApps} behind`}
+              color={actualApps >= appsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+            />
+            <StatPill 
+              icon={FileText} 
+              label="Opps Actual/Goal" 
+              value={`${actualProposals} / ${proposalsGoal}`} 
+              subValue={actualProposals >= proposalsGoal ? "Goal Met! 🎉" : `${proposalsGoal - actualProposals} behind`}
+              color={actualProposals >= proposalsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+            />
+            <StatPill 
+              icon={Award} 
+              label="Wins Actual/Goal" 
+              value={`${actualDeals} / ${dealsGoal}`} 
+              subValue={actualDeals >= dealsGoal ? "Goal Met! 🎉" : `${dealsGoal - actualDeals} behind`}
+              color={actualDeals >= dealsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+            />
+            <StatPill 
+              icon={TrendingUp} 
+              label="Revenue Actual/Goal" 
+              value={`$${actualRevenue.toLocaleString()} / $${revenueGoal.toLocaleString()}`} 
+              subValue={actualRevenue >= revenueGoal ? "Goal Met! 🎉" : `$${(revenueGoal - actualRevenue).toLocaleString()} behind`}
+              color={actualRevenue >= revenueGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+            />
           </div>
 
           {/* Two-column: TWTW vs Friday FW */}
