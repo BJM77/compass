@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Papa from 'papaparse';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where, updateDoc, getDoc, setDoc } from 'firebase/firestore';
@@ -60,13 +60,43 @@ function matchUser(users: any[], ownerName: string): any | null {
   let found = users.find(u => (u.name || '').trim().toLowerCase() === lower);
   if (found) return found;
   
-  // Check for Isaac DePina specifically
-  if (lower.includes('isaac') && lower.includes('depina')) {
+  // Isaac special handling
+  if (lower.includes('isaac') && (lower.includes('depina') || lower.includes('de pina') || lower.includes('pina'))) {
     found = users.find(u => (u.name || '').trim().toLowerCase().includes('isaac'));
     if (found) return found;
   }
   
-  // Partial match (first+last name subset)
+  // Joanne special handling
+  if (lower.includes('joanne') || lower.includes('ballantyne')) {
+    found = users.find(u => (u.name || '').trim().toLowerCase().includes('joanne'));
+    if (found) return found;
+  }
+
+  // Jacqui special handling
+  if (lower.includes('jacqui') || lower.includes('tibos')) {
+    found = users.find(u => (u.name || '').trim().toLowerCase().includes('jacqui'));
+    if (found) return found;
+  }
+
+  // Joshua special handling
+  if (lower.includes('joshua') || lower.includes('mostratos')) {
+    found = users.find(u => (u.name || '').trim().toLowerCase().includes('joshua'));
+    if (found) return found;
+  }
+
+  // Namra special handling
+  if (lower.includes('namra') || lower.includes('khan')) {
+    found = users.find(u => (u.name || '').trim().toLowerCase().includes('namra'));
+    if (found) return found;
+  }
+
+  // Rienzie special handling
+  if (lower.includes('rienzie') || lower.includes('delilkan')) {
+    found = users.find(u => (u.name || '').trim().toLowerCase().includes('rienzie'));
+    if (found) return found;
+  }
+  
+  // Partial match fallback
   found = users.find(u => {
     const uname = (u.name || '').trim().toLowerCase();
     return uname.includes(lower) || lower.includes(uname);
@@ -332,6 +362,39 @@ export function CRMImporter() {
 
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
+
+  useEffect(() => {
+    async function seedMissingBDMs() {
+      if (!db || !users) return;
+      
+      const KNOWN_BDMS = [
+        { id: 'jacqui_tibos', name: 'Jacqui Tibos', email: 'jacqui.tibos@teamglobalexpress.com', role: 'BDM', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
+        { id: 'joanne_ballantyne', name: 'Joanne Ballantyne', email: 'joanne.ballantyne@teamglobalexpress.com', role: 'BDM', territory: 'METRO_SOUTH', state: 'WA', target: 2500000 },
+        { id: 'joshua_mostratos', name: 'Joshua Mostratos', email: 'joshua.mostratos@teamglobalexpress.com', role: 'BDM', territory: 'REGIONAL', state: 'WA', target: 2500000 },
+        { id: 'namra_khan', name: 'Namra Khan', email: 'namra.khan@teamglobalexpress.com', role: 'BDM', territory: 'WESTERN_TRADE_COAST', state: 'WA', target: 2500000 },
+        { id: 'rienzie_delilkan', name: 'Rienzie Delilkan', email: 'rienzie.delilkan@teamglobalexpress.com', role: 'BDM', territory: 'FLEX', state: 'WA', target: 2500000 },
+        { id: 'isaac_depina', name: 'Isaac De Pina', email: 'isaac.depina@teamglobalexpress.com', role: 'BDM', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
+      ];
+
+      for (const bdm of KNOWN_BDMS) {
+        const exists = users.some(u => (u.name || '').trim().toLowerCase() === bdm.name.toLowerCase() || u.id === bdm.id);
+        if (!exists) {
+          console.log(`Auto-seeding BDM: ${bdm.name}`);
+          await setDoc(doc(db, 'users', bdm.id), {
+            id: bdm.id,
+            name: bdm.name,
+            email: bdm.email,
+            role: bdm.role,
+            territory: bdm.territory,
+            state: bdm.state,
+            target: bdm.target,
+            createdAt: serverTimestamp()
+          });
+        }
+      }
+    }
+    seedMissingBDMs();
+  }, [db, users]);
 
   // ── Purge Data ───────────────────────────────────────────────────────────
   const handlePurge = async (scope: 'WEEK' | 'ALL') => {
