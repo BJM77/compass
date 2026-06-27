@@ -52,17 +52,19 @@ type DashboardView =
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH';
 
 const NAV_ITEMS = [
+  // 5 Core Pages (Main Menu)
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
-  { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'main' },
-  { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
-  { view: 'DEMO_DASH' as DashboardView,         label: 'The Week',          icon: CalendarCheck,    adminOnly: false, group: 'main' },
-  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
+  { view: 'TWIW' as DashboardView,              label: 'TWTW',              icon: CalendarCheck,    adminOnly: false, group: 'main' },
+  { view: 'DEMO_DASH' as DashboardView,         label: 'Friday FW',         icon: ClipboardList,    adminOnly: false, group: 'main' },
   { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
-  { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
-  { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true,  group: 'main' },
-  { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false, group: 'main' },
+  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
   
-  // Admin Items
+  // Admin Menu / Submenu Items
+  { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'admin' },
+  { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'admin' },
+  { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'admin' },
+  { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true,  group: 'admin' },
+  { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false, group: 'admin' },
   { view: 'TEAM_GOALS' as DashboardView,        label: 'Team Goals',        icon: Star,             adminOnly: true,  group: 'admin' },
   { view: 'BRIEFS' as DashboardView,            label: 'Briefs',            icon: Sparkles,         adminOnly: true,  group: 'admin' },
   { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true,  group: 'admin' },
@@ -173,9 +175,6 @@ function DashboardContent() {
                       const guestAllowedViews = ['DEMO_DASH', 'OPS_REPORT', 'WHITE_SPACE'];
                       return guestAllowedViews.includes(item.view);
                     }
-                    if (item.view === 'DEMO_DASH' && (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER')) {
-                      return false;
-                    }
                     return item.group === 'main' && (item.adminOnly ? isLeader : true);
                   }).map(nav => (
                     <SidebarMenuItem key={nav.view}>
@@ -192,7 +191,7 @@ function DashboardContent() {
             {profile?.role !== 'GUEST' && NAV_ITEMS.some(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)) && (
               <SidebarGroup>
                 <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mt-4 mb-1">
-                  Admin
+                  Admin Menu
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu className="px-2 space-y-1">
