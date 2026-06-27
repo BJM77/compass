@@ -272,6 +272,13 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
   }, [db, userId, selectedWeek]);
   const { data: opsReps } = useCollection(opsReportsQuery);
 
+  // Fact Finding Docs Query
+  const ffQuery = useMemoFirebase(() => {
+    if (!db || !userId) return null;
+    return query(collection(db, 'factFindingDocs'), where('userId', '==', userId));
+  }, [db, userId]);
+  const { data: ffDocs } = useCollection(ffQuery);
+
   // Leader / GM compliance audit (fetch everyone's docs for this week)
   const allCallPlansQuery = useMemoFirebase(() => {
     if (!db || !isLeader) return null;
@@ -290,6 +297,12 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
     return query(collection(db, 'opsReports'), where('week', '==', selectedWeek));
   }, [db, isLeader, selectedWeek]);
   const { data: allOpsReports } = useCollection(allOpsReportsQuery);
+
+  const allFactFindingsQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    return collection(db, 'factFindingDocs');
+  }, [db, isLeader]);
+  const { data: allFactFindings } = useCollection(allFactFindingsQuery);
 
   // Sourced Team Profiles (for Collation)
   const usersQuery = useMemoFirebase(() => {
@@ -2812,6 +2825,27 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                   )}
                 </div>
 
+                {/* Fact Finding */}
+                <div className="space-y-2">
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🔍 Fact Finding Reports</h5>
+                  {ffDocs && ffDocs.filter((ff: any) => isCreatedThisWeek(ff.createdAt)).length > 0 ? (
+                    <div className="space-y-2">
+                      {ffDocs.filter((ff: any) => isCreatedThisWeek(ff.createdAt)).map((ff: any, idx: number) => {
+                        const dt = ff.createdAt?.toDate ? ff.createdAt.toDate() : (ff.createdAt ? new Date(ff.createdAt) : null);
+                        const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        return (
+                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-slate-700">{ff.companyName || ff.customerName || 'Unnamed Doc'}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Fact Finding Sessions Completed</p>
+                  )}
+                </div>
+
                 {/* Ops Reports */}
                 <div className="space-y-2">
                   <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
@@ -3051,6 +3085,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                               const subCP = allCallPlans?.filter((cp: any) => cp.userId === sub.userId) || [];
                               const subWS = allWhitespacePlans?.filter((ws: any) => ws.userId === sub.userId && isCreatedThisWeek(ws.createdAt)) || [];
                               const subOps = allOpsReports?.filter((ops: any) => ops.userId === sub.userId) || [];
+                              const subFF = allFactFindings?.filter((ff: any) => ff.userId === sub.userId && isCreatedThisWeek(ff.createdAt)) || [];
 
                               return (
                                 <tr key={idx} className="align-top relative group">
@@ -3148,6 +3183,25 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
                                         })
                                       ) : (
                                         <span className="text-[10px] font-black text-red-600 bg-red-50 p-2 rounded-xl border border-red-100 block">No White Space Reports Created</span>
+                                      )}
+                                    </div>
+
+                                    {/* Fact Finding */}
+                                    <div className="space-y-1">
+                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">🔍 Fact Finding</div>
+                                      {subFF.length > 0 ? (
+                                        subFF.map((ff: any, i: number) => {
+                                          const dt = ff.createdAt?.toDate ? ff.createdAt.toDate() : (ff.createdAt ? new Date(ff.createdAt) : null);
+                                          const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                                          return (
+                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                              <span className="font-bold truncate">{ff.companyName || ff.customerName}</span>
+                                              <span className="text-[8px] text-slate-400">Created: {timeStr}</span>
+                                            </div>
+                                          );
+                                        })
+                                      ) : (
+                                        <span className="text-[10px] font-black text-red-600 bg-red-50 p-2 rounded-xl border border-red-100 block">No Fact Finding Sessions Completed</span>
                                       )}
                                     </div>
 
