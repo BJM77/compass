@@ -28,6 +28,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { getMonthWeeksForWeek } from '@/lib/utils';
+import { calculateDealHealth } from '@/lib/deal-health';
 
 export interface CrmMetrics {
   eav: number;
@@ -80,6 +81,10 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [includeGroupPlan, setIncludeGroupPlan] = useState(false);
+  
+  const [allFactFindings, setAllFactFindings] = useState<any[]>([]);
+  const [allCallPlans, setAllCallPlans] = useState<any[]>([]);
+  const [allWhitespacePlans, setAllWhitespacePlans] = useState<any[]>([]);
 
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
@@ -107,7 +112,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       if (!db || !users) return;
       setIsLoading(true);
       try {
-        const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap, progressSnap, whitespaceSnap, callPlansSnap, opsSnap] = await Promise.all([
+        const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap, progressSnap, whitespaceSnap, callPlansSnap, opsSnap, factFindingsSnap] = await Promise.all([
           getDocs(query(collection(db, 'weeklyReports'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'opportunities'), where('week', '==', selectedWeek))),
@@ -116,7 +121,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
           getDocs(collection(db, 'whitespacePlans')),
           getDocs(collection(db, 'callPlans')),
-          getDocs(query(collection(db, 'opsReports'), where('week', '==', selectedWeek)))
+          getDocs(query(collection(db, 'opsReports'), where('week', '==', selectedWeek))),
+          getDocs(collection(db, 'factFindingDocs'))
         ]);
 
         const bdms = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
@@ -176,6 +182,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         setPaperwork(paperworkSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setNewBusiness(businessSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setOpsReports(opsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter((r: any) => r.status === 'ESCALATED'));
+        setAllFactFindings(factFindingsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setAllCallPlans(callPlansSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setAllWhitespacePlans(whitespaceSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       } finally {
         setIsLoading(false);
       }
@@ -727,7 +736,16 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           {reportData.map((report) => {
             const metrics = crmMetricsByUserId.get(report.userId);
             return (
-              <BDMReportCard key={report.userId} report={report} onSaveFeedback={saveGMFeedback} crmMetrics={metrics} />
+              <BDMReportCard 
+                key={report.userId} 
+                report={report} 
+                onSaveFeedback={saveGMFeedback} 
+                crmMetrics={metrics} 
+                allDeals={allPipelineReviews || []}
+                factFindings={allFactFindings}
+                callPlans={allCallPlans}
+                whitespacePlans={allWhitespacePlans}
+              />
             );
           })}
         </TabsContent>
@@ -774,9 +792,74 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
   );
 }
 
-function BDMReportCard({ report, onSaveFeedback, forceOpen = false, crmMetrics }: { report: BDMWeeklyReport; onSaveFeedback: (uid: string, f: string) => void; forceOpen?: boolean; crmMetrics?: CrmMetrics }) {
+function BDMReportCard({ 
+  report, 
+  onSaveFeedback, 
+  forceOpen = false, 
+  crmMetrics,
+  allDeals = [],
+  factFindings = [],
+  callPlans = [],
+  whitespacePlans = []
+}: { 
+  report: BDMWeeklyReport; 
+  onSaveFeedback: (uid: string, f: string) => void; 
+  forceOpen?: boolean; 
+  crmMetrics?: CrmMetrics;
+  allDeals?: any[];
+  factFindings?: any[];
+  callPlans?: any[];
+  whitespacePlans?: any[];
+}) {
   const [feedback, setFeedback] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+
+  const userDeals = useMemo(() => {
+    return allDeals.filter((d: any) => d.userId === report.userId);
+  }, [allDeals, report.userId]);
+
+  const lowHealthDeals = useMemo(() => {
+    return userDeals.map((deal: any) => {
+      const health = calculateDealHealth(deal, factFindings, callPlans, whitespacePlans);
+      
+      let coachingPrompt = "";
+      const dealNameUpper = (deal.pipeline || '').toUpperCase();
+      const oppNameUpper = (deal.opportunityName || '').toUpperCase();
+      
+      const hasFF = factFindings.some((ff: any) => {
+        const ffName = (ff.companyName || '').toUpperCase();
+        return ffName && (ffName === dealNameUpper || ffName === oppNameUpper);
+      });
+      
+      const hasCP = callPlans.some((cp: any) => {
+        const cpName = (cp.accountName || '').toUpperCase();
+        return cpName && (cpName === dealNameUpper || cpName === oppNameUpper);
+      });
+
+      const hasWP = whitespacePlans.some((wp: any) => {
+        const wpName = (wp.accountName || '').toUpperCase();
+        return wpName && (wpName === dealNameUpper || wpName === oppNameUpper);
+      });
+
+      if (!hasFF) {
+        coachingPrompt = "Needs Fact Finding Log";
+      } else if (!hasCP) {
+        coachingPrompt = "Needs SPIN Call Plan";
+      } else if (!hasWP) {
+        coachingPrompt = "Needs Whitespace Diagnostic";
+      } else if (Number(deal.daysInStage) > 30) {
+        coachingPrompt = "Stalled in stage (>30 days)";
+      } else {
+        coachingPrompt = "Review barrier context";
+      }
+
+      return {
+        ...deal,
+        healthScore: health.score,
+        coachingPrompt
+      };
+    }).filter((d: any) => d.healthScore < 40);
+  }, [userDeals, factFindings, callPlans, whitespacePlans]);
 
   return (
     <Card className="border-none shadow-lg bg-white overflow-hidden transition-all hover:shadow-xl border-slate-200/80">
@@ -870,6 +953,36 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false, crmMetrics }
                   </div>
                 </div>
              </div>
+
+             {/* Coaching Alerts for Low Health Deals */}
+             {lowHealthDeals.length > 0 && (
+               <div className="bg-rose-50 border border-rose-100 p-6 rounded-2xl space-y-4">
+                 <p className="text-[10px] font-black uppercase text-rose-700 flex items-center gap-2">
+                   <AlertTriangle className="w-4 h-4 text-rose-650 animate-pulse" /> 
+                   Coaching Alert: Stalled / High-Risk Deals ({lowHealthDeals.length})
+                 </p>
+                 <div className="space-y-2">
+                   {lowHealthDeals.map((deal: any) => (
+                     <div key={deal.id} className="bg-white p-4 rounded-xl border border-rose-100/50 flex flex-col sm:flex-row justify-between sm:items-center gap-3 shadow-sm">
+                       <div>
+                         <p className="font-bold text-xs text-slate-800 uppercase tracking-tight">{deal.pipeline}</p>
+                         <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">
+                           Stage: {deal.stage || 'Discovery'} · Value: {formatEAV(deal.value)} · Stalled: {deal.daysInStage || 0} days
+                         </p>
+                       </div>
+                       <div className="flex items-center gap-2 sm:self-center">
+                         <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-rose-100 text-rose-750 border border-rose-200">
+                           Health: {deal.healthScore}%
+                         </span>
+                         <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                           {deal.coachingPrompt}
+                         </span>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
 
              {report.gmFeedback && (
                <div className="bg-accent/5 p-6 rounded-2xl border border-accent/20 h-auto text-field-container">
