@@ -13,11 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Loader2, TrendingUp, DollarSign, Target, Phone, CalendarCheck, 
   Users, Briefcase, AlertTriangle, CheckCircle2, ArrowRight,
   FileText, Calendar, RefreshCw, Save, Send, ChevronRight,
-  Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy, ClipboardCheck
+  Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy, ClipboardCheck,
+  Search, Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -77,6 +79,11 @@ export function FridayPerformanceReview({
     supportNeeded: '',
     keyLearnings: '',
   });
+  
+  // ─── CRM Account Selector State ──────────────────────────────────────────
+  const [selectorAccountId, setSelectorAccountId] = useState<string | null>(null);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [crmSearch, setCrmSearch] = useState('');
   
   // ─── Next Week Planning Data ─────────────────────────────────────────────
   const [nextWeekPlan, setNextWeekPlan] = useState({
@@ -324,6 +331,50 @@ export function FridayPerformanceReview({
     }
   };
   
+  // ─── CRM Account Selector Logic ──────────────────────────────────────────
+  const crmAccounts = useMemo(() => {
+    return allDeals?.filter((d: any) => d.userId === userId) || [];
+  }, [allDeals, userId]);
+
+  const filteredCrmAccounts = useMemo(() => {
+    if (!crmSearch.trim()) return crmAccounts;
+    const q = crmSearch.toLowerCase();
+    return crmAccounts.filter((a: any) => 
+      (a.pipeline || '').toLowerCase().includes(q) ||
+      (a.stage || '').toLowerCase().includes(q) ||
+      (a.businessUnit || '').toLowerCase().includes(q)
+    );
+  }, [crmAccounts, crmSearch]);
+
+  const handleSelectCrmAccount = (crmAcc: any) => {
+    if (!selectorAccountId) return;
+    
+    let matchedActionType = 'Prospect';
+    const crmStage = (crmAcc.stage || '').trim().toLowerCase();
+    if (crmStage.includes('develop')) matchedActionType = 'Develop';
+    else if (crmStage.includes('propose')) matchedActionType = 'Propose';
+    else if (crmStage.includes('negotiat')) matchedActionType = 'Negotiate';
+    else if (crmStage.includes('finalis')) matchedActionType = 'Finalise';
+    else if (crmStage.includes('pending')) matchedActionType = 'Pending Trade';
+    else if (crmStage.includes('won')) matchedActionType = 'Closed - Won';
+    
+    const notesParts = [];
+    if (crmAcc.businessUnit) notesParts.push(`BU: ${crmAcc.businessUnit}`);
+    if (crmAcc.lastActivity) notesParts.push(`Last Activity: ${crmAcc.lastActivity}`);
+    if (crmAcc.creditHold) notesParts.push(`CREDIT HOLD`);
+    
+    const aboutAccount = notesParts.join(' | ');
+
+    updateFocusAccount(selectorAccountId, 'accountName', crmAcc.pipeline || crmAcc.opportunityName || '');
+    updateFocusAccount(selectorAccountId, 'eav', Number(crmAcc.value) || Number(crmAcc.currentRevenue) || 0);
+    updateFocusAccount(selectorAccountId, 'actionType', matchedActionType);
+    updateFocusAccount(selectorAccountId, 'aboutAccount', aboutAccount);
+    
+    setIsSelectorOpen(false);
+    setSelectorAccountId(null);
+    setCrmSearch('');
+  };
+
   // ─── Helper Functions ─────────────────────────────────────────────────────
   const addFocusAccount = () => {
     setNextWeekPlan(prev => ({
@@ -661,9 +712,6 @@ export function FridayPerformanceReview({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-black uppercase text-slate-700">Focus Accounts</h4>
-              <Button size="sm" variant="outline" onClick={addFocusAccount} className="h-7 text-[9px] font-black uppercase">
-                <Plus className="w-3 h-3 mr-1" /> Add Account
-              </Button>
             </div>
             <div className="space-y-3">
               {nextWeekPlan.focusAccounts.map((acc) => (
@@ -676,10 +724,23 @@ export function FridayPerformanceReview({
                       className="h-9 text-xs font-bold flex-1"
                     />
                     <Button 
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setSelectorAccountId(acc.id);
+                        setIsSelectorOpen(true);
+                      }}
+                      className="h-9 w-9 bg-white border-slate-200 text-slate-500 hover:text-accent hover:border-accent shrink-0 rounded-xl"
+                      title="Select from CRM Upload"
+                    >
+                      <Search className="w-4 h-4" />
+                    </Button>
+                    <Button 
                       variant="ghost" 
                       size="icon" 
                       onClick={() => removeFocusAccount(acc.id)}
-                      className="h-8 w-8 text-red-300 hover:text-red-500"
+                      className="h-8 w-8 text-red-300 hover:text-red-500 shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -713,6 +774,16 @@ export function FridayPerformanceReview({
               {nextWeekPlan.focusAccounts.length === 0 && (
                 <p className="text-xs text-slate-400 italic text-center py-4">No focus accounts added yet.</p>
               )}
+              <div className="pt-1">
+                <Button 
+                  onClick={addFocusAccount} 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-[10px] font-black uppercase tracking-wider h-9 border-dashed border-slate-300 hover:border-slate-400 bg-white shadow-sm hover:bg-slate-50 text-slate-700 flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Focus Account
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -841,6 +912,83 @@ export function FridayPerformanceReview({
           </div>
         </CardContent>
       </Card>
+
+      {/* CRM Account Selector Dialog popup */}
+      <Dialog open={isSelectorOpen} onOpenChange={setIsSelectorOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-slate-100 shadow-2xl bg-white">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-base font-black uppercase tracking-tight flex items-center gap-2 text-slate-800">
+              <Building2 className="w-5 h-5 text-accent" /> Select Focus Account
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+              Choose an active opportunity or customer from your CRM uploads to auto-populate fields.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Search bar inside popup */}
+          <div className="py-4">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search accounts by name, stage, or business unit..."
+                value={crmSearch}
+                onChange={e => setCrmSearch(e.target.value)}
+                className="pl-10 h-10 text-xs font-medium bg-slate-50 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-accent"
+              />
+            </div>
+          </div>
+
+          {/* List area inside popup */}
+          <div className="flex-1 overflow-y-auto space-y-2 min-h-[300px] max-h-[45vh] pr-1">
+            {filteredCrmAccounts.length > 0 ? (
+              filteredCrmAccounts.map((crmAcc: any) => {
+                const isOpp = !crmAcc.isBareAccount;
+                const value = crmAcc.value || crmAcc.currentRevenue || 0;
+                return (
+                  <div 
+                    key={crmAcc.salesforceId || crmAcc.id}
+                    onClick={() => handleSelectCrmAccount(crmAcc)}
+                    className="p-4 border rounded-2xl hover:border-accent hover:bg-accent/5 cursor-pointer transition-all flex items-center justify-between group"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-xs font-black text-slate-800 group-hover:text-accent transition-colors">
+                        {crmAcc.pipeline || crmAcc.opportunityName || 'Unnamed Account'}
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className="bg-slate-100 text-slate-600 font-bold border-none text-[8px] uppercase tracking-wide px-2 py-0.5 rounded-full">
+                          {isOpp ? 'Opportunity' : 'Customer'}
+                        </Badge>
+                        {crmAcc.stage && (
+                          <Badge className="bg-blue-50 text-blue-600 font-bold border-none text-[8px] uppercase tracking-wide px-2 py-0.5 rounded-full">
+                            {crmAcc.stage}
+                          </Badge>
+                        )}
+                        {crmAcc.businessUnit && (
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">
+                            BU: {crmAcc.businessUnit}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="text-xs font-black text-slate-900">{formatEAV(value)}</p>
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                        {isOpp ? 'Expected Value' : 'YTD Revenue'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-20 text-center">
+                <Building2 className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                <p className="text-xs text-slate-400 font-medium">No uploaded accounts found matching search.</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
