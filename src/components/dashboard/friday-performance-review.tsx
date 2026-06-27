@@ -797,16 +797,16 @@ export function FridayPerformanceReview({
             />
           </div>
 
-          {/* Publication Status Panel (uniform with TWTW) */}
-          <div className="mt-8 pt-6 border-t flex justify-end">
-            <Card className="border-slate-800 shadow-xl rounded-3xl overflow-hidden bg-slate-900 text-white w-full sm:max-w-md">
+          {/* Publication Status Panel (uniform with TWTW but full-width) */}
+          <div className="mt-8 pt-6 border-t w-full">
+            <Card className="border-slate-800 shadow-xl rounded-3xl overflow-hidden bg-slate-900 text-white w-full">
               <CardHeader className="border-b border-slate-800 py-4">
                 <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
                   <ClipboardCheck className="w-4 h-4" /> Publication Status
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-5 space-y-4">
-                <div className="flex justify-between items-center bg-white/5 border border-white/10 rounded-2xl p-3">
+              <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex justify-between items-center md:justify-start md:gap-6 bg-white/5 border border-white/10 rounded-2xl p-3 md:flex-1">
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Status</span>
                   <Badge className={cn(
                     "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
@@ -817,11 +817,11 @@ export function FridayPerformanceReview({
                   </Badge>
                 </div>
 
-                <div className="space-y-2.5 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2.5 md:flex-1 justify-end">
                   <Button 
                     onClick={handleSaveDraft} 
                     disabled={isSaving || isSubmitting}
-                    className="w-full bg-slate-800 hover:bg-slate-700 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-sm border border-slate-700"
+                    className="bg-slate-800 hover:bg-slate-700 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-sm border border-slate-700 w-full sm:w-auto px-6"
                   >
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-slate-300" />}
                     Save Draft
@@ -830,7 +830,7 @@ export function FridayPerformanceReview({
                   <Button 
                     onClick={handleSubmit} 
                     disabled={isSaving || isSubmitting}
-                    className="w-full bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20"
+                    className="bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20 w-full sm:w-auto px-8"
                   >
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     {status === 'SUBMITTED' ? 'Update Submission' : 'Submit Friday Pack'}
