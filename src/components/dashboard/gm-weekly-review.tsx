@@ -819,6 +819,22 @@ function BDMReportCard({
   }, [allDeals, report.userId]);
 
   const lowHealthDeals = useMemo(() => {
+    const ffNames = new Set(
+      factFindings
+        .map((ff: any) => (ff.companyName || '').toUpperCase())
+        .filter(Boolean)
+    );
+    const cpNames = new Set(
+      callPlans
+        .map((cp: any) => (cp.accountName || '').toUpperCase())
+        .filter(Boolean)
+    );
+    const wpNames = new Set(
+      whitespacePlans
+        .map((wp: any) => (wp.accountName || '').toUpperCase())
+        .filter(Boolean)
+    );
+
     return userDeals.map((deal: any) => {
       const health = calculateDealHealth(deal, factFindings, callPlans, whitespacePlans);
       
@@ -826,20 +842,9 @@ function BDMReportCard({
       const dealNameUpper = (deal.pipeline || '').toUpperCase();
       const oppNameUpper = (deal.opportunityName || '').toUpperCase();
       
-      const hasFF = factFindings.some((ff: any) => {
-        const ffName = (ff.companyName || '').toUpperCase();
-        return ffName && (ffName === dealNameUpper || ffName === oppNameUpper);
-      });
-      
-      const hasCP = callPlans.some((cp: any) => {
-        const cpName = (cp.accountName || '').toUpperCase();
-        return cpName && (cpName === dealNameUpper || cpName === oppNameUpper);
-      });
-
-      const hasWP = whitespacePlans.some((wp: any) => {
-        const wpName = (wp.accountName || '').toUpperCase();
-        return wpName && (wpName === dealNameUpper || wpName === oppNameUpper);
-      });
+      const hasFF = ffNames.has(dealNameUpper) || ffNames.has(oppNameUpper);
+      const hasCP = cpNames.has(dealNameUpper) || cpNames.has(oppNameUpper);
+      const hasWP = wpNames.has(dealNameUpper) || wpNames.has(oppNameUpper);
 
       if (!hasFF) {
         coachingPrompt = "Needs Fact Finding Log";
