@@ -55,7 +55,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [collapsedWidgets, setCollapsedWidgets] = useState<Record<string, boolean>>({
     'monday-planning': true,
-    'friday-synthesis': true,
+    'friday-fw': true,
     'call-prep': true,
     'smart-goals': true,
     'success-plan': true,
@@ -99,17 +99,17 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     let result = [...rawLayout];
     
     const twiwIdx = result.findIndex(w => w.id === 'twiw');
-    const fridayIdx = result.findIndex(w => w.id === 'friday-synthesis');
+    const fridayIdx = result.findIndex(w => w.id === 'friday-fw');
     const callPrepIdx = result.findIndex(w => w.id === 'call-prep');
     
     let twiwWidget: DashboardWidgetConfig = { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true };
-    let fridayWidget: DashboardWidgetConfig = { id: 'friday-synthesis', name: 'Friday Synthesis (Weekly Submission)', width: 3, visible: false };
+    let fridayWidget: DashboardWidgetConfig = { id: 'friday-fw', name: 'Friday FW', width: 3, visible: true };
     let callPrepWidget: DashboardWidgetConfig = { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false };
     
     // Extract widgets in reverse index order to avoid shifting issues
     const indices = [
       { id: 'twiw', idx: twiwIdx },
-      { id: 'friday-synthesis', idx: fridayIdx },
+      { id: 'friday-fw', idx: fridayIdx },
       { id: 'call-prep', idx: callPrepIdx }
     ].sort((a, b) => b.idx - a.idx);
     
@@ -117,17 +117,17 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       if (item.idx !== -1) {
         const extracted = result.splice(item.idx, 1)[0];
         if (item.id === 'twiw') twiwWidget = extracted;
-        else if (item.id === 'friday-synthesis') fridayWidget = extracted;
+        else if (item.id === 'friday-fw') fridayWidget = extracted;
         else if (item.id === 'call-prep') callPrepWidget = extracted;
       }
     });
 
     twiwWidget.name = 'Thursday TWTW';
-    fridayWidget.name = 'Friday FW';
+    // fridayWidget name is already Friday FW
 
     if (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER') {
       twiwWidget.visible = true;
-      fridayWidget.visible = false;
+      fridayWidget.visible = true;
       result = result.filter(w => w.id !== 'monday-planning');
     }
 
@@ -135,7 +135,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     const originalIndices = [twiwIdx, fridayIdx, callPrepIdx].filter(idx => idx !== -1);
     const insertIdx = originalIndices.length > 0 ? Math.min(...originalIndices) : result.length;
     
-    // Insert them sequentially: twiw first, then friday-synthesis, then call-prep
+    // Insert them sequentially: twiw first, then friday-fw, then call-prep
     result.splice(insertIdx, 0, twiwWidget, fridayWidget, callPrepWidget);
     
     return result;
@@ -411,7 +411,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                                            'monday': 'monday-planning',
                                            'accounts': 'customer-review',
                                            'pipeline': 'pipeline-review',
-                                           'submission': 'friday-synthesis',
+                                           'submission': 'friday-fw',
                                            'prep': 'call-prep',
                                            'reset': 'success-plan'
                                         };
@@ -493,7 +493,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
             <PipelineReviewTable userId={userId || ''} filterType="opportunities" />
           </div>
         );
-      case 'friday-synthesis':
+      case 'friday-fw':
         return (
           <FridayPerformanceReview 
             userId={userId || ''}
@@ -566,9 +566,9 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
 
           <button
             onClick={() => {
-              setCollapsedWidgets(prev => ({ ...prev, 'friday-synthesis': false }));
+              setCollapsedWidgets(prev => ({ ...prev, 'friday-fw': false }));
               setTimeout(() => {
-                const element = document.getElementById('widget-friday-synthesis');
+                const element = document.getElementById('widget-friday-fw');
                 if (element) {
                   const yOffset = -160;
                   const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -622,7 +622,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
               'voice-logger': 'Logger',
               'crm-summary': 'Summary',
               'monday-planning': 'Monday Planning',
-              'friday-synthesis': 'Friday FW',
+              'friday-fw': 'Friday FW',
               'twiw': 'Thursday TWTW',
               'call-prep': 'Planning',
               'smart-goals': 'Goals',

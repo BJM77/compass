@@ -33,7 +33,7 @@ import { KPICard } from './kpi-card';
 import { FactFindingHub } from './fact-finding-hub';
 import { WhitespaceAnalysis } from './whitespace-analysis';
 import { WeeklyGoals } from './weekly-goals';
-import { BDMWeeklySubmission } from './bdm-weekly-submission';
+import { FridayPerformanceReview } from './friday-performance-review';
 import { TWIWView } from './twiw-view';
 import { CallPlanning } from './call-planning';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -70,7 +70,7 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
           'FACT_FINDING': 'FACT_FINDING',
           'WHITE_SPACE': 'WHITE_SPACE',
           'MONDAY_PLANNING': 'MONDAY_PLANNING',
-          'FRIDAY_SYNTHESIS': 'FRIDAY_SYNTHESIS',
+          'FRIDAY_FW': 'FRIDAY_FW',
           'TWIW': 'TWIW',
           'TEAM': 'TEAM',
           'DASHBOARD': 'DASHBOARD'
@@ -144,8 +144,14 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
         return <WhitespaceAnalysis userId={currentUserId} />;
       case 'MONDAY_PLANNING':
         return <CallPlanning userId={currentUserId} />;
-      case 'FRIDAY_SYNTHESIS':
-        return <BDMWeeklySubmission userId={currentUserId} userName={userName} />;
+      case 'FRIDAY_FW':
+        return <FridayPerformanceReview 
+          userId={currentUserId} 
+          userName={userName} 
+          userRole={profile?.role || 'BDM'} 
+          userState={profile?.state || 'WA'}
+          selectedWeek={currentWeek}
+        />;
       case 'TWIW':
         return <TWIWView userId={currentUserId} isLeader={isLeader} defaultTab={twtwDefaultTab} />;
       case 'TEAM':
@@ -168,7 +174,7 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
       'FACT_FINDING': 'Fact Finding',
       'WHITE_SPACE': 'White Space',
       'MONDAY_PLANNING': 'Call Plan',
-      'FRIDAY_SYNTHESIS': 'Friday FW',
+      'FRIDAY_FW': 'Friday FW',
       'TWIW': 'TWTW',
       'TEAM': 'Team Governance'
     };
@@ -180,8 +186,8 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
     { id: 'FACT_FINDING' as MobileModule, label: 'Fact Finding', icon: FileSearch },
     { id: 'WHITE_SPACE' as MobileModule, label: 'White Space', icon: LayoutGrid },
     { id: 'MONDAY_PLANNING' as MobileModule, label: 'Call Plan', icon: Phone },
-    { id: 'FRIDAY_SYNTHESIS' as MobileModule, label: 'Friday FW', icon: Send },
     { id: 'TWIW' as MobileModule, label: 'TWTW', icon: CalendarCheck },
+    { id: 'FRIDAY_FW' as MobileModule, label: 'Friday FW', icon: Send },
   ];
 
   return (
@@ -527,7 +533,7 @@ function MobileDashboardView({ userId, userName, stats, isLeader, setSimulationU
           icon={Send}
           onClick={() => {
             window.dispatchEvent(new CustomEvent('switch-view', {
-              detail: { view: 'FRIDAY_SYNTHESIS' }
+              detail: { view: 'FRIDAY_FW' }
             }));
           }}
         />

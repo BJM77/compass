@@ -60,23 +60,23 @@ export function openSalesforceSearch(term: string, salesforceId?: string) {
 export function getWeekForDate(date: Date): string {
   let currentYear = date.getFullYear();
   
-  // Find first Sunday of April for current year
-  let firstSundayOfApril = new Date(currentYear, 3, 1);
-  while (firstSundayOfApril.getDay() !== 0) {
-    firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
+  // Find first Tuesday of April for current year
+  let firstTuesdayOfApril = new Date(currentYear, 3, 1);
+  while (firstTuesdayOfApril.getDay() !== 2) {
+    firstTuesdayOfApril.setDate(firstTuesdayOfApril.getDate() + 1);
   }
   
-  // If we are before the first Sunday of April this year, 
+  // If we are before the first Tuesday of April this year, 
   // we belong to the previous financial year.
-  if (isBefore(date, firstSundayOfApril)) {
+  if (isBefore(date, firstTuesdayOfApril)) {
     currentYear -= 1;
-    firstSundayOfApril = new Date(currentYear, 3, 1);
-    while (firstSundayOfApril.getDay() !== 0) {
-      firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
+    firstTuesdayOfApril = new Date(currentYear, 3, 1);
+    while (firstTuesdayOfApril.getDay() !== 2) {
+      firstTuesdayOfApril.setDate(firstTuesdayOfApril.getDate() + 1);
     }
   }
   
-  const weekNumber = differenceInCalendarWeeks(date, firstSundayOfApril, { weekStartsOn: 0 }) + 1;
+  const weekNumber = differenceInCalendarWeeks(date, firstTuesdayOfApril, { weekStartsOn: 2 }) + 1;
   const paddedWeek = weekNumber.toString().padStart(2, '0');
   return `${currentYear}-${paddedWeek}`;
 }
@@ -176,3 +176,26 @@ export function getNextWeekKey(weekKey: string): string {
 }
 
 
+
+export function getPreviousWeekKey(weekKey: string): string {
+  const [yearStr, weekStr] = weekKey.split('-');
+  const year = parseInt(yearStr, 10);
+  const weekNum = parseInt(weekStr, 10);
+
+  if (isNaN(year) || isNaN(weekNum)) {
+    return getWeekForDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+  }
+
+  // Find a matching date for the weekKey (similar to getNextWeekKey logic)
+  let searchDate = new Date(year, 3, 1);
+  for (let i = -10; i < 370; i++) {
+    const d = new Date(year, 3, 1 + i);
+    if (getWeekForDate(d) === weekKey) {
+      searchDate = d;
+      break;
+    }
+  }
+
+  const prevWeekDate = new Date(searchDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  return getWeekForDate(prevWeekDate);
+}

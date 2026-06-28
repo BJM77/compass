@@ -26,6 +26,7 @@ import { OpsReportReview } from '@/components/dashboard/ops-report-review';
 import { TWIWView } from '@/components/dashboard/twiw-view';
 import { DemoDashView } from '@/components/dashboard/demo-dash-view';
 import { SystemBroadcast } from '@/components/dashboard/system-broadcast';
+import { FridayPerformanceReview } from '@/components/dashboard/friday-performance-review';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -34,7 +35,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck, Beaker, Upload, Megaphone
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck, Beaker, Upload, Megaphone, Send
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -50,12 +51,13 @@ import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW';
 
 const NAV_ITEMS = [
   // Core Pages (Main Menu)
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
   { view: 'TWIW' as DashboardView,              label: 'TWTW',              icon: CalendarCheck,    adminOnly: false, group: 'main' },
+  { view: 'FRIDAY_FW' as DashboardView,         label: 'Friday FW',         icon: Send,             adminOnly: false, group: 'main' },
   { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
   { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
   { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
@@ -143,6 +145,7 @@ function DashboardContent() {
     if (activeView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
     if (activeView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
     if (activeView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
+    if (activeView === 'FRIDAY_FW') return <div className="w-full p-4 md:p-8"><FridayPerformanceReview userId={activeUserId || ''} userName={profile?.name || ''} userRole={profile?.role || 'BDM'} userState={profile?.state || 'WA'} selectedWeek={getCurrentWeek()} /></div>;
     if (activeView === 'DEMO_DASH') return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
     if (activeView === 'BROADCAST' && isLeader) return <div className="w-full p-4 md:p-8 max-w-xl mx-auto"><SystemBroadcast /></div>;
     

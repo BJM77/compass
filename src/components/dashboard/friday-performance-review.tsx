@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, getNextWeekKey, formatEAV } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ import {
   Users, Briefcase, AlertTriangle, CheckCircle2, ArrowRight,
   FileText, Calendar, RefreshCw, Save, Send, ChevronRight,
   Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy, ClipboardCheck,
-  Search, Building2
+  Search, Building2, Eye, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -57,6 +57,38 @@ export function FridayPerformanceReview({
   // ─── CRM Data (from existing hooks) ──────────────────────────────────────
   const { pipelineReviews: allDeals, weeklyProgresses: allActivity } = usePipelineData();
   const crmSummary = useCRMSummary(userId, isLeader);
+
+  // ─── Compliance Audit Data ───────────────────────────────────────────────
+  const callPlansQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'callPlans'), where('week', '==', selectedWeek));
+  }, [db, selectedWeek]);
+  const { data: callPlans } = useCollection(callPlansQuery);
+
+  const whitespaceReportsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'whitespacePlans'), where('week', '==', selectedWeek));
+  }, [db, selectedWeek]);
+  const { data: whitespaceReports } = useCollection(whitespaceReportsQuery);
+
+  const opsReportsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'opsReports'), where('week', '==', selectedWeek));
+  }, [db, selectedWeek]);
+  const { data: opsReports } = useCollection(opsReportsQuery);
+
+  const userCallPlans = callPlans?.filter(p => p.userId === userId) || [];
+  const userWhitespace = whitespaceReports?.filter(p => p.userId === userId) || [];
+  const userOps = opsReports?.filter(p => p.userId === userId) || [];
+
+  // ─── Previous Friday FW Viewer ───────────────────────────────────────────
+  const previousWeekKey = getPreviousWeekKey(selectedWeek);
+  const previousFridayFwRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'weeklyCommitments', `${userId}_${previousWeekKey}`);
+  }, [db, userId, previousWeekKey]);
+  const { data: previousFridayFw } = useDoc(previousFridayFwRef);
+  const [showPreviousPlan, setShowPreviousPlan] = useState(false);
   
   // ─── User's Data for Current Week ─────────────────────────────────────────
   const [currentWeekData, setCurrentWeekData] = useState({
@@ -482,6 +514,83 @@ export function FridayPerformanceReview({
           </Button>
         </div>
       </header>
+
+      {/* Previous Friday FW Viewer */}
+      {previousFridayFw && (
+        <Card className="border-accent/20 bg-accent/5 shadow-md">
+          <CardHeader className="pb-3 border-b border-accent/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black uppercase text-accent tracking-tighter flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  This Week's Active Plan (Submitted Last Week)
+                </CardTitle>
+                <CardDescription className="text-xs font-bold mt-1">
+                  Your submitted Friday FW for Week {previousWeekKey.split('-')[1]} which acts as your plan for this current week.
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-[10px] font-black uppercase tracking-widest border-accent text-accent hover:bg-accent hover:text-white"
+                onClick={() => setShowPreviousPlan(!showPreviousPlan)}
+              >
+                {showPreviousPlan ? (
+                  <>Hide Plan</>
+                ) : (
+                  <><Eye className="w-4 h-4 mr-2" /> View Plan</>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          {showPreviousPlan && (
+            <CardContent className="p-6 space-y-6">
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Strategic Focus & Narrative</h4>
+                <p className="text-sm text-slate-700 bg-white p-4 rounded-xl border border-slate-100 italic whitespace-pre-wrap">
+                  {previousFridayFw.strategicFocus || previousFridayFw.weeklyNotes || 'No narrative provided.'}
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Key Actions Planned</h4>
+                <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
+                  {previousFridayFw.actionPlan && previousFridayFw.actionPlan.length > 0 ? (
+                    previousFridayFw.actionPlan.map((action: string, i: number) => (
+                      <div key={i} className="p-3 text-sm flex gap-3">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="font-medium text-slate-700">{action}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-xs italic text-slate-400">No actions planned.</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Focus Accounts</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {previousFridayFw.focusAccounts && previousFridayFw.focusAccounts.length > 0 ? (
+                    previousFridayFw.focusAccounts.map((acc: any, i: number) => (
+                      <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col gap-1">
+                        <div className="flex justify-between items-start">
+                          <span className="font-black text-sm text-primary">{acc.accountName}</span>
+                          <Badge variant="outline" className="text-[9px] uppercase">{acc.actionType}</Badge>
+                        </div>
+                        <span className="text-xs font-bold text-accent">{formatEAV(acc.eav)}</span>
+                        {acc.aboutAccount && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{acc.aboutAccount}</p>}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full p-4 text-xs italic text-slate-400 bg-white rounded-xl border border-slate-100">No focus accounts planned.</div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
       
       {/* ─── Section 1: Previous Week Performance (CRM Data) ───────────────── */}
       <Card className="border-none shadow-xl bg-white overflow-hidden">
@@ -612,6 +721,120 @@ export function FridayPerformanceReview({
               ) : (
                 <p className="text-xs text-slate-400 italic">No risks logged in Thursday TWTW.</p>
               )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-500" />
+                30 Day Projected Wins ({currentWeekData.projectedWins.length})
+              </h4>
+              {currentWeekData.projectedWins.length > 0 ? (
+                <div className="space-y-2">
+                  {currentWeekData.projectedWins.map((w: any, i: number) => (
+                    <div key={i} className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                      <p className="font-bold text-slate-800">{w.account}</p>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-sm font-black text-blue-600">{formatEAV(w.value)}</p>
+                        <Badge variant="outline" className="text-[9px] bg-white text-slate-600">{w.expectedDate}</Badge>
+                      </div>
+                      {w.updateText && <p className="text-xs text-slate-600 mt-2">{w.updateText}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">No projected wins logged.</p>
+              )}
+            </div>
+            
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-purple-500" />
+                Major Pipeline & Customer Updates ({currentWeekData.updates.length})
+              </h4>
+              {currentWeekData.updates.length > 0 ? (
+                <div className="space-y-2">
+                  {currentWeekData.updates.map((u: any, i: number) => (
+                    <div key={i} className="p-3 bg-purple-50 border border-purple-100 rounded-xl">
+                      <p className="font-bold text-slate-800">{u.customer}</p>
+                      {u.value > 0 && <p className="text-sm font-black text-purple-600">{formatEAV(u.value)}</p>}
+                      <p className="text-xs text-slate-700 mt-1">{u.updateText}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">No major updates logged.</p>
+              )}
+            </div>
+          </div>
+          
+          {/* Weekly Compliance Audit */}
+          <div className="pt-4 border-t space-y-4">
+            <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              Weekly Compliance Audit
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Call Plans */}
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
+                {userCallPlans.length > 0 ? (
+                  <div className="space-y-2">
+                    {userCallPlans.map((plan: any) => (
+                      <div key={plan.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
+                        <div className="font-bold text-slate-800">{plan.customerName || 'Unnamed'}</div>
+                        <div className="text-slate-500 mt-1 flex justify-between">
+                          <span>{plan.objective || 'No objective'}</span>
+                          <span className="font-black text-emerald-600">{plan.status || 'Draft'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Call Plans Created</p>
+                )}
+              </div>
+
+              {/* White Space */}
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🗺️ White Space Reports</h5>
+                {userWhitespace.length > 0 ? (
+                  <div className="space-y-2">
+                    {userWhitespace.map((ws: any) => (
+                      <div key={ws.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
+                        <div className="font-bold text-slate-800">{ws.customerName || 'Unnamed'}</div>
+                        <div className="text-slate-500 mt-1 flex justify-between">
+                          <span>{ws.competitor || 'No competitor listed'}</span>
+                          <span className="font-black text-emerald-600">{formatEAV(ws.estimatedValue || 0)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No White Space Reports Created</p>
+                )}
+              </div>
+
+              {/* Ops Reports */}
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
+                {userOps.length > 0 ? (
+                  <div className="space-y-2">
+                    {userOps.map((op: any) => (
+                      <div key={op.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
+                        <div className="font-bold text-slate-800">{op.customerName || 'Unnamed'}</div>
+                        <div className="text-slate-500 mt-1 flex justify-between">
+                          <span className="truncate pr-2">{op.issueType || 'General'}</span>
+                          <span className={cn("font-black", op.status === 'Resolved' ? 'text-emerald-600' : 'text-amber-600')}>{op.status || 'Open'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl p-3">No Ops Issues Logged</p>
+                )}
+              </div>
             </div>
           </div>
           

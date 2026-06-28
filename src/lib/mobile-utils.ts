@@ -24,7 +24,7 @@ export const MOBILE_MODULES = [
   'FACT_FINDING',
   'WHITE_SPACE',
   'MONDAY_PLANNING',
-  'FRIDAY_SYNTHESIS',
+  'FRIDAY_FW',
   'TWIW',
   'TEAM'
 ] as const;
