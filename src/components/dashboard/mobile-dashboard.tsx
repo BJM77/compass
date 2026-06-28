@@ -35,6 +35,7 @@ import { WhitespaceAnalysis } from './whitespace-analysis';
 import { WeeklyGoals } from './weekly-goals';
 import { BDMWeeklySubmission } from './bdm-weekly-submission';
 import { TWIWView } from './twiw-view';
+import { CallPlanning } from './call-planning';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { getCurrentWeek, formatEAV } from '@/lib/utils';
@@ -54,6 +55,7 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
   const router = useRouter();
   const [activeModule, setActiveModule] = useState<MobileModule>('DASHBOARD');
   const [showBackButton, setShowBackButton] = useState(false);
+  const [twtwDefaultTab, setTwtwDefaultTab] = useState<string>('my-report');
   
   const currentWeek = getCurrentWeek();
   const { pipelineReviews, isLoading, activeUserId, simulationUid, setSimulationUid } = usePipelineData();
@@ -77,6 +79,9 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
         if (module) {
           setActiveModule(module);
           setShowBackButton(true);
+          if (module === 'TWIW') {
+            setTwtwDefaultTab(e.detail.params?.tab || 'my-report');
+          }
         }
       }
     };
@@ -138,11 +143,11 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
       case 'WHITE_SPACE':
         return <WhitespaceAnalysis userId={currentUserId} />;
       case 'MONDAY_PLANNING':
-        return <WeeklyGoals userId={currentUserId} />;
+        return <CallPlanning userId={currentUserId} />;
       case 'FRIDAY_SYNTHESIS':
         return <BDMWeeklySubmission userId={currentUserId} userName={userName} />;
       case 'TWIW':
-        return <TWIWView userId={currentUserId} isLeader={false} />;
+        return <TWIWView userId={currentUserId} isLeader={isLeader} defaultTab={twtwDefaultTab} />;
       case 'TEAM':
         if (isLeader) {
           return <UserManagement onSimulate={(uid) => {
@@ -162,8 +167,8 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
       'DASHBOARD': 'Dashboard',
       'FACT_FINDING': 'Fact Finding',
       'WHITE_SPACE': 'White Space',
-      'MONDAY_PLANNING': 'Monday Planning',
-      'FRIDAY_SYNTHESIS': 'Friday Report',
+      'MONDAY_PLANNING': 'Call Plan',
+      'FRIDAY_SYNTHESIS': 'Friday FW',
       'TWIW': 'TWTW',
       'TEAM': 'Team Governance'
     };
@@ -174,8 +179,8 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
     { id: 'DASHBOARD' as MobileModule, label: 'Home', icon: LayoutDashboard },
     { id: 'FACT_FINDING' as MobileModule, label: 'Fact Finding', icon: FileSearch },
     { id: 'WHITE_SPACE' as MobileModule, label: 'White Space', icon: LayoutGrid },
-    { id: 'MONDAY_PLANNING' as MobileModule, label: 'Monday Plan', icon: Target },
-    { id: 'FRIDAY_SYNTHESIS' as MobileModule, label: 'Friday Report', icon: Send },
+    { id: 'MONDAY_PLANNING' as MobileModule, label: 'Call Plan', icon: Phone },
+    { id: 'FRIDAY_SYNTHESIS' as MobileModule, label: 'Friday FW', icon: Send },
     { id: 'TWIW' as MobileModule, label: 'TWTW', icon: CalendarCheck },
   ];
 
@@ -507,9 +512,9 @@ function MobileDashboardView({ userId, userName, stats, isLeader, setSimulationU
           }}
         />
         <QuickActionCard
-          title="Monday Plan"
-          description="Set weekly goals"
-          icon={Target}
+          title="Call Plan"
+          description="SPIN prep"
+          icon={Phone}
           onClick={() => {
             window.dispatchEvent(new CustomEvent('switch-view', {
               detail: { view: 'MONDAY_PLANNING' }
@@ -517,7 +522,7 @@ function MobileDashboardView({ userId, userName, stats, isLeader, setSimulationU
           }}
         />
         <QuickActionCard
-          title="Friday Report"
+          title="Friday FW"
           description="Submit synthesis"
           icon={Send}
           onClick={() => {
@@ -526,6 +531,18 @@ function MobileDashboardView({ userId, userName, stats, isLeader, setSimulationU
             }));
           }}
         />
+        {isLeader && (
+          <QuickActionCard
+            title="TWTW Collation Hub"
+            description="View team submissions"
+            icon={Users}
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('switch-view', {
+                detail: { view: 'TWIW', params: { tab: 'collation' } }
+              }));
+            }}
+          />
+        )}
         {isLeader && (
           <QuickActionCard
             title="Team Governance"

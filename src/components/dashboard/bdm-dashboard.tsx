@@ -127,7 +127,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
 
     if (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER') {
       twiwWidget.visible = true;
-      fridayWidget.visible = true;
+      fridayWidget.visible = false;
       result = result.filter(w => w.id !== 'monday-planning');
     }
 

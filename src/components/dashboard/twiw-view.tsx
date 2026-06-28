@@ -46,6 +46,7 @@ interface KPIReview {
 interface TWIWViewProps {
   userId: string;
   isLeader: boolean;
+  defaultTab?: string;
 }
 
 interface WinItem {
@@ -102,7 +103,7 @@ interface PriorityItem {
   isStarred?: boolean;
 }
 
-export function TWIWView({ userId, isLeader }: TWIWViewProps) {
+export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWViewProps) {
   const db = useFirestore();
   const { toast } = useToast();
   const { profile, user, isGuest } = useAuth();
@@ -1850,7 +1851,7 @@ export function TWIWView({ userId, isLeader }: TWIWViewProps) {
       </header>
 
       {isLeader ? (
-        <Tabs defaultValue="my-report" className="w-full">
+        <Tabs key={defaultTab} defaultValue={defaultTab} className="w-full">
           <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-4 max-w-3xl mb-8 h-12 border">
             <TabsTrigger value="my-report" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">My Report</TabsTrigger>
             <TabsTrigger value="collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Collation Hub</TabsTrigger>
