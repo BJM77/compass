@@ -15,7 +15,7 @@ import {
   Loader2, AlertTriangle, LifeBuoy, Briefcase, Users, Clock, Mail
 } from 'lucide-react';
 import { format, startOfWeek, subWeeks, addDays } from 'date-fns';
-import { getCurrentWeek, getWeekForDate, cn } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, cn, getNextWeekKey } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 // ─── Generate last N weeks as selectable options ──────────────────────────────
@@ -107,7 +107,13 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
   const actualApps = data.crmApps !== undefined && data.crmApps > 0 ? data.crmApps : data.apps;
   const actualProposals = data.proposals || 0;
   const actualDeals = data.deals || 0;
-  const actualRevenue = data.twtwWins.reduce((acc: number, win: any) => acc + (Number(win.value) || 0), 0);
+  const safeTwtwWins = Array.isArray(data.twtwWins) ? data.twtwWins : [];
+  const safeTwtwRisks = Array.isArray(data.twtwRisks) ? data.twtwRisks : [];
+  const safeTwtwPriorities = Array.isArray(data.twtwPriorities) ? data.twtwPriorities : [];
+  const safeFocusAccounts = Array.isArray(data.focusAccounts) ? data.focusAccounts : [];
+  const safeActionPlan = Array.isArray(data.actionPlan) ? data.actionPlan : [];
+
+  const actualRevenue = safeTwtwWins.reduce((acc: number, win: any) => acc + (Number(win?.value) || 0), 0);
 
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
@@ -199,10 +205,10 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
               {hasTwtwData ? (
                 <div className="space-y-4">
                   {/* Wins */}
-                  {data.twtwWins.length > 0 && (
+                  {safeTwtwWins.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Wins This Week</p>
-                      {data.twtwWins.map((win: any, idx: number) => (
+                      {safeTwtwWins.map((win: any, idx: number) => (
                         <div key={idx} className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-1">
                           <div className="flex justify-between items-start">
                             <p className="text-[10px] font-black text-slate-800 uppercase">{win.customer || 'Unnamed'}</p>
@@ -215,10 +221,10 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   )}
 
                   {/* Risks */}
-                  {data.twtwRisks.length > 0 && (
+                  {safeTwtwRisks.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest text-rose-600">Risks & Barriers</p>
-                      {data.twtwRisks.map((risk: any, idx: number) => (
+                      {safeTwtwRisks.map((risk: any, idx: number) => (
                         <div key={idx} className="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-1">
                           <div className="flex justify-between items-start">
                             <p className="text-[10px] font-black text-rose-800 uppercase">{risk.account || 'Unnamed'}</p>
@@ -239,11 +245,11 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   )}
 
                   {/* Priorities */}
-                  {data.twtwPriorities.length > 0 && (
+                  {safeTwtwPriorities.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Next Week's Priorities</p>
                       <div className="space-y-1">
-                        {data.twtwPriorities.map((item: string, idx: number) => (
+                        {safeTwtwPriorities.map((item: string, idx: number) => (
                           <div key={idx} className="flex gap-2 items-center text-[9px] font-medium text-slate-600">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                             <span>{item}</span>
@@ -268,10 +274,10 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
               {hasFridayData ? (
                 <div className="space-y-4">
                   {/* Focus Accounts */}
-                  {data.focusAccounts.length > 0 && (
+                  {safeFocusAccounts.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Focus Accounts & Commitments</p>
-                      {data.focusAccounts.map((acc: any, i: number) => (
+                      {safeFocusAccounts.map((acc: any, i: number) => (
                         <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
                           <div className="flex items-center justify-between">
                             <p className="text-[10px] font-black uppercase text-slate-800">{acc.accountName || 'Unnamed'}</p>
@@ -285,10 +291,10 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   )}
 
                   {/* Monday Action Plan */}
-                  {data.actionPlan.filter(a => a.trim()).length > 0 && (
+                  {safeActionPlan.filter(a => typeof a === 'string' && a.trim()).length > 0 && (
                     <div className="space-y-2">
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Monday Action Plan</p>
-                      {data.actionPlan.filter(a => a.trim()).map((action, i) => (
+                      {safeActionPlan.filter(a => typeof a === 'string' && a.trim()).map((action, i) => (
                         <div key={i} className="flex gap-2 items-start">
                           <Badge variant="outline" className="text-[7px] font-black w-5 h-5 p-0 flex items-center justify-center shrink-0">{i + 1}</Badge>
                           <p className="text-[9px] font-medium text-slate-600 leading-relaxed">{action}</p>
@@ -383,9 +389,11 @@ export function WeeklyArchive() {
           ? allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER')
           : allUsers.filter(u => u.id === user?.uid);
 
+        const nextWeek = getNextWeekKey(selectedWeek);
+
         // Parallel fetch TWTW, Friday FW (commitments), and activity metrics
         const [commitmentsSnap, twtwSnap, progressSnap] = await Promise.all([
-          getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', nextWeek))),
           getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
         ]);
