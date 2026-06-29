@@ -2490,7 +2490,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                       {updates && majorUpdates.length === 0 && (
                         <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
                           <p className="text-xs text-amber-800 font-medium mb-1">Legacy Update Format (Read-Only):</p>
-                          <p className="text-xs text-amber-700 whitespace-pre-wrap">{updates}</p>
+                          <p className="text-xs text-amber-700 whitespace-pre-wrap">{typeof updates === 'string' ? updates : JSON.stringify(updates)}</p>
                         </div>
                       )}
                       <div className="hidden sm:block overflow-x-auto">

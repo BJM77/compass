@@ -167,7 +167,7 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
             {updates && majorUpdates.length === 0 && (
               <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
                 <p className="text-xs text-amber-800 font-medium mb-1">Legacy Update Format:</p>
-                <Textarea value={updates} onChange={e => setUpdates(e.target.value)} rows={3} className="text-xs" />
+                <Textarea value={typeof updates === 'string' ? updates : ''} onChange={e => setUpdates(e.target.value)} rows={3} className="text-xs" />
               </div>
             )}
             <div className="space-y-2">
