@@ -238,9 +238,21 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
 
                   {/* Major Updates */}
                   {data.twtwMajorUpdates && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Major Updates</p>
-                      <p className="text-[9px] text-slate-700 leading-relaxed">{data.twtwMajorUpdates}</p>
+                      {typeof data.twtwMajorUpdates === 'string' ? (
+                        <p className="text-[9px] text-slate-700 leading-relaxed">{data.twtwMajorUpdates}</p>
+                      ) : Array.isArray(data.twtwMajorUpdates) ? (
+                        <div className="space-y-2">
+                          {(data.twtwMajorUpdates as any[]).map((mu: any, idx: number) => (
+                            <div key={idx} className="text-[9px] text-slate-700 leading-relaxed border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                              {mu.customer && <span className="font-bold uppercase text-slate-800">{mu.customer}: </span>}
+                              <span>{mu.updateText || ''}</span>
+                              {Number(mu.value) > 0 && <span className="text-emerald-700 font-black ml-1">(${(Number(mu.value) || 0).toLocaleString()})</span>}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   )}
 
