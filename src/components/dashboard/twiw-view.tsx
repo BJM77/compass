@@ -229,6 +229,58 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [editingSubmission, setEditingSubmission] = useState<any>(null);
 
+  const isFormComplete = useMemo(() => {
+    const winsValid = wins.every(w => 
+      w.customer?.trim() && 
+      (w.value || 0) > 0 && 
+      w.businessUnits?.length > 0 && 
+      w.updateText?.trim() && 
+      w.salespersonName?.trim()
+    );
+    if (!winsValid) return false;
+
+    const risksValid = risks.every(r => 
+      r.account?.trim() && 
+      (r.value || 0) > 0 && 
+      r.mitigation?.trim() && 
+      r.salespersonName?.trim()
+    );
+    if (!risksValid) return false;
+
+    const updatesValid = majorUpdates.every(m => 
+      m.customer?.trim() && 
+      m.businessUnits?.length > 0 && 
+      m.updateText?.trim() && 
+      m.salespersonName?.trim()
+    );
+    if (!updatesValid) return false;
+
+    const projectedValid = projectedWins.every(p => 
+      p.account?.trim() && 
+      (p.value || 0) > 0 && 
+      p.updateText?.trim() && 
+      p.salespersonName?.trim()
+    );
+    if (!projectedValid) return false;
+
+    const prioritiesValid = priorities.every(p => 
+      p.text?.trim() && 
+      p.salespersonName?.trim()
+    );
+    if (!prioritiesValid) return false;
+
+    if (isRegisteredUser) {
+      if (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) return false;
+      if (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) return false;
+      if (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) return false;
+      if (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) return false;
+      if (kpiReview.revenueActual === undefined || isNaN(kpiReview.revenueActual) || kpiReview.revenueActual < 0) return false;
+      if (!kpiReview.kpiNotes?.trim()) return false;
+    }
+
+    return true;
+  }, [wins, risks, majorUpdates, projectedWins, priorities, kpiReview, isRegisteredUser]);
+
   // --- ISO Week Calculation Helper ---
   const getWeekKey = (date: Date): string => {
     const d = new Date(date.getTime());
@@ -2903,15 +2955,37 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-slate-300" />}
                   Save Draft
                 </Button>
-
                 <Button 
                   onClick={() => handleSave('SUBMITTED')} 
-                  disabled={isSaving || isSubmitting}
-                  className="w-full bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20"
+                  disabled={isSaving || isSubmitting || !isFormComplete}
+                  className="w-full bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20 disabled:opacity-40"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {status === 'SUBMITTED' ? 'Update Submission' : 'Submit to Leadership'}
                 </Button>
+
+                {!isFormComplete && (
+                  <div className="p-3 bg-red-950/40 border border-red-500/20 rounded-xl space-y-1 mt-2">
+                    <p className="text-[10px] font-black uppercase text-red-400 tracking-wider text-left">Required to Submit:</p>
+                    <ul className="text-[9px] text-slate-300 space-y-0.5 list-disc pl-3 text-left">
+                      {!wins.every(w => w.customer?.trim() && (w.value || 0) > 0 && w.businessUnits?.length > 0 && w.updateText?.trim() && w.salespersonName?.trim()) && <li>Complete all fields in added Key Wins rows</li>}
+                      {!risks.every(r => r.account?.trim() && (r.value || 0) > 0 && r.mitigation?.trim() && r.salespersonName?.trim()) && <li>Complete all fields in added Churn Risks rows</li>}
+                      {!majorUpdates.every(m => m.customer?.trim() && m.businessUnits?.length > 0 && m.updateText?.trim() && m.salespersonName?.trim()) && <li>Complete all fields in added Major Updates rows</li>}
+                      {!projectedWins.every(p => p.account?.trim() && (p.value || 0) > 0 && p.updateText?.trim() && p.salespersonName?.trim()) && <li>Complete all fields in added Projected Wins rows</li>}
+                      {!priorities.every(p => p.text?.trim() && p.salespersonName?.trim()) && <li>Complete all fields in added Priorities rows</li>}
+                      {isRegisteredUser && (
+                        <>
+                          {(kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0 ||
+                            kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0 ||
+                            kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0 ||
+                            kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0 ||
+                            kpiReview.revenueActual === undefined || isNaN(kpiReview.revenueActual) || kpiReview.revenueActual < 0) && <li>Complete all KPI Actual values</li>}
+                          {!kpiReview.kpiNotes?.trim() && <li>Enter notes explaining KPI performance</li>}
+                        </>
+                      )}
+                    </ul>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

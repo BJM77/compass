@@ -347,6 +347,59 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
   const [twtwRoadblocks, setTwtwRoadblocks] = useState('');
   const [twtwSupport, setTwtwSupport] = useState('');
 
+  const isTwtwFormComplete = useMemo(() => {
+    const winsValid = wins.every(w => 
+      w.customer?.trim() && 
+      (w.value || 0) > 0 && 
+      w.businessUnits?.length > 0 && 
+      w.updateText?.trim() && 
+      w.salespersonName?.trim()
+    );
+    if (!winsValid) return false;
+
+    const risksValid = risks.every(r => 
+      r.account?.trim() && 
+      (r.value || 0) > 0 && 
+      r.mitigation?.trim() && 
+      r.salespersonName?.trim()
+    );
+    if (!risksValid) return false;
+
+    const updatesValid = majorUpdates.every(m => 
+      m.customer?.trim() && 
+      m.businessUnits?.length > 0 && 
+      m.updateText?.trim() && 
+      m.salespersonName?.trim()
+    );
+    if (!updatesValid) return false;
+
+    const projectedValid = projectedWins.every(p => 
+      p.account?.trim() && 
+      (p.value || 0) > 0 && 
+      p.updateText?.trim() && 
+      p.salespersonName?.trim()
+    );
+    if (!projectedValid) return false;
+
+    const prioritiesValid = priorities.every(p => 
+      p.text?.trim() && 
+      p.salespersonName?.trim()
+    );
+    if (!prioritiesValid) return false;
+
+    if (isRegisteredUser) {
+      if (twtwKpiActuals.callsMade === undefined || isNaN(twtwKpiActuals.callsMade) || twtwKpiActuals.callsMade < 0) return false;
+      if (twtwKpiActuals.appointmentsSet === undefined || isNaN(twtwKpiActuals.appointmentsSet) || twtwKpiActuals.appointmentsSet < 0) return false;
+      if (twtwKpiActuals.proposalsSent === undefined || isNaN(twtwKpiActuals.proposalsSent) || twtwKpiActuals.proposalsSent < 0) return false;
+      if (twtwKpiActuals.dealsClosed === undefined || isNaN(twtwKpiActuals.dealsClosed) || twtwKpiActuals.dealsClosed < 0) return false;
+      if (twtwKpiActuals.revenueWon === undefined || isNaN(twtwKpiActuals.revenueWon) || twtwKpiActuals.revenueWon < 0) return false;
+      if (!twtwRoadblocks?.trim()) return false;
+      if (!twtwSupport?.trim()) return false;
+    }
+
+    return true;
+  }, [wins, risks, majorUpdates, projectedWins, priorities, twtwKpiActuals, twtwRoadblocks, twtwSupport, isRegisteredUser]);
+
   // Friday Combined Pack Data
   // Section A: Current Week Review
   const [currentWeekActions, setCurrentWeekActions] = useState<{ text: string; completed: boolean; update: string; }[]>([]);
@@ -2947,13 +3000,43 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                   )}
 
                   {/* Submission actions */}
-                  <div className="flex justify-end gap-3 pt-6 border-t">
-                    <Button variant="outline" onClick={() => handleTwtwSubmit('DRAFT')} className="font-black h-12 px-6 uppercase tracking-wider text-xs border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                      Save Draft
-                    </Button>
-                    <Button onClick={() => handleTwtwSubmit('SUBMITTED')} className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 uppercase tracking-wider text-xs shadow-lg shadow-indigo-100">
-                      {twtwStatus === 'SUBMITTED' ? 'Update Submission' : 'Submit TWTW Report'}
-                    </Button>
+                  <div className="flex flex-col items-end gap-3 pt-6 border-t">
+                    <div className="flex justify-end gap-3">
+                      <Button variant="outline" onClick={() => handleTwtwSubmit('DRAFT')} className="font-black h-12 px-6 uppercase tracking-wider text-xs border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                        Save Draft
+                      </Button>
+                      <Button 
+                        onClick={() => handleTwtwSubmit('SUBMITTED')} 
+                        disabled={!isTwtwFormComplete}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 uppercase tracking-wider text-xs shadow-lg shadow-indigo-100 disabled:opacity-40"
+                      >
+                        {twtwStatus === 'SUBMITTED' ? 'Update Submission' : 'Submit TWTW Report'}
+                      </Button>
+                    </div>
+
+                    {!isTwtwFormComplete && (
+                      <div className="w-full max-w-md p-4 bg-rose-50 border border-rose-100 rounded-2xl space-y-1.5 mt-2">
+                        <p className="text-[10px] font-black uppercase text-rose-600 tracking-wider text-left">Required to Submit:</p>
+                        <ul className="text-[10px] text-slate-600 space-y-0.5 list-disc pl-4 text-left font-medium">
+                          {!wins.every(w => w.customer?.trim() && (w.value || 0) > 0 && w.businessUnits?.length > 0 && w.updateText?.trim() && w.salespersonName?.trim()) && <li>Complete all fields in added Key Wins rows</li>}
+                          {!risks.every(r => r.account?.trim() && (r.value || 0) > 0 && r.mitigation?.trim() && r.salespersonName?.trim()) && <li>Complete all fields in added Churn Risks rows</li>}
+                          {!majorUpdates.every(m => m.customer?.trim() && m.businessUnits?.length > 0 && m.updateText?.trim() && m.salespersonName?.trim()) && <li>Complete all fields in added Major Updates rows</li>}
+                          {!projectedWins.every(p => p.account?.trim() && (p.value || 0) > 0 && p.updateText?.trim() && p.salespersonName?.trim()) && <li>Complete all fields in added Projected Wins rows</li>}
+                          {!priorities.every(p => p.text?.trim() && p.salespersonName?.trim()) && <li>Complete all fields in added Priorities rows</li>}
+                          {isRegisteredUser && (
+                            <>
+                              {(twtwKpiActuals.callsMade === undefined || isNaN(twtwKpiActuals.callsMade) || twtwKpiActuals.callsMade < 0 ||
+                                twtwKpiActuals.appointmentsSet === undefined || isNaN(twtwKpiActuals.appointmentsSet) || twtwKpiActuals.appointmentsSet < 0 ||
+                                twtwKpiActuals.proposalsSent === undefined || isNaN(twtwKpiActuals.proposalsSent) || twtwKpiActuals.proposalsSent < 0 ||
+                                twtwKpiActuals.dealsClosed === undefined || isNaN(twtwKpiActuals.dealsClosed) || twtwKpiActuals.dealsClosed < 0 ||
+                                twtwKpiActuals.revenueWon === undefined || isNaN(twtwKpiActuals.revenueWon) || twtwKpiActuals.revenueWon < 0) && <li>Complete all KPI Actual values</li>}
+                              {!twtwRoadblocks?.trim() && <li>Enter active Roadblocks (or 'None')</li>}
+                              {!twtwSupport?.trim() && <li>Enter active Management Support requests (or 'None')</li>}
+                            </>
+                          )}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
         </TabsContent>
