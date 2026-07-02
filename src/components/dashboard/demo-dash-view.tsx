@@ -2385,7 +2385,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={w.customer} 
                                     onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
                                     placeholder="e.g. Acme Corp" 
-                                    className="h-8 text-xs font-semibold"
+                                    className={cn("h-8 text-xs font-semibold", !w.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2394,11 +2394,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={w.value || ''} 
                                     onChange={(e) => updateWinField(w.id, 'value', parseFloat(e.target.value) || 0)} 
                                     placeholder="Value" 
-                                    className="h-8 text-xs font-black text-right text-emerald-600"
+                                    className={cn("h-8 text-xs font-black text-right text-emerald-600", (!w.value || w.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
-                                  <div className="flex flex-wrap gap-1">
+                                  <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (w.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
                                     {BUSINESS_UNITS.map(bu => (
                                       <Badge 
                                         key={bu} 
@@ -2417,7 +2417,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                       value={w.updateText || ''} 
                                       onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
                                       placeholder="e.g. Signed contract win" 
-                                      className="h-8 text-xs"
+                                      className={cn("h-8 text-xs", !w.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                       maxLength={200}
                                     />
                                     <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(w.updateText || '').length}/200</div>
@@ -2428,7 +2428,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={w.salespersonName} 
                                     onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
                                     placeholder="Name" 
-                                    className="h-8 text-xs"
+                                    className={cn("h-8 text-xs", !w.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">
@@ -2481,7 +2481,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.account} 
                                     onChange={(e) => updateRiskField(r.id, 'account', e.target.value)} 
                                     placeholder="e.g. Acme Corp" 
-                                    className="h-8 text-xs font-semibold"
+                                    className={cn("h-8 text-xs font-semibold", !r.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2490,7 +2490,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.value || ''} 
                                     onChange={(e) => updateRiskField(r.id, 'value', parseFloat(e.target.value) || 0)} 
                                     placeholder="Value" 
-                                    className="h-8 text-xs font-black text-right text-rose-600"
+                                    className={cn("h-8 text-xs font-black text-right text-rose-600", (!r.value || r.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2498,7 +2498,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.mitigation} 
                                     onChange={(e) => updateRiskField(r.id, 'mitigation', e.target.value)} 
                                     placeholder="e.g. Setup review meeting" 
-                                    className="h-8 text-xs"
+                                    className={cn("h-8 text-xs", !r.mitigation?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2506,7 +2506,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.salespersonName} 
                                     onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
                                     placeholder="Name" 
-                                    className="h-8 text-xs"
+                                    className={cn("h-8 text-xs", !r.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">
@@ -2566,7 +2566,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={m.customer} 
                                     onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
                                     placeholder="e.g. Acme Corp" 
-                                    className="h-8 text-xs font-semibold"
+                                    className={cn("h-8 text-xs font-semibold", !m.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2579,7 +2579,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
-                                  <div className="flex flex-wrap gap-1">
+                                  <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (m.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
                                     {BUSINESS_UNITS.map(bu => (
                                       <Badge 
                                         key={bu} 
@@ -2598,7 +2598,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                       value={m.updateText || ''} 
                                       onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
                                       placeholder="e.g. Signed contract win" 
-                                      className="h-8 text-xs"
+                                      className={cn("h-8 text-xs", !m.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                       maxLength={200}
                                     />
                                     <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(m.updateText || '').length}/200</div>
@@ -2609,7 +2609,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={m.salespersonName} 
                                     onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
                                     placeholder="Name" 
-                                    className="h-8 text-xs"
+                                    className={cn("h-8 text-xs", !m.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">
@@ -2658,58 +2658,58 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           <tbody className="divide-y divide-slate-50">
                             {projectedWins.map((p) => {
                               return (
-                                <tr key={p.id}>
-                                  <td className="py-2 pr-2">
-                                    <Input 
-                                      value={p.account} 
-                                      onChange={(e) => updateProjectedField(p.id, 'account', e.target.value)} 
-                                      placeholder="e.g. Acme Corp" 
-                                      className="h-8 text-xs font-semibold"
-                                    />
-                                  </td>
-                                  <td className="py-2 pr-2">
-                                    <Input 
-                                      type="number"
-                                      value={p.value || ''} 
-                                      onChange={(e) => updateProjectedField(p.id, 'value', parseFloat(e.target.value) || 0)} 
-                                      placeholder="Value" 
-                                      className="h-8 text-xs font-black text-right text-blue-600"
-                                    />
-                                  </td>
-                                  <td className="py-2 pl-2 pr-2">
-                                    <div className="flex flex-wrap gap-1">
-                                      {BUSINESS_UNITS.map(bu => (
-                                        <Badge 
-                                          key={bu} 
-                                          variant={(p.businessUnits || []).includes(bu) ? 'default' : 'outline'}
-                                          className="cursor-pointer text-[9px] px-1 py-0"
-                                          onClick={() => toggleProjectedWinBU(p.id, bu)}
-                                        >
-                                          {bu}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </td>
-                                  <td className="py-2 pr-2">
-                                    <div className="relative">
-                                      <Input 
-                                        value={p.updateText || ''} 
-                                        onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
-                                        placeholder="Update" 
-                                        className="h-8 text-xs"
-                                        maxLength={200}
-                                      />
-                                      <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(p.updateText || '').length}/200</div>
-                                    </div>
-                                  </td>
-                                  <td className="py-2 pr-2">
-                                    <Input 
-                                      value={p.salespersonName} 
-                                      onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
-                                      placeholder="Name" 
-                                      className="h-8 text-xs"
-                                    />
-                                  </td>
+                              <tr key={p.id}>
+                                   <td className="py-2 pr-2">
+                                     <Input 
+                                       value={p.account} 
+                                       onChange={(e) => updateProjectedField(p.id, 'account', e.target.value)} 
+                                       placeholder="e.g. Acme Corp" 
+                                       className={cn("h-8 text-xs font-semibold", !p.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                     />
+                                   </td>
+                                   <td className="py-2 pr-2">
+                                     <Input 
+                                       type="number"
+                                       value={p.value || ''} 
+                                       onChange={(e) => updateProjectedField(p.id, 'value', parseFloat(e.target.value) || 0)} 
+                                       placeholder="Value" 
+                                       className={cn("h-8 text-xs font-black text-right text-blue-600", (!p.value || p.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                     />
+                                   </td>
+                                   <td className="py-2 pl-2 pr-2">
+                                     <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (p.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
+                                       {BUSINESS_UNITS.map(bu => (
+                                         <Badge 
+                                           key={bu} 
+                                           variant={(p.businessUnits || []).includes(bu) ? 'default' : 'outline'}
+                                           className="cursor-pointer text-[9px] px-1 py-0"
+                                           onClick={() => toggleProjectedWinBU(p.id, bu)}
+                                         >
+                                           {bu}
+                                         </Badge>
+                                       ))}
+                                     </div>
+                                   </td>
+                                   <td className="py-2 pr-2">
+                                     <div className="relative">
+                                       <Input 
+                                         value={p.updateText || ''} 
+                                         onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
+                                         placeholder="Update" 
+                                         className={cn("h-8 text-xs", !p.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                         maxLength={200}
+                                       />
+                                       <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(p.updateText || '').length}/200</div>
+                                     </div>
+                                   </td>
+                                   <td className="py-2 pr-2">
+                                     <Input 
+                                       value={p.salespersonName} 
+                                       onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
+                                       placeholder="Name" 
+                                       className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                     />
+                                   </td>
                                   <td className="py-2 text-center">
                                     <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -2759,7 +2759,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={p.text} 
                                     onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
                                     placeholder="e.g. Focus on Neerabup zone wins" 
-                                    className="h-8 text-xs font-semibold"
+                                    className={cn("h-8 text-xs font-semibold", !p.text?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2767,7 +2767,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={p.salespersonName} 
                                     onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
                                     placeholder="Salesperson" 
-                                    className="h-8 text-xs"
+                                    className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">

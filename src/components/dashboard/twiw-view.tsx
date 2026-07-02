@@ -1982,15 +1982,15 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-blue-500" /><div className="text-[9px] font-black uppercase text-slate-500">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-purple-500" /><div className="text-[9px] font-black uppercase text-slate-500">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-amber-500" /><div className="text-[9px] font-black uppercase text-slate-500">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Revenue</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-lg font-black text-slate-800">${(kpiReview.revenueTarget / 1000).toFixed(0)}K</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.revenueActual || ''} onChange={(e) => updateKPI('revenueActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-blue-500" /><div className="text-[9px] font-black uppercase text-slate-500">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-purple-500" /><div className="text-[9px] font-black uppercase text-slate-500">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-amber-500" /><div className="text-[9px] font-black uppercase text-slate-500">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Revenue</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-lg font-black text-slate-800">${(kpiReview.revenueTarget / 1000).toFixed(0)}K</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.revenueActual || ''} onChange={(e) => updateKPI('revenueActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.revenueActual === undefined || isNaN(kpiReview.revenueActual) || kpiReview.revenueActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
           </div>
           <div className="space-y-2">
             <div className="text-[10px] font-black uppercase text-slate-500">Weekly KPI Notes & Commentary</div>
-            <Textarea placeholder="Provide notes on your KPI performance this week..." value={kpiReview.kpiNotes} onChange={(e) => setKpiReview(prev => ({ ...prev, kpiNotes: e.target.value }))} className="min-h-[80px] text-xs font-medium rounded-xl" />
+            <Textarea placeholder="Provide notes on your KPI performance this week..." value={kpiReview.kpiNotes} onChange={(e) => setKpiReview(prev => ({ ...prev, kpiNotes: e.target.value }))} className={cn("min-h-[80px] text-xs font-medium rounded-xl", !kpiReview.kpiNotes?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} />
           </div>
           {previousFocusAccounts.length > 0 && (
             <div className="space-y-3 pt-4 border-t">
@@ -2077,7 +2077,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={w.customer} 
                             onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className="h-8 text-xs font-semibold"
+                            className={cn("h-8 text-xs font-semibold", !w.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2086,11 +2086,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={w.value || ''} 
                             onChange={(e) => updateWinField(w.id, 'value', parseFloat(e.target.value) || 0)} 
                             placeholder="Value" 
-                            className="h-8 text-xs font-black text-right text-emerald-600"
+                            className={cn("h-8 text-xs font-black text-right text-emerald-600", (!w.value || w.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
-                          <div className="flex flex-wrap gap-1">
+                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (w.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
                             {BUSINESS_UNITS.map(bu => (
                               <Badge 
                                 key={bu} 
@@ -2109,7 +2109,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                               value={w.updateText || ''} 
                               onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
                               placeholder="e.g. Signed contract win" 
-                              className="h-8 text-xs"
+                              className={cn("h-8 text-xs", !w.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                               maxLength={200}
                             />
                             <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(w.updateText || '').length}/200</div>
@@ -2120,7 +2120,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={w.salespersonName} 
                             onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className="h-8 text-xs"
+                            className={cn("h-8 text-xs", !w.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
@@ -2256,7 +2256,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.account} 
                             onChange={(e) => updateRiskField(r.id, 'account', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className="h-8 text-xs font-semibold"
+                            className={cn("h-8 text-xs font-semibold", !r.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2265,7 +2265,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.value || ''} 
                             onChange={(e) => updateRiskField(r.id, 'value', parseFloat(e.target.value) || 0)} 
                             placeholder="Value" 
-                            className="h-8 text-xs font-black text-right text-rose-600"
+                            className={cn("h-8 text-xs font-black text-right text-rose-600", (!r.value || r.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2273,7 +2273,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.mitigation} 
                             onChange={(e) => updateRiskField(r.id, 'mitigation', e.target.value)} 
                             placeholder="e.g. Setup review meeting" 
-                            className="h-8 text-xs"
+                            className={cn("h-8 text-xs", !r.mitigation?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2281,7 +2281,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.salespersonName} 
                             onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className="h-8 text-xs"
+                            className={cn("h-8 text-xs", !r.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
@@ -2404,7 +2404,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={m.customer} 
                             onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className="h-8 text-xs font-semibold"
+                            className={cn("h-8 text-xs font-semibold", !m.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2417,7 +2417,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                           />
                         </td>
                         <td className="py-2 pr-2">
-                          <div className="flex flex-wrap gap-1">
+                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (m.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
                             {BUSINESS_UNITS.map(bu => (
                               <Badge 
                                 key={bu} 
@@ -2436,7 +2436,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                               value={m.updateText || ''} 
                               onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
                               placeholder="e.g. Signed contract win" 
-                              className="h-8 text-xs"
+                              className={cn("h-8 text-xs", !m.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                               maxLength={200}
                             />
                             <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(m.updateText || '').length}/200</div>
@@ -2447,7 +2447,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={m.salespersonName} 
                             onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className="h-8 text-xs"
+                            className={cn("h-8 text-xs", !m.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
@@ -2585,7 +2585,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.account} 
                             onChange={(e) => updateProjectedField(p.id, 'account', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className="h-8 text-xs font-semibold"
+                            className={cn("h-8 text-xs font-semibold", !p.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2594,11 +2594,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.value || ''} 
                             onChange={(e) => updateProjectedField(p.id, 'value', parseFloat(e.target.value) || 0)} 
                             placeholder="Value" 
-                            className="h-8 text-xs font-black text-right text-blue-600"
+                            className={cn("h-8 text-xs font-black text-right text-blue-600", (!p.value || p.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pl-2 pr-2">
-                          <div className="flex flex-wrap gap-1">
+                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (p.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
                             {BUSINESS_UNITS.map(bu => (
                               <Badge 
                                 key={bu} 
@@ -2617,7 +2617,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                               value={p.updateText || ''} 
                               onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
                               placeholder="Update" 
-                              className="h-8 text-xs"
+                              className={cn("h-8 text-xs", !p.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                               maxLength={200}
                             />
                             <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(p.updateText || '').length}/200</div>
@@ -2628,7 +2628,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.salespersonName} 
                             onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className="h-8 text-xs"
+                            className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
@@ -2764,7 +2764,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.text || ''} 
                             onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
                             placeholder="e.g. Focus on Neerabup zone wins" 
-                            className="h-8 text-xs font-semibold"
+                            className={cn("h-8 text-xs font-semibold", !p.text?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2772,7 +2772,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.salespersonName} 
                             onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className="h-8 text-xs"
+                            className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
