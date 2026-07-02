@@ -947,8 +947,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <thead>
                 <tr>
                   <th style="width: 20%">Key Wins (${starredWins.length})</th>
-                  <th style="width: 20%">Churn Risk (${starredRisks.length})</th>
-                  <th style="width: 20%">Major Updates (${starredUpdates.length})</th>
+                  <th style="width: 10%">Churn Risk (${starredRisks.length})</th>
+                  <th style="width: 30%">Major Updates (${starredUpdates.length})</th>
                   <th style="width: 20%">30 Day Projected (${starredProjected.length})</th>
                   <th style="width: 20%">Priorities (${starredPriorities.length})</th>
                 </tr>
@@ -1042,8 +1042,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                   <thead>
                     <tr>
                       <th style="width: 20%">Key Wins</th>
-                      <th style="width: 20%">Churn Risk</th>
-                      <th style="width: 20%">Major Updates</th>
+                      <th style="width: 10%">Churn Risk</th>
+                      <th style="width: 30%">Major Updates</th>
                       <th style="width: 20%">30 Day Projected</th>
                       <th style="width: 20%">Priorities</th>
                     </tr>
@@ -1184,8 +1184,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             <thead>
               <tr>
                 <th style="width: 20%">Key Wins</th>
-                <th style="width: 20%">Churn Risk</th>
-                <th style="width: 20%">Major Updates</th>
+                <th style="width: 10%">Churn Risk</th>
+                <th style="width: 30%">Major Updates</th>
                 <th style="width: 20%">30 Day Projected</th>
                 <th style="width: 20%">Priorities</th>
               </tr>
@@ -1409,8 +1409,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             <thead>
               <tr>
                 <th style="width: 20%">Key Wins (${starredWins.length})</th>
-                <th style="width: 20%">Churn Risk (${starredRisks.length})</th>
-                <th style="width: 20%">Major Updates (${starredUpdates.length})</th>
+                <th style="width: 10%">Churn Risk (${starredRisks.length})</th>
+                <th style="width: 30%">Major Updates (${starredUpdates.length})</th>
                 <th style="width: 20%">30 Day Projected (${starredProjected.length})</th>
                 <th style="width: 20%">Priorities (${starredPriorities.length})</th>
               </tr>
@@ -2043,7 +2043,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                   onClick={handleExportOversizedPdf}
                   className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
-                  <FileText className="w-4 h-4" /> Exprt PDF
+                  <FileText className="w-4 h-4" /> Export PDF
                 </Button>
                 <Button 
                   onClick={handleExportCondensedPdf}
@@ -3076,7 +3076,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                   onClick={handleExportOversizedPdf}
                   className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
-                  <FileText className="w-4 h-4" /> Exprt PDF
+                  <FileText className="w-4 h-4" /> Export PDF
                 </Button>
                 <Button 
                   onClick={handleExportCondensedPdf}
