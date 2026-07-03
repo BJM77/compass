@@ -84,6 +84,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const [newBusiness, setNewBusiness] = useState<any[]>([]);
   const [opsReports, setOpsReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [debugStats, setDebugStats] = useState({ activeUsersCount: 0, crmUsersMapSize: 0, bdmsCount: 0 });
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [includeGroupPlan, setIncludeGroupPlan] = useState(false);
@@ -160,6 +162,12 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
               target: 2500000
             } as any);
           }
+        });
+
+        setDebugStats({
+          activeUsersCount: activeUsers.length,
+          crmUsersMapSize: crmUsersMap.size,
+          bdmsCount: bdms.length
         });
 
         const weekDeals = allPipelineReviews?.filter(r => r.week === selectedWeek) || [];
@@ -269,6 +277,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         setAllFactFindings(factFindingsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setAllCallPlans(callPlansSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setAllWhitespacePlans(whitespaceSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (err: any) {
+        console.error(err);
+        setFetchError(err?.message || String(err));
       } finally {
         setIsLoading(false);
       }
@@ -641,13 +652,21 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       </div>
 
       {/* Temporary Developer Diagnostics Node */}
-      <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-[11px] font-sans text-yellow-900 space-y-2">
-        <p className="font-bold uppercase tracking-wider">🔧 Developer Diagnostics Node (Temporary)</p>
+      <div className="bg-yellow-50 border border-yellow-250 p-4 rounded-xl text-[11px] font-sans text-yellow-900 space-y-2">
+        <p className="font-bold uppercase tracking-wider text-red-800">🔧 Developer Diagnostics Node (Temporary)</p>
+        {fetchError && (
+          <div className="bg-red-100 border border-red-200 text-red-800 p-3 rounded-lg font-black uppercase text-xs">
+            Query Execution Failure: {fetchError}
+          </div>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div><strong>Selected Week:</strong> {selectedWeek}</div>
           <div><strong>Users in registry:</strong> {users?.length || 0}</div>
           <div><strong>BDMs dynamically mapped:</strong> {reportData?.length || 0}</div>
           <div><strong>All Pipeline Records:</strong> {allPipelineReviews?.length || 0}</div>
+          <div><strong>Active Users Count (Registry):</strong> {debugStats.activeUsersCount}</div>
+          <div><strong>CRM Users Map Size (Dynamic):</strong> {debugStats.crmUsersMapSize}</div>
+          <div><strong>Total BDMs list Count:</strong> {debugStats.bdmsCount}</div>
         </div>
         <p><strong>First 5 Owner Names in current week:</strong> {
           Array.from(new Set(allPipelineReviews?.filter(r => r.week === selectedWeek).map(r => r.userName || 'No Name'))).slice(0, 5).join(', ') || 'None found for this week'
