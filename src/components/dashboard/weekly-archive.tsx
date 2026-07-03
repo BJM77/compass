@@ -381,11 +381,35 @@ export function WeeklyArchive() {
       toast({ title: "No Action Needed", description: "All active team nodes have submitted TWTW and Friday FW." });
       return;
     }
+
+    const emails = lateUsers
+      .map(lu => allUsers?.find(u => u.id === lu.userId)?.email)
+      .filter((email): email is string => !!email);
+
     const names = lateUsers.map(u => u.userName).join(', ');
-    toast({
-      title: "Reminders Dispatched",
-      description: `Dispatched email notifications to late submitters: ${names}.`
-    });
+
+    if (emails.length > 0) {
+      const subject = encodeURIComponent("Reminder: Outstanding Weekly Submissions (TWTW / Friday FW)");
+      const body = encodeURIComponent(
+        `Hi,\n\nThis is a friendly reminder that you have outstanding weekly submissions (Thursday TWTW and/or Friday FW) for this week.\n\nPlease log in to the Compass dashboard and complete your submissions as soon as possible.\n\nThanks!`
+      );
+      
+      const mailtoUrl = `mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`;
+      
+      // Try to open the mail client
+      window.location.href = mailtoUrl;
+
+      toast({
+        title: "Mail Client Opened",
+        description: `Drafted reminder email to: ${names}.`
+      });
+    } else {
+      toast({
+        title: "No Emails Found",
+        description: `Could not find email addresses for: ${names}.`,
+        variant: "destructive"
+      });
+    }
   };
 
   // Fetch all Firestore data for the selected users

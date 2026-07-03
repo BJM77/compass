@@ -291,6 +291,21 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
       if (!groups[state]) groups[state] = [];
       groups[state].push(sub);
     });
+
+    // Sort within each state by highest Key Win Value, descending
+    Object.keys(groups).forEach(state => {
+      groups[state].sort((a, b) => {
+        const maxWinA = Math.max(...(a.wins || []).map((w: any) => Number(w.value) || 0), 0);
+        const maxWinB = Math.max(...(b.wins || []).map((w: any) => Number(w.value) || 0), 0);
+        if (maxWinB !== maxWinA) {
+          return maxWinB - maxWinA;
+        }
+        const nameA = a.userName || a.email || '';
+        const nameB = b.userName || b.email || '';
+        return nameA.localeCompare(nameB);
+      });
+    });
+
     return groups;
   }, [allSubmissions]);
 

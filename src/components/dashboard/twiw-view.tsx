@@ -722,12 +722,17 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       grouped[state].push(sub);
     });
 
-    // Sort emails within each state
+    // Sort within each state by highest Key Win Value, descending
     Object.keys(grouped).forEach(state => {
       grouped[state].sort((a, b) => {
-        const emailA = a.email || a.userName || '';
-        const emailB = b.email || b.userName || '';
-        return emailA.localeCompare(emailB);
+        const maxWinA = Math.max(...(a.wins || []).map((w: any) => Number(w.value) || 0), 0);
+        const maxWinB = Math.max(...(b.wins || []).map((w: any) => Number(w.value) || 0), 0);
+        if (maxWinB !== maxWinA) {
+          return maxWinB - maxWinA;
+        }
+        const nameA = a.userName || a.email || '';
+        const nameB = b.userName || b.email || '';
+        return nameA.localeCompare(nameB);
       });
     });
 
