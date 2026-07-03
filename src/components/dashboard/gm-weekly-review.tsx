@@ -112,29 +112,31 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       if (!db || !users) return;
       setIsLoading(true);
       try {
-        const [reportsSnap, commitmentsSnap, oppsSnap, paperworkSnap, businessSnap, progressSnap, whitespaceSnap, callPlansSnap, opsSnap, factFindingsSnap] = await Promise.all([
+        const nextWeek = getNextWeekKey(selectedWeek);
+        const [reportsSnap, commitmentsSnap, progressSnap, whitespaceSnap, callPlansSnap, opsSnap, factFindingsSnap, twiwSnap] = await Promise.all([
           getDocs(query(collection(db, 'weeklyReports'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'opportunities'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'signedPaperwork'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'newBusiness'), where('week', '==', selectedWeek))),
+          getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', nextWeek))),
           getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
           getDocs(collection(db, 'whitespacePlans')),
           getDocs(collection(db, 'callPlans')),
           getDocs(query(collection(db, 'opsReports'), where('week', '==', selectedWeek))),
-          getDocs(collection(db, 'factFindingDocs'))
+          getDocs(collection(db, 'factFindingDocs')),
+          getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek)))
         ]);
 
         const bdms = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
+        const weekDeals = allPipelineReviews?.filter(r => r.week === selectedWeek) || [];
         
         const reports = bdms.map(bdm => {
           const reportDoc = reportsSnap.docs.find(d => d.data().userId === bdm.id);
+          const twiwDoc = twiwSnap.docs.find(d => d.data().userId === bdm.id);
           const commitmentDoc = commitmentsSnap.docs.find(d => d.data().userId === bdm.id);
           const progressDoc = progressSnap.docs.find(d => d.data().userId === bdm.id);
           const userWS = whitespaceSnap.docs.filter(d => d.data().userId === bdm.id).length;
           const userCP = callPlansSnap.docs.filter(d => d.data().userId === bdm.id).length;
           
           const reportData = reportDoc?.data();
+          const twiwData = twiwDoc?.data();
           const commitData = commitmentDoc?.data();
           const progressData = progressDoc?.data();
 
@@ -143,44 +145,83 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             ? commitData?.actionPlan?.map((a: string, i: number) => a.trim() ? `${i+1}. ${a}` : '').filter((a: string) => a).join('\n')
             : commitData?.nextWeekCommitments || '';
 
-          const summary = reportData?.summary || { totalEAV: 0, newOpportunitiesCount: 0, signedPaperworkCount: 0, newBusinessCount: 0, callsMade: 0, meetingsHeld: 0, crmCalls: 0, crmApps: 0 };
-          
-          // Override or fallback callsMade and meetingsHeld from progressData (manual entries)
-          const callsMade = progressData?.calls !== undefined ? progressData.calls : (summary.callsMade || 0);
-          const meetingsHeld = progressData?.apps !== undefined ? progressData.apps : (summary.meetingsHeld || 0);
+          // Compute CRM statistics directly from the current week's pipeline reviews for this BDM
+          const bdmDeals = weekDeals.filter(r => r.userId === bdm.id);
+          const bdmOpps = bdmDeals.filter(d => !d.isBareAccount && d.stage !== 'Closed Won' && d.stage !== 'Closed Lost');
+          const bdmSigned = bdmDeals.filter(d => ['Finalise', 'Pending Trade'].includes(d.stage || ''));
+          const bdmWon = bdmDeals.filter(d => d.stage === 'Closed Won');
 
-          // Retrieve or fallback crmCalls and crmApps (imported CRM entries)
-          const crmCalls = progressData?.crmCalls !== undefined ? progressData.crmCalls : (summary.crmCalls || 0);
-          const crmApps = progressData?.crmApps !== undefined ? progressData.crmApps : (summary.crmApps || 0);
+          const newOpportunitiesCount = bdmOpps.length;
+          const signedPaperworkCount = bdmSigned.length;
+          const newBusinessCount = bdmWon.length;
+          const totalEAV = bdmDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+
+          // Activity counts from manual/CRM progress logs
+          const callsMade = progressData?.calls || 0;
+          const meetingsHeld = progressData?.apps || 0;
+          const crmCalls = progressData?.crmCalls || 0;
+          const crmApps = progressData?.crmApps || 0;
 
           return {
-            id: reportDoc?.id,
+            id: commitmentDoc?.id || reportDoc?.id || `${bdm.id}_${selectedWeek}`,
             userId: bdm.id,
             userName: bdm.name,
             week: selectedWeek,
             summary: {
-              ...summary,
+              totalEAV,
+              newOpportunitiesCount,
+              signedPaperworkCount,
+              newBusinessCount,
               callsMade,
               meetingsHeld,
               crmCalls,
               crmApps
             },
-            weeklyNotes: reportData?.weeklyNotes || '',
-            roadblocks: commitData?.roadblocks || '',
-            supportNeeded: commitData?.supportNeeded || '',
+            weeklyNotes: twiwData?.updates || reportData?.weeklyNotes || '',
+            roadblocks: commitData?.roadblocks || twiwData?.roadblocks || reportData?.roadblocks || '',
+            supportNeeded: commitData?.supportNeeded || twiwData?.supportNeeded || reportData?.supportNeeded || '',
             nextWeekCommitments: joinedCommitments,
-            gmFeedback: reportData?.gmFeedback || '',
-            status: reportData?.status || 'DRAFT',
+            gmFeedback: commitData?.gmFeedback || reportData?.gmFeedback || '',
+            status: commitData?.status || twiwData?.status || reportData?.status || 'DRAFT',
             whitespaceCount: userWS,
             callPlanCount: userCP,
-            submittedAt: reportData?.submittedAt
+            submittedAt: commitData?.submittedAt || twiwData?.submittedAt || reportData?.submittedAt || null
           } as BDMWeeklyReport;
         });
 
+        // Map opportunities, signed paperwork, and closed won business from actual pipeline reviews
+        const mappedOpps = weekDeals.filter(r => !r.isBareAccount && r.stage !== 'Closed Won' && r.stage !== 'Closed Lost').map(o => ({
+          id: o.id,
+          userName: o.userName || 'Unknown BDM',
+          accountName: o.pipeline,
+          opportunityName: o.opportunityName || o.pipeline,
+          eav: o.value || 0,
+          stage: o.stage
+        }));
+        
+        const mappedPaperwork = weekDeals.filter(r => ['Finalise', 'Pending Trade'].includes(r.stage || '')).map(p => ({
+          id: p.id,
+          userName: p.userName || 'Unknown BDM',
+          accountName: p.pipeline,
+          eav: p.value || 0,
+          signedDate: p.expectedDate,
+          termMonths: 12,
+          notes: 'Stage: ' + p.stage
+        }));
+
+        const mappedNewBusiness = weekDeals.filter(r => r.stage === 'Closed Won').map(b => ({
+          id: b.id,
+          userName: b.userName || 'Unknown BDM',
+          accountName: b.pipeline,
+          eav: b.value || 0,
+          goLiveDate: b.expectedDate,
+          status: 'ACTIVE'
+        }));
+
         setReportData(reports);
-        setOpportunities(oppsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setPaperwork(paperworkSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setNewBusiness(businessSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setOpportunities(mappedOpps);
+        setPaperwork(mappedPaperwork);
+        setNewBusiness(mappedNewBusiness);
         setOpsReports(opsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter((r: any) => r.status === 'ESCALATED'));
         setAllFactFindings(factFindingsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setAllCallPlans(callPlansSnap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -190,7 +231,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
       }
     }
     fetchReports();
-  }, [db, users, selectedWeek]);
+  }, [db, users, selectedWeek, allPipelineReviews]);
 
   const saveGMFeedback = async (userId: string, feedback: string) => {
 
@@ -1292,12 +1333,19 @@ function OpportunitiesTable({ data }: { data: any[] }) {
 }
 
 function SignedPaperworkTable({ data }: { data: any[] }) {
+  const formatDate = (val: any) => {
+    if (!val) return 'N/A';
+    if (val.toDate) return format(val.toDate(), 'MMM d');
+    const parsed = new Date(val);
+    return isNaN(parsed.getTime()) ? 'N/A' : format(parsed, 'MMM d');
+  };
+
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
       <CardContent className="p-0">
         <Table>
           <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Signed Date</TableHead><TableHead>Term (M)</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-black text-green-600">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{p.signedDate?.toDate ? format(p.signedDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
+          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-black text-green-600">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{formatDate(p.signedDate)}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -1305,12 +1353,19 @@ function SignedPaperworkTable({ data }: { data: any[] }) {
 }
 
 function NewBusinessTable({ data }: { data: any[] }) {
+  const formatDate = (val: any) => {
+    if (!val) return 'N/A';
+    if (val.toDate) return format(val.toDate(), 'MMM d');
+    const parsed = new Date(val);
+    return isNaN(parsed.getTime()) ? 'N/A' : format(parsed, 'MMM d');
+  };
+
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
       <CardContent className="p-0">
         <Table>
           <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
+          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{formatDate(b.goLiveDate)}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
