@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch } from 'lucide-react';
+import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
 import { format } from 'date-fns';
 
@@ -19,14 +19,36 @@ export function FactFindingHub() {
   // Query docs
   const docsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
+    if (isLeader) {
+      return query(
+        collection(db, 'factFindingDocs'),
+        orderBy('createdAt', 'desc')
+      );
+    }
     return query(
       collection(db, 'factFindingDocs'),
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-  }, [db, user]);
+  }, [db, user, isLeader]);
 
   const { data: docs, isLoading: loading } = useCollection<FactFindingDoc>(docsQuery);
+
+  // Fetch users to resolve names for Leaders
+  const usersQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    return collection(db, 'users');
+  }, [db, isLeader]);
+  
+  const { data: users } = useCollection(usersQuery);
+
+  const userMap = useMemo(() => {
+    if (!users) return {};
+    return users.reduce((acc: Record<string, string>, u: any) => {
+      acc[u.id] = u.name || u.email || 'Unknown User';
+      return acc;
+    }, {});
+  }, [users]);
 
   if (selectedDoc === 'new') {
     return <FactFindingForm onBack={() => setSelectedDoc(null)} />;
@@ -82,9 +104,17 @@ export function FactFindingHub() {
                     <CardTitle className="text-lg font-black text-primary line-clamp-1">
                       {doc.companyName || 'Unnamed Company'}
                     </CardTitle>
-                    <CardDescription className="flex items-center gap-1 mt-1 font-medium text-xs">
-                      <Calendar className="w-3 h-3" />
-                      {doc.createdAt ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}
+                    <CardDescription className="flex flex-col gap-1 mt-1 font-medium text-xs">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {doc.createdAt ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}
+                      </span>
+                      {isLeader && (
+                        <span className="flex items-center gap-1 text-slate-500 font-semibold mt-0.5">
+                          <User className="w-3 h-3 text-slate-400" />
+                          {userMap[doc.userId] || 'Loading user...'}
+                        </span>
+                      )}
                     </CardDescription>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all">
