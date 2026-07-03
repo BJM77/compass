@@ -61,13 +61,19 @@ interface BDMWeeklyReport {
   submittedAt?: any;
   whitespaceCount?: number;
   callPlanCount?: number;
+  twtwWins?: any[];
+  twtwRisks?: any[];
+  twtwMajorUpdates?: any[];
+  twtwProjectedWins?: any[];
+  twtwPriorities?: any[];
+  focusAccounts?: any[];
 }
 
 export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const db = useFirestore();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { allPipelineReviews } = usePipelineData();
+  const { allPipelineReviews, allWeeklyProgresses } = usePipelineData();
   const currentWeek = propWeek || getCurrentWeek();
   
   const [selectedWeek, setSelectedWeek] = useState(currentWeek);
@@ -124,7 +130,38 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek)))
         ]);
 
-        const bdms = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
+        const crmUsersMap = new Map<string, { id: string; name: string; role: string; state?: string }>();
+        allPipelineReviews?.forEach(r => {
+          if (r.userId && r.userName && r.userName.toUpperCase() !== 'JOHN THORNTON') {
+            const lowerName = r.userName.toLowerCase();
+            const role = (lowerName.includes('rienzie') || lowerName.includes('marcus') || lowerName.includes('am') || lowerName.includes('account')) 
+              ? 'ACCOUNT_MANAGER' 
+              : 'BDM';
+            crmUsersMap.set(r.userId, {
+              id: r.userId,
+              name: r.userName,
+              role,
+              state: r.state || 'WA'
+            });
+          }
+        });
+
+        const activeUsers = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
+        const bdms = [...activeUsers];
+        crmUsersMap.forEach((val, key) => {
+          if (!bdms.some(u => u.id === key)) {
+            bdms.push({
+              id: key,
+              name: val.name,
+              role: val.role,
+              email: `${val.name.toLowerCase().replace(/\s+/g, '.')}@tge.com.au`,
+              territory: 'FLEX',
+              state: val.state || 'WA',
+              target: 2500000
+            } as any);
+          }
+        });
+
         const weekDeals = allPipelineReviews?.filter(r => r.week === selectedWeek) || [];
         
         const reports = bdms.map(bdm => {
@@ -185,8 +222,14 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             status: commitData?.status || twiwData?.status || reportData?.status || 'DRAFT',
             whitespaceCount: userWS,
             callPlanCount: userCP,
-            submittedAt: commitData?.submittedAt || twiwData?.submittedAt || reportData?.submittedAt || null
-          } as BDMWeeklyReport;
+            submittedAt: commitData?.submittedAt || twiwData?.submittedAt || reportData?.submittedAt || null,
+            twtwWins: twiwData?.wins || [],
+            twtwRisks: twiwData?.risks || [],
+            twtwMajorUpdates: twiwData?.majorUpdates || [],
+            twtwProjectedWins: twiwData?.projectedWins || [],
+            twtwPriorities: twiwData?.priorities || [],
+            focusAccounts: commitData?.focusAccounts || []
+          } as any;
         });
 
         // Map opportunities, signed paperwork, and closed won business from actual pipeline reviews
@@ -496,19 +539,21 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
   };
 
   const metrics = useMemo(() => {
-    const totalEAV = teamCrmEAV || 0;
-    
     const weekReviews = allPipelineReviews.filter(r => r.week === selectedWeek);
+    const totalEAV = weekReviews.filter(r => !r.isBareAccount && r.stage !== 'Closed Lost').reduce((sum, r) => sum + (r.value || 0), 0);
     const totalOpps = weekReviews.filter(r => !r.isBareAccount && r.stage !== 'Closed Lost').length;
     const totalSigned = weekReviews.filter(r => !r.isBareAccount && ['Finalise', 'Pending Trade'].includes(r.stage || '')).length;
     const totalNewBiz = weekReviews.filter(r => !r.isBareAccount && r.stage === 'Closed Won').length;
 
     const totalCalls = reportData.reduce((sum, r) => sum + (r.summary.callsMade || 0), 0);
     const totalApps = reportData.reduce((sum, r) => sum + (r.summary.meetingsHeld || 0), 0);
-    const totalCrmCalls = reportData.reduce((sum, r) => sum + (r.summary.crmCalls || 0), 0);
-    const totalCrmApps = reportData.reduce((sum, r) => sum + (r.summary.crmApps || 0), 0);
+    
+    const weekProgresses = allWeeklyProgresses?.filter(p => p.week === selectedWeek) || [];
+    const totalCrmCalls = weekProgresses.reduce((sum, p) => sum + (Number(p.crmCalls) || 0), 0);
+    const totalCrmApps = weekProgresses.reduce((sum, p) => sum + (Number(p.crmApps) || 0), 0);
+
     return { totalEAV, totalOpps, totalSigned, totalNewBiz, totalCalls, totalApps, totalCrmCalls, totalCrmApps };
-  }, [reportData, allPipelineReviews, selectedWeek, teamCrmEAV]);
+  }, [reportData, allPipelineReviews, allWeeklyProgresses, selectedWeek]);
 
   const performanceData = reportData.map(r => {
     const metrics = crmMetricsByUserId.get(r.userId);
@@ -594,6 +639,46 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         <MetricCard title="Team Calls" value={metrics.totalCrmCalls} sub={`Man: ${metrics.totalCalls} completed`} icon={<Phone className="w-4 h-4" />} color="blue" />
         <MetricCard title="Team Apps" value={metrics.totalCrmApps} sub={`Man: ${metrics.totalApps} completed`} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
       </div>
+
+      {/* Team Activity Scorecard Table */}
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-900 text-white pb-4">
+          <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
+            <Activity className="w-5 h-5 text-accent" />
+            Team Activity Scorecard
+          </CardTitle>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">CRM vs Manual logs comparison for Week {selectedWeek.split('-')[1]}</p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-slate-50">
+              <TableRow className="uppercase text-[8px] font-black tracking-widest border-b">
+                <TableHead className="pl-6">BDM/AM Identity</TableHead>
+                <TableHead className="text-center">CRM Calls</TableHead>
+                <TableHead className="text-center">Manual Calls</TableHead>
+                <TableHead className="text-center">CRM Appointments</TableHead>
+                <TableHead className="text-center">Manual Appointments</TableHead>
+                <TableHead className="text-right pr-6">Weekly Wins Value</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {reportData.map((r) => {
+                const winsVal = r.twtwWins?.reduce((sum: number, w: any) => sum + (Number(w.value) || 0), 0) || 0;
+                return (
+                  <TableRow key={r.userId} className="hover:bg-slate-50 transition-colors">
+                    <TableCell className="pl-6 font-black uppercase text-xs">{r.userName}</TableCell>
+                    <TableCell className="text-center font-bold text-xs text-blue-600">{r.summary.crmCalls || 0}</TableCell>
+                    <TableCell className="text-center text-xs text-slate-505 font-medium">{r.summary.callsMade || 0}</TableCell>
+                    <TableCell className="text-center font-bold text-xs text-emerald-600">{r.summary.crmApps || 0}</TableCell>
+                    <TableCell className="text-center text-xs text-slate-505 font-medium">{r.summary.meetingsHeld || 0}</TableCell>
+                    <TableCell className="text-right pr-6 font-black text-xs text-primary">${winsVal.toLocaleString()}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="border-none shadow-md bg-white overflow-hidden">
@@ -859,6 +944,18 @@ function BDMReportCard({
     return allDeals.filter((d: any) => d.userId === report.userId);
   }, [allDeals, report.userId]);
 
+  const opps = useMemo(() => {
+    return userDeals.filter((d: any) => !d.isBareAccount && d.stage !== 'Closed Won' && d.stage !== 'Closed Lost');
+  }, [userDeals]);
+
+  const customers = useMemo(() => {
+    return userDeals.filter((d: any) => d.isBareAccount || d.stage === 'Closed Won');
+  }, [userDeals]);
+
+  const userFactFindings = useMemo(() => {
+    return factFindings.filter((ff: any) => ff.userId === report.userId);
+  }, [factFindings, report.userId]);
+
   const lowHealthDeals = useMemo(() => {
     const ffNames = new Set(
       factFindings
@@ -998,7 +1095,145 @@ function BDMReportCard({
                     </p>
                   </div>
                 </div>
+              </div>
+
+             {/* ── BDM Detailed Week Dossier ── */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                {/* Thursday TWTW details */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">Thursday TWTW Wins & Risks</h4>
+                  {report.twtwWins && report.twtwWins.length > 0 ? (
+                    <div className="bg-emerald-50/20 p-4 rounded-xl border border-emerald-100/50 space-y-2">
+                      <p className="text-[10px] font-black uppercase text-emerald-700">Wins Completed</p>
+                      {report.twtwWins.map((w: any, idx: number) => (
+                        <div key={w.id || idx} className="bg-white p-3 rounded-lg border border-emerald-100/30 shadow-sm text-xs">
+                          <div className="flex justify-between font-bold text-slate-700"><span>{w.customer}</span><span className="text-emerald-600">${w.value?.toLocaleString()}</span></div>
+                          <p className="text-[10px] text-slate-400 mt-1 italic">"{w.updateText}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <p className="text-xs text-slate-400 italic">No Key Wins reported on TWTW.</p>}
+
+                  {report.twtwRisks && report.twtwRisks.length > 0 ? (
+                    <div className="bg-rose-50/20 p-4 rounded-xl border border-rose-100/50 space-y-2">
+                      <p className="text-[10px] font-black uppercase text-rose-700">Account Churn Risks</p>
+                      {report.twtwRisks.map((r: any, idx: number) => (
+                        <div key={r.id || idx} className="bg-white p-3 rounded-lg border border-rose-100/30 shadow-sm text-xs">
+                          <div className="flex justify-between font-bold text-slate-700"><span>{r.account}</span><span className="text-rose-600">${r.value?.toLocaleString()}</span></div>
+                          <p className="text-[10px] text-slate-400 mt-1 italic">Mitigation: "{r.mitigation}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {report.twtwProjectedWins && report.twtwProjectedWins.length > 0 && (
+                    <div className="bg-blue-50/20 p-4 rounded-xl border border-blue-100/50 space-y-2">
+                      <p className="text-[10px] font-black uppercase text-blue-700">30-Day Pipeline Projections</p>
+                      {report.twtwProjectedWins.map((p: any, idx: number) => (
+                        <div key={p.id || idx} className="bg-white p-3 rounded-lg border border-blue-100/30 shadow-sm text-xs">
+                          <div className="flex justify-between font-bold text-slate-700"><span>{p.account}</span><span className="text-blue-600">${p.value?.toLocaleString()}</span></div>
+                          <p className="text-[9px] font-bold text-slate-450 uppercase mt-1">Expected Close: {p.expectedDate}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Friday FW details */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">Friday FW Focus Accounts (Next Week)</h4>
+                  {report.focusAccounts && report.focusAccounts.length > 0 ? (
+                    <div className="space-y-2">
+                      {report.focusAccounts.map((fa: any, idx: number) => (
+                        <div key={fa.id || idx} className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm text-xs">
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold uppercase text-slate-700">{fa.accountName}</span>
+                            <div className="flex gap-2 items-center">
+                              <Badge className="bg-accent/10 text-accent text-[8px] border-none font-black uppercase tracking-wider">{fa.actionType}</Badge>
+                              <span className="font-black text-slate-900">${Number(fa.eav).toLocaleString()}</span>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-1 italic">Notes: "{fa.aboutAccount}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <p className="text-xs text-slate-400 italic">No next-week focus accounts set.</p>}
+                </div>
              </div>
+
+             {/* CRM Active Opportunities & Customers List */}
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                <div className="bg-white p-5 rounded-2xl border border-slate-150 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <p className="text-[10px] font-black uppercase text-primary tracking-wider">Active Opportunities ({opps.length})</p>
+                    <Badge variant="outline" className="text-[8px] font-bold">CRM Pipeline</Badge>
+                  </div>
+                  {opps.length === 0 ? (
+                    <p className="text-xs text-slate-400 italic">No active opportunities in pipeline.</p>
+                  ) : (
+                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
+                      <Table>
+                        <TableHeader className="bg-slate-50 sticky top-0"><TableRow className="uppercase text-[8px] font-black"><TableHead>Opportunity Name</TableHead><TableHead>EAV</TableHead><TableHead>Stage</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {opps.map((o: any) => (
+                            <TableRow key={o.id} className="hover:bg-slate-50/50">
+                              <TableCell className="text-xs font-bold uppercase">{o.opportunityName || o.pipeline}</TableCell>
+                              <TableCell className="text-xs font-black text-blue-600">${(o.value || 0).toLocaleString()}</TableCell>
+                              <TableCell className="text-[9px] font-bold uppercase"><Badge variant="outline" className="text-[8px] border-accent/20 text-accent font-black uppercase">{o.stage}</Badge></TableCell>
+                              <TableCell className="text-xs text-slate-500 font-medium">{o.daysInStage || 0}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-150 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <p className="text-[10px] font-black uppercase text-primary tracking-wider">Active Customer Portfolio ({customers.length})</p>
+                    <Badge variant="outline" className="text-[8px] font-bold">CRM Trading Accounts</Badge>
+                  </div>
+                  {customers.length === 0 ? (
+                    <p className="text-xs text-slate-400 italic">No trading accounts assigned.</p>
+                  ) : (
+                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
+                      <Table>
+                        <TableHeader className="bg-slate-50 sticky top-0"><TableRow className="uppercase text-[8px] font-black"><TableHead>Account Name</TableHead><TableHead>YTD Revenue</TableHead><TableHead>Last Year</TableHead><TableHead>Last Invoice</TableHead><TableHead>Hold</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {customers.map((c: any) => (
+                            <TableRow key={c.id} className="hover:bg-slate-50/50">
+                              <TableCell className="text-xs font-bold uppercase">{c.pipeline || c.accountName}</TableCell>
+                              <TableCell className="text-xs font-black text-emerald-600">${(c.currentRevenue || c.value || 0).toLocaleString()}</TableCell>
+                              <TableCell className="text-xs text-slate-505 font-medium">${(c.lastYearRevenue || 0).toLocaleString()}</TableCell>
+                              <TableCell className="text-[9px] font-medium">{c.lastInvoiceDate || 'N/A'}</TableCell>
+                              <TableCell className="text-xs font-medium">{c.creditHold ? <Badge className="bg-red-100 text-red-700 text-[8px] font-black border-none uppercase">HOLD</Badge> : 'No'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+             </div>
+
+             {/* Fact Finding Discovery Documents Completed */}
+             {userFactFindings.length > 0 && (
+               <div className="bg-white p-5 rounded-2xl border border-slate-150 space-y-3">
+                 <p className="text-[10px] font-black uppercase text-primary tracking-wider">Fact Finding Logistics Discoveries ({userFactFindings.length})</p>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                   {userFactFindings.map((ff: any) => (
+                     <div key={ff.id} className="bg-slate-50 p-4 rounded-xl border border-slate-150 flex justify-between items-center shadow-inner">
+                       <div>
+                         <p className="text-xs font-black uppercase text-slate-800">{ff.companyName}</p>
+                         <p className="text-[9px] text-slate-450 font-bold uppercase mt-0.5">Competitor: {ff.incumbentCompetitor || 'N/A'}</p>
+                       </div>
+                       <Badge className="bg-blue-100 text-blue-700 text-[8px] font-black border-none uppercase">Spend: ${ff.weeklySpend || '0'}/wk</Badge>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
 
              {/* Coaching Alerts for Low Health Deals */}
              {lowHealthDeals.length > 0 && (
