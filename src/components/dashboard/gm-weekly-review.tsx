@@ -640,6 +640,26 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         <MetricCard title="Team Apps" value={metrics.totalCrmApps} sub={`Man: ${metrics.totalApps} completed`} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
       </div>
 
+      {/* Temporary Developer Diagnostics Node */}
+      <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-[11px] font-sans text-yellow-900 space-y-2">
+        <p className="font-bold uppercase tracking-wider">🔧 Developer Diagnostics Node (Temporary)</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div><strong>Selected Week:</strong> {selectedWeek}</div>
+          <div><strong>Users in registry:</strong> {users?.length || 0}</div>
+          <div><strong>BDMs dynamically mapped:</strong> {reportData?.length || 0}</div>
+          <div><strong>All Pipeline Records:</strong> {allPipelineReviews?.length || 0}</div>
+        </div>
+        <p><strong>First 5 Owner Names in current week:</strong> {
+          Array.from(new Set(allPipelineReviews?.filter(r => r.week === selectedWeek).map(r => r.userName || 'No Name'))).slice(0, 5).join(', ') || 'None found for this week'
+        }</p>
+        <p><strong>First 5 Owner IDs in current week:</strong> {
+          Array.from(new Set(allPipelineReviews?.filter(r => r.week === selectedWeek).map(r => r.userId || 'No ID'))).slice(0, 5).join(', ') || 'None found for this week'
+        }</p>
+        <p><strong>Unique Weeks in Pipeline Reviews:</strong> {
+          Array.from(new Set(allPipelineReviews?.map(r => r.week))).sort().reverse().slice(0, 10).join(', ')
+        }</p>
+      </div>
+
       {/* Team Activity Scorecard Table */}
       <Card className="border-none shadow-xl bg-white overflow-hidden">
         <CardHeader className="bg-slate-900 text-white pb-4">
