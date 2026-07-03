@@ -22,12 +22,11 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getCurrentWeek, formatEAV } from '@/lib/utils';
+import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
 import { usePipelineData } from '@/contexts/pipeline-context';
-import { getMonthWeeksForWeek } from '@/lib/utils';
 import { calculateDealHealth } from '@/lib/deal-health';
 
 export interface CrmMetrics {
