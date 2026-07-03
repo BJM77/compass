@@ -995,6 +995,19 @@ function BDMReportCard({
     return factFindings.filter((ff: any) => ff.userId === report.userId);
   }, [factFindings, report.userId]);
 
+  const cfyRevenue = useMemo(() => {
+    return customers.reduce((sum: number, c: any) => sum + (Number(c.currentRevenue) || 0), 0);
+  }, [customers]);
+
+  const lfyRevenue = useMemo(() => {
+    return customers.reduce((sum: number, c: any) => sum + (Number(c.lastYearRevenue) || 0), 0);
+  }, [customers]);
+
+  const yoyGrowth = useMemo(() => {
+    if (!lfyRevenue) return 0;
+    return ((cfyRevenue - lfyRevenue) / lfyRevenue) * 100;
+  }, [cfyRevenue, lfyRevenue]);
+
   const lowHealthDeals = useMemo(() => {
     const ffNames = new Set(
       factFindings
@@ -1064,7 +1077,7 @@ function BDMReportCard({
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p>
             <p className="text-xl font-black text-primary">{report.summary.crmCalls || 0}</p>
@@ -1092,6 +1105,16 @@ function BDMReportCard({
             <p className="text-[9px] font-black text-orange-600 uppercase mb-1">New Biz</p>
             <p className="text-xl font-black text-orange-900">{crmMetrics?.weekWon ?? report.summary.newBusinessCount}</p>
             <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">MTD: {crmMetrics?.mtdWon ?? 0}</p>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <p className="text-[9px] font-black text-indigo-700 uppercase mb-1">Managed Accts</p>
+            <p className="text-xl font-black text-primary">{customers.length}</p>
+            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Active Portfolio</p>
+          </div>
+          <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+            <p className="text-[9px] font-black text-blue-750 uppercase mb-1">CFY vs LFY</p>
+            <p className="text-xs font-black text-slate-800 leading-tight pt-1">${(cfyRevenue / 1000).toFixed(0)}k vs ${(lfyRevenue / 1000).toFixed(0)}k</p>
+            <p className="text-[8px] font-bold text-slate-500 mt-1 uppercase tracking-wider">YoY: {yoyGrowth >= 0 ? '+' : ''}{yoyGrowth.toFixed(1)}%</p>
           </div>
         </div>
 
