@@ -871,6 +871,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 factFindings={allFactFindings}
                 callPlans={allCallPlans}
                 whitespacePlans={allWhitespacePlans}
+                forceOpen={isGeneratingPDF}
               />
             );
           })}
