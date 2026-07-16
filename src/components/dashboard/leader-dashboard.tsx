@@ -71,6 +71,12 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   }, [db, currentMonthWeeks]);
   const { data: teamMtdActivity } = useCollection(mtdActivityQuery);
 
+  const actualQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, 'actualRevenues');
+  }, [db]);
+  const { data: actualSpendData } = useCollection(actualQuery);
+
   const userMap = useMemo(() => {
     const m = new Map<string, string>();
     allDeals?.forEach(d => { if (d.userName) m.set(d.userId, d.userName); });
@@ -138,6 +144,8 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     if (!teamStats) return { totalRevenue: 0, totalTarget: 0, risks: 0, pipelineAmount: 0, pipelineCount: 0 };
     const filteredStats = teamStats.filter(s => s.role === 'BDM' || s.role === 'ACCOUNT_MANAGER');
     
+    const actualSpendSum = (actualSpendData || []).reduce((sum, r) => sum + (Number(r.value) || 0), 0);
+    
     const riskDeals = allDeals?.filter(d => {
       const m = computeMomentum({
         daysInStage: d.daysInStage || 0,
@@ -152,13 +160,13 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     const totalPipelineAmount = opportunityDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
 
     return {
-      totalRevenue: crmSummary.team.custYTDRevenueThisFY || 0,
+      totalRevenue: actualSpendSum > 0 ? actualSpendSum : (crmSummary.team.custYTDRevenueThisFY || 0),
       totalTarget: filteredStats.reduce((sum, b) => sum + (Number(b.target) || 0), 0),
       risks: riskDeals.length,
       pipelineAmount: totalPipelineAmount,
       pipelineCount: opportunityDeals.length
     };
-  }, [teamStats, allDeals, crmSummary.team.custYTDRevenueThisFY]);
+  }, [teamStats, allDeals, crmSummary.team.custYTDRevenueThisFY, actualSpendData]);
 
   const activityTotals = useMemo(() => {
     const live = { apps: 0, calls: 0, crmApps: 0, crmCalls: 0 };

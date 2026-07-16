@@ -115,6 +115,25 @@ function parseCSV(file: File): Promise<any[]> {
   });
 }
 
+function parseCSVWithSkip(file: File, skipLines: number): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split('\n');
+      const cleanText = lines.slice(skipLines).join('\n');
+      Papa.parse(cleanText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (r) => resolve(r.data as any[]),
+        error: reject,
+      });
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsText(file);
+  });
+}
+
 function parseAustralianDate(dateStr: string): Date | null {
   if (!dateStr) return null;
   const cleanStr = dateStr.trim();
@@ -218,6 +237,8 @@ interface ImportStats {
   completedApps?: number;
   unmatchedActivityOwners?: string[];
   matchedActivityBDMs?: string[];
+  totalActualSpendRows?: number;
+  totalActualSpendValue?: number;
 }
 
 interface ProcessedActivityRecord {
@@ -226,6 +247,16 @@ interface ProcessedActivityRecord {
   week: string;
   calls: number;
   apps: number;
+}
+
+interface ProcessedActualSpendRecord {
+  id: string;
+  companyName: string;
+  businessUnit: string;
+  account: string;
+  lineOfBusiness: string;
+  value: number;
+  category: string;
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -246,6 +277,7 @@ export function CRMImporter() {
   const [customersFile, setCustomersFile] = useState<File | null>(null);
   const [opportunitiesFile, setOpportunitiesFile] = useState<File | null>(null);
   const [activityFile, setActivityFile] = useState<File | null>(null);
+  const [actualSpendFile, setActualSpendFile] = useState<File | null>(null);
   
   interface FileValidation {
     isValid: boolean;
@@ -257,6 +289,8 @@ export function CRMImporter() {
   const [customersVal, setCustomersVal] = useState<FileValidation | null>(null);
   const [opportunitiesVal, setOpportunitiesVal] = useState<FileValidation | null>(null);
   const [activityVal, setActivityVal] = useState<FileValidation | null>(null);
+  const [actualSpendVal, setActualSpendVal] = useState<FileValidation | null>(null);
+  const [previewActualSpendRecords, setPreviewActualSpendRecords] = useState<ProcessedActualSpendRecord[]>([]);
 
   const validateHeaders = (headers: string[], requiredGroups: string[][]): { isValid: boolean; missing: string[] } => {
     const missing: string[] = [];
@@ -276,7 +310,7 @@ export function CRMImporter() {
     };
   };
 
-  const handleFileChange = async (file: File | null, type: 'customers' | 'opportunities' | 'activity') => {
+  const handleFileChange = async (file: File | null, type: 'customers' | 'opportunities' | 'activity' | 'actual-spend') => {
     if (type === 'customers') {
       setCustomersFile(file);
       if (!file) { setCustomersVal(null); return; }
@@ -345,6 +379,29 @@ export function CRMImporter() {
         });
       } catch (e) {
         setActivityVal({ isValid: false, errors: ['Failed to parse CSV file.'], headers: [], previewRows: [] });
+      }
+    } else if (type === 'actual-spend') {
+      setActualSpendFile(file);
+      if (!file) { setActualSpendVal(null); return; }
+      try {
+        const rows = await parseCSVWithSkip(file, 2);
+        const headers = Object.keys(rows[0] || {});
+        const validation = validateHeaders(headers, [
+          ['Common Customer Name', 'common customer name'],
+          ['Business Unit', 'business unit'],
+          ['Account', 'account'],
+          ['Line of Business', 'line of business'],
+          ["'Key Measures'[Detailed Value]", 'key measures', 'detailed value'],
+          ['Category', 'category']
+        ]);
+        setActualSpendVal({
+          isValid: validation.isValid,
+          errors: validation.missing.map(m => `Missing required column group matching: "${m}"`),
+          headers,
+          previewRows: rows.slice(0, 5)
+        });
+      } catch (e) {
+        setActualSpendVal({ isValid: false, errors: ['Failed to parse CSV file.'], headers: [], previewRows: [] });
       }
     }
   };
@@ -470,7 +527,7 @@ export function CRMImporter() {
 
   // ── Process all files ───────────────────────────────────────────────────
   const handleProcess = useCallback(async () => {
-    if (!customersFile && !opportunitiesFile && !activityFile) {
+    if (!customersFile && !opportunitiesFile && !activityFile && !actualSpendFile) {
       toast({ variant: 'destructive', title: 'Upload at least one file' });
       return;
     }
@@ -481,13 +538,15 @@ export function CRMImporter() {
     setIsProcessing(true);
     setPreviewRecords([]);
     setPreviewActivityRecords([]);
+    setPreviewActualSpendRecords([]);
     setStats(null);
 
     try {
-      const [customerRows, opportunityRows, activityRows] = await Promise.all([
+      const [customerRows, opportunityRows, activityRows, actualSpendRows] = await Promise.all([
         customersFile ? parseCSV(customersFile) : Promise.resolve([]),
         opportunitiesFile ? parseCSV(opportunitiesFile) : Promise.resolve([]),
         activityFile ? parseCSV(activityFile) : Promise.resolve([]),
+        actualSpendFile ? parseCSVWithSkip(actualSpendFile, 2) : Promise.resolve([]),
       ]);
 
       // Build customer map: customerId → row data
@@ -675,8 +734,35 @@ export function CRMImporter() {
       // Sort activity preview records by week desc, then user name
       actRecords.sort((a, b) => b.week.localeCompare(a.week) || a.userName.localeCompare(b.userName));
 
+      // Process Actual Spend Rows
+      const actSpendRecords: ProcessedActualSpendRecord[] = [];
+      let totalActualSpendValue = 0;
+      actualSpendRows.forEach(row => {
+        const companyName = getField(row, 'Common Customer Name', 'common customer name');
+        const businessUnit = getField(row, 'Business Unit', 'business unit');
+        const account = getField(row, 'Account', 'account');
+        const lineOfBusiness = getField(row, 'Line of Business', 'line of business');
+        const value = parseMoney(getField(row, "'Key Measures'[Detailed Value]", 'key measures', 'detailed value', '[detailed value]'));
+        const category = getField(row, 'Category', 'category');
+
+        if (!account || !category) return;
+
+        const docId = `${account}_${category}_${businessUnit}`.replace(/[^a-zA-Z0-9]/g, '_');
+        actSpendRecords.push({
+          id: docId,
+          companyName,
+          businessUnit,
+          account,
+          lineOfBusiness,
+          value,
+          category
+        });
+        totalActualSpendValue += value;
+      });
+
       setPreviewRecords(records);
       setPreviewActivityRecords(actRecords);
+      setPreviewActualSpendRecords(actSpendRecords);
       setStats({
         totalRows:           customerRows.length + opportunityRows.length + activityRows.length,
         activeOpportunities: records.filter(r => !r.isBareAccount).length,
@@ -690,16 +776,24 @@ export function CRMImporter() {
         completedApps,
         unmatchedActivityOwners: Array.from(unmatchedActivityOwners),
         matchedActivityBDMs: Array.from(matchedActivityBDMSet),
+        totalActualSpendRows: actSpendRecords.length,
+        totalActualSpendValue,
       });
 
       const pipelineMsg = records.length > 0 ? `${records.length} pipeline records` : '0 pipeline records';
       const activityMsg = actRecords.length > 0 ? `${actRecords.length} activity entries` : '0 activity entries';
+      const spendMsg = actSpendRecords.length > 0 ? `${actSpendRecords.length} actual spend records` : '0 actual spend records';
       const and = ' & ';
       
-      if (records.length === 0 && actRecords.length === 0) {
+      if (records.length === 0 && actRecords.length === 0 && actSpendRecords.length === 0) {
         toast({ title: `Import Parsed, but No Data Found`, description: `We couldn't find any valid rows. Please check that your CSV files include the expected headers.`, variant: 'destructive' });
       } else {
-        toast({ title: `Preview Ready`, description: `Processed ${pipelineMsg}${and}${activityMsg}.` });
+        const msgs = [
+          records.length > 0 ? pipelineMsg : null,
+          actRecords.length > 0 ? activityMsg : null,
+          actSpendRecords.length > 0 ? spendMsg : null
+        ].filter(Boolean).join(', ');
+        toast({ title: `Preview Ready`, description: `Processed ${msgs}.` });
       }
     } catch (e: any) {
       console.error(e);
@@ -708,18 +802,19 @@ export function CRMImporter() {
         setCustomersFile(null);
         setOpportunitiesFile(null);
         setActivityFile(null);
+        setActualSpendFile(null);
       } else {
         toast({ variant: 'destructive', title: 'Processing Failed', description: e?.message });
       }
     } finally {
       setIsProcessing(false);
     }
-  }, [customersFile, opportunitiesFile, activityFile, users, toast]);
+  }, [customersFile, opportunitiesFile, activityFile, actualSpendFile, users, toast]);
 
   // ── Write to Firestore ───────────────────────────────────────────────────
   const handleImport = async () => {
     if (!db || !users) return;
-    if (previewRecords.length === 0 && previewActivityRecords.length === 0) {
+    if (previewRecords.length === 0 && previewActivityRecords.length === 0 && previewActualSpendRecords.length === 0) {
       toast({ variant: 'destructive', title: 'No records to import' });
       return;
     }
@@ -880,6 +975,33 @@ export function CRMImporter() {
         }
       }
 
+      // 3. Process Actual Spend imports if available
+      let actualSpendImportCount = 0;
+      if (previewActualSpendRecords.length > 0) {
+        const BATCH_SIZE = 400;
+        let committedSpendCount = 0;
+        for (let i = 0; i < previewActualSpendRecords.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const chunk = previewActualSpendRecords.slice(i, i + BATCH_SIZE);
+          
+          chunk.forEach(record => {
+            const spendRef = doc(db, 'actualRevenues', record.id);
+            batch.set(spendRef, {
+              ...record,
+              uploadedAt: serverTimestamp()
+            }, { merge: true });
+          });
+
+          try {
+            await batch.commit();
+            committedSpendCount += chunk.length;
+            actualSpendImportCount = committedSpendCount;
+          } catch (err: any) {
+            throw new Error(`Actual Spend batch commit failed after writing ${committedSpendCount} records. Error: ${err.message}`);
+          }
+        }
+      }
+
       // Update last sync time in global app settings
       await setDoc(doc(db, 'appSettings', 'global'), {
         lastCrmSync: serverTimestamp()
@@ -1034,7 +1156,10 @@ export function CRMImporter() {
   const hasValidationErrors = 
     (customersVal && !customersVal.isValid) || 
     (opportunitiesVal && !opportunitiesVal.isValid) || 
-    (activityVal && !activityVal.isValid);
+    (activityVal && !activityVal.isValid) ||
+    (actualSpendVal && !actualSpendVal.isValid);
+
+  const hasNoFiles = !customersFile && !opportunitiesFile && !activityFile && !actualSpendFile;
 
   return (
     <div className="space-y-6">
@@ -1127,6 +1252,12 @@ export function CRMImporter() {
               file={activityFile}
               onFile={f => handleFileChange(f, 'activity')}
             />
+            <FileZone
+              label="Actual Spend Export"
+              hint="Common Customer Name · Business Unit · Account · Spend (starts row 3)"
+              file={actualSpendFile}
+              onFile={f => handleFileChange(f, 'actual-spend')}
+            />
           </div>
 
           {/* File Previews & Schema Validation */}
@@ -1135,6 +1266,7 @@ export function CRMImporter() {
               <FilePreviewSection title="Customers File" validation={customersVal} />
               <FilePreviewSection title="Opportunities File" validation={opportunitiesVal} />
               <FilePreviewSection title="Activity File" validation={activityVal} />
+              <FilePreviewSection title="Actual Spend File" validation={actualSpendVal} />
             </div>
           )}
 
@@ -1142,22 +1274,22 @@ export function CRMImporter() {
           <div className="flex items-center gap-3">
             <Button
               onClick={handleProcess}
-              disabled={isProcessing || isImporting || hasValidationErrors || (!customersFile && !opportunitiesFile && !activityFile)}
+              disabled={isProcessing || isImporting || hasValidationErrors || hasNoFiles}
               className="bg-slate-900 text-white font-black uppercase text-xs h-12 px-8 rounded-xl"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
               Preview Import
             </Button>
-            {(previewRecords.length > 0 || previewActivityRecords.length > 0) && (
-              <Button
-                onClick={handleImport}
-                disabled={isImporting || isProcessing}
-                className="bg-accent text-white font-black uppercase text-xs h-12 px-8 rounded-xl shadow-lg"
-              >
-                {isImporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                Commit {previewRecords.length + previewActivityRecords.length} Records to Week {currentWeek.split('-')[1]}
-              </Button>
-            )}
+            {(previewRecords.length > 0 || previewActivityRecords.length > 0 || previewActualSpendRecords.length > 0) && (
+                <Button
+                  onClick={handleImport}
+                  disabled={isImporting || isProcessing}
+                  className="bg-accent text-white font-black uppercase text-xs h-12 px-8 rounded-xl shadow-lg"
+                >
+                  {isImporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                  Commit {previewRecords.length + previewActivityRecords.length + previewActualSpendRecords.length} Records
+                </Button>
+              )}
           </div>
         </CardContent>
       </Card>
@@ -1365,6 +1497,43 @@ export function CRMImporter() {
                         {r.apps} CRM Meetings
                       </Badge>
                     </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </Card>
+      )}
+
+      {/* Actual Spend Preview Table */}
+      {previewActualSpendRecords.length > 0 && (
+        <Card className="border-none shadow-xl bg-white overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b py-4 px-6">
+            <CardTitle className="text-sm font-black uppercase tracking-tight">
+              Preview — {previewActualSpendRecords.length} Actual Spend Records
+            </CardTitle>
+          </CardHeader>
+          <ScrollArea className="h-[300px]">
+            <Table>
+              <TableHeader className="bg-slate-50 sticky top-0 z-10">
+                <TableRow className="text-[9px] font-black uppercase tracking-widest">
+                  <TableHead className="pl-6">Customer</TableHead>
+                  <TableHead>Account</TableHead>
+                  <TableHead>BU</TableHead>
+                  <TableHead>LOB</TableHead>
+                  <TableHead className="text-right">Spend</TableHead>
+                  <TableHead className="text-center">Category/Week</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {previewActualSpendRecords.map((r, i) => (
+                  <TableRow key={i} className="hover:bg-slate-50">
+                    <TableCell className="pl-6 py-3 font-bold">{r.companyName}</TableCell>
+                    <TableCell className="text-[10px]">{r.account}</TableCell>
+                    <TableCell className="text-[10px] font-bold">{r.businessUnit}</TableCell>
+                    <TableCell className="text-[10px]">{r.lineOfBusiness}</TableCell>
+                    <TableCell className="text-right font-bold text-indigo-600">${r.value.toLocaleString(undefined, {minimumFractionDigits: 2})}</TableCell>
+                    <TableCell className="text-center font-semibold text-slate-500">{r.category}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

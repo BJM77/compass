@@ -132,3 +132,14 @@ export interface OpsReport {
   status: 'ESCALATED' | 'DISMISSED';
   createdAt?: any;
 }
+
+export interface ActualSpendRecord {
+  id: string;
+  companyName: string;
+  businessUnit: string;
+  account: string;
+  lineOfBusiness: string;
+  value: number;
+  category: string;
+  uploadedAt: any;
+}

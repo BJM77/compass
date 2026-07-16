@@ -28,6 +28,7 @@ import { DemoDashView } from '@/components/dashboard/demo-dash-view';
 import { SystemBroadcast } from '@/components/dashboard/system-broadcast';
 import { FridayPerformanceReview } from '@/components/dashboard/friday-performance-review';
 import { PlaybookView } from '@/components/dashboard/playbook-view';
+import { ActualSpendView } from '@/components/dashboard/actual-spend-view';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -36,7 +37,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -52,7 +53,7 @@ import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND';
 
 const NAV_ITEMS = [
   // Core Pages (Main Menu)
@@ -63,6 +64,7 @@ const NAV_ITEMS = [
   { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
   { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
   { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
+  { view: 'ACTUAL_SPEND' as DashboardView,      label: 'Actual Spend',      icon: Coins,            adminOnly: false, group: 'main' },
   { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
   
   // Admin Menu / Submenu Items
@@ -142,6 +144,7 @@ function DashboardContent() {
     if (activeView === 'UPLOAD' && isLeader) return <div className="w-full p-4 md:p-8"><CRMImporter /></div>;
     if (activeView === 'ARCHIVE') return <div className="w-full p-4 md:p-8"><WeeklyArchive /></div>;
     if (activeView === 'FACT_FINDING') return <div className="w-full p-4 md:p-8"><FactFindingHub /></div>;
+    if (activeView === 'ACTUAL_SPEND') return <div className="w-full p-4 md:p-8"><ActualSpendView /></div>;
     if (activeView === 'PLAYBOOK') return <div className="w-full p-4 md:p-8"><PlaybookView /></div>;
     if (activeView === 'DATA_EXPLORER' && isLeader) return <div className="w-full p-4 md:p-8"><DataExplorer /></div>;
     if (activeView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
