@@ -60,9 +60,77 @@ export function ActualSpendView() {
     return result;
   }, [records, searchQuery, buFilter, weekFilter]);
 
+  const groupedRecords = useMemo(() => {
+    if (filteredRecords.length === 0) return [];
+
+    // Step 1: Map common customer name to all their unique business units in this filtered dataset
+    const buMap = new Map<string, Set<string>>();
+    filteredRecords.forEach(r => {
+      const name = r.companyName || 'Unnamed';
+      if (!buMap.has(name)) buMap.set(name, new Set());
+      if (r.businessUnit) buMap.get(name)!.add(r.businessUnit);
+    });
+
+    // Step 2: Group records
+    const groups = new Map<string, {
+      displayName: string;
+      companyName: string;
+      businessUnit: string;
+      accounts: Set<string>;
+      linesOfBusiness: Set<string>;
+      value: number;
+      categories: Set<string>;
+    }>();
+
+    filteredRecords.forEach(r => {
+      const name = r.companyName || 'Unnamed';
+      const hasMultipleBUs = (buMap.get(name)?.size || 0) > 1;
+      // Group by BU if there are multiple BUs, otherwise just by customer name
+      const groupKey = hasMultipleBUs ? `${name}::${r.businessUnit || 'Other'}` : name;
+
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, {
+          displayName: hasMultipleBUs ? `${name} / ${r.businessUnit || 'Other'}` : name,
+          companyName: name,
+          businessUnit: hasMultipleBUs ? (r.businessUnit || 'Other') : Array.from(buMap.get(name) || [])[0] || 'Other',
+          accounts: new Set(),
+          linesOfBusiness: new Set(),
+          value: 0,
+          categories: new Set()
+        });
+      }
+
+      const g = groups.get(groupKey)!;
+      if (r.account) g.accounts.add(r.account);
+      if (r.lineOfBusiness) g.linesOfBusiness.add(r.lineOfBusiness);
+      if (r.category) g.categories.add(r.category);
+      g.value += (Number(r.value) || 0);
+    });
+
+    return Array.from(groups.values()).map((g, idx) => ({
+      id: `group_${idx}`,
+      companyName: g.displayName,
+      account: Array.from(g.accounts).join(', '),
+      businessUnit: g.businessUnit,
+      lineOfBusiness: Array.from(g.linesOfBusiness).join(', '),
+      value: g.value,
+      category: Array.from(g.categories).join(', ')
+    })).sort((a, b) => b.value - a.value); // Sort by spend amount desc
+  }, [filteredRecords]);
+
   const totalSpend = useMemo(() => {
     return filteredRecords.reduce((sum, r) => sum + (Number(r.value) || 0), 0);
   }, [filteredRecords]);
+
+  const formatCategory = (categoryStr: string) => {
+    if (!categoryStr) return '-';
+    const cats = categoryStr.split(', ').filter(Boolean).sort();
+    if (cats.length === 1) {
+      const cat = cats[0];
+      return `W${cat.substring(4)} (${cat.substring(0, 4)})`;
+    }
+    return `${cats.length} Weeks`;
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -105,8 +173,8 @@ export function ActualSpendView() {
         <Card className="border border-slate-200 bg-white">
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Record Entries Count</p>
-              <h3 className="text-3xl font-black text-slate-800">{filteredRecords.length}</h3>
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer Groups</p>
+              <h3 className="text-3xl font-black text-slate-800">{groupedRecords.length}</h3>
             </div>
             <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl border border-purple-100 shrink-0">
               <Layers className="w-6 h-6" />
@@ -163,7 +231,7 @@ export function ActualSpendView() {
         <div className="flex h-[300px] items-center justify-center text-slate-500 font-bold uppercase tracking-widest">
           Loading actual spend data...
         </div>
-      ) : filteredRecords.length === 0 ? (
+      ) : groupedRecords.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-slate-200 rounded-3xl bg-slate-50">
           <Coins className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-500 font-bold uppercase tracking-wide">No spend records found</p>
@@ -184,19 +252,23 @@ export function ActualSpendView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRecords.map((r, i) => (
-                  <TableRow key={r.id || i} className="hover:bg-slate-50 transition-colors">
-                    <TableCell className="font-black text-primary">{r.companyName || 'Unnamed'}</TableCell>
-                    <TableCell className="text-xs font-semibold text-slate-600">{r.account || '-'}</TableCell>
+                {groupedRecords.map((r) => (
+                  <TableRow key={r.id} className="hover:bg-slate-50 transition-colors">
+                    <TableCell className="font-black text-primary">{r.companyName}</TableCell>
+                    <TableCell className="text-xs font-semibold text-slate-600 max-w-[220px] truncate" title={r.account}>
+                      {r.account}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-slate-50 text-slate-700">
-                        {r.businessUnit || 'Other'}
+                        {r.businessUnit}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500 font-semibold">{r.lineOfBusiness || '-'}</TableCell>
-                    <TableCell className="font-black text-indigo-600 text-right">${(Number(r.value) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-xs text-slate-500 font-semibold max-w-[180px] truncate" title={r.lineOfBusiness}>
+                      {r.lineOfBusiness}
+                    </TableCell>
+                    <TableCell className="font-black text-indigo-600 text-right">${r.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                     <TableCell className="text-center font-bold text-slate-500 text-xs">
-                      {r.category ? `W${r.category.substring(4)} (${r.category.substring(0,4)})` : '-'}
+                      {formatCategory(r.category)}
                     </TableCell>
                   </TableRow>
                 ))}
