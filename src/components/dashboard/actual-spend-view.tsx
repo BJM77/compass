@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ export function ActualSpendView() {
   const [buFilter, setBuFilter] = useState('all');
   const [weekFilter, setWeekFilter] = useState('all');
 
-  const actualQuery = useMemo(() => {
+  const actualQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'actualRevenues'), orderBy('category', 'desc'));
   }, [db]);
