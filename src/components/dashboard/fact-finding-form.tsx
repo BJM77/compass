@@ -12,7 +12,7 @@ import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check } from 'lucide-react';
+import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const CARRIER_SERVICES = [
@@ -66,12 +66,13 @@ const Textarea = (props: any) => (
 
 export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   const db = useFirestore();
-  const { user } = useAuth();
+  const { user, isLeader } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState<Partial<FactFindingDoc>>({
     companyName: '',
+    pricingInfo: '',
     businessDetails: '',
     currentlyUsing: '',
     keyDecisionMaker: '',
@@ -890,6 +891,27 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
 
                 </div>
 
+                {/* Pricing Information (Restricted to Admin/Leader edit, visible to all) */}
+                <div className="mt-6 pt-6 border-t border-slate-200">
+                  <Label className="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center gap-1.5 mb-1.5">
+                    <Coins className="w-4 h-4 text-emerald-600" />
+                    Pricing & Rate Agreement Info (Admin / Leader Only Edit)
+                  </Label>
+                  {isLeader ? (
+                    <Textarea
+                      placeholder="Enter pricing notes, discount agreements, or custom rate structure details..."
+                      value={formData.pricingInfo || ''}
+                      onChange={e => handleChange('pricingInfo', e.target.value)}
+                      className="text-xs font-medium rounded-xl border-slate-200"
+                      rows={3}
+                    />
+                  ) : (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 whitespace-pre-wrap min-h-[60px] font-medium">
+                      {formData.pricingInfo || "No pricing information has been recorded yet."}
+                    </div>
+                  )}
+                </div>
+
               </div>
 
               {/* Selected Services Print Version (Static List for PDF) */}
@@ -914,6 +936,13 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   </div>
                 ) : (
                   <p className="text-xs font-medium text-slate-400 italic">No carrier services selected</p>
+                )}
+
+                {formData.pricingInfo && (
+                  <div className="mt-4 border-t border-slate-300 pt-3">
+                    <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Pricing & Rate Agreement Info</h5>
+                    <p className="text-xs font-medium text-slate-800 whitespace-pre-wrap">{formData.pricingInfo}</p>
+                  </div>
                 )}
               </div>
 
