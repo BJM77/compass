@@ -58,3 +58,43 @@
     stroke-dashoffset: -20;
   }
 }
+@media print {
+  /* Force page to auto height and show all overflow content */
+  html, body, #__next, [data-sidebar="wrapper"], [data-sidebar="content"], main, .flex-1, .grid {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Hide sidebar, header, and context bar completely */
+  [data-sidebar="sidebar"],
+  header,
+  .print\:hidden,
+  [data-html2canvas-ignore="true"] {
+    display: none !important;
+  }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+  * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  /* Remove background colors that might print poorly */
+  body, .bg-\[\#F7F6F8\], main {
+    background: white !important;
+    background-color: white !important;
+  }
+
+  /* Page break rules for forms */
+  .card, .border {
+    page-break-inside: avoid;
+  }
+}

@@ -1041,6 +1041,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                         <span class="card-badge">${r.state}</span>
                         <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
                         <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
+                        ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
                         <div class="item-desc">Mitigation: ${r.mitigation}</div>
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
@@ -1051,6 +1052,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                         <span class="card-badge">${m.state}</span>
                         <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
                         <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
+                        ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
                         ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
@@ -1134,6 +1136,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                           <div class="item-block">
                             <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
                             <div class="item-salesperson">${r.rep}</div>
+                            ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
                             <div class="item-desc">Mitigation: ${r.mitigation}</div>
                           </div>
                         `).join('') || '<div class="empty-text">-</div>'}
@@ -1272,6 +1275,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     <div class="item-block">
                       <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
                       <div class="item-salesperson">${r.rep}</div>
+                            ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
                       <div class="item-desc">Mitigation: ${r.mitigation}</div>
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
@@ -1499,6 +1503,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       <span class="card-badge">${r.state}</span>
                       <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
                       <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
+                        ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
                       ${r.updateText ? `<div class="item-desc">${r.updateText}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
@@ -1509,8 +1514,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       <span class="card-badge">${m.state}</span>
                       <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
                       <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
-                      ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
-                    </div>
+                        ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
+                        ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                      </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
@@ -3379,6 +3385,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   <div className="font-bold text-slate-800">{r.account}</div>
                   <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
                   <div className="text-[10px] text-slate-500">{r.salespersonName || 'N/A'}</div>
+                  {r.businessUnits && r.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
                   <div className="text-xs text-slate-600 mt-2">Mitigation: {r.mitigation}</div>
                 </CardContent>
               </Card>
@@ -3398,6 +3405,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   <div className="font-bold text-slate-800">{m.customer}</div>
                   {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
                   <div className="text-[10px] text-slate-500">{m.salespersonName || 'N/A'}</div>
+                  {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
                   {m.updateText && <div className="text-xs text-slate-600 mt-2">{m.updateText}</div>}
                 </CardContent>
               </Card>

@@ -20,6 +20,7 @@ export interface PipelineReview {
   id: string;
   userId: string;
   userName?: string;
+  state?: string;
   week: string;
   accountMasterCode?: string;
   salesforceId?: string;

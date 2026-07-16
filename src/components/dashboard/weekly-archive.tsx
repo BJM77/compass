@@ -264,7 +264,7 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                         {safeTwtwPriorities.map((item: string, idx: number) => (
                           <div key={idx} className="flex gap-2 items-center text-[9px] font-medium text-slate-600">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                            <span>{typeof item === 'string' ? item : item.text || item.updateText || JSON.stringify(item)}</span>
+                            <span>{typeof item === 'string' ? item : (item as any).text || (item as any).updateText || JSON.stringify(item)}</span>
                           </div>
                         ))}
                       </div>

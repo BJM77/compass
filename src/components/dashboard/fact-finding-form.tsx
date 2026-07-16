@@ -8,7 +8,7 @@ import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -37,6 +37,7 @@ const CARRIER_SERVICES = [
 ];
 
 const AUSTRALIA_STATES = [
+  { id: 'PILBARA', name: 'Pilbara', capital: 'Port Hedland', dist: '1,600 km', x: 80, y: 200, path: '' },
   { id: 'WA', name: 'Western Australia', capital: 'Perth', dist: 'Intra-WA', x: 105, y: 330, path: 'M 40,150 L 160,150 L 160,390 L 100,390 C 80,395 75,375 60,385 C 40,385 35,365 30,345 C 20,325 20,275 15,255 C 10,225 30,175 40,150 Z' },
   { id: 'NT', name: 'Northern Territory', capital: 'Darwin', dist: '2,600 km', x: 235, y: 175, path: 'M 160,150 L 250,150 C 240,165 260,180 255,190 C 265,200 250,220 250,270 L 160,270 Z' },
   { id: 'SA', name: 'South Australia', capital: 'Adelaide', dist: '2,100 km', x: 245, y: 360, path: 'M 160,270 L 250,270 L 250,300 L 270,300 L 270,390 C 230,390 220,400 210,380 C 200,370 180,380 160,380 Z' },
@@ -52,6 +53,16 @@ interface Props {
   existingDoc?: FactFindingDoc;
   onBack: () => void;
 }
+
+
+const Textarea = (props: any) => (
+  <div className="w-full relative">
+    <UITextarea {...props} className={`print:hidden ${props.className || ''}`} />
+    <div className="hidden print:block whitespace-pre-wrap break-words text-sm p-3 border border-slate-200 rounded-md min-h-[80px]">
+      {props.value || " "}
+    </div>
+  </div>
+);
 
 export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   const db = useFirestore();
@@ -168,7 +179,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (shouldClose = false) => {
     if (!db || !user) return;
     
     if (!formData.companyName) {
@@ -183,6 +194,9 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
           ...formData,
         });
         toast({ title: "Updated", description: "Fact Finding document updated successfully." });
+        if (shouldClose) {
+          onBack();
+        }
       } else {
         await addDoc(collection(db, 'factFindingDocs'), {
           ...formData,
@@ -237,9 +251,13 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
             <Printer className="w-4 h-4" />
             Export PDF
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="flex-1 sm:flex-none gap-2 font-bold shadow-md">
+          <Button onClick={() => handleSave(false)} disabled={isSaving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save Document
+          </Button>
+          <Button onClick={() => handleSave(true)} disabled={isSaving} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Save & Close
           </Button>
         </div>
       </div>
@@ -460,6 +478,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                       <svg viewBox="0 0 420 520" className="w-full h-full select-none">
                         {/* State Paths */}
                         {AUSTRALIA_STATES.map((state) => {
+                          if (!state.path) return null;
                           const isSelected = formData.selectedStatesFrom?.includes(state.id);
                           const isWA = state.id === 'WA';
                           return (
@@ -482,6 +501,12 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                         {/* Perth Origin Point */}
                         <circle cx={95} cy={330} r={6} className="fill-indigo-600 stroke-white stroke-2 animate-pulse" />
                         <text x={95} y={320} className="text-[9px] font-black fill-indigo-800 text-anchor-middle">PERTH</text>
+
+                        {/* Pilbara Origin Point */}
+                        <g className="cursor-pointer" onClick={() => handleToggleStateFrom('PILBARA')}>
+                          <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesFrom?.includes('PILBARA') ? 'fill-red-500 animate-pulse' : 'fill-slate-400'} stroke-white stroke-1.5`} />
+                          <text x={80} y={190} className="text-[8px] font-black fill-slate-700" textAnchor="middle">PILBARA</text>
+                        </g>
 
                         {/* Connection Lanes */}
                         {AUSTRALIA_STATES.map((state) => {
@@ -548,6 +573,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                       <svg viewBox="0 0 420 520" className="w-full h-full select-none">
                         {/* State Paths */}
                         {AUSTRALIA_STATES.map((state) => {
+                          if (!state.path) return null;
                           const isSelected = formData.selectedStatesTo?.includes(state.id);
                           const isWA = state.id === 'WA';
                           return (
@@ -570,6 +596,12 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                         {/* Perth Destination Point */}
                         <circle cx={95} cy={330} r={6} className="fill-indigo-600 stroke-white stroke-2 animate-pulse" />
                         <text x={95} y={320} className="text-[9px] font-black fill-indigo-800 text-anchor-middle">PERTH</text>
+
+                        {/* Pilbara Destination Point */}
+                        <g className="cursor-pointer" onClick={() => handleToggleStateTo('PILBARA')}>
+                          <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesTo?.includes('PILBARA') ? 'fill-orange-500 animate-pulse' : 'fill-slate-400'} stroke-white stroke-1.5`} />
+                          <text x={80} y={190} className="text-[8px] font-black fill-slate-700" textAnchor="middle">PILBARA</text>
+                        </g>
 
                         {/* Connection Lanes */}
                         {AUSTRALIA_STATES.map((state) => {
@@ -931,9 +963,13 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                 <Printer className="w-4 h-4" />
                 Export PDF
               </Button>
-              <Button onClick={handleSave} disabled={isSaving} className="flex-1 sm:flex-none gap-2 font-bold shadow-md">
+              <Button onClick={() => handleSave(false)} disabled={isSaving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save Document
+              </Button>
+              <Button onClick={() => handleSave(true)} disabled={isSaving} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                Save & Close
               </Button>
             </div>
           </div>

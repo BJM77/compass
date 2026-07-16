@@ -220,7 +220,7 @@ function DashboardContent() {
           <SidebarFooter className="p-4 border-t"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
         </Sidebar>
         <SidebarInset className="bg-[#F7F6F8]">
-          <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2">
+          <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2 print:hidden">
             <SidebarTrigger className="-ml-1" />
             <div className="flex items-center gap-2 md:hidden pl-1">
               <Compass className="w-5 h-5 text-indigo-600" />
@@ -253,7 +253,7 @@ function DashboardContent() {
             </div>
           </header>
           {/* Session Context Bar */}
-          <div className="bg-slate-900 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-300 py-2.5 px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-sm">
+          <div className="bg-slate-900 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-300 py-2.5 px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-sm print:hidden">
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               {/* User Context */}
               <div className="flex items-center gap-1.5">

@@ -90,7 +90,7 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
   const removeRow = (setter: any, items: any[], id: string) => setter(items.filter(i => i.id !== id));
   
   const addWinRow = () => setWins([...wins, { id: crypto.randomUUID(), customer: '', value: 0, updateText: '', businessUnits: [], salespersonName: '' }]);
-  const addRiskRow = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '', salespersonName: '' }]);
+  const addRiskRow = () => setRisks([...risks, { id: crypto.randomUUID(), account: '', value: 0, mitigation: '', businessUnits: [], salespersonName: '' }]);
   const addMajorUpdateRow = () => setMajorUpdates([...majorUpdates, { id: crypto.randomUUID(), customer: '', value: 0, updateText: '', businessUnits: [], salespersonName: '' }]);
   const addProjectedRow = () => setProjectedWins([...projectedWins, { id: crypto.randomUUID(), account: '', value: 0, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: '', salespersonName: '' }]);
   const addPriorityRow = () => setPriorities([...priorities, { id: crypto.randomUUID(), text: '', salespersonName: '' }]);
@@ -208,6 +208,11 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
                     <Input type="number" value={r.value || ''} onChange={e => updateField(setRisks, risks, r.id, 'value', parseFloat(e.target.value) || 0)} placeholder="Value" className="h-8 text-xs w-1/3" />
                     <Input value={r.salespersonName} onChange={e => updateField(setRisks, risks, r.id, 'salespersonName', e.target.value)} placeholder="Salesperson" className="h-8 text-xs flex-1" />
                   </div>
+                  <div className="flex flex-wrap gap-1 p-1 rounded-xl transition-all border border-slate-100">
+                      {BUSINESS_UNITS.map(bu => (
+                        <Badge key={bu} variant={(r.businessUnits || []).includes(bu) ? 'default' : 'outline'} className="cursor-pointer text-[9px] px-1 py-0" onClick={() => toggleBU(setRisks, risks, r.id, bu)}>{bu}</Badge>
+                      ))}
+                    </div>
                   <Input value={r.mitigation} onChange={e => updateField(setRisks, risks, r.id, 'mitigation', e.target.value)} placeholder="Mitigation" className="h-8 text-xs" />
                 </div>
               ))}

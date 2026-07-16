@@ -112,7 +112,7 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
               <div className="flex flex-wrap gap-1.5">
                 {activePlaybook.precincts?.map((item: any, idx: number) => (
                   <Badge key={idx} variant="secondary" className="bg-muted/50 text-muted-foreground text-[10px] font-bold">
-                    <span>{typeof item === 'string' ? item : item.text || item.updateText || JSON.stringify(item)}</span>
+                    <span>{typeof item === 'string' ? item : item.text || item.text || JSON.stringify(item)}</span>
                   </Badge>
                 ))}
               </div>
@@ -143,7 +143,7 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
                 {activePlaybook.wins?.map((win: string, idx: number) => (
                   <li key={idx} className="text-xs flex items-start gap-2 leading-tight font-bold text-foreground">
                     <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
-                    {typeof win === 'string' ? win : win.updateText || win.customer || JSON.stringify(win)}
+                    {typeof win === 'string' ? win : (win as any).updateText || (win as any).customer || JSON.stringify(win)}
                   </li>
                 ))}
               </ul>

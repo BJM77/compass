@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, setDoc, increment } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea as UITextarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,16 @@ import FreightSpinGuide from './freight-spin-guide';
 
 import { useEffect, useMemo } from 'react';
 
+const Textarea = (props: any) => (
+  <div className="w-full">
+    <UITextarea {...props} className={`print:hidden ${props.className || ''}`} />
+    <div className="hidden print:block whitespace-pre-wrap break-words text-sm p-2 w-full">
+      {props.value || " "}
+    </div>
+  </div>
+);
+
+
 interface CallPlanningProps {
   userId: string;
   initialParams?: any;
@@ -47,6 +57,10 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
   const [formData, setFormData] = useState({
     accountName: '',
     objective: '',
+    introduction: '',
+    buildRapport: '',
+    aboutThem: '',
+    aboutUs: '',
     services: [] as string[],
     situation: '',
     problem: '',
@@ -82,6 +96,10 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
       setFormData({
         accountName: docData.companyName || '',
         objective: docData.perfectWorld ? `Target perfect world scenario: ${docData.perfectWorld}` : 'Secure commitment for next steps',
+        introduction: '',
+        buildRapport: '',
+        aboutThem: '',
+        aboutUs: '',
         services: mappedServices,
         situation: `Discovery Notes:\nBusiness Details: ${docData.businessDetails || 'None'}\nCurrently Using: ${docData.currentlyUsing || 'None'}\nKey Decision Maker: ${docData.keyDecisionMaker || 'None'}\nIncumbent Competitor: ${docData.incumbentCompetitor || 'None'}\nLocations: ${docData.locations || 'None'}`,
         problem: `Pain Points identified: ${docData.painPoints || 'None'}`,
@@ -95,6 +113,10 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
       setFormData({
         accountName: deal.pipeline || '',
         objective: deal.actionsForBen ? `Action Plan: ${deal.actionsForBen}` : 'Advance opportunity to next stage',
+        introduction: '',
+        buildRapport: '',
+        aboutThem: '',
+        aboutUs: '',
         services: [],
         situation: `Opportunity Name: ${deal.opportunityName || 'None'}\nCurrent Stage: ${deal.stage || 'None'}`,
         problem: `Barriers identified: ${deal.barriers || 'None'}`,
@@ -122,6 +144,10 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
     setFormData({
       accountName: plan.accountName || '',
       objective: plan.objective || '',
+      introduction: plan.introduction || '',
+      buildRapport: plan.buildRapport || '',
+      aboutThem: plan.aboutThem || '',
+      aboutUs: plan.aboutUs || '',
       services: plan.services || [],
       situation: plan.situation || '',
       problem: plan.problem || '',
@@ -137,8 +163,12 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
     setFormData({
       accountName: '',
       objective: '',
-      services: [],
-      situation: '',
+      introduction: '',
+        buildRapport: '',
+        aboutThem: '',
+        aboutUs: '',
+        services: [],
+        situation: '',
       problem: '',
       implication: '',
       needPayoff: '',
@@ -298,6 +328,55 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 value={formData.objective}
                 onChange={(e) => setFormData({...formData, objective: e.target.value})}
                 className="font-bold text-sm h-12 bg-slate-50 focus:bg-white transition-all border-slate-200"
+              />
+            </div>
+          </div>
+
+          
+          {/* New Target Account Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                Introduction
+              </Label>
+              <Textarea 
+                placeholder="e.g. Briefly introduce yourself..." 
+                value={formData.introduction}
+                onChange={(e: any) => setFormData({...formData, introduction: e.target.value})}
+                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                Build R (Rapport)
+              </Label>
+              <Textarea 
+                placeholder="e.g. Mention their recent company news..." 
+                value={formData.buildRapport}
+                onChange={(e: any) => setFormData({...formData, buildRapport: e.target.value})}
+                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                About Them
+              </Label>
+              <Textarea 
+                placeholder="e.g. Focus on their specific needs..." 
+                value={formData.aboutThem}
+                onChange={(e: any) => setFormData({...formData, aboutThem: e.target.value})}
+                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                About Us
+              </Label>
+              <Textarea 
+                placeholder="e.g. High-level pitch connecting to their needs..." 
+                value={formData.aboutUs}
+                onChange={(e: any) => setFormData({...formData, aboutUs: e.target.value})}
+                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
               />
             </div>
           </div>
