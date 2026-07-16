@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List } from 'lucide-react';
+import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
 import { format } from 'date-fns';
 
@@ -221,7 +221,8 @@ export function FactFindingHub() {
                     <TableHead className="font-bold">Model</TableHead>
                     <TableHead className="font-bold text-right">Value</TableHead>
                     {isLeader && <TableHead className="font-bold">Owner</TableHead>}
-                    <TableHead className="font-bold">Date</TableHead>
+                    <TableHead className="font-bold">Created</TableHead>
+                    <TableHead className="font-bold">Modified</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -248,6 +249,9 @@ export function FactFindingHub() {
                       <TableCell className="text-slate-500 text-xs">
                         {doc.createdAt ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}
                       </TableCell>
+                      <TableCell className="text-slate-500 text-xs font-semibold">
+                        {doc.lastModifiedAt ? format(doc.lastModifiedAt.toDate(), 'MMM d, yyyy') : '-'}
+                      </TableCell>
                       <TableCell>
                         <ChevronRight className="w-4 h-4 text-slate-400" />
                       </TableCell>
@@ -266,15 +270,21 @@ export function FactFindingHub() {
                         <CardTitle className="text-lg font-black text-primary line-clamp-1">
                           {doc.companyName || 'Unnamed Company'}
                         </CardTitle>
-                        <CardDescription className="flex flex-col gap-1 mt-1 font-medium text-xs">
+                        <CardDescription className="flex flex-col gap-1 mt-1 font-semibold text-xs text-slate-500">
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {doc.createdAt ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}
+                            <Calendar className="w-3 h-3 text-slate-400" />
+                            <span>Created: {doc.createdAt ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}</span>
                           </span>
+                          {doc.lastModifiedAt && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              <span>Modified: {format(doc.lastModifiedAt.toDate(), 'MMM d, yyyy')}</span>
+                            </span>
+                          )}
                           {isLeader && (
-                            <span className="flex items-center gap-1 text-slate-500 font-semibold mt-0.5">
+                            <span className="flex items-center gap-1 text-slate-500 font-bold mt-0.5">
                               <User className="w-3 h-3 text-slate-400" />
-                              {userMap[doc.userId] || 'Loading user...'}
+                              <span>Owner: {userMap[doc.userId] || 'Loading user...'}</span>
                             </span>
                           )}
                         </CardDescription>

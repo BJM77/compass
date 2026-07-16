@@ -192,6 +192,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
       if (docId) {
         await updateDoc(doc(db, 'factFindingDocs', docId), {
           ...formData,
+          lastModifiedAt: serverTimestamp()
         });
         toast({ title: "Updated", description: "Fact Finding document updated successfully." });
         if (shouldClose) {
@@ -201,7 +202,8 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
         await addDoc(collection(db, 'factFindingDocs'), {
           ...formData,
           userId: user.uid,
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          lastModifiedAt: serverTimestamp()
         });
         toast({ title: "Saved", description: "Fact Finding document saved successfully." });
         onBack(); // Go back to hub after creating
