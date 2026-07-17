@@ -1153,7 +1153,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
 
       {/* Export Review Sheet (Strictly formatted to fit a single page on print) */}
       {printType === 'REVIEW' && (
-        <div className="hidden print:block absolute inset-0 bg-white p-4 font-sans text-slate-800" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+        <div className="hidden print:block relative w-full min-h-screen bg-white p-4 font-sans text-slate-800" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
           {/* Header */}
           <div className="border-b border-slate-900 pb-2 mb-4">
             <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">Fact Finding Export Review</h1>
