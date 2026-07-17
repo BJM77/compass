@@ -70,6 +70,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const canEdit = profile?.role !== 'GUEST';
+  const [printType, setPrintType] = useState<'FULL' | 'REVIEW' | null>(null);
 
   const [formData, setFormData] = useState<Partial<FactFindingDoc>>({
     companyName: '',
@@ -230,11 +231,23 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   const handleExportPDF = () => {
-    window.print();
+    setPrintType('FULL');
+    setTimeout(() => {
+      window.print();
+      setPrintType(null);
+    }, 150);
+  };
+
+  const handleExportReview = () => {
+    setPrintType('REVIEW');
+    setTimeout(() => {
+      window.print();
+      setPrintType(null);
+    }, 150);
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+    <div className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 ${printType === 'REVIEW' ? 'print:hidden' : ''}`}>
       {/* Read-Only Warning Banner */}
       {!canEdit && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 print:hidden">
@@ -279,6 +292,10 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
           <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
             <Printer className="w-4 h-4" />
             Export PDF
+          </Button>
+          <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
+            <Printer className="w-4 h-4" />
+            Export Review
           </Button>
           <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -462,7 +479,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   <Input placeholder="Dimensions/Weight" value={formData.freightSize} onChange={e => handleChange('freightSize', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Weekly Amount</Label>
+                  <Label className="font-bold text-slate-700">EAV</Label>
                   <Input placeholder="e.g. $5,000 or 50 items" value={formData.weeklyAmount} onChange={e => handleChange('weeklyAmount', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
               </div>
@@ -1113,6 +1130,10 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                 <Printer className="w-4 h-4" />
                 Export PDF
               </Button>
+              <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
+                <Printer className="w-4 h-4" />
+                Export Review
+              </Button>
               <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save Document
@@ -1126,6 +1147,83 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
 
         </div>
       </div>
+
+      {/* Export Review Sheet (Strictly formatted to fit a single page on print) */}
+      {printType === 'REVIEW' && (
+        <div className="hidden print:block absolute inset-0 bg-white p-4 font-sans text-slate-800" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          {/* Header */}
+          <div className="border-b border-slate-900 pb-2 mb-4">
+            <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">Fact Finding Export Review</h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Pre-Meeting Summary Sheet</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 text-xs">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Company Name</Label>
+                <p className="text-sm font-black text-slate-900 uppercase">{formData.companyName || '-'}</p>
+              </div>
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Key Decision Maker</Label>
+                <p className="text-xs font-bold text-slate-800">{formData.keyDecisionMaker || '-'}</p>
+              </div>
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Type of Freight</Label>
+                <p className="text-xs font-bold text-slate-800">{formData.freightType || '-'}</p>
+              </div>
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">EAV</Label>
+                <p className="text-xs font-bold text-slate-800">{formData.weeklyAmount || '-'}</p>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Tell me about your business</Label>
+                <p className="text-[10px] font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.businessDetails || '-'}</p>
+              </div>
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Primary Pain Points</Label>
+                <p className="text-[10px] font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.painPoints || '-'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Carrier Services */}
+          <div className="mt-6 border-t border-slate-350 pt-4">
+            <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-2">Required Carrier Services</Label>
+            {formData.selectedServices && formData.selectedServices.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2">
+                {formData.selectedServices.map(sid => {
+                  const s = CARRIER_SERVICES.find(srv => srv.id === sid);
+                  if (!s) return null;
+                  const note = (formData.serviceNotes || {})[sid];
+                  const adminNote = (formData.serviceAdminNotes || {})[sid];
+                  return (
+                    <div key={sid} className="border border-slate-300 p-2 rounded text-[10px] bg-slate-50/50">
+                      <div className="flex justify-between items-start">
+                        <span className="font-black text-slate-900">{s.name}</span>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase">{s.speed}</span>
+                      </div>
+                      {note && <p className="mt-1 text-slate-650 font-medium whitespace-pre-wrap leading-snug">{note}</p>}
+                      {adminNote && (
+                        <div className="mt-1.5 pt-1 border-t border-slate-200">
+                          <span className="text-[7px] font-black uppercase text-slate-400 block">Admin Info</span>
+                          <p className="text-slate-600 font-semibold whitespace-pre-wrap leading-snug">{adminNote}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-[10px] font-medium text-slate-450 italic">No carrier services selected</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
