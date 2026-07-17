@@ -29,26 +29,19 @@ export function FactFindingHub() {
   // Query docs
   const docsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    if (isLeader) {
-      return query(
-        collection(db, 'factFindingDocs'),
-        orderBy('createdAt', 'desc')
-      );
-    }
     return query(
       collection(db, 'factFindingDocs'),
-      where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-  }, [db, user, isLeader]);
+  }, [db, user]);
 
   const { data: docs, isLoading: loading } = useCollection<FactFindingDoc>(docsQuery);
 
   // Fetch users to resolve names for Leaders
   const usersQuery = useMemoFirebase(() => {
-    if (!db || !isLeader) return null;
+    if (!db || !user) return null;
     return collection(db, 'users');
-  }, [db, isLeader]);
+  }, [db, user]);
   
   const { data: users } = useCollection(usersQuery);
 
@@ -82,12 +75,12 @@ export function FactFindingHub() {
     }
 
     // 2. Filter by User
-    if (isLeader && userFilter !== 'all') {
+    if (userFilter !== 'all') {
       result = result.filter(d => d.userId === userFilter);
     }
 
     // 3. Sort by User
-    if (isLeader && sortUserDir !== 'none') {
+    if (sortUserDir !== 'none') {
       result.sort((a, b) => {
         const nameA = userMap[a.userId] || '';
         const nameB = userMap[b.userId] || '';
@@ -156,32 +149,28 @@ export function FactFindingHub() {
               />
             </div>
             
-            {isLeader && (
-              <>
-                <Select value={userFilter} onValueChange={setUserFilter}>
-                  <SelectTrigger className="w-full md:w-[200px] h-10 border-slate-200">
-                    <SelectValue placeholder="Filter by User" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    {uniqueUsers.map(u => (
-                      <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <Select value={userFilter} onValueChange={setUserFilter}>
+              <SelectTrigger className="w-full md:w-[200px] h-10 border-slate-200">
+                <SelectValue placeholder="Filter by Creator" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Creators</SelectItem>
+                {uniqueUsers.map(u => (
+                  <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-                <Select value={sortUserDir} onValueChange={(v: any) => setSortUserDir(v)}>
-                  <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
-                    <SelectValue placeholder="Sort by User" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sort: Default (Date)</SelectItem>
-                    <SelectItem value="asc">User Name (A-Z)</SelectItem>
-                    <SelectItem value="desc">User Name (Z-A)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </>
-            )}
+            <Select value={sortUserDir} onValueChange={(v: any) => setSortUserDir(v)}>
+              <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+                <SelectValue placeholder="Sort by Creator" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sort: Default (Date)</SelectItem>
+                <SelectItem value="asc">Creator Name (A-Z)</SelectItem>
+                <SelectItem value="desc">Creator Name (Z-A)</SelectItem>
+              </SelectContent>
+            </Select>
 
             <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 md:ml-auto w-full md:w-auto">
               <Button 

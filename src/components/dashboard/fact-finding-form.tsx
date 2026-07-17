@@ -710,6 +710,27 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   Team Global Express Parcel Network Western Australia
                 </div>
 
+                {/* Pricing Information (Restricted to Admin/Leader edit, visible to all) */}
+                <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-sm print:border-slate-300 print:bg-transparent">
+                  <Label className="text-xs font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5 mb-2">
+                    <Coins className="w-4 h-4 text-emerald-600" />
+                    Pricing & Rate Agreement Info (Leaders & Site Admins Only Edit)
+                  </Label>
+                  {isLeader ? (
+                    <Textarea
+                      placeholder="Enter pricing notes, discount agreements, or custom rate structure details..."
+                      value={formData.pricingInfo || ''}
+                      onChange={e => handleChange('pricingInfo', e.target.value)}
+                      className="text-xs font-medium rounded-xl border-emerald-200 bg-white"
+                      rows={3}
+                    />
+                  ) : (
+                    <div className="bg-white border border-emerald-100 rounded-xl p-3 text-xs text-slate-700 whitespace-pre-wrap min-h-[60px] font-medium">
+                      {formData.pricingInfo || "No pricing information has been recorded yet."}
+                    </div>
+                  )}
+                </div>
+
                 {/* 1 Column Layout */}
                 <div className="grid grid-cols-1 gap-4">
                   
@@ -891,26 +912,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
 
                 </div>
 
-                {/* Pricing Information (Restricted to Admin/Leader edit, visible to all) */}
-                <div className="mt-6 pt-6 border-t border-slate-200">
-                  <Label className="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center gap-1.5 mb-1.5">
-                    <Coins className="w-4 h-4 text-emerald-600" />
-                    Pricing & Rate Agreement Info (Admin / Leader Only Edit)
-                  </Label>
-                  {isLeader ? (
-                    <Textarea
-                      placeholder="Enter pricing notes, discount agreements, or custom rate structure details..."
-                      value={formData.pricingInfo || ''}
-                      onChange={e => handleChange('pricingInfo', e.target.value)}
-                      className="text-xs font-medium rounded-xl border-slate-200"
-                      rows={3}
-                    />
-                  ) : (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 whitespace-pre-wrap min-h-[60px] font-medium">
-                      {formData.pricingInfo || "No pricing information has been recorded yet."}
-                    </div>
-                  )}
-                </div>
+
 
               </div>
 
