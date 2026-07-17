@@ -69,6 +69,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   const { user, isLeader } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const canEdit = isLeader || !existingDoc || existingDoc.userId === user?.uid;
 
   const [formData, setFormData] = useState<Partial<FactFindingDoc>>({
     companyName: '',
@@ -125,10 +126,14 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   }, [existingDoc]);
 
   const handleChange = (field: keyof FactFindingDoc, value: any) => {
+    const isPricingField = field === 'pricingInfo';
+    const allowed = isPricingField ? isLeader : canEdit;
+    if (!allowed) return;
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleToggleService = (serviceId: string) => {
+    if (!canEdit) return;
     const current = formData.selectedServices || [];
     const updated = current.includes(serviceId)
       ? current.filter(id => id !== serviceId)
@@ -137,6 +142,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   const handleServiceNote = (serviceId: string, value: string) => {
+    if (!canEdit) return;
     setFormData(prev => ({
       ...prev,
       serviceNotes: { ...(prev.serviceNotes || {}), [serviceId]: value }
@@ -155,6 +161,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   const handleToggleStateFrom = (stateId: string) => {
+    if (!canEdit) return;
     const current = formData.selectedStatesFrom || [];
     const updated = current.includes(stateId)
       ? current.filter(id => id !== stateId)
@@ -168,6 +175,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   const handleToggleStateTo = (stateId: string) => {
+    if (!canEdit) return;
     const current = formData.selectedStatesTo || [];
     const updated = current.includes(stateId)
       ? current.filter(id => id !== stateId)
@@ -222,6 +230,19 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+      {/* Read-Only Warning Banner */}
+      {!canEdit && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 print:hidden">
+          <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-black text-amber-800 uppercase">Read-Only Document</p>
+            <p className="text-[11px] text-amber-700 mt-0.5 font-medium leading-relaxed">
+              This document belongs to another user. You can view all information, but saving changes is restricted to the document creator or team leaders.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header - Hidden on Print */}
       <div className="print:hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center gap-3">
@@ -254,11 +275,11 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
             <Printer className="w-4 h-4" />
             Export PDF
           </Button>
-          <Button onClick={() => handleSave(false)} disabled={isSaving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
+          <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save Document
           </Button>
-          <Button onClick={() => handleSave(true)} disabled={isSaving} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+          <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             Save & Close
           </Button>
@@ -996,11 +1017,11 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                 <Printer className="w-4 h-4" />
                 Export PDF
               </Button>
-              <Button onClick={() => handleSave(false)} disabled={isSaving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
+              <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save Document
               </Button>
-              <Button onClick={() => handleSave(true)} disabled={isSaving} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+              <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Save & Close
               </Button>
