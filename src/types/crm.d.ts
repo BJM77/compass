@@ -121,6 +121,7 @@ export interface FactFindingDoc {
   mapNotesFrom?: string;
   mapNotesTo?: string;
   serviceNotes?: Record<string, string>;
+  serviceAdminNotes?: Record<string, string>;
 }
 
 export interface OpsReport {

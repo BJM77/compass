@@ -66,10 +66,10 @@ const Textarea = (props: any) => (
 
 export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   const db = useFirestore();
-  const { user, isLeader } = useAuth();
+  const { user, isLeader, profile } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const canEdit = isLeader || !existingDoc || existingDoc.userId === user?.uid;
+  const canEdit = profile?.role !== 'GUEST';
 
   const [formData, setFormData] = useState<Partial<FactFindingDoc>>({
     companyName: '',
@@ -133,7 +133,6 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   const handleToggleService = (serviceId: string) => {
-    if (!canEdit) return;
     const current = formData.selectedServices || [];
     const updated = current.includes(serviceId)
       ? current.filter(id => id !== serviceId)
@@ -149,6 +148,14 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     }));
   };
 
+  const handleServiceAdminNote = (serviceId: string, value: string) => {
+    if (!isLeader) return;
+    setFormData(prev => ({
+      ...prev,
+      serviceAdminNotes: { ...(prev.serviceAdminNotes || {}), [serviceId]: value }
+    }));
+  };
+
   const updateCombinedLocations = (fromStates: string[], toStates: string[]) => {
     const parts: string[] = [];
     if (fromStates.length > 0) {
@@ -161,7 +168,6 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   const handleToggleStateFrom = (stateId: string) => {
-    if (!canEdit) return;
     const current = formData.selectedStatesFrom || [];
     const updated = current.includes(stateId)
       ? current.filter(id => id !== stateId)
@@ -175,7 +181,6 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   const handleToggleStateTo = (stateId: string) => {
-    if (!canEdit) return;
     const current = formData.selectedStatesTo || [];
     const updated = current.includes(stateId)
       ? current.filter(id => id !== stateId)
@@ -781,14 +786,35 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <Textarea
-                                placeholder={`Add notes about ${s.name}...`}
-                                value={(formData.serviceNotes || {})[s.id] || ''}
-                                onChange={e => handleServiceNote(s.id, e.target.value)}
-                                onClick={e => e.stopPropagation()}
-                                className="text-xs font-medium rounded-lg border-orange-200 bg-orange-50 focus:border-orange-400 min-h-[60px]"
-                                rows={2}
-                              />
+                              <div className="space-y-2">
+                                <Textarea
+                                  placeholder={`Add notes about ${s.name}...`}
+                                  value={(formData.serviceNotes || {})[s.id] || ''}
+                                  onChange={e => handleServiceNote(s.id, e.target.value)}
+                                  onClick={e => e.stopPropagation()}
+                                  className="text-xs font-medium rounded-lg border-orange-200 bg-orange-50 focus:border-orange-400 min-h-[60px]"
+                                  rows={2}
+                                />
+                                {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
+                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                    {isLeader ? (
+                                      <Textarea
+                                        placeholder="Add restricted admin/leader info..."
+                                        value={(formData.serviceAdminNotes || {})[s.id] || ''}
+                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={e => e.stopPropagation()}
+                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        rows={2}
+                                      />
+                                    ) : (
+                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                        {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         );
@@ -828,14 +854,35 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <Textarea
-                                placeholder={`Add notes about ${s.name}...`}
-                                value={(formData.serviceNotes || {})[s.id] || ''}
-                                onChange={e => handleServiceNote(s.id, e.target.value)}
-                                onClick={e => e.stopPropagation()}
-                                className="text-xs font-medium rounded-lg border-indigo-200 bg-indigo-50 focus:border-indigo-400 min-h-[60px]"
-                                rows={2}
-                              />
+                              <div className="space-y-2">
+                                <Textarea
+                                  placeholder={`Add notes about ${s.name}...`}
+                                  value={(formData.serviceNotes || {})[s.id] || ''}
+                                  onChange={e => handleServiceNote(s.id, e.target.value)}
+                                  onClick={e => e.stopPropagation()}
+                                  className="text-xs font-medium rounded-lg border-indigo-200 bg-indigo-50 focus:border-indigo-400 min-h-[60px]"
+                                  rows={2}
+                                />
+                                {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
+                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                    {isLeader ? (
+                                      <Textarea
+                                        placeholder="Add restricted admin/leader info..."
+                                        value={(formData.serviceAdminNotes || {})[s.id] || ''}
+                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={e => e.stopPropagation()}
+                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        rows={2}
+                                      />
+                                    ) : (
+                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                        {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         );
@@ -872,14 +919,35 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <Textarea
-                                placeholder={`Add notes about ${s.name}...`}
-                                value={(formData.serviceNotes || {})[s.id] || ''}
-                                onChange={e => handleServiceNote(s.id, e.target.value)}
-                                onClick={e => e.stopPropagation()}
-                                className="text-xs font-medium rounded-lg border-amber-200 bg-amber-50 focus:border-amber-400 min-h-[60px]"
-                                rows={2}
-                              />
+                              <div className="space-y-2">
+                                <Textarea
+                                  placeholder={`Add notes about ${s.name}...`}
+                                  value={(formData.serviceNotes || {})[s.id] || ''}
+                                  onChange={e => handleServiceNote(s.id, e.target.value)}
+                                  onClick={e => e.stopPropagation()}
+                                  className="text-xs font-medium rounded-lg border-amber-200 bg-amber-50 focus:border-amber-400 min-h-[60px]"
+                                  rows={2}
+                                />
+                                {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
+                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                    {isLeader ? (
+                                      <Textarea
+                                        placeholder="Add restricted admin/leader info..."
+                                        value={(formData.serviceAdminNotes || {})[s.id] || ''}
+                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={e => e.stopPropagation()}
+                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        rows={2}
+                                      />
+                                    ) : (
+                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                        {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         );
@@ -916,14 +984,35 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <Textarea
-                                placeholder={`Add notes about ${s.name}...`}
-                                value={(formData.serviceNotes || {})[s.id] || ''}
-                                onChange={e => handleServiceNote(s.id, e.target.value)}
-                                onClick={e => e.stopPropagation()}
-                                className="text-xs font-medium rounded-lg border-zinc-200 bg-zinc-50 focus:border-zinc-400 min-h-[60px]"
-                                rows={2}
-                              />
+                              <div className="space-y-2">
+                                <Textarea
+                                  placeholder={`Add notes about ${s.name}...`}
+                                  value={(formData.serviceNotes || {})[s.id] || ''}
+                                  onChange={e => handleServiceNote(s.id, e.target.value)}
+                                  onClick={e => e.stopPropagation()}
+                                  className="text-xs font-medium rounded-lg border-zinc-200 bg-zinc-50 focus:border-zinc-400 min-h-[60px]"
+                                  rows={2}
+                                />
+                                {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
+                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                    {isLeader ? (
+                                      <Textarea
+                                        placeholder="Add restricted admin/leader info..."
+                                        value={(formData.serviceAdminNotes || {})[s.id] || ''}
+                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={e => e.stopPropagation()}
+                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        rows={2}
+                                      />
+                                    ) : (
+                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                        {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         );
@@ -946,6 +1035,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                       const s = CARRIER_SERVICES.find(srv => srv.id === sid);
                       if (!s) return null;
                       const note = (formData.serviceNotes || {})[sid];
+                      const adminNote = (formData.serviceAdminNotes || {})[sid];
                       return (
                         <div key={sid} className="border border-slate-300 p-2 rounded text-xs">
                           <div className="flex justify-between">
@@ -953,6 +1043,12 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                             <span className="text-slate-500 font-medium">{s.weight}</span>
                           </div>
                           {note && <p className="mt-1 text-slate-600 font-medium whitespace-pre-wrap">{note}</p>}
+                          {adminNote && (
+                            <div className="mt-2 pt-1.5 border-t border-slate-200">
+                              <span className="text-[8px] font-black uppercase text-slate-500 block">Admin Information</span>
+                              <p className="text-slate-600 font-medium whitespace-pre-wrap">{adminNote}</p>
+                            </div>
+                          )}
                         </div>
                       );
                     })}

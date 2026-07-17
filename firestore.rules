@@ -196,7 +196,8 @@ service cloud.firestore {
     match /factFindingDocs/{docId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow update: if isSignedIn() && request.auth.token.role != 'GUEST';
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     match /actualRevenues/{id} {
