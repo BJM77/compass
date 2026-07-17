@@ -26,7 +26,7 @@ export function AnnouncementBanner() {
   if (isLoading || !announcement?.active || !isVisible) return null;
 
   return (
-    <div className="bg-accent text-white py-2.5 px-4 relative overflow-hidden animate-in slide-in-from-top duration-500 shadow-lg z-[60]">
+    <div className="bg-accent text-white py-2.5 px-4 relative overflow-hidden animate-in slide-in-from-top duration-500 shadow-lg z-[60] print:hidden">
       {/* Decorative shimmer animation */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
       
