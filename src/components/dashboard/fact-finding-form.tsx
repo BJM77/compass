@@ -1160,70 +1160,77 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Pre-Meeting Summary Sheet</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 text-xs">
-            {/* Left Column */}
+          {/* Two Main Columns Grid */}
+          <div className="grid grid-cols-2 gap-8 text-xs">
+            
+            {/* Left Column: Key Business Fields */}
             <div className="space-y-4">
               <div>
                 <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Company Name</Label>
                 <p className="text-sm font-black text-slate-900 uppercase">{formData.companyName || '-'}</p>
               </div>
-              <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Key Decision Maker</Label>
-                <p className="text-xs font-bold text-slate-800">{formData.keyDecisionMaker || '-'}</p>
-              </div>
-              <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Type of Freight</Label>
-                <p className="text-xs font-bold text-slate-800">{formData.freightType || '-'}</p>
-              </div>
-              <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">EAV</Label>
-                <p className="text-xs font-bold text-slate-800">{formData.weeklyAmount || '-'}</p>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-4">
+              
               <div>
                 <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Tell me about your business</Label>
                 <p className="text-[10px] font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.businessDetails || '-'}</p>
               </div>
+
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Key Decision Maker</Label>
+                <p className="text-xs font-bold text-slate-800">{formData.keyDecisionMaker || '-'}</p>
+              </div>
+
               <div>
                 <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Primary Pain Points</Label>
                 <p className="text-[10px] font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.painPoints || '-'}</p>
               </div>
-            </div>
-          </div>
 
-          {/* Carrier Services */}
-          <div className="mt-6 border-t border-slate-350 pt-4">
-            <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-2">Required Carrier Services</Label>
-            {formData.selectedServices && formData.selectedServices.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {formData.selectedServices.map(sid => {
-                  const s = CARRIER_SERVICES.find(srv => srv.id === sid);
-                  if (!s) return null;
-                  const note = (formData.serviceNotes || {})[sid];
-                  const adminNote = (formData.serviceAdminNotes || {})[sid];
-                  return (
-                    <div key={sid} className="border border-slate-300 p-2 rounded text-[10px] bg-slate-50/50">
-                      <div className="flex justify-between items-start">
-                        <span className="font-black text-slate-900">{s.name}</span>
-                        <span className="text-[8px] font-bold text-slate-500 uppercase">{s.speed}</span>
-                      </div>
-                      {note && <p className="mt-1 text-slate-650 font-medium whitespace-pre-wrap leading-snug">{note}</p>}
-                      {adminNote && (
-                        <div className="mt-1.5 pt-1 border-t border-slate-200">
-                          <span className="text-[7px] font-black uppercase text-slate-400 block">Admin Info</span>
-                          <p className="text-slate-600 font-semibold whitespace-pre-wrap leading-snug">{adminNote}</p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Type of Freight</Label>
+                  <p className="text-xs font-bold text-slate-800">{formData.freightType || '-'}</p>
+                </div>
+                <div>
+                  <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">EAV</Label>
+                  <p className="text-xs font-bold text-slate-800">{formData.weeklyAmount || '-'}</p>
+                </div>
               </div>
-            ) : (
-              <p className="text-[10px] font-medium text-slate-450 italic">No carrier services selected</p>
-            )}
+            </div>
+
+            {/* Right Column: Required Carrier Services */}
+            <div className="border-l border-slate-200 pl-6 space-y-4">
+              <div>
+                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-2">Required Carrier Services</Label>
+                {formData.selectedServices && formData.selectedServices.length > 0 ? (
+                  <div className="space-y-3">
+                    {formData.selectedServices.map(sid => {
+                      const s = CARRIER_SERVICES.find(srv => srv.id === sid);
+                      if (!s) return null;
+                      const note = (formData.serviceNotes || {})[sid];
+                      const adminNote = (formData.serviceAdminNotes || {})[sid];
+                      return (
+                        <div key={sid} className="border border-slate-250 p-2.5 rounded-lg text-[10px] bg-slate-50/50">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-black text-slate-900">{s.name}</span>
+                            <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">{s.speed}</span>
+                          </div>
+                          {note && <p className="text-slate-650 font-medium whitespace-pre-wrap leading-snug">{note}</p>}
+                          {adminNote && (
+                            <div className="mt-2 pt-1.5 border-t border-slate-200">
+                              <span className="text-[7px] font-black uppercase text-emerald-700 tracking-wider block">Admin Info</span>
+                              <p className="text-slate-650 font-bold whitespace-pre-wrap leading-snug">{adminNote}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[10px] font-medium text-slate-450 italic">No carrier services selected</p>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       )}
