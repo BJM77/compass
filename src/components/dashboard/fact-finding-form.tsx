@@ -247,7 +247,8 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   return (
-    <div className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 ${printType === 'REVIEW' ? 'print:hidden' : ''}`}>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+      <div className={printType === 'REVIEW' ? 'print:hidden' : ''}>
       {/* Read-Only Warning Banner */}
       {!canEdit && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 print:hidden">
@@ -1146,6 +1147,8 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
           </div>
 
         </div>
+      </div>
+
       </div>
 
       {/* Export Review Sheet (Strictly formatted to fit a single page on print) */}
