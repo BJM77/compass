@@ -274,7 +274,21 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                 <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
                   <span className="text-xs text-slate-500">Owner:</span>
                   {isEditingOwner ? (
-                    <Select value={formData.userId} onValueChange={(val) => { handleChange('userId', val); setIsEditingOwner(false); }}>
+                    <Select value={formData.userId} onValueChange={async (val) => { 
+                      handleChange('userId', val); 
+                      setIsEditingOwner(false); 
+                      if (docId) {
+                        try {
+                          await updateDoc(doc(db, 'factFindingDocs', docId), {
+                            userId: val,
+                            lastModifiedAt: serverTimestamp()
+                          });
+                          toast({ title: "Owner Changed", description: "Document ownership updated successfully." });
+                        } catch (err: any) {
+                          toast({ title: "Error", description: err.message, variant: "destructive" });
+                        }
+                      }
+                    }}>
                       <SelectTrigger className="h-6 text-xs w-[140px]">
                         <SelectValue placeholder="Select User" />
                       </SelectTrigger>
