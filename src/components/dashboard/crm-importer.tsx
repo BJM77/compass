@@ -384,7 +384,7 @@ export function CRMImporter() {
       setActualSpendFile(file);
       if (!file) { setActualSpendVal(null); return; }
       try {
-        const rows = await parseCSVWithSkip(file, 2);
+        const rows = await parseCSV(file);
         const headers = Object.keys(rows[0] || {});
         const validation = validateHeaders(headers, [
           ['Common Customer Name', 'common customer name'],
@@ -546,7 +546,7 @@ export function CRMImporter() {
         customersFile ? parseCSV(customersFile) : Promise.resolve([]),
         opportunitiesFile ? parseCSV(opportunitiesFile) : Promise.resolve([]),
         activityFile ? parseCSV(activityFile) : Promise.resolve([]),
-        actualSpendFile ? parseCSVWithSkip(actualSpendFile, 2) : Promise.resolve([]),
+        actualSpendFile ? parseCSV(actualSpendFile) : Promise.resolve([]),
       ]);
 
       // Build customer map: customerId → row data
@@ -1257,7 +1257,7 @@ export function CRMImporter() {
             />
             <FileZone
               label="Actual Spend Export"
-              hint="Common Customer Name · Business Unit · Account · Spend (starts row 3)"
+              hint="Common Customer Name · Business Unit · Account · Spend"
               file={actualSpendFile}
               onFile={f => handleFileChange(f, 'actual-spend')}
             />
