@@ -1009,15 +1009,18 @@ export function CRMImporter() {
 
       const pipelineMsg = count > 0 ? `${count} pipeline records` : '';
       const activityMsg = activityImportCount > 0 ? `${activityImportCount} activity aggregates` : '';
-      const and = count > 0 && activityImportCount > 0 ? ' & ' : '';
-      toast({ title: '✅ Import Complete', description: `Successfully synced ${pipelineMsg}${and}${activityMsg} to Firestore.` });
+      const spendMsg = actualSpendImportCount > 0 ? `${actualSpendImportCount} actual spend records` : '';
+      const msgs = [pipelineMsg, activityMsg, spendMsg].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' & $1');
+      toast({ title: '✅ Import Complete', description: `Successfully synced ${msgs} to Firestore.` });
 
       setPreviewRecords([]);
       setPreviewActivityRecords([]);
+      setPreviewActualSpendRecords([]);
       setStats(null);
       setCustomersFile(null);
       setOpportunitiesFile(null);
       setActivityFile(null);
+      setActualSpendFile(null);
     } catch (e: any) {
       console.error(e);
       toast({ variant: 'destructive', title: 'Import Failed', description: e?.message });
@@ -1261,7 +1264,7 @@ export function CRMImporter() {
           </div>
 
           {/* File Previews & Schema Validation */}
-          {(customersVal || opportunitiesVal || activityVal) && (
+          {(customersVal || opportunitiesVal || activityVal || actualSpendVal) && (
             <div className="space-y-4">
               <FilePreviewSection title="Customers File" validation={customersVal} />
               <FilePreviewSection title="Opportunities File" validation={opportunitiesVal} />
