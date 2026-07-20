@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2 } from 'lucide-react';
+import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const CARRIER_SERVICES = [
@@ -237,6 +237,22 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!docId || !db) return;
+    
+    if (confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      setIsSaving(true);
+      try {
+        await deleteDoc(doc(db, 'factFindingDocs', docId));
+        toast({ title: "Deleted", description: "Fact Finding document deleted successfully." });
+        onBack();
+      } catch (err: any) {
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+        setIsSaving(false);
+      }
+    }
+  };
+
   const handleExportPDF = () => {
     setPrintType('FULL');
     setTimeout(() => {
@@ -314,6 +330,12 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          {docId && isLeader && (
+            <Button type="button" variant="outline" onClick={handleDelete} className="flex-1 sm:flex-none gap-2 font-bold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </Button>
+          )}
           {docId && (
             <Button type="button" variant="outline" onClick={() => {
               window.dispatchEvent(new CustomEvent('switch-view', {
