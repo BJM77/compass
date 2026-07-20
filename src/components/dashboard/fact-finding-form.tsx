@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
@@ -12,7 +12,7 @@ import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins } from 'lucide-react';
+import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const CARRIER_SERVICES = [
@@ -69,8 +69,15 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   const { user, isLeader, profile } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const canEdit = profile?.role !== 'GUEST';
+  const canEdit = true;
   const [printType, setPrintType] = useState<'FULL' | 'REVIEW' | null>(null);
+  const [isEditingOwner, setIsEditingOwner] = useState(false);
+
+  const usersQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, 'users');
+  }, [db]);
+  const { data: users } = useCollection(usersQuery);
 
   const [formData, setFormData] = useState<Partial<FactFindingDoc>>({
     companyName: '',
@@ -216,7 +223,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
       } else {
         await addDoc(collection(db, 'factFindingDocs'), {
           ...formData,
-          userId: user.uid,
+          userId: formData.userId || user.uid,
           createdAt: serverTimestamp(),
           lastModifiedAt: serverTimestamp()
         });
@@ -249,19 +256,6 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       <div className={printType === 'REVIEW' ? 'print:hidden' : ''}>
-      {/* Read-Only Warning Banner */}
-      {!canEdit && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 print:hidden">
-          <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-black text-amber-800 uppercase">Read-Only Document</p>
-            <p className="text-[11px] text-amber-700 mt-0.5 font-medium leading-relaxed">
-              This document belongs to another user. You can view all information, but saving changes is restricted to the document creator or team leaders.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Header - Hidden on Print */}
       <div className="print:hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center gap-3">
@@ -272,9 +266,37 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
             <h2 className="text-xl font-black text-slate-800">
               {docId ? 'Edit Fact Finding' : 'New Fact Finding'}
             </h2>
-            <p className="text-xs font-medium text-slate-500">
-              {formData.companyName || 'Untitled Document'}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-medium text-slate-500">
+                {formData.companyName || 'Untitled Document'}
+              </p>
+              {docId && (
+                <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
+                  <span className="text-xs text-slate-500">Owner:</span>
+                  {isEditingOwner ? (
+                    <Select value={formData.userId} onValueChange={(val) => { handleChange('userId', val); setIsEditingOwner(false); }}>
+                      <SelectTrigger className="h-6 text-xs w-[140px]">
+                        <SelectValue placeholder="Select User" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users?.map((u: any) => (
+                          <SelectItem key={u.id} value={u.id}>{u.name || u.email || 'Unknown User'}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-bold text-slate-700">
+                        {users?.find((u: any) => u.id === formData.userId)?.name || 'Unknown'}
+                      </span>
+                      <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setIsEditingOwner(true)}>
+                        <Edit2 className="h-3 w-3 text-slate-500" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
