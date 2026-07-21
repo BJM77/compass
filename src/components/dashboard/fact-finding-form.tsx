@@ -14,6 +14,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const CARRIER_SERVICES = [
   // Next Available
@@ -240,16 +251,14 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   const handleDelete = async () => {
     if (!docId || !db) return;
     
-    if (confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
-      setIsSaving(true);
-      try {
-        await deleteDoc(doc(db, 'factFindingDocs', docId));
-        toast({ title: "Deleted", description: "Fact Finding document deleted successfully." });
-        onBack();
-      } catch (err: any) {
-        toast({ title: "Error", description: err.message, variant: "destructive" });
-        setIsSaving(false);
-      }
+    setIsSaving(true);
+    try {
+      await deleteDoc(doc(db, 'factFindingDocs', docId));
+      toast({ title: "Deleted", description: "Fact Finding document deleted successfully." });
+      onBack();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      setIsSaving(false);
     }
   };
 
@@ -331,10 +340,28 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           {docId && isLeader && (
-            <Button type="button" variant="outline" onClick={handleDelete} className="flex-1 sm:flex-none gap-2 font-bold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
-              <Trash2 className="w-4 h-4" />
-              Delete
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this Fact Finding document.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
           {docId && (
             <Button type="button" variant="outline" onClick={() => {
