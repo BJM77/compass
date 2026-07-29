@@ -193,11 +193,22 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
 
     setIsSaving(true);
     try {
-      await addDoc(collection(db, 'callPlans'), {
+      const planRef = await addDoc(collection(db, 'callPlans'), {
         ...formData,
         userId,
         createdAt: serverTimestamp()
       });
+      // If this Call Planning was opened from a Fact Finding document, link the new call plan back to it
+      if (initialParams?.type === 'fact-finding' && initialParams?.data?.docId) {
+        try {
+          await setDoc(doc(db, 'factFindingDocs', initialParams.data.docId), {
+            linkedCallPlanId: planRef.id,
+            lastModifiedAt: serverTimestamp()
+          }, { merge: true });
+        } catch (linkErr) {
+          console.error('Failed to link call plan to Fact Finding document:', linkErr);
+        }
+      }
 
       toast({ title: "Plan Archived", description: "SPIN preparation successfully pushed to governance node." });
       handleNewPlan();

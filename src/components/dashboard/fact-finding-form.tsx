@@ -38,7 +38,7 @@ const CARRIER_SERVICES = [
   // Tomorrow
   { id: 'tom-intl-air-sea', name: 'International Air & Sea', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'International Air & Sea', weight: 'Pallet Restrictions', freight: 'Parcels - Cartons - Skids', color: 'bg-sky-600 border-sky-700 text-white' },
   { id: 'tom-priority-air-express', name: 'Priority Air Express', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
-  { id: 'tom-road-express', name: 'Road Express', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'B2C', weight: 'Upto 22kg or 120cm Total', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
+  { id: 'tom-road-express', name: 'Business to Consumer', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'B2C', weight: 'Upto 22kg or 120cm Total', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
 
   // 1-8 Days
   { id: 'road-express-1-8', name: 'Road Express', speed: '1-8 Days Road', provider: 'IPEC Road Services', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-amber-500 border-amber-600 text-slate-900' },
@@ -368,7 +368,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
               window.dispatchEvent(new CustomEvent('switch-view', {
                 detail: {
                   view: 'CALL_PLANNING',
-                  params: { type: 'fact-finding', data: formData }
+                  params: { type: 'fact-finding', data: { ...formData, docId } }
                 }
               }));
             }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
@@ -1205,7 +1205,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   window.dispatchEvent(new CustomEvent('switch-view', {
                     detail: {
                       view: 'CALL_PLANNING',
-                      params: { type: 'fact-finding', data: formData }
+                      params: { type: 'fact-finding', data: { ...formData, docId } }
                     }
                   }));
                 }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
