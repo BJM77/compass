@@ -21,7 +21,7 @@ export function SalesVelocityWidgets({ teamStats, allDeals, totalRevenue }: Sale
       target += bdmTarget;
       return { ...bdm, target: bdmTarget };
     }) || [];
-    return { totalTarget: target, bdms: bdmList };
+    return { totalTarget: target + 6000000, bdms: bdmList };
   }, [teamStats]);
 
   const revPercentage = totalTarget > 0 ? Math.min(100, (totalRevenue / totalTarget) * 100) : 0;

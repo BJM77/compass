@@ -161,7 +161,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
 
     return {
       totalRevenue: actualSpendSum > 0 ? actualSpendSum : (crmSummary.team.custYTDRevenueThisFY || 0),
-      totalTarget: filteredStats.reduce((sum, b) => sum + (Number(b.target) || 0), 0),
+      totalTarget: filteredStats.reduce((sum, b) => sum + (Number(b.target) || 0), 0) + 6000000,
       risks: riskDeals.length,
       pipelineAmount: totalPipelineAmount,
       pipelineCount: opportunityDeals.length

@@ -164,9 +164,6 @@ function RecordsModal({
                     <TableHead onClick={() => handleSort('revFY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
                       YTD Rev FY {renderSortIcon('revFY')}
                     </TableHead>
-                    <TableHead onClick={() => handleSort('revLY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
-                      YTD Rev LY {renderSortIcon('revLY')}
-                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -192,9 +189,6 @@ function RecordsModal({
                       )}
                       <TableCell className="text-right font-black text-emerald-600">
                         {fmt(Number(r.currentRevenue) || 0)}
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-slate-400">
-                        {fmt(Number(r.lastYearRevenue) || 0)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -286,12 +280,7 @@ function SummaryColumn({
           <span className="text-[10px] text-slate-500 font-bold">YTD Rev FY</span>
           <div className="flex items-center gap-1">
             <span className="text-xs font-black">{fmt(data.custYTDRevenueThisFY)}</span>
-            {yoyBadge(data.custYTDRevenueThisFY, data.custYTDRevenueLastFY)}
           </div>
-        </div>
-        <div className="flex justify-between items-center px-1">
-          <span className={`${large ? 'text-xs' : 'text-[10px]'} text-slate-500 font-bold`}>YTD Rev LY</span>
-          <span className={`${large ? 'text-sm' : 'text-xs'} font-bold text-slate-400`}>{fmt(data.custYTDRevenueLastFY)}</span>
         </div>
       </div>
       </div>
@@ -301,10 +290,6 @@ function SummaryColumn({
 
 // ─── Per-user breakdown row (leaders only) ────────────────────────────────────
 function UserRow({ u, onInspectUser }: { u: CRMUserSummary; onInspectUser: (u: CRMUserSummary) => void }) {
-  const yoy = u.custYTDRevenueLastFY
-    ? ((u.custYTDRevenueThisFY - u.custYTDRevenueLastFY) / u.custYTDRevenueLastFY) * 100
-    : null;
-
   return (
     <tr
       onClick={() => onInspectUser(u)}
@@ -318,16 +303,6 @@ function UserRow({ u, onInspectUser }: { u: CRMUserSummary; onInspectUser: (u: C
       <td className="px-4 py-3 text-right text-xs font-black group-hover:text-accent transition-colors">{fmt(u.opportunityValue)}</td>
       <td className="px-4 py-3 text-center text-xs font-bold group-hover:text-accent transition-colors">{u.customerCount}</td>
       <td className="px-4 py-3 text-right text-xs font-black text-emerald-600">{fmt(u.custYTDRevenueThisFY)}</td>
-      <td className="px-4 py-3 text-right text-xs font-bold text-slate-400">{fmt(u.custYTDRevenueLastFY)}</td>
-      <td className="px-4 py-3 text-right">
-        {yoy !== null ? (
-          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${yoy >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            {yoy >= 0 ? '+' : ''}{yoy.toFixed(1)}%
-          </span>
-        ) : (
-          <span className="text-slate-300 text-[9px]">–</span>
-        )}
-      </td>
     </tr>
   );
 }
@@ -454,8 +429,6 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                         <th className="px-4 py-2.5 text-right">Pipeline $</th>
                         <th className="px-4 py-2.5 text-center">Accts</th>
                         <th className="px-4 py-2.5 text-right">YTD FY</th>
-                        <th className="px-4 py-2.5 text-right">YTD LY</th>
-                        <th className="px-4 py-2.5 text-right">YoY</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -469,14 +442,6 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                         <td className="px-4 py-3 text-right">{fmt(summary.team.opportunityValue)}</td>
                         <td className="px-4 py-3 text-center">{summary.team.customerCount}</td>
                         <td className="px-4 py-3 text-right text-emerald-400">{fmt(summary.team.custYTDRevenueThisFY)}</td>
-                        <td className="px-4 py-3 text-right opacity-70">{fmt(summary.team.custYTDRevenueLastFY)}</td>
-                        <td className="px-4 py-3 text-right">
-                          {summary.team.custYTDRevenueLastFY > 0 ? (
-                            <span className="text-accent font-black text-xs">
-                              {((summary.team.custYTDRevenueThisFY - summary.team.custYTDRevenueLastFY) / summary.team.custYTDRevenueLastFY * 100).toFixed(1)}%
-                            </span>
-                          ) : '–'}
-                        </td>
                       </tr>
                     </tfoot>
                   </table>
