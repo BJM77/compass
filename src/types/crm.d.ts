@@ -105,6 +105,12 @@ export interface FactFindingDoc {
   securityConcern: boolean;
   highValueFreight: boolean;
   dangerousGoods: boolean;
+  // New fields for down trading
+  currentCustomer: boolean;
+  reasonDownTrading: string;
+  lastFaceToFaceMeeting: string;
+  nextFaceToFaceMeeting: string;
+  whatCouldWeDo: string;
   internationalFreight: boolean;
   internationalType: string;
   internationalSize: string;
