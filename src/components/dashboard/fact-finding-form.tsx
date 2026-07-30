@@ -577,52 +577,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
 
             </CardContent>
           </Card>
-          {/* Down Trading Section - visible only if Current Customer */}
-          {formData.currentCustomer && (
-            <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid mt-6">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
-                <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
-                  5. Down Trading
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-6 print:px-0">
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Reason Down Trading (Notes)</Label>
-                  <Textarea
-                    value={formData.reasonDownTrading}
-                    onChange={e => handleChange('reasonDownTrading', e.target.value)}
-                    placeholder="Enter reason for down trading"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Last Face to Face Meeting (Date)</Label>
-                    <Input
-                      type="date"
-                      value={formData.lastFaceToFaceMeeting}
-                      onChange={e => handleChange('lastFaceToFaceMeeting', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Next Face to Face Meeting (Date)</Label>
-                    <Input
-                      type="date"
-                      value={formData.nextFaceToFaceMeeting}
-                      onChange={e => handleChange('nextFaceToFaceMeeting', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">What Could we do? (Notes)</Label>
-                  <Textarea
-                    value={formData.whatCouldWeDo}
-                    onChange={e => handleChange('whatCouldWeDo', e.target.value)}
-                    placeholder="Enter suggestions"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
+
 
           <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
@@ -1273,6 +1228,53 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Down Trading Section - visible only if Current Customer */}
+          {formData.currentCustomer && (
+            <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
+              <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+                <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
+                  5. Down Trading
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6 print:px-0">
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Reason Down Trading (Notes)</Label>
+                  <Textarea
+                    value={formData.reasonDownTrading}
+                    onChange={e => handleChange('reasonDownTrading', e.target.value)}
+                    placeholder="Enter reason for down trading"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Last Face to Face Meeting (Date)</Label>
+                    <Input
+                      type="date"
+                      value={formData.lastFaceToFaceMeeting}
+                      onChange={e => handleChange('lastFaceToFaceMeeting', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Next Face to Face Meeting (Date)</Label>
+                    <Input
+                      type="date"
+                      value={formData.nextFaceToFaceMeeting}
+                      onChange={e => handleChange('nextFaceToFaceMeeting', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">What Could we do? (Notes)</Label>
+                  <Textarea
+                    value={formData.whatCouldWeDo}
+                    onChange={e => handleChange('whatCouldWeDo', e.target.value)}
+                    placeholder="Enter suggestions"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Bottom Save Button */}
           <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
