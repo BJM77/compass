@@ -226,6 +226,23 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
       return;
     }
 
+    // Validate Down Trading fields when Current Customer is ticked
+    if (formData.currentCustomer) {
+      const missing: string[] = [];
+      if (!formData.reasonDownTrading?.trim()) missing.push('Reason Down Trading');
+      if (!formData.lastFaceToFaceMeeting) missing.push('Last Face to Face Meeting');
+      if (!formData.nextFaceToFaceMeeting) missing.push('Next Face to Face Meeting');
+      if (!formData.whatCouldWeDo?.trim()) missing.push('What Could We Do?');
+      if (missing.length > 0) {
+        toast({
+          title: "Down Trading Fields Required",
+          description: `Please complete: ${missing.join(', ')}`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       if (docId) {

@@ -120,6 +120,7 @@ export interface FactFindingDoc {
   seasonalFluctuations: string;
   tradingTerms: string;
   selectedServices?: string[];
+  linkedCallPlanId?: string;
   selectedStates?: string[];
   mapDirection?: 'TO' | 'FROM';
   selectedStatesFrom?: string[];
