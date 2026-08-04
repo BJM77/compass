@@ -134,8 +134,14 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
     selectedStatesTo: [],
     mapNotesFrom: '',
     mapNotesTo: '',
-    serviceNotes: {}
+    serviceNotes: {},
+    isArchived: false,
+    stage: 'New'
   });
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (existingDoc) {
@@ -398,6 +404,13 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
               Prepare Call Plan
             </Button>
           )}
+          <Button 
+            variant={formData.isArchived ? "secondary" : "outline"} 
+            onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
+            className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
+          >
+            {formData.isArchived ? "Unarchive" : "Archive"}
+          </Button>
           <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
             <Printer className="w-4 h-4" />
             Export PDF
@@ -453,14 +466,32 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   placeholder="Enter company name"
                   className="font-medium print:border-0 print:border-b print:rounded-none print:px-0 print:text-lg print:shadow-none"
                 />
-                {/* Current Customer checkbox */}
-                <div className="flex items-center space-x-2 mt-2">
-                  <Checkbox 
-                    id="currentCustomer"
-                    checked={!!formData.currentCustomer}
-                    onCheckedChange={checked => handleChange('currentCustomer', !!checked)}
-                  />
-                  <Label htmlFor="currentCustomer" className="text-sm font-medium text-slate-700">Current Customer</Label>
+                {/* Stage Pipeline */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
+                  <div className="flex items-center space-x-2 sm:pr-4 sm:border-r border-slate-300">
+                    <Checkbox 
+                      id="currentCustomer"
+                      checked={!!formData.currentCustomer}
+                      onCheckedChange={checked => handleChange('currentCustomer', !!checked)}
+                    />
+                    <Label htmlFor="currentCustomer" className="text-sm font-black text-indigo-700 cursor-pointer">Current Customer</Label>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {['New', 'Meeting', 'Proposal Required', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => handleChange('stage', s)}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all border ${
+                          formData.stage === s 
+                            ? 'bg-primary text-white border-primary shadow-md scale-105' 
+                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -1292,7 +1323,14 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                   Prepare Call Plan
                 </Button>
               )}
-              <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
+              <Button 
+            variant={formData.isArchived ? "secondary" : "outline"} 
+            onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
+            className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
+          >
+            {formData.isArchived ? "Unarchive" : "Archive"}
+          </Button>
+          <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
                 <Printer className="w-4 h-4" />
                 Export PDF
               </Button>

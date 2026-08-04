@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query, orderBy, where, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,9 @@ export function FactFindingHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [userFilter, setUserFilter] = useState('all');
   const [sortUserDir, setSortUserDir] = useState<'asc' | 'desc' | 'none'>('none');
+  const [stageFilter, setStageFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [showArchived, setShowArchived] = useState(false);
 
   const db = useFirestore();
   const { user, isLeader, profile } = useAuth();
@@ -79,7 +81,14 @@ export function FactFindingHub() {
       result = result.filter(d => d.userId === userFilter);
     }
 
-    // 3. Sort by User
+    // 3. Filter by Archive Status
+    if (!showArchived) {
+      result = result.filter(d => !d.isArchived);
+    } else {
+      result = result.filter(d => d.isArchived);
+    }
+
+    // 4. Sort by User
     if (sortUserDir !== 'none') {
       result.sort((a, b) => {
         const nameA = userMap[a.userId] || '';
@@ -88,8 +97,40 @@ export function FactFindingHub() {
       });
     }
 
+    // 5. Filter by Stage
+    if (stageFilter !== 'all') {
+      result = result.filter(d => (d.stage || 'New') === stageFilter);
+    }
+
     return result;
-  }, [docs, searchQuery, userFilter, sortUserDir, isLeader, userMap]);
+  }, [docs, searchQuery, userFilter, sortUserDir, stageFilter, showArchived, isLeader, userMap]);
+
+    const getStageConfig = (stage?: string) => {
+    switch(stage) {
+      case 'New': return { fill: 'w-[5%]', color: 'bg-slate-200', text: 'text-slate-600' };
+      case 'Meeting': return { fill: 'w-[15%]', color: 'bg-blue-100', text: 'text-blue-700' };
+      case 'Proposal Required': return { fill: 'w-[30%]', color: 'bg-orange-200', text: 'text-orange-800' };
+      case 'Signed': return { fill: 'w-[45%]', color: 'bg-amber-200', text: 'text-amber-800' };
+      case 'Credit Check': return { fill: 'w-[60%]', color: 'bg-yellow-200', text: 'text-yellow-800' };
+      case 'Account Setup': return { fill: 'w-[75%]', color: 'bg-teal-200', text: 'text-teal-800' };
+      case 'Customer Training': return { fill: 'w-[90%]', color: 'bg-cyan-200', text: 'text-cyan-800' };
+      case 'Trading': return { fill: 'w-[100%]', color: 'bg-green-300', text: 'text-green-900' };
+      default: return { fill: 'w-[0%]', color: 'bg-transparent', text: 'text-slate-500' };
+    }
+  };
+
+  const handleSelectDoc = async (docObj: FactFindingDoc) => {
+    setSelectedDoc(docObj);
+    if (user && docObj.userId === user.uid && docObj.id && db) {
+      try {
+        await updateDoc(doc(db, 'factFindingDocs', docObj.id), {
+          lastViewedAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error("Failed to update lastViewedAt", err);
+      }
+    }
+  };
 
   if (selectedDoc === 'new') {
     return <FactFindingForm onBack={() => setSelectedDoc(null)} />;
@@ -172,7 +213,37 @@ export function FactFindingHub() {
               </SelectContent>
             </Select>
 
-            <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 md:ml-auto w-full md:w-auto">
+            <Select value={stageFilter} onValueChange={setStageFilter}>
+              <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+                <SelectValue placeholder="Filter by Stage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stages</SelectItem>
+                {['New', 'Meeting', 'Proposal Required', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 w-full md:w-auto md:ml-auto">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${!showArchived ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setShowArchived(false)}
+              >
+                Active
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${showArchived ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setShowArchived(true)}
+              >
+                Archived
+              </Button>
+            </div>
+            <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 w-full md:w-auto">
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -217,7 +288,7 @@ export function FactFindingHub() {
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedDocs.map(doc => (
-                    <TableRow key={doc.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setSelectedDoc(doc)}>
+                    <TableRow key={doc.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSelectDoc(doc)}>
                       <TableCell className="font-black text-primary">{doc.companyName || 'Unnamed'}</TableCell>
                       <TableCell className="text-slate-600">{doc.freightType || '-'}</TableCell>
                       <TableCell className="text-slate-600">{doc.locations || '-'}</TableCell>
@@ -252,12 +323,16 @@ export function FactFindingHub() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredAndSortedDocs.map(doc => (
-                <Card key={doc.id} className="group hover:shadow-lg transition-all duration-300 border-slate-200 cursor-pointer overflow-hidden" onClick={() => setSelectedDoc(doc)}>
-                  <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
+                <Card key={doc.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden relative bg-white border-slate-200" onClick={() => handleSelectDoc(doc)}>
+                  <div className={`absolute top-0 left-0 h-full z-0 transition-all duration-1000 ease-out ${getStageConfig(doc.stage || 'New').fill} ${getStageConfig(doc.stage || 'New').color}`} />
+                  <CardHeader className="relative z-10 bg-transparent border-b border-slate-100/50 pb-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg font-black text-primary line-clamp-1">
-                          {doc.companyName || 'Unnamed Company'}
+                        <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
+                          <span className="line-clamp-1">{doc.companyName || 'Unnamed Company'}</span>
+                          <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
+                            {doc.stage || 'New'}
+                          </span>
                         </CardTitle>
                         <CardDescription className="flex flex-col gap-1 mt-1 font-semibold text-xs text-slate-500">
                           <span className="flex items-center gap-1">
@@ -283,7 +358,7 @@ export function FactFindingHub() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-4 space-y-3">
+                  <CardContent className="relative z-10 pt-4 space-y-3 bg-white/40 backdrop-blur-sm">
                     <div className="flex items-start gap-2">
                       <Package className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                       <div>
@@ -299,9 +374,9 @@ export function FactFindingHub() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-slate-50/50 border-t border-slate-100 py-3 flex justify-between items-center">
+                  <CardFooter className="relative z-10 bg-slate-50/50 border-t border-slate-100 py-3 flex justify-between items-center">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{doc.businessModel || 'B2B'}</span>
-                    <span className="text-xs font-black text-indigo-600">{doc.weeklyAmount || 'N/A'}</span>
+                    <span className="text-xs font-black text-indigo-600 flex items-center gap-1"><span className="text-[10px] text-slate-500 font-bold uppercase">EAV</span> {doc.weeklyAmount || 'N/A'}</span>
                   </CardFooter>
                 </Card>
               ))}

@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  useState, useMemo, useEffect } from 'react';
+  useState, useMemo, useEffect, useCallback } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp, getDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -128,6 +128,22 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
   // Active Week State
   const [selectedWeek, setSelectedWeek] = useState(currentWeek);
 
+  // Monthly Standouts State
+  const [monthlySelectedMonth, setMonthlySelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [monthlySelectedState, setMonthlySelectedState] = useState<string>(profile?.state || 'WA');
+  const [hiddenMonthlyItems, setHiddenMonthlyItems] = useState<string[]>([]);
+  const [hiddenMonthlyHistory, setHiddenMonthlyHistory] = useState<string[][]>([]);
+  const availableMonths = useMemo(() => {
+    const months = [];
+    const d = new Date();
+    for(let i=0; i<12; i++) {
+       months.push(format(d, 'yyyy-MM'));
+       d.setMonth(d.getMonth() - 1);
+    }
+    return months;
+  }, []);
+
+  
   // KPI Review State - only for registered users
   const [kpiReview, setKpiReview] = useState<KPIReview>({
     callsTarget: 0, appointmentsTarget: 0, proposalsTarget: 0, dealsTarget: 0, revenueTarget: 0,
@@ -383,6 +399,33 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       priorities: (sub.priorities || []).map((pr: any, idx: number) => ({ ...pr, id: pr.id || `priority-${idx}` }))
     }));
   }, [allSubmissions]);
+
+  // Monthly Submissions Query
+  const monthlySubmissionsQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    if (monthlySelectedState === 'ALL') {
+       return collection(db, 'twiwSubmissions');
+    }
+    return query(collection(db, 'twiwSubmissions'), where('state', '==', monthlySelectedState));
+  }, [db, isLeader, monthlySelectedState]);
+  const { data: allMonthlySubmissions } = useCollection(monthlySubmissionsQuery);
+
+  const mappedMonthlySubmissions = useMemo(() => {
+    if (!allMonthlySubmissions) return null;
+    return allMonthlySubmissions.map(sub => ({
+      ...sub,
+      wins: (sub.wins || []).map((w: any, idx: number) => ({ ...w, id: w.id || `win-${idx}` })),
+      risks: (sub.risks || []).map((r: any, idx: number) => ({ ...r, id: r.id || `risk-${idx}` })),
+      majorUpdates: (sub.majorUpdates || []).map((m: any, idx: number) => ({ ...m, id: m.id || `update-${idx}` })),
+      projectedWins: (sub.projectedWins || []).map((p: any, idx: number) => ({ ...p, id: p.id || `projected-${idx}` })),
+      priorities: (sub.priorities || []).map((pr: any, idx: number) => ({ ...pr, id: pr.id || `priority-${idx}` }))
+    })).filter(sub => {
+       if (!sub.updatedAt) return false;
+       const d = sub.updatedAt.toDate ? sub.updatedAt.toDate() : new Date(sub.updatedAt);
+       const monthStr = format(d, 'yyyy-MM');
+       return monthStr === monthlySelectedMonth;
+    });
+  }, [allMonthlySubmissions, monthlySelectedMonth]);
 
   // Fetch BDM Profile (for displayName)
   const [bdmName, setBdmName] = useState('BDM');
@@ -739,6 +782,74 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     return grouped;
   }, [mappedSubmissions, selectedWeek]);
 
+  // Collate monthly submissions
+  const monthlySubmissionsByState = useMemo(() => {
+    if (!mappedMonthlySubmissions || mappedMonthlySubmissions.length === 0) return {};
+    const grouped: Record<string, any[]> = {};
+    
+    mappedMonthlySubmissions.forEach(sub => {
+      if (sub.status === 'NONE' && !sub.wins?.length && !sub.risks?.length) return; 
+      const state = sub.state || 'WA';
+      if (!grouped[state]) grouped[state] = [];
+      grouped[state].push(sub);
+    });
+
+    Object.keys(grouped).forEach(state => {
+      grouped[state].sort((a, b) => {
+        const maxWinA = Math.max(...(a.wins || []).map((w: any) => Number(w.value) || 0), 0);
+        const maxWinB = Math.max(...(b.wins || []).map((w: any) => Number(w.value) || 0), 0);
+        if (maxWinB !== maxWinA) return maxWinB - maxWinA;
+        const nameA = a.userName || a.email || '';
+        const nameB = b.userName || b.email || '';
+        return nameA.localeCompare(nameB);
+      });
+    });
+
+    return grouped;
+  }, [mappedMonthlySubmissions, monthlySelectedMonth]);
+
+
+  const getMonthlyItems = useCallback((arrayField: 'wins' | 'risks' | 'majorUpdates' | 'projectedWins' | 'priorities') => {
+    let items: any[] = [];
+    mappedMonthlySubmissions?.forEach(sub => {
+      const arr = sub[arrayField as keyof typeof sub] as any[];
+      if (arr) {
+        arr.forEach(i => items.push({ ...i, subId: sub.id, state: sub.state }));
+      }
+    });
+    
+    // Sort by value descending (largest to lowest), default to 0 if no value
+    items.sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+
+    const originalCount = items.length;
+
+    // Deduplicate
+    const uniqueItems: any[] = [];
+    const seen = new Set();
+    
+    for (const item of items) {
+      let key = '';
+      const rep = item.salespersonName || 'Unknown';
+      
+      if (arrayField === 'wins' || arrayField === 'majorUpdates') {
+        key = `${rep}_${(item.customer || '').toLowerCase().trim()}`;
+      } else if (arrayField === 'risks' || arrayField === 'projectedWins') {
+        key = `${rep}_${(item.account || '').toLowerCase().trim()}`;
+      } else if (arrayField === 'priorities') {
+        key = `${rep}_${(item.text || '').toLowerCase().trim()}`;
+      }
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueItems.push(item);
+      }
+    }
+
+    const visibleItems = uniqueItems.filter(item => !hiddenMonthlyItems.includes(item.id));
+
+    return { visibleItems, originalCount };
+  }, [mappedMonthlySubmissions, hiddenMonthlyItems]);
+
   const [isExporting, setIsExporting] = useState(false);
 
   const handleDeleteSubmission = async (id: string) => {
@@ -757,7 +868,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     setEditingSubmission(sub);
   };
 
-  const handleExportPdf = () => {
+  const handleExportPdf = (isMonthly = false) => {
     setIsExporting(true);
     
     const printWindow = window.open('', '', 'width=1200,height=800');
@@ -770,7 +881,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     // Retrieve starred items for Key Standouts page
     const getStarredItems = (arrayField: string) => {
       const items: any[] = [];
-      mappedSubmissions?.forEach(sub => {
+      (isMonthly ? mappedMonthlySubmissions : mappedSubmissions)?.forEach(sub => {
         const arr = sub[arrayField as keyof typeof sub] as any[];
         if (arr) {
           arr.filter((i: any) => i.isStarred && !i.isHidden).forEach((i: any) => items.push({ ...i, subId: sub.id, state: sub.state }));
@@ -779,18 +890,18 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       return items;
     };
 
-    const starredWins = getStarredItems('wins');
-    const starredRisks = getStarredItems('risks');
-    const starredUpdates = getStarredItems('majorUpdates');
-    const starredProjected = getStarredItems('projectedWins');
-    const starredPriorities = getStarredItems('priorities');
+    const starredWins = isMonthly ? getMonthlyItems('wins').visibleItems : getStarredItems('wins');
+    const starredRisks = isMonthly ? getMonthlyItems('risks').visibleItems : getStarredItems('risks');
+    const starredUpdates = isMonthly ? getMonthlyItems('majorUpdates').visibleItems : getStarredItems('majorUpdates');
+    const starredProjected = isMonthly ? getMonthlyItems('projectedWins').visibleItems : getStarredItems('projectedWins');
+    const starredPriorities = isMonthly ? getMonthlyItems('priorities').visibleItems : getStarredItems('priorities');
 
     const hasStandouts = starredWins.length > 0 || starredRisks.length > 0 || starredUpdates.length > 0 || starredProjected.length > 0 || starredPriorities.length > 0;
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>TWTW Export - Week ${selectedWeek.split('-')[1]}</title>
+          <title>TWTW Export - ${isMonthly ? format(new Date(monthlySelectedMonth + '-01'), 'MMMM yyyy') : 'Week ' + selectedWeek.split('-')[1]}</title>
           <style>
             @page { size: landscape; margin: 10mm; }
             body { 
@@ -1000,7 +1111,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         </head>
         <body>
           <div class="report-header">
-            <h1>The Week That Was (TWTW) - Week ${selectedWeek.split('-')[1]}</h1>
+            <h1>The Week That Was (TWTW) - ${isMonthly ? format(new Date(monthlySelectedMonth + '-01'), 'MMMM yyyy') : 'Week ' + selectedWeek.split('-')[1]}</h1>
             <p>Consolidated Executive Weekly Briefing</p>
           </div>
 
@@ -1025,7 +1136,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <tbody>
                 <tr class="avoid-break">
                   <td>
-                    ${starredWins.map(w => `
+                    ${starredWins.map((w: any) => `
                       <div class="item-block">
                         <span class="card-badge">${w.state}</span>
                         <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
@@ -1036,7 +1147,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
-                    ${starredRisks.map(r => `
+                    ${starredRisks.map((r: any) => `
                       <div class="item-block">
                         <span class="card-badge">${r.state}</span>
                         <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
@@ -1047,7 +1158,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
-                    ${starredUpdates.map(m => `
+                    ${starredUpdates.map((m: any) => `
                       <div class="item-block">
                         <span class="card-badge">${m.state}</span>
                         <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
@@ -1058,7 +1169,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
-                    ${starredProjected.map(p => `
+                    ${starredProjected.map((p: any) => `
                       <div class="item-block">
                         <span class="card-badge">${p.state}</span>
                         <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
@@ -1069,7 +1180,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
-                    ${starredPriorities.map(pr => `
+                    ${starredPriorities.map((pr: any) => `
                       <div class="item-block">
                         <span class="card-badge">${pr.state}</span>
                         <div class="item-desc">${pr.text}</div>
@@ -1084,25 +1195,25 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           ` : ''}
 
           <!-- SUBSEQUENT PAGES: COLLATION BY REGION -->
-          ${Object.entries(submissionsByState).length === 0 ? `
+          ${Object.entries((isMonthly ? monthlySubmissionsByState : submissionsByState)).length === 0 ? `
             <div class="empty-text" style="font-size: 14px; margin-top: 50px;">No submissions available to collate yet.</div>
           ` : (() => {
             const stateOrder = ['QLD', 'SA', 'WA', 'SME'];
-            const sortedEntries = Object.entries(submissionsByState).sort((a, b) => {
+            const sortedEntries = Object.entries((isMonthly ? monthlySubmissionsByState : submissionsByState)).sort((a, b) => {
               const idxA = stateOrder.indexOf(a[0]);
               const idxB = stateOrder.indexOf(b[0]);
               return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
             });
             return sortedEntries.map(([state, subs], idx) => {
-              const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
-              const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
+              const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden && !(isMonthly && hiddenMonthlyItems.includes(w.id))).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
+              const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden && !(isMonthly && hiddenMonthlyItems.includes(r.id))).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
               const allStateUpdates = subs.flatMap(sub => {
                 const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.salespersonName || sub.userName || 'N/A' }] : [];
-                const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
+                const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden && !(isMonthly && hiddenMonthlyItems.includes(m.id))).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
                 return [...legacy, ...updates];
               });
-              const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
-              const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
+              const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden && !(isMonthly && hiddenMonthlyItems.includes(p.id))).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
+              const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden && !(isMonthly && hiddenMonthlyItems.includes(pr.id))).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
 
               return `
               <div class="page-container" style="${idx === 0 && !hasStandouts ? 'page-break-before: avoid;' : ''}">
@@ -1192,14 +1303,14 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     }, 500);
   };
 
-  const handleExportOversizedPdf = async () => {
+  const handleExportOversizedPdf = async (isMonthly = false) => {
     setIsExporting(true);
     toast({ title: "Generating PDF...", description: "Building high-resolution single-sheet PDF. Please wait." });
 
     // Retrieve starred items for Key Standouts page
     const getStarredItems = (arrayField: string) => {
       const items: any[] = [];
-      mappedSubmissions?.forEach(sub => {
+      (isMonthly ? mappedMonthlySubmissions : mappedSubmissions)?.forEach(sub => {
         const arr = sub[arrayField as keyof typeof sub] as any[];
         if (arr) {
           arr.filter((i: any) => i.isStarred && !i.isHidden).forEach((i: any) => items.push({ ...i, subId: sub.id, state: sub.state }));
@@ -1208,11 +1319,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       return items;
     };
 
-    const starredWins = getStarredItems('wins');
-    const starredRisks = getStarredItems('risks');
-    const starredUpdates = getStarredItems('majorUpdates');
-    const starredProjected = getStarredItems('projectedWins');
-    const starredPriorities = getStarredItems('priorities');
+    const starredWins = isMonthly ? getMonthlyItems('wins').visibleItems : getStarredItems('wins');
+    const starredRisks = isMonthly ? getMonthlyItems('risks').visibleItems : getStarredItems('risks');
+    const starredUpdates = isMonthly ? getMonthlyItems('majorUpdates').visibleItems : getStarredItems('majorUpdates');
+    const starredProjected = isMonthly ? getMonthlyItems('projectedWins').visibleItems : getStarredItems('projectedWins');
+    const starredPriorities = isMonthly ? getMonthlyItems('priorities').visibleItems : getStarredItems('priorities');
 
     const hasStandouts = starredWins.length > 0 || starredRisks.length > 0 || starredUpdates.length > 0 || starredProjected.length > 0 || starredPriorities.length > 0;
 
@@ -1226,22 +1337,22 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     tempDiv.style.backgroundColor = '#ffffff';
 
     const stateOrder = ['QLD', 'SA', 'WA', 'SME'];
-    const sortedEntries = Object.entries(submissionsByState).sort((a, b) => {
+    const sortedEntries = Object.entries((isMonthly ? monthlySubmissionsByState : submissionsByState)).sort((a, b) => {
       const idxA = stateOrder.indexOf(a[0]);
       const idxB = stateOrder.indexOf(b[0]);
       return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
     });
 
     const regionsHtml = sortedEntries.map(([state, subs]) => {
-      const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
-      const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden && !(isMonthly && hiddenMonthlyItems.includes(w.id))).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden && !(isMonthly && hiddenMonthlyItems.includes(r.id))).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
       const allStateUpdates = subs.flatMap(sub => {
         const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.salespersonName || sub.userName || 'N/A' }] : [];
-        const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
+        const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden && !(isMonthly && hiddenMonthlyItems.includes(m.id))).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
         return [...legacy, ...updates];
       });
-      const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
-      const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden && !(isMonthly && hiddenMonthlyItems.includes(p.id))).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden && !(isMonthly && hiddenMonthlyItems.includes(pr.id))).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
 
       return `
         <div class="page-container">
@@ -1463,7 +1574,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       </style>
       <div style="padding: 15px; box-sizing: border-box; background-color: #ffffff;">
         <div class="report-header">
-          <h1>The Week That Was (TWTW) - Week ${selectedWeek.split('-')[1]}</h1>
+          <h1>The Week That Was (TWTW) - ${isMonthly ? format(new Date(monthlySelectedMonth + '-01'), 'MMMM yyyy') : 'Week ' + selectedWeek.split('-')[1]}</h1>
           <p>Consolidated Executive Weekly Briefing (Oversized Single Sheet)</p>
         </div>
 
@@ -1487,7 +1598,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <tbody>
               <tr>
                 <td>
-                  ${starredWins.map(w => `
+                  ${starredWins.map((w: any) => `
                     <div class="item-block">
                       <span class="card-badge">${w.state}</span>
                       <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
@@ -1498,7 +1609,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
-                  ${starredRisks.map(r => `
+                  ${starredRisks.map((r: any) => `
                     <div class="item-block">
                       <span class="card-badge">${r.state}</span>
                       <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
@@ -1509,7 +1620,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
-                  ${starredUpdates.map(m => `
+                  ${starredUpdates.map((m: any) => `
                     <div class="item-block">
                       <span class="card-badge">${m.state}</span>
                       <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
@@ -1520,7 +1631,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
-                  ${starredProjected.map(p => `
+                  ${starredProjected.map((p: any) => `
                     <div class="item-block">
                       <span class="card-badge">${p.state}</span>
                       <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
@@ -1531,7 +1642,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
-                  ${starredPriorities.map(pr => `
+                  ${starredPriorities.map((pr: any) => `
                     <div class="item-block">
                       <span class="card-badge">${pr.state}</span>
                       <div class="item-desc">${pr.text}</div>
@@ -1584,7 +1695,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     }
   };
 
-  const handleExportCondensedPdf = () => {
+  const handleExportCondensedPdf = (isMonthly = false) => {
     setIsExporting(true);
     
     const printWindow = window.open('', '', 'width=1200,height=800');
@@ -1601,26 +1712,26 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     const allProjected: any[] = [];
     const allPriorities: any[] = [];
 
-    mappedSubmissions?.forEach((sub: any) => {
+    (isMonthly ? mappedMonthlySubmissions : mappedSubmissions)?.forEach((sub: any) => {
       const state = sub.state || 'N/A';
       const rep = sub.salespersonName || sub.userName || 'N/A';
       
-      (sub.wins || []).filter((w: any) => !w.isHidden).forEach((w: any) => {
+      (sub.wins || []).filter((w: any) => !w.isHidden && !(isMonthly && hiddenMonthlyItems.includes(w.id))).forEach((w: any) => {
         allWins.push({ ...w, state, rep });
       });
-      (sub.risks || []).filter((r: any) => !r.isHidden).forEach((r: any) => {
+      (sub.risks || []).filter((r: any) => !r.isHidden && !(isMonthly && hiddenMonthlyItems.includes(r.id))).forEach((r: any) => {
         allRisks.push({ ...r, state, rep });
       });
       if (sub.updates) {
         allUpdates.push({ customer: 'General Update', value: 0, updateText: sub.updates, state, rep, businessUnits: [] });
       }
-      (sub.majorUpdates || []).filter((m: any) => !m.isHidden).forEach((m: any) => {
+      (sub.majorUpdates || []).filter((m: any) => !m.isHidden && !(isMonthly && hiddenMonthlyItems.includes(m.id))).forEach((m: any) => {
         allUpdates.push({ ...m, state, rep });
       });
-      (sub.projectedWins || []).filter((p: any) => !p.isHidden).forEach((p: any) => {
+      (sub.projectedWins || []).filter((p: any) => !p.isHidden && !(isMonthly && hiddenMonthlyItems.includes(p.id))).forEach((p: any) => {
         allProjected.push({ ...p, state, rep });
       });
-      (sub.priorities || []).filter((pr: any) => !pr.isHidden).forEach((pr: any) => {
+      (sub.priorities || []).filter((pr: any) => !pr.isHidden && !(isMonthly && hiddenMonthlyItems.includes(pr.id))).forEach((pr: any) => {
         allPriorities.push({ ...pr, state, rep });
       });
     });
@@ -1628,7 +1739,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     printWindow.document.write(`
       <html>
         <head>
-          <title>Condensed TWTW Export - Week ${selectedWeek.split('-')[1]}</title>
+          <title>Condensed TWTW Export - ${isMonthly ? format(new Date(monthlySelectedMonth + '-01'), 'MMMM yyyy') : 'Week ' + selectedWeek.split('-')[1]}</title>
           <style>
             @page { size: landscape; margin: 6mm; }
             body { 
@@ -1709,7 +1820,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         </head>
         <body>
           <div class="report-header">
-            <h1>TGE Parcel North - The Week That Was - Week ${selectedWeek.split('-')[1]}</h1>
+            <h1>TGE Parcel North - The Week That Was - ${isMonthly ? format(new Date(monthlySelectedMonth + '-01'), 'MMMM yyyy') : 'Week ' + selectedWeek.split('-')[1]}</h1>
             <p>Consolidated Executive Weekly Briefing</p>
           </div>
 
@@ -1915,11 +2026,12 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
       {isLeader ? (
         <Tabs key={defaultTab} defaultValue={defaultTab} className="w-full">
-          <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-4 max-w-3xl mb-8 h-12 border">
+          <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-5 max-w-4xl mb-8 h-12 border">
             <TabsTrigger value="my-report" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">My Report</TabsTrigger>
             <TabsTrigger value="collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Collation Hub</TabsTrigger>
             <TabsTrigger value="new-collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">New Collation</TabsTrigger>
             <TabsTrigger value="standouts" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Key Standouts</TabsTrigger>
+            <TabsTrigger value="monthly-standouts" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Monthly Standouts</TabsTrigger>
           </TabsList>
 
           <TabsContent value="my-report">
@@ -1943,6 +2055,10 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           <TabsContent value="standouts">
             {renderKeyStandouts()}
+          </TabsContent>
+
+          <TabsContent value="monthly-standouts">
+            {renderMonthlyStandouts()}
           </TabsContent>
         </Tabs>
       ) : (
@@ -3122,7 +3238,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   </label>
                 </div>
                 <Button 
-                  onClick={handleExportPdf}
+                  onClick={() => handleExportPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
                   className="bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
                 >
@@ -3130,7 +3246,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   Export to Landscape PDF
                 </Button>
                 <Button 
-                  onClick={handleExportOversizedPdf}
+                  onClick={() => handleExportOversizedPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
                 >
@@ -3138,7 +3254,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   Export PDF
                 </Button>
                 <Button 
-                  onClick={handleExportCondensedPdf}
+                  onClick={() => handleExportCondensedPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
                   className="bg-primary hover:bg-primary/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
                 >
@@ -3355,7 +3471,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           {/* Wins Column */}
           <div className="space-y-4">
             <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Key Wins <Badge>{starredWins.length}</Badge></h3>
-            {starredWins.map(w => (
+            {starredWins.map((w: any) => (
               <Card key={w.id} className="border-amber-200 bg-amber-50 shadow-sm relative group">
                 <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(w.subId, 'wins', w.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
@@ -3375,7 +3491,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           {/* Risks Column */}
           <div className="space-y-4">
             <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Churn Risks <Badge>{starredRisks.length}</Badge></h3>
-            {starredRisks.map(r => (
+            {starredRisks.map((r: any) => (
               <Card key={r.id} className="border-rose-200 bg-rose-50 shadow-sm relative group">
                 <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(r.subId, 'risks', r.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
@@ -3395,7 +3511,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           {/* Updates Column */}
           <div className="space-y-4">
             <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Major Updates <Badge>{starredUpdates.length}</Badge></h3>
-            {starredUpdates.map(m => (
+            {starredUpdates.map((m: any) => (
               <Card key={m.id} className="border-blue-200 bg-blue-50 shadow-sm relative group">
                 <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(m.subId, 'majorUpdates', m.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
@@ -3415,7 +3531,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           {/* Projected Column */}
           <div className="space-y-4">
             <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">30 Day Projected <Badge>{starredProjected.length}</Badge></h3>
-            {starredProjected.map(p => (
+            {starredProjected.map((p: any) => (
               <Card key={p.id} className="border-purple-200 bg-purple-50 shadow-sm relative group">
                 <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'projectedWins', p.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
@@ -3440,6 +3556,222 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'priorities', p.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
                 </Button>
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
+                  <div className="font-bold text-slate-800 text-sm">{p.text}</div>
+                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderMonthlyStandouts() {
+    const handleHideItem = (itemId: string) => {
+      setHiddenMonthlyHistory(prev => [...prev, [...hiddenMonthlyItems]]);
+      setHiddenMonthlyItems(prev => [...prev, itemId]);
+    };
+
+    const handleUndoHide = () => {
+      setHiddenMonthlyHistory(prev => {
+        const newHistory = [...prev];
+        const lastState = newHistory.pop();
+        if (lastState) {
+          setHiddenMonthlyItems(lastState);
+        }
+        return newHistory;
+      });
+    };
+
+    const handleResetHidden = () => {
+      setHiddenMonthlyHistory([]);
+      setHiddenMonthlyItems([]);
+    };
+
+    const { visibleItems: monthlyWins, originalCount: winsCount } = getMonthlyItems('wins');
+    const { visibleItems: monthlyRisks, originalCount: risksCount } = getMonthlyItems('risks');
+    const { visibleItems: monthlyUpdates, originalCount: updatesCount } = getMonthlyItems('majorUpdates');
+    const { visibleItems: monthlyProjected, originalCount: projectedCount } = getMonthlyItems('projectedWins');
+    const { visibleItems: monthlyPriorities, originalCount: prioritiesCount } = getMonthlyItems('priorities');
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50 p-4 rounded-2xl border">
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4 text-slate-500" />
+              <select
+                value={monthlySelectedMonth}
+                onChange={(e) => setMonthlySelectedMonth(e.target.value)}
+                className="h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm font-bold shadow-sm focus:outline-none"
+              >
+                {availableMonths.map(m => (
+                  <option key={m} value={m}>{format(new Date(m + '-01'), 'MMMM yyyy')}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-slate-500" />
+              <select
+                value={monthlySelectedState}
+                onChange={(e) => setMonthlySelectedState(e.target.value)}
+                className="h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm font-bold shadow-sm focus:outline-none"
+              >
+                <option value="ALL">All States</option>
+                {['WA', 'SA', 'VIC', 'NSW', 'QLD', 'NT', 'TAS', 'ACT'].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center justify-end">
+            {(isLeader) && hiddenMonthlyHistory.length > 0 && (
+              <Button 
+                onClick={handleUndoHide}
+                variant="outline"
+                className="h-9 text-[10px] uppercase tracking-widest rounded-xl shadow-sm text-slate-500 border-slate-200"
+              >
+                Undo Last Hide
+              </Button>
+            )}
+            {(isLeader) && hiddenMonthlyItems.length > 0 && (
+              <Button 
+                onClick={handleResetHidden}
+                variant="outline"
+                className="h-9 text-[10px] uppercase tracking-widest rounded-xl shadow-sm text-slate-500 border-slate-200"
+              >
+                Reset All Hidden
+              </Button>
+            )}
+            <Button 
+              onClick={() => handleExportPdf(true)}
+              disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
+              className="bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+            >
+              {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
+              Export to Landscape PDF
+            </Button>
+            <Button 
+              onClick={() => handleExportOversizedPdf(true)}
+              disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+            >
+              {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+              Export PDF
+            </Button>
+            <Button 
+              onClick={() => handleExportCondensedPdf(true)}
+              disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
+              className="bg-primary hover:bg-primary/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+            >
+              {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+              Export to Condensed PDF
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {/* Wins Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Key Wins <Badge>{winsCount}</Badge></h3>
+            {monthlyWins.map((w: any) => (
+              <Card key={w.id + w.subId} className="border-amber-200 bg-amber-50 shadow-sm relative group">
+                {(isLeader) && (
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(w.id)}>
+                    <EyeOff className="w-3 h-3" />
+                  </Button>
+                )}
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{w.state}</Badge>
+                  <div className="font-bold text-slate-800">{w.customer}</div>
+                  <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
+                  <div className="text-[10px] text-slate-500">{w.salespersonName || 'N/A'}</div>
+                  {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
+                  {w.updateText && <div className="text-xs text-slate-600 mt-2">{w.updateText}</div>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Risks Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Churn Risks <Badge>{risksCount}</Badge></h3>
+            {monthlyRisks.map((r: any) => (
+              <Card key={r.id + r.subId} className="border-rose-200 bg-rose-50 shadow-sm relative group">
+                {(isLeader) && (
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(r.id)}>
+                    <EyeOff className="w-3 h-3" />
+                  </Button>
+                )}
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{r.state}</Badge>
+                  <div className="font-bold text-slate-800">{r.account}</div>
+                  <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
+                  <div className="text-[10px] text-slate-500">{r.salespersonName || 'N/A'}</div>
+                  {r.businessUnits && r.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
+                  <div className="text-xs text-slate-600 mt-2">Mitigation: {r.mitigation}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Updates Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Major Updates <Badge>{updatesCount}</Badge></h3>
+            {monthlyUpdates.map((m: any) => (
+              <Card key={m.id + m.subId} className="border-blue-200 bg-blue-50 shadow-sm relative group">
+                {(isLeader) && (
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(m.id)}>
+                    <EyeOff className="w-3 h-3" />
+                  </Button>
+                )}
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{m.state}</Badge>
+                  <div className="font-bold text-slate-800">{m.customer}</div>
+                  {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
+                  <div className="text-[10px] text-slate-500">{m.salespersonName || 'N/A'}</div>
+                  {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
+                  {m.updateText && <div className="text-xs text-slate-600 mt-2">{m.updateText}</div>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Projected Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">30 Day Projected <Badge>{projectedCount}</Badge></h3>
+            {monthlyProjected.map((p: any) => (
+              <Card key={p.id + p.subId} className="border-purple-200 bg-purple-50 shadow-sm relative group">
+                {(isLeader) && (
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(p.id)}>
+                    <EyeOff className="w-3 h-3" />
+                  </Button>
+                )}
+                <CardContent className="p-4 space-y-2">
+                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
+                  <div className="font-bold text-slate-800">{p.account}</div>
+                  <div className="text-purple-600 font-semibold">{formatEAV(p.value)}</div>
+                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                  {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
+                  {p.updateText && <div className="text-xs text-slate-600 mt-1">{p.updateText}</div>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Priorities Column */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Priorities <Badge>{prioritiesCount}</Badge></h3>
+            {monthlyPriorities.map((p: any) => (
+              <Card key={p.id + p.subId} className="border-indigo-200 bg-indigo-50 shadow-sm relative group">
+                {(isLeader) && (
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(p.id)}>
+                    <EyeOff className="w-3 h-3" />
+                  </Button>
+                )}
                 <CardContent className="p-4 space-y-2">
                   <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
                   <div className="font-bold text-slate-800 text-sm">{p.text}</div>

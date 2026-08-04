@@ -83,6 +83,9 @@ export interface FactFindingDoc {
   userId: string;
   createdAt?: any;
   lastModifiedAt?: any;
+  lastViewedAt?: any;
+  isArchived?: boolean;
+  stage?: string;
   pricingInfo?: string;
   companyName: string;
   businessDetails: string;
