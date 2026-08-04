@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
-  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck
+  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck, Download
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { DemoDashView } from './demo-dash-view';
@@ -866,6 +866,106 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
   const handleEditSubmission = (sub: any) => {
     setEditingSubmission(sub);
+  };
+
+  const handleExportCsv = () => {
+    const { visibleItems: monthlyWins } = getMonthlyItems('wins');
+    const { visibleItems: monthlyRisks } = getMonthlyItems('risks');
+    const { visibleItems: monthlyUpdates } = getMonthlyItems('majorUpdates');
+    const { visibleItems: monthlyProjected } = getMonthlyItems('projectedWins');
+    const { visibleItems: monthlyPriorities } = getMonthlyItems('priorities');
+
+    const headers = [
+      "Category",
+      "Item Name / Customer / Text",
+      "Value (EAV)",
+      "State",
+      "Salesperson",
+      "Business Units",
+      "Notes / Mitigation"
+    ];
+
+    const rows: string[][] = [];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    monthlyWins.forEach((w: any) => {
+      rows.push([
+        "Key Win",
+        w.customer || '',
+        w.value ? String(w.value) : '0',
+        w.state || '',
+        w.salespersonName || '',
+        w.businessUnits ? w.businessUnits.join(', ') : '',
+        w.updateText || ''
+      ].map(escapeCsv));
+    });
+
+    monthlyRisks.forEach((r: any) => {
+      rows.push([
+        "Churn Risk",
+        r.account || '',
+        r.value ? String(r.value) : '0',
+        r.state || '',
+        r.salespersonName || '',
+        r.businessUnits ? r.businessUnits.join(', ') : '',
+        r.mitigation || ''
+      ].map(escapeCsv));
+    });
+
+    monthlyUpdates.forEach((m: any) => {
+      rows.push([
+        "Major Update",
+        m.customer || '',
+        m.value ? String(m.value) : '0',
+        m.state || '',
+        m.salespersonName || '',
+        m.businessUnits ? m.businessUnits.join(', ') : '',
+        m.updateText || ''
+      ].map(escapeCsv));
+    });
+
+    monthlyProjected.forEach((p: any) => {
+      rows.push([
+        "30 Day Projected",
+        p.account || '',
+        p.value ? String(p.value) : '0',
+        p.state || '',
+        p.salespersonName || '',
+        p.businessUnits ? p.businessUnits.join(', ') : '',
+        p.updateText || ''
+      ].map(escapeCsv));
+    });
+
+    monthlyPriorities.forEach((p: any) => {
+      rows.push([
+        "Priority",
+        p.text || '',
+        '0',
+        p.state || '',
+        p.salespersonName || '',
+        '',
+        ''
+      ].map(escapeCsv));
+    });
+
+    const csvContent = [headers.map(escapeCsv).join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Monthly_Standouts_${monthlySelectedMonth}_${monthlySelectedState}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: "CSV Exported Successfully" });
   };
 
   const handleExportPdf = (isMonthly = false) => {
@@ -3646,6 +3746,14 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 Reset All Hidden
               </Button>
             )}
+            <Button 
+              onClick={handleExportCsv}
+              disabled={mappedMonthlySubmissions?.length === 0}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export to CSV
+            </Button>
             <Button 
               onClick={() => handleExportPdf(true)}
               disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
