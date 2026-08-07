@@ -477,7 +477,7 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
                     <Label htmlFor="currentCustomer" className="text-sm font-black text-indigo-700 cursor-pointer">Current Customer</Label>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {['New', 'Meeting', 'Proposal Required', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
+                    {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
                       <button
                         key={s}
                         type="button"

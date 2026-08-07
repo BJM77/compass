@@ -110,6 +110,7 @@ export function FactFindingHub() {
       case 'New': return { fill: 'w-[5%]', color: 'bg-slate-200', text: 'text-slate-600' };
       case 'Meeting': return { fill: 'w-[15%]', color: 'bg-blue-100', text: 'text-blue-700' };
       case 'Proposal Required': return { fill: 'w-[30%]', color: 'bg-orange-200', text: 'text-orange-800' };
+      case 'Proposal Sent': return { fill: 'w-[37%]', color: 'bg-purple-200', text: 'text-purple-800' };
       case 'Signed': return { fill: 'w-[45%]', color: 'bg-amber-200', text: 'text-amber-800' };
       case 'Credit Check': return { fill: 'w-[60%]', color: 'bg-yellow-200', text: 'text-yellow-800' };
       case 'Account Setup': return { fill: 'w-[75%]', color: 'bg-teal-200', text: 'text-teal-800' };
@@ -219,7 +220,7 @@ export function FactFindingHub() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Stages</SelectItem>
-                {['New', 'Meeting', 'Proposal Required', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
+                {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
