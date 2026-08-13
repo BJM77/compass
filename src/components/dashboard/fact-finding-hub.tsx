@@ -44,8 +44,7 @@ export function FactFindingHub() {
     if (isLeader) {
       return query(
         collection(db, 'factFindingDocs'),
-        orderBy('createdAt', 'desc'),
-        limit(50)
+        orderBy('createdAt', 'desc')
       );
     } else {
       return query(
