@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Input as UIInput } from '@/components/ui/input';
 import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Select as UISelect, SelectContent, SelectItem, SelectTrigger as UISelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox as UICheckbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -63,24 +63,49 @@ interface Props {
   docId?: string;
   existingDoc?: FactFindingDoc;
   onBack: () => void;
+  viewOnly?: boolean;
 }
 
+const ViewOnlyContext = createContext<boolean>(false);
 
-const Textarea = (props: any) => (
-  <div className="w-full relative">
-    <UITextarea {...props} className={`print:hidden ${props.className || ''}`} />
-    <div className="hidden print:block whitespace-pre-wrap break-words text-sm p-3 border border-slate-200 rounded-md min-h-[80px]">
-      {props.value || " "}
+const Input = (props: any) => {
+  const viewOnly = useContext(ViewOnlyContext);
+  return <UIInput {...props} disabled={viewOnly || props.disabled} />;
+};
+
+const Checkbox = (props: any) => {
+  const viewOnly = useContext(ViewOnlyContext);
+  return <UICheckbox {...props} disabled={viewOnly || props.disabled} />;
+};
+
+const Select = (props: any) => {
+  const viewOnly = useContext(ViewOnlyContext);
+  return <UISelect {...props} disabled={viewOnly || props.disabled} />;
+};
+
+const SelectTrigger = (props: any) => {
+  const viewOnly = useContext(ViewOnlyContext);
+  return <UISelectTrigger {...props} disabled={viewOnly || props.disabled} />;
+};
+
+const Textarea = (props: any) => {
+  const viewOnly = useContext(ViewOnlyContext);
+  return (
+    <div className="w-full relative">
+      <UITextarea {...props} disabled={viewOnly || props.disabled} className={`print:hidden ${props.className || ''}`} />
+      <div className="hidden print:block whitespace-pre-wrap break-words text-sm p-3 border border-slate-200 rounded-md min-h-[80px]">
+        {props.value || " "}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
-export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
+export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }: Props) {
   const db = useFirestore();
   const { user, isLeader, profile } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const canEdit = true;
+  const canEdit = !viewOnly;
   const [printType, setPrintType] = useState<'FULL' | 'REVIEW' | null>(null);
   const [isEditingOwner, setIsEditingOwner] = useState(false);
 
@@ -308,10 +333,11 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
-      <div className={printType === 'REVIEW' ? 'print:hidden' : ''}>
-      {/* Header - Hidden on Print */}
-      <div className="print:hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+    <ViewOnlyContext.Provider value={viewOnly}>
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+        <div className={printType === 'REVIEW' ? 'print:hidden' : ''}>
+        {/* Header - Hidden on Print */}
+        <div className="print:hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
             <ArrowLeft className="w-5 h-5" />
@@ -367,67 +393,69 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          {docId && isLeader && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button type="button" variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete this Fact Finding document.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+        {!viewOnly && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {docId && isLeader && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+                    <Trash2 className="w-4 h-4" />
                     Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          {docId && (
-            <Button type="button" variant="outline" onClick={() => {
-              window.dispatchEvent(new CustomEvent('switch-view', {
-                detail: {
-                  view: 'CALL_PLANNING',
-                  params: { type: 'fact-finding', data: { ...formData, docId } }
-                }
-              }));
-            }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
-              Prepare Call Plan
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete this Fact Finding document.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {docId && (
+              <Button type="button" variant="outline" onClick={() => {
+                window.dispatchEvent(new CustomEvent('switch-view', {
+                  detail: {
+                    view: 'CALL_PLANNING',
+                    params: { type: 'fact-finding', data: { ...formData, docId } }
+                  }
+                }));
+              }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
+                Prepare Call Plan
+              </Button>
+            )}
+            <Button 
+              variant={formData.isArchived ? "secondary" : "outline"} 
+              onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
+              className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
+            >
+              {formData.isArchived ? "Unarchive" : "Archive"}
             </Button>
-          )}
-          <Button 
-            variant={formData.isArchived ? "secondary" : "outline"} 
-            onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
-            className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
-          >
-            {formData.isArchived ? "Unarchive" : "Archive"}
-          </Button>
-          <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
-            <Printer className="w-4 h-4" />
-            Export PDF
-          </Button>
-          <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
-            <Printer className="w-4 h-4" />
-            Export Review
-          </Button>
-          <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Document
-          </Button>
-          <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-            Save & Close
-          </Button>
-        </div>
+            <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
+              <Printer className="w-4 h-4" />
+              Export PDF
+            </Button>
+            <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
+              <Printer className="w-4 h-4" />
+              Export Review
+            </Button>
+            <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Document
+            </Button>
+            <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              Save & Close
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Print Header - Visible ONLY on Print */}
@@ -1308,46 +1336,48 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
           )}
 
           {/* Bottom Save Button */}
-          <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <p className="text-xs font-medium text-slate-500">Don't forget to save your changes before leaving this page.</p>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              {docId && (
-                <Button type="button" variant="outline" onClick={() => {
-                  window.dispatchEvent(new CustomEvent('switch-view', {
-                    detail: {
-                      view: 'CALL_PLANNING',
-                      params: { type: 'fact-finding', data: { ...formData, docId } }
-                    }
-                  }));
-                }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
-                  Prepare Call Plan
+          {!viewOnly && (
+            <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+              <p className="text-xs font-medium text-slate-500">Don't forget to save your changes before leaving this page.</p>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {docId && (
+                  <Button type="button" variant="outline" onClick={() => {
+                    window.dispatchEvent(new CustomEvent('switch-view', {
+                      detail: {
+                        view: 'CALL_PLANNING',
+                        params: { type: 'fact-finding', data: { ...formData, docId } }
+                      }
+                    }));
+                  }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
+                    Prepare Call Plan
+                  </Button>
+                )}
+                <Button 
+                  variant={formData.isArchived ? "secondary" : "outline"} 
+                  onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
+                  className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
+                >
+                  {formData.isArchived ? "Unarchive" : "Archive"}
                 </Button>
-              )}
-              <Button 
-            variant={formData.isArchived ? "secondary" : "outline"} 
-            onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
-            className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
-          >
-            {formData.isArchived ? "Unarchive" : "Archive"}
-          </Button>
-          <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
-                <Printer className="w-4 h-4" />
-                Export PDF
-              </Button>
-              <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
-                <Printer className="w-4 h-4" />
-                Export Review
-              </Button>
-              <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Save Document
-              </Button>
-              <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                Save & Close
-              </Button>
+                <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
+                  <Printer className="w-4 h-4" />
+                  Export PDF
+                </Button>
+                <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
+                  <Printer className="w-4 h-4" />
+                  Export Review
+                </Button>
+                <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Document
+                </Button>
+                <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  Save & Close
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>
@@ -1438,5 +1468,6 @@ export function FactFindingForm({ docId, existingDoc, onBack }: Props) {
         </div>
       )}
     </div>
+    </ViewOnlyContext.Provider>
   );
 }

@@ -9,6 +9,8 @@ import { PipelineReview, WeeklyProgress } from '@/types/crm';
 
 interface PipelineContextType {
   pipelineReviews: PipelineReview[];
+  opportunities: PipelineReview[];
+  bareAccounts: PipelineReview[];
   weeklyProgresses: WeeklyProgress[];
   allPipelineReviews: PipelineReview[];
   allWeeklyProgresses: WeeklyProgress[];
@@ -17,10 +19,13 @@ interface PipelineContextType {
   setActiveUserId: (id: string | null) => void;
   simulationUid: string | null;
   setSimulationUid: (id: string | null) => void;
+  getLatestDealsForUser: (userId: string) => PipelineReview[];
 }
 
 const PipelineContext = createContext<PipelineContextType>({
   pipelineReviews: [],
+  opportunities: [],
+  bareAccounts: [],
   weeklyProgresses: [],
   allPipelineReviews: [],
   allWeeklyProgresses: [],
@@ -29,6 +34,7 @@ const PipelineContext = createContext<PipelineContextType>({
   setActiveUserId: () => {},
   simulationUid: null,
   setSimulationUid: () => {},
+  getLatestDealsForUser: () => [],
 });
 
 export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -90,6 +96,18 @@ export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return Array.from(latestMap.values());
   }, [allPipelineReviews]);
 
+  const opportunities = React.useMemo(() => {
+    return pipelineReviews.filter(r => !r.isBareAccount);
+  }, [pipelineReviews]);
+
+  const bareAccounts = React.useMemo(() => {
+    return pipelineReviews.filter(r => r.isBareAccount);
+  }, [pipelineReviews]);
+
+  const getLatestDealsForUser = React.useCallback((userId: string) => {
+    return allPipelineReviews.filter(r => r.userId === userId);
+  }, [allPipelineReviews]);
+
   const weeklyProgresses = React.useMemo(() => {
     const latestUserMap = new Map<string, WeeklyProgress>();
     allWeeklyProgresses.forEach(r => {
@@ -104,6 +122,8 @@ export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   return (
     <PipelineContext.Provider value={{
       pipelineReviews,
+      opportunities,
+      bareAccounts,
       weeklyProgresses,
       allPipelineReviews,
       allWeeklyProgresses,
@@ -112,6 +132,7 @@ export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setActiveUserId: setSimulationUid,
       simulationUid,
       setSimulationUid,
+      getLatestDealsForUser,
     }}>
       {children}
     </PipelineContext.Provider>

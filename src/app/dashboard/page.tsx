@@ -29,6 +29,7 @@ import { SystemBroadcast } from '@/components/dashboard/system-broadcast';
 import { FridayPerformanceReview } from '@/components/dashboard/friday-performance-review';
 import { PlaybookView } from '@/components/dashboard/playbook-view';
 import { ActualSpendView } from '@/components/dashboard/actual-spend-view';
+import { StrategicRepository } from '@/components/dashboard/strategic-repository';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -49,11 +50,12 @@ import { useIsMobile } from '@/lib/mobile-utils';
 import { format } from 'date-fns';
 import { getCurrentWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
+import { NavigationProvider, useNavigation } from '@/contexts/navigation-context';
 
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY';
 
 const NAV_ITEMS = [
   // Core Pages (Main Menu)
@@ -79,6 +81,7 @@ const NAV_ITEMS = [
   { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true,  group: 'admin' },
   { view: 'UPLOAD' as DashboardView,            label: 'CRM Import',        icon: Upload,           adminOnly: true,  group: 'admin' },
   { view: 'BROADCAST' as DashboardView,         label: 'Broadcast Admin',   icon: Megaphone,        adminOnly: true,  group: 'admin' },
+  { view: 'STRATEGIC_REPOSITORY' as DashboardView, label: 'Strategic Repo', icon: Sparkles,         adminOnly: true,  group: 'admin' },
 ];
 
 function DashboardContent() {
@@ -87,24 +90,7 @@ function DashboardContent() {
   const auth = useFirebaseAuth();
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [currentView, setCurrentView] = useState<DashboardView>('DASHBOARD');
-  const [viewParams, setViewParams] = useState<any>(null);
-
-  useEffect(() => {
-    const handleSwitchView = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail?.view) {
-        setCurrentView(customEvent.detail.view);
-        if (customEvent.detail.params) {
-          setViewParams(customEvent.detail.params);
-        } else {
-          setViewParams(null);
-        }
-      }
-    };
-    window.addEventListener('switch-view', handleSwitchView);
-    return () => window.removeEventListener('switch-view', handleSwitchView);
-  }, []);
+  const { currentView, viewParams, navigateTo } = useNavigation();
   
   const { activeUserId, simulationUid, setSimulationUid } = usePipelineData();
 
@@ -122,7 +108,7 @@ function DashboardContent() {
       router.push('/login'); 
     } 
   };
-  const handleSimulate = (uid: string) => { setSimulationUid(uid); setCurrentView('DASHBOARD'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const handleSimulate = (uid: string) => { setSimulationUid(uid); navigateTo('DASHBOARD'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
 
 
@@ -154,6 +140,7 @@ function DashboardContent() {
     if (activeView === 'FRIDAY_FW') return <div className="w-full p-4 md:p-8"><FridayPerformanceReview userId={activeUserId || ''} userName={profile?.name || ''} userRole={profile?.role || 'BDM'} userState={profile?.state || 'WA'} selectedWeek={getCurrentWeek()} /></div>;
     if (activeView === 'DEMO_DASH') return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
     if (activeView === 'BROADCAST' && isLeader) return <div className="w-full p-4 md:p-8 max-w-xl mx-auto"><SystemBroadcast /></div>;
+    if (activeView === 'STRATEGIC_REPOSITORY' && isLeader) return <div className="w-full p-4 md:p-8"><StrategicRepository /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
@@ -173,7 +160,7 @@ function DashboardContent() {
                       <button
                         onClick={() => {
                           setSimulationUid(null);
-                          setCurrentView('TEAM'); // Return to Governance/Users page
+                          navigateTo('TEAM'); // Return to Governance/Users page
                         }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all font-black text-xs uppercase tracking-wider border border-amber-500/20 mb-2 group"
                       >
@@ -190,7 +177,7 @@ function DashboardContent() {
                     return item.group === 'main' && (item.adminOnly ? isLeader : true);
                   }).map(nav => (
                     <SidebarMenuItem key={nav.view}>
-                      <SidebarMenuButton isActive={activeView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
+                      <SidebarMenuButton isActive={activeView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
                         <nav.icon className="w-4 h-4" />
                         <span>{nav.label}</span>
                       </SidebarMenuButton>
@@ -209,7 +196,7 @@ function DashboardContent() {
                   <SidebarMenu className="px-2 space-y-1">
                     {NAV_ITEMS.filter(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)).map(nav => (
                       <SidebarMenuItem key={nav.view}>
-                        <SidebarMenuButton isActive={currentView === nav.view} onClick={() => setCurrentView(nav.view)} tooltip={nav.label}>
+                        <SidebarMenuButton isActive={currentView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
                           <nav.icon className="w-4 h-4" />
                           <span>{nav.label}</span>
                         </SidebarMenuButton>
@@ -236,7 +223,7 @@ function DashboardContent() {
                 <button
                   onClick={() => {
                     setSimulationUid(null);
-                    setCurrentView('TEAM');
+                    navigateTo('TEAM');
                   }}
                   className="ml-2 underline font-black hover:text-amber-950 uppercase text-[10px] tracking-wider"
                 >
@@ -316,7 +303,9 @@ export default function DashboardPage() {
   // Desktop version - your existing code
   return (
     <PipelineProvider>
-      <DashboardContent />
+      <NavigationProvider>
+        <DashboardContent />
+      </NavigationProvider>
     </PipelineProvider>
   );
 }

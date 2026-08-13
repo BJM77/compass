@@ -13,9 +13,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { useNavigation } from '@/contexts/navigation-context';
 
 export function FactFindingHub() {
-  const [selectedDoc, setSelectedDoc] = useState<FactFindingDoc | 'new' | null>(null);
+  const { viewParams, navigateTo } = useNavigation();
+  const selectedDoc = viewParams?.doc || null;
+  const setSelectedDoc = (docVal: FactFindingDoc | 'new' | null) => {
+    if (docVal === null) {
+      navigateTo('FACT_FINDING');
+    } else {
+      navigateTo('FACT_FINDING', { doc: docVal });
+    }
+  };
   
   // New State for Search, Filter, Sort, and View
   const [searchQuery, setSearchQuery] = useState('');
@@ -278,7 +288,7 @@ export function FactFindingHub() {
                   <TableRow>
                     <TableHead className="font-bold">Customer</TableHead>
                     <TableHead className="font-bold">Freight Type</TableHead>
-                    <TableHead className="font-bold">Locations</TableHead>
+                    <TableHead className="font-bold">Stage</TableHead>
                     <TableHead className="font-bold">Model</TableHead>
                     <TableHead className="font-bold text-right">Value</TableHead>
                     {isLeader && <TableHead className="font-bold">Owner</TableHead>}
@@ -292,7 +302,11 @@ export function FactFindingHub() {
                     <TableRow key={doc.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSelectDoc(doc)}>
                       <TableCell className="font-black text-primary">{doc.companyName || 'Unnamed'}</TableCell>
                       <TableCell className="text-slate-600">{doc.freightType || '-'}</TableCell>
-                      <TableCell className="text-slate-600">{doc.locations || '-'}</TableCell>
+                      <TableCell>
+                        <span className={cn("text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border shadow-sm", getStageConfig(doc.stage || 'New').color, getStageConfig(doc.stage || 'New').text)}>
+                          {doc.stage || 'New'}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
                           {doc.businessModel || 'B2B'}
