@@ -108,6 +108,7 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
           accountName: accountName.toUpperCase(),
           configs: serviceConfigs,
           createdAt: serverTimestamp(),
+          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days TTL
         });
         toast({ title: "Analysis Archived", description: "Diagnostic saved to governance node for 90 days." });
       }

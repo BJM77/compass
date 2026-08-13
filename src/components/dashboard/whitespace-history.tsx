@@ -25,22 +25,21 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
 
   const plansQuery = useMemoFirebase(() => {
     if (!db || !userId) return null;
-    const now = new Date();
-    // Only show plans that haven't expired (TTL Logic)
     return query(
       collection(db, 'whitespacePlans'),
-      where('expiresAt', '>', Timestamp.fromDate(now)),
-      orderBy('expiresAt', 'desc')
+      orderBy('createdAt', 'desc')
     );
   }, [db, userId]);
 
   const { data: plans, isLoading } = useCollection(plansQuery);
 
-  // Filter client-side to handle specific user access if not leader
+  // Filter client-side to handle specific user access if not leader and filter out expired documents
   const filteredPlans = useMemo(() => {
     if (!plans) return [];
-    if (isLeader) return plans;
-    return plans.filter(p => p.userId === userId);
+    const now = new Date();
+    const activePlans = plans.filter(p => !p.expiresAt || p.expiresAt.toDate() > now);
+    if (isLeader) return activePlans;
+    return activePlans.filter(p => p.userId === userId);
   }, [plans, isLeader, userId]);
 
   const usersQuery = useMemoFirebase(() => {

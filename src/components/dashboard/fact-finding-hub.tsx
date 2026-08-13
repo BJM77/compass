@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy, where, serverTimestamp, updateDoc, doc, limit } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
@@ -41,11 +41,19 @@ export function FactFindingHub() {
   // Query docs
   const docsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(
-      collection(db, 'factFindingDocs'),
-      orderBy('createdAt', 'desc')
-    );
-  }, [db, user]);
+    if (isLeader) {
+      return query(
+        collection(db, 'factFindingDocs'),
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+    } else {
+      return query(
+        collection(db, 'factFindingDocs'),
+        where('userId', '==', user.uid)
+      );
+    }
+  }, [db, user, isLeader]);
 
   const { data: docs, isLoading: loading } = useCollection<FactFindingDoc>(docsQuery);
 
@@ -76,6 +84,13 @@ export function FactFindingHub() {
   const filteredAndSortedDocs = useMemo(() => {
     if (!docs) return [];
     let result = [...docs];
+
+    // Sort by createdAt desc by default
+    result.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+      return dateB.getTime() - dateA.getTime();
+    });
 
     // 1. Search (by company name or freight type)
     if (searchQuery.trim()) {
