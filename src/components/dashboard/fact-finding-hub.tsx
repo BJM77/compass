@@ -30,7 +30,7 @@ export function FactFindingHub() {
   // New State for Search, Filter, Sort, and View
   const [searchQuery, setSearchQuery] = useState('');
   const [userFilter, setUserFilter] = useState('all');
-  const [sortUserDir, setSortUserDir] = useState<'asc' | 'desc' | 'none'>('none');
+  const [sortUserDir, setSortUserDir] = useState<string>('date_desc');
   const [stageFilter, setStageFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [showArchived, setShowArchived] = useState(false);
@@ -84,13 +84,6 @@ export function FactFindingHub() {
     if (!docs) return [];
     let result = [...docs];
 
-    // Sort by createdAt desc by default
-    result.sort((a, b) => {
-      const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
-      const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
-      return dateB.getTime() - dateA.getTime();
-    });
-
     // 1. Search (by company name or freight type)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -112,18 +105,46 @@ export function FactFindingHub() {
       result = result.filter(d => d.isArchived);
     }
 
-    // 4. Sort by User
-    if (sortUserDir !== 'none') {
+    // 4. Filter by Stage
+    if (stageFilter !== 'all') {
+      result = result.filter(d => (d.stage || 'New') === stageFilter);
+    }
+
+    // 5. Apply Sorting
+    if (sortUserDir === 'date_desc') {
+      result.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      });
+    } else if (sortUserDir === 'date_asc') {
+      result.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+        return dateA.getTime() - dateB.getTime();
+      });
+    } else if (sortUserDir === 'creator_asc') {
       result.sort((a, b) => {
         const nameA = userMap[a.userId] || '';
         const nameB = userMap[b.userId] || '';
-        return sortUserDir === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        return nameA.localeCompare(nameB);
       });
-    }
-
-    // 5. Filter by Stage
-    if (stageFilter !== 'all') {
-      result = result.filter(d => (d.stage || 'New') === stageFilter);
+    } else if (sortUserDir === 'creator_desc') {
+      result.sort((a, b) => {
+        const nameA = userMap[a.userId] || '';
+        const nameB = userMap[b.userId] || '';
+        return nameB.localeCompare(nameA);
+      });
+    } else if (sortUserDir === 'stage_process') {
+      const STAGE_ORDER = [
+        'New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 
+        'Credit Check', 'Account Setup', 'Customer Training', 'Trading'
+      ];
+      result.sort((a, b) => {
+        const idxA = STAGE_ORDER.indexOf(a.stage || 'New');
+        const idxB = STAGE_ORDER.indexOf(b.stage || 'New');
+        return idxA - idxB;
+      });
     }
 
     return result;
@@ -229,12 +250,14 @@ export function FactFindingHub() {
 
             <Select value={sortUserDir} onValueChange={(v: any) => setSortUserDir(v)}>
               <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
-                <SelectValue placeholder="Sort by Creator" />
+                <SelectValue placeholder="Sort order..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sort: Default (Date)</SelectItem>
-                <SelectItem value="asc">Creator Name (A-Z)</SelectItem>
-                <SelectItem value="desc">Creator Name (Z-A)</SelectItem>
+                <SelectItem value="date_desc">Sort: Newest First</SelectItem>
+                <SelectItem value="date_asc">Sort: Oldest First</SelectItem>
+                <SelectItem value="stage_process">Sort: Stage Order</SelectItem>
+                <SelectItem value="creator_asc">Creator Name (A-Z)</SelectItem>
+                <SelectItem value="creator_desc">Creator Name (Z-A)</SelectItem>
               </SelectContent>
             </Select>
 
