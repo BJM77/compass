@@ -14,6 +14,11 @@ function getAdminDb() {
   return getFirestore();
 }
 
+// ─── Shared auth guard ────────────────────────────────────────────────────────
+function isAuthorized(secret: string | undefined): boolean {
+  return !!secret && secret === process.env.RESET_SECRET;
+}
+
 // ─── POST /api/reset-weekly-activity ─────────────────────────────────────────
 // Resets calls/apps/proposals/deals to 0 for all weeklyProgress docs
 // matching the provided week key.
@@ -22,7 +27,7 @@ export async function POST(req: Request) {
   try {
     const { week, secret } = await req.json();
 
-    if (!secret || secret !== process.env.RESET_SECRET) {
+    if (!isAuthorized(secret)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (!week || typeof week !== 'string') {
@@ -52,44 +57,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ message: `Reset ${count} activity records for week ${week}`, count });
-  } catch (err: any) {
-    console.error('[reset-weekly-activity]', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
-// ─── POST /api/copy-week ─────────────────────────────────────────
-export async function PUT(req: Request) {
-  try {
-    const db = getAdminDb();
-    
-    // Copy week 22 to week 8
-    const snap = await db.collection('weeklyCommitments').where('week', '==', '2026-22').get();
-    let count = 0;
-    
-    const batch = db.batch();
-    snap.forEach(doc => {
-      const data = doc.data();
-      const newRef = db.collection('weeklyCommitments').doc();
-      const newData = {
-        ...data,
-        week: '2026-08',
-        status: 'NOT_STARTED', // Reset status as it is a new week
-        updatedAt: new Date()
-      };
-      
-      batch.set(newRef, newData);
-      count++;
-    });
-    
-    if (count > 0) {
-      await batch.commit();
-      return NextResponse.json({ message: `Successfully copied ${count} planning documents from week 22 to week 8.` });
-    } else {
-      return NextResponse.json({ message: 'No documents found for week 22.' });
-    }
-  } catch (err: any) {
-    console.error('[copy-week]', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('[reset-weekly-activity POST]', err);
+    return NextResponse.json({ error: 'An internal error occurred.' }, { status: 500 });
   }
 }

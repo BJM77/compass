@@ -1,16 +1,15 @@
 /**
  * Firebase Configuration Node
- * 
- * Securely maps credentials to the Firebase SDK.
- * Updated with verified Project ID and active API Key (AIzaSyD8...080).
+ *
+ * All credentials are loaded from environment variables.
+ * Never hardcode keys here — add them to .env (NEXT_PUBLIC_ prefix required for client-side).
  */
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyD8eWxEjK57tndLBXYFxGCswYF47aHo080",
-  authDomain: "studio-5306701288-d19b1.firebaseapp.com",
-  projectId: "studio-5306701288-d19b1",
-  storageBucket: "studio-5306701288-d19b1.firebasestorage.app",
-  messagingSenderId: "581796544364",
-  appId: "1:581796544364:web:5c577736cc62792dc8fd49",
-  measurementId: "G-GHP1P0T67S",
+  apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };

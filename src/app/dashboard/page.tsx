@@ -30,6 +30,7 @@ import { FridayPerformanceReview } from '@/components/dashboard/friday-performan
 import { PlaybookView } from '@/components/dashboard/playbook-view';
 import { ActualSpendView } from '@/components/dashboard/actual-spend-view';
 import { StrategicRepository } from '@/components/dashboard/strategic-repository';
+import { SuccessPlansView } from '@/components/dashboard/success-plans';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -55,11 +56,12 @@ import { NavigationProvider, useNavigation } from '@/contexts/navigation-context
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS';
 
 const NAV_ITEMS = [
   // Core Pages (Main Menu)
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
+  { view: 'SUCCESS_PLANS' as DashboardView,     label: 'Success Plans',     icon: ClipboardList,    adminOnly: false, group: 'main' },
   { view: 'PLAYBOOK' as DashboardView,          label: 'Playbooks',         icon: BookOpen,         adminOnly: false, group: 'main' },
   { view: 'TWIW' as DashboardView,              label: 'TWTW',              icon: CalendarCheck,    adminOnly: false, group: 'main' },
   { view: 'FRIDAY_FW' as DashboardView,         label: 'Friday FW',         icon: Send,             adminOnly: false, group: 'main' },
@@ -142,6 +144,7 @@ function DashboardContent() {
     if (activeView === 'DEMO_DASH') return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
     if (activeView === 'BROADCAST' && isLeader) return <div className="w-full p-4 md:p-8 max-w-xl mx-auto"><SystemBroadcast /></div>;
     if (activeView === 'STRATEGIC_REPOSITORY' && isLeader) return <div className="w-full p-4 md:p-8"><StrategicRepository /></div>;
+    if (activeView === 'SUCCESS_PLANS') return <div className="w-full p-4 md:p-8"><SuccessPlansView userId={activeUserId || ''} isLeader={isLeader} /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;

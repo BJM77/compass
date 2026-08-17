@@ -93,19 +93,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoBypass = () => {
-    setMockAuth({
-      uid: 'demo-leader-123',
-      name: 'Demo Executive',
-      role: 'LEADER',
-      territory: 'METRO_NORTH',
-      specialisation: 'Strategic Operations',
-      isMock: true
-    });
-    // Set cookie for middleware
-    document.cookie = "auth_status=1; path=/; max-age=86400";
-    router.push('/dashboard');
-  };
 
   const handleGuestLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -354,7 +354,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
                   <span className="text-xs text-slate-500">Owner:</span>
                   {isEditingOwner ? (
-                    <Select value={formData.userId} onValueChange={async (val) => { 
+                    <Select value={formData.userId} onValueChange={async (val: string) => { 
                       handleChange('userId', val); 
                       setIsEditingOwner(false); 
                       if (docId) {
@@ -490,7 +490,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 <Label className="font-bold text-slate-700">Company Name *</Label>
                 <Input 
                    value={formData.companyName} 
-                  onChange={e => handleChange('companyName', e.target.value)} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('companyName', e.target.value)} 
                   placeholder="Enter company name"
                   className="font-medium print:border-0 print:border-b print:rounded-none print:px-0 print:text-lg print:shadow-none"
                 />
@@ -500,7 +500,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                     <Checkbox 
                       id="currentCustomer"
                       checked={!!formData.currentCustomer}
-                      onCheckedChange={checked => handleChange('currentCustomer', !!checked)}
+                      onCheckedChange={(checked: boolean | 'indeterminate') => handleChange('currentCustomer', !!checked)}
                     />
                     <Label htmlFor="currentCustomer" className="text-sm font-black text-indigo-700 cursor-pointer">Current Customer</Label>
                   </div>
@@ -528,7 +528,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 <p className="text-xs text-slate-500 font-medium mb-2 print:hidden">Who, What, How, Why, When, Website URL, Shipping Platform</p>
                 <Textarea 
                   value={formData.businessDetails} 
-                  onChange={e => handleChange('businessDetails', e.target.value)} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('businessDetails', e.target.value)} 
                   placeholder="Business details..."
                   className="min-h-[120px] font-medium print:border-none print:resize-none print:p-0 print:shadow-none"
                 />
@@ -537,22 +537,22 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Currently Using (Provider)</Label>
-                  <Input value={formData.currentlyUsing} onChange={e => handleChange('currentlyUsing', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  <Input value={formData.currentlyUsing} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('currentlyUsing', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Key Decision Maker Name</Label>
-                  <Input value={formData.keyDecisionMaker || ''} onChange={e => handleChange('keyDecisionMaker', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. John Doe (Director)" />
+                  <Input value={formData.keyDecisionMaker || ''} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('keyDecisionMaker', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. John Doe (Director)" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Incumbent Competitor</Label>
-                  <Input value={formData.incumbentCompetitor || ''} onChange={e => handleChange('incumbentCompetitor', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="Incumbent provider details..." />
+                  <Input value={formData.incumbentCompetitor || ''} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('incumbentCompetitor', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="Incumbent provider details..." />
                 </div>
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Contract End Date / Renewal Timeline</Label>
-                  <Input value={formData.contractEndDate || ''} onChange={e => handleChange('contractEndDate', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. Dec 2026 or 2026-12-31" />
+                  <Input value={formData.contractEndDate || ''} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('contractEndDate', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. Dec 2026 or 2026-12-31" />
                 </div>
               </div>
 
@@ -560,7 +560,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Business Model</Label>
                   <div className="print:hidden">
-                    <Select value={formData.businessModel} onValueChange={v => handleChange('businessModel', v)}>
+                    <Select value={formData.businessModel} onValueChange={(v: string) => handleChange('businessModel', v)}>
                       <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="B2B">B2B</SelectItem>
@@ -577,19 +577,19 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 <h3 className="text-sm font-black uppercase text-indigo-900 tracking-wider mb-4">Operational Needs</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="securityConcern" checked={formData.securityConcern} onCheckedChange={(c) => handleChange('securityConcern', !!c)} className="print:border-slate-500" />
+                    <Checkbox id="securityConcern" checked={formData.securityConcern} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('securityConcern', !!c)} className="print:border-slate-500" />
                     <Label htmlFor="securityConcern" className="font-bold text-xs text-slate-700 cursor-pointer">Freight security is a concern</Label>
                   </div>
                   <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="highValueFreight" checked={formData.highValueFreight} onCheckedChange={(c) => handleChange('highValueFreight', !!c)} className="print:border-slate-500" />
+                    <Checkbox id="highValueFreight" checked={formData.highValueFreight} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('highValueFreight', !!c)} className="print:border-slate-500" />
                     <Label htmlFor="highValueFreight" className="font-bold text-xs text-slate-700 cursor-pointer">Sends High Value freight</Label>
                   </div>
                   <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="dangerousGoods" checked={formData.dangerousGoods} onCheckedChange={(c) => handleChange('dangerousGoods', !!c)} className="print:border-slate-500" />
+                    <Checkbox id="dangerousGoods" checked={formData.dangerousGoods} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('dangerousGoods', !!c)} className="print:border-slate-500" />
                     <Label htmlFor="dangerousGoods" className="font-bold text-xs text-slate-700 cursor-pointer">Sends Dangerous Goods</Label>
                   </div>
                   <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="internationalFreight" checked={formData.internationalFreight} onCheckedChange={(c) => handleChange('internationalFreight', !!c)} className="print:border-slate-500" />
+                    <Checkbox id="internationalFreight" checked={formData.internationalFreight} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('internationalFreight', !!c)} className="print:border-slate-500" />
                     <Label htmlFor="internationalFreight" className="font-bold text-xs text-slate-700 cursor-pointer">Uses International Freight</Label>
                   </div>
                 </div>
@@ -598,11 +598,11 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                   <div className="mt-4 p-4 bg-indigo-50/30 rounded-xl border border-indigo-100/50 grid grid-cols-1 md:grid-cols-2 gap-4 print:p-0 print:bg-transparent print:border-none print:mt-2">
                     <div className="space-y-2">
                       <Label className="font-bold text-xs text-indigo-900 print:text-slate-700">International Type (Sea/Air)</Label>
-                      <Input value={formData.internationalType} onChange={e => handleChange('internationalType', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
+                      <Input value={formData.internationalType} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('internationalType', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
                     </div>
                     <div className="space-y-2">
                       <Label className="font-bold text-xs text-indigo-900 print:text-slate-700">Intl Size (Parcels/Cartons/Pallets/Containers)</Label>
-                      <Input value={formData.internationalSize} onChange={e => handleChange('internationalSize', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
+                      <Input value={formData.internationalSize} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('internationalSize', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
                     </div>
                   </div>
                 )}
@@ -613,23 +613,23 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
                     <Label className="font-bold text-slate-700">Primary Pain Points</Label>
-                    <Textarea value={formData.painPoints} onChange={e => handleChange('painPoints', e.target.value)} className="min-h-[80px] print:border-none print:resize-none print:p-0 print:shadow-none" />
+                    <Textarea value={formData.painPoints} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('painPoints', e.target.value)} className="min-h-[80px] print:border-none print:resize-none print:p-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700">Special Handling Requirements</Label>
-                    <Input value={formData.specialHandling} onChange={e => handleChange('specialHandling', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                    <Input value={formData.specialHandling} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('specialHandling', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700">Loading Dock Capabilities</Label>
-                    <Input value={formData.loadingDock} onChange={e => handleChange('loadingDock', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                    <Input value={formData.loadingDock} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('loadingDock', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700">Seasonal Fluctuations</Label>
-                    <Input value={formData.seasonalFluctuations} onChange={e => handleChange('seasonalFluctuations', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                    <Input value={formData.seasonalFluctuations} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('seasonalFluctuations', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700">Trading Terms Expected</Label>
-                    <Input value={formData.tradingTerms} onChange={e => handleChange('tradingTerms', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                    <Input value={formData.tradingTerms} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('tradingTerms', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                 </div>
               </div>
@@ -650,15 +650,15 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Type of Freight</Label>
-                  <Input placeholder="Sameday, Priority, Road..." value={formData.freightType} onChange={e => handleChange('freightType', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  <Input placeholder="Sameday, Priority, Road..." value={formData.freightType} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('freightType', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Size of Freight</Label>
-                  <Input placeholder="Dimensions/Weight" value={formData.freightSize} onChange={e => handleChange('freightSize', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  <Input placeholder="Dimensions/Weight" value={formData.freightSize} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('freightSize', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">EAV</Label>
-                  <Input placeholder="e.g. $5,000 or 50 items" value={formData.weeklyAmount} onChange={e => handleChange('weeklyAmount', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                  <Input placeholder="e.g. $5,000 or 50 items" value={formData.weeklyAmount} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('weeklyAmount', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
               </div>
 
@@ -668,18 +668,18 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="font-bold text-slate-700">% Staying in WA?</Label>
-                      <Input type="number" placeholder="%" value={formData.waPercentage} onChange={e => handleChange('waPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                      <Input type="number" placeholder="%" value={formData.waPercentage} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('waPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                     </div>
                     <div className="space-y-2">
                       <Label className="font-bold text-slate-700">% Overnight?</Label>
-                      <Input type="number" placeholder="%" value={formData.overnightPercentage} onChange={e => handleChange('overnightPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                      <Input type="number" placeholder="%" value={formData.overnightPercentage} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('overnightPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-lg border border-slate-100 print:bg-transparent print:border-none print:p-0 justify-center">
                     <Checkbox 
                       id="hasData" 
                       checked={formData.hasData} 
-                      onCheckedChange={(c) => handleChange('hasData', !!c)} 
+                      onCheckedChange={(c: boolean | 'indeterminate') => handleChange('hasData', !!c)} 
                       className="print:border-slate-500"
                     />
                     <Label htmlFor="hasData" className="font-bold text-slate-700 cursor-pointer">
@@ -779,7 +779,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                       <Textarea 
                         placeholder="e.g. Bunbury, Kalgoorlie, Port Hedland..." 
                         value={formData.mapNotesFrom || ''} 
-                        onChange={e => handleChange('mapNotesFrom', e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('mapNotesFrom', e.target.value)}
                         className="mt-1.5 text-xs font-medium rounded-xl border-slate-200"
                         rows={2}
                       />
@@ -874,7 +874,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                       <Textarea 
                         placeholder="e.g. Albany, Geraldton, Broome..." 
                         value={formData.mapNotesTo || ''} 
-                        onChange={e => handleChange('mapNotesTo', e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('mapNotesTo', e.target.value)}
                         className="mt-1.5 text-xs font-medium rounded-xl border-slate-200"
                        />
                     </div>
@@ -941,7 +941,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                     <Textarea
                       placeholder="Enter pricing notes, discount agreements, or custom rate structure details..."
                       value={formData.pricingInfo || ''}
-                      onChange={e => handleChange('pricingInfo', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('pricingInfo', e.target.value)}
                       className="text-xs font-medium rounded-xl border-emerald-200 bg-white"
                       rows={3}
                     />
@@ -985,8 +985,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}
-                                  onChange={e => handleServiceNote(s.id, e.target.value)}
-                                  onClick={e => e.stopPropagation()}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
+                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                   className="text-xs font-medium rounded-lg border-orange-200 bg-orange-50 focus:border-orange-400 min-h-[60px]"
                                   rows={2}
                                 />
@@ -997,8 +997,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
-                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
-                                        onClick={e => e.stopPropagation()}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                         className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
                                         rows={2}
                                       />
@@ -1053,8 +1053,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}
-                                  onChange={e => handleServiceNote(s.id, e.target.value)}
-                                  onClick={e => e.stopPropagation()}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
+                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                   className="text-xs font-medium rounded-lg border-indigo-200 bg-indigo-50 focus:border-indigo-400 min-h-[60px]"
                                   rows={2}
                                 />
@@ -1065,8 +1065,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
-                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
-                                        onClick={e => e.stopPropagation()}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                         className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
                                         rows={2}
                                       />
@@ -1118,8 +1118,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}
-                                  onChange={e => handleServiceNote(s.id, e.target.value)}
-                                  onClick={e => e.stopPropagation()}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
+                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                   className="text-xs font-medium rounded-lg border-amber-200 bg-amber-50 focus:border-amber-400 min-h-[60px]"
                                   rows={2}
                                 />
@@ -1130,8 +1130,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
-                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
-                                        onClick={e => e.stopPropagation()}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                         className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
                                         rows={2}
                                       />
@@ -1183,8 +1183,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}
-                                  onChange={e => handleServiceNote(s.id, e.target.value)}
-                                  onClick={e => e.stopPropagation()}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
+                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                   className="text-xs font-medium rounded-lg border-zinc-200 bg-zinc-50 focus:border-zinc-400 min-h-[60px]"
                                   rows={2}
                                 />
@@ -1195,8 +1195,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
-                                        onChange={e => handleServiceAdminNote(s.id, e.target.value)}
-                                        onClick={e => e.stopPropagation()}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
+                                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                         className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
                                         rows={2}
                                       />
@@ -1273,17 +1273,17 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
             <CardContent className="p-6 space-y-6 print:px-0">
               <div className="space-y-2">
                 <Label className="font-bold text-slate-700">What is your "Perfect World Situation"?</Label>
-                <Textarea value={formData.perfectWorld} onChange={e => handleChange('perfectWorld', e.target.value)} className="print:border-none print:resize-none print:p-0 print:shadow-none" />
+                <Textarea value={formData.perfectWorld} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('perfectWorld', e.target.value)} className="print:border-none print:resize-none print:p-0 print:shadow-none" />
               </div>
 
               <div className="space-y-2">
                 <Label className="font-bold text-slate-700">Delivery Expectation</Label>
-                <Input value={formData.deliveryExpectation} onChange={e => handleChange('deliveryExpectation', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                <Input value={formData.deliveryExpectation} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('deliveryExpectation', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
               </div>
 
               <div className="space-y-2">
                 <Label className="font-bold text-slate-700">Do wholesale suppliers charge for delivery?</Label>
-                <Input placeholder="Yes/No/Details" value={formData.wholesaleCharges} onChange={e => handleChange('wholesaleCharges', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
+                <Input placeholder="Yes/No/Details" value={formData.wholesaleCharges} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('wholesaleCharges', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
               </div>
             </CardContent>
           </Card>
@@ -1301,7 +1301,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                   <Label className="font-bold text-slate-700">Reason Down Trading (Notes)</Label>
                   <Textarea
                     value={formData.reasonDownTrading}
-                    onChange={e => handleChange('reasonDownTrading', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('reasonDownTrading', e.target.value)}
                     placeholder="Enter reason for down trading"
                   />
                 </div>
@@ -1311,7 +1311,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                     <Input
                       type="date"
                       value={formData.lastFaceToFaceMeeting}
-                      onChange={e => handleChange('lastFaceToFaceMeeting', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('lastFaceToFaceMeeting', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1319,7 +1319,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                     <Input
                       type="date"
                       value={formData.nextFaceToFaceMeeting}
-                      onChange={e => handleChange('nextFaceToFaceMeeting', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('nextFaceToFaceMeeting', e.target.value)}
                     />
                   </div>
                 </div>
@@ -1327,7 +1327,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                   <Label className="font-bold text-slate-700">What Could we do? (Notes)</Label>
                   <Textarea
                     value={formData.whatCouldWeDo}
-                    onChange={e => handleChange('whatCouldWeDo', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('whatCouldWeDo', e.target.value)}
                     placeholder="Enter suggestions"
                   />
                 </div>

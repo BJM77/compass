@@ -1,145 +1,157 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isSignedIn() { return request.auth != null; }
-    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
-    function isAdmin() { 
+
+    // ─── Core Auth Helpers ───────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.role == 'LEADER' || 
-        request.auth.token.role == 'ADMIN' ||
-        request.auth.uid == 'eFPAFC5wauPrnguvwzebKssdpSg2' ||
-        request.auth.uid == 'admin-override'
-      ); 
+        request.auth.token.role == 'LEADER' ||
+        request.auth.token.role == 'GM'
+      );
     }
 
-    // User Management
-    match /users/{userId} { 
-      allow read: if isSignedIn(); 
-      allow create, update, delete: if isAdmin() || isOwner(userId); 
+    // ─── User Management ─────────────────────────────────────────────────────────
+    // Anyone can read their own user doc; admins can read all.
+    // Owners can update their own doc EXCEPT the role field (prevents self-escalation).
+    // Only admins can create, set role, or delete.
+    match /users/{userId} {
+      allow read: if isAdmin() || isOwner(userId);
+      allow create: if isAdmin();
+      allow update: if isAdmin()
+        || (isOwner(userId)
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
+      allow delete: if isAdmin();
     }
 
-    // Revenue Rollups
-    match /bdmStats/{userId} { 
-      allow read: if isSignedIn(); 
-      allow write: if isAdmin(); 
+    // ─── Revenue Rollups ─────────────────────────────────────────────────────────
+    // Restricted to owner or admin — this data includes revenue targets.
+    match /bdmStats/{userId} {
+      allow read: if isAdmin() || isOwner(userId);
+      allow write: if isAdmin();
     }
 
-    // Strategy Documents
-    match /callPlans/{planId} { 
-      allow read: if isSignedIn(); 
+    // ─── Strategy Documents ──────────────────────────────────────────────────────
+    match /callPlans/{planId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     match /callOutcomes/{outcomeId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
     match /whitespacePlans/{planId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn(); 
-      allow update, delete: if isAdmin() || (resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    // Pipeline & CRM Data
-    match /pipelineReviews/{reviewId} { 
-      allow read: if isSignedIn(); 
-      allow create: if isSignedIn(); 
+    // ─── Pipeline & CRM Data ─────────────────────────────────────────────────────
+    match /pipelineReviews/{reviewId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      // BUG FIX: Allow owners to delete — required for the Closed-Lost archiving flow
-      // where a BDM moves a deal to lostCustomers and removes it from pipelineReviews.
       allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    match /lostCustomers/{lostId} { 
-      allow read: if isSignedIn(); 
-      allow create: if isSignedIn(); 
-      allow delete: if isAdmin(); 
+    match /lostCustomers/{lostId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow delete: if isAdmin();
     }
 
-    // Weekly Governance Nodes
+    // ─── Weekly Governance Nodes ─────────────────────────────────────────────────
     match /weeklyCommitments/{docId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin();
     }
 
     match /activityLogs/{logId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
     match /weeklyProgress/{id} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow write: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
     }
 
     match /weeklyActivity/{id} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow write: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // Intelligence & Reporting
-    match /aiBriefs/{briefId} { 
-      allow read: if isSignedIn(); 
-      allow create: if isSignedIn(); 
-      allow update, delete: if isAdmin(); 
+    // ─── Intelligence & Reporting ─────────────────────────────────────────────────
+    match /aiBriefs/{briefId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
     match /weeklyReports/{reportId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin();
     }
 
     match /twiwSubmissions/{submissionId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     match /opsReports/{reportId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    // Friday Synthesis Data (BDM Weekly Submission)
+    // ─── Friday Synthesis Data (BDM Weekly Submission) ───────────────────────────
     match /opportunities/{oppId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 
     match /signedPaperwork/{docId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 
     match /newBusiness/{docId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 
-    // Weekly Goals (GM Report Generator)
+    // ─── Weekly Goals (GM Report Generator) ──────────────────────────────────────
     match /weeklyGoals/{docId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin();
     }
 
-    // AI Usage Tracking
+    // ─── AI Usage Tracking ────────────────────────────────────────────────────────
     match /aiUsageLogs/{logId} {
       allow get, list: if isAdmin();
       allow create: if isSignedIn();
@@ -156,18 +168,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Strategy & Progress
+    // ─── Strategy & Progress ─────────────────────────────────────────────────────
     match /monthlySmartGoals/{goalId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
     }
 
     match /coachingNotes/{userId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || isOwner(userId);
       allow write: if isAdmin() || isOwner(userId);
       match /entries/{entryId} {
-        allow read: if isSignedIn();
+        allow read: if isAdmin() || isOwner(userId);
         allow write: if isAdmin() || isOwner(userId);
       }
     }
@@ -177,31 +189,39 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
-    // System Config
-    match /systemAnnouncements/{docId} { 
-      allow read: if true; 
-      allow write: if isAdmin(); 
+    // ─── Success Plans ────────────────────────────────────────────────────────────
+    // Only the creator or an admin can read a plan.
+    match /successPlans/{planId} {
+      allow read: if isAdmin() || (isSignedIn() && resource != null && resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && resource.data.createdBy == request.auth.uid);
     }
 
-    match /strategyConfig/{docId} { 
-      allow read: if isSignedIn(); 
-      allow write: if isAdmin(); 
+    // ─── System Config ────────────────────────────────────────────────────────────
+    match /systemAnnouncements/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /appSettings/{docId} { 
+    match /strategyConfig/{docId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || (isSignedIn() && docId == request.auth.uid); 
+      allow write: if isAdmin();
+    }
+
+    match /appSettings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || (isSignedIn() && docId == request.auth.uid);
     }
 
     match /factFindingDocs/{docId} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn();
       allow update: if isSignedIn() && request.auth.token.role != 'GUEST';
       allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     match /actualRevenues/{id} {
-      allow read: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow write: if isAdmin();
     }
   }

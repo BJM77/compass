@@ -326,7 +326,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
               <Input 
                 placeholder="e.g. Rio Tinto - Kwinana Logistics" 
                 value={formData.accountName}
-                onChange={(e) => setFormData({...formData, accountName: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, accountName: e.target.value})}
                 className="font-black text-lg h-12 uppercase tracking-tight bg-slate-50 focus:bg-white transition-all border-slate-200"
               />
             </div>
@@ -337,7 +337,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
               <Input 
                 placeholder="e.g. Secure commitment for 30-day pilot" 
                 value={formData.objective}
-                onChange={(e) => setFormData({...formData, objective: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, objective: e.target.value})}
                 className="font-bold text-sm h-12 bg-slate-50 focus:bg-white transition-all border-slate-200"
               />
             </div>
@@ -424,7 +424,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                <Textarea 
                   placeholder="What are the current volumes? Which carriers are used today?"
                   value={formData.situation}
-                  onChange={(e) => setFormData({...formData, situation: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, situation: e.target.value})}
                   className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-blue-400 focus:bg-white transition-all resize-none leading-relaxed"
                />
             </div>
@@ -436,7 +436,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                <Textarea 
                   placeholder="Where are the delays happening? Is the current provider failing?"
                   value={formData.problem}
-                  onChange={(e) => setFormData({...formData, problem: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, problem: e.target.value})}
                   className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-orange-400 focus:bg-white transition-all resize-none leading-relaxed"
                />
             </div>
@@ -448,7 +448,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                <Textarea 
                   placeholder="What happens to your project timeline if freight is late?"
                   value={formData.implication}
-                  onChange={(e) => setFormData({...formData, implication: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, implication: e.target.value})}
                   className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-red-400 focus:bg-white transition-all resize-none leading-relaxed"
                />
             </div>
@@ -460,7 +460,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                <Textarea 
                   placeholder="If we could guarantee reduction in transit time, how would that help?"
                   value={formData.needPayoff}
-                  onChange={(e) => setFormData({...formData, needPayoff: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, needPayoff: e.target.value})}
                   className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-green-400 focus:bg-white transition-all resize-none leading-relaxed"
                />
             </div>
@@ -535,7 +535,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 <Textarea 
                    placeholder="Quick summary of the conversation..."
                    value={outcomeData.notes}
-                   onChange={(e) => setOutcomeData({...outcomeData, notes: e.target.value})}
+                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setOutcomeData({...outcomeData, notes: e.target.value})}
                    className="min-h-[100px] rounded-xl"
                 />
              </div>
