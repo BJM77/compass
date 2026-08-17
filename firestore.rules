@@ -27,11 +27,11 @@ service cloud.firestore {
     // Owners can update their own doc EXCEPT the role field (prevents self-escalation).
     // Only admins can create, set role, or delete.
     match /users/{userId} {
-      allow read: if isAdmin() || isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
       allow create: if isAdmin();
-      allow update: if isAdmin()
-        || (isOwner(userId)
-            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
+      allow update: if (isOwner(userId)
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+        || isAdmin();
       allow delete: if isAdmin();
     }
 
