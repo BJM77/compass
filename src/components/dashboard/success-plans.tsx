@@ -362,14 +362,26 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
       doc.text("Goal (Oct 30)", 130, y);
       doc.text("Result", 170, y);
       y += 5;
-
       plan.measures?.forEach(m => {
-        if (y > 275) { doc.addPage(); y = 20; }
-        doc.text(m.measure?.substring(0, 38) || '', 17, y);
-        doc.text(m.startingPoint || '-', 90, y);
-        doc.text(m.goal || '-', 130, y);
-        doc.text(m.result || '-', 170, y);
-        y += 6;
+        const measureLines: string[] = doc.splitTextToSize(m.measure || '', 70);
+        const startingLines: string[] = doc.splitTextToSize(m.startingPoint || '-', 35);
+        const goalLines: string[] = doc.splitTextToSize(m.goal || '-', 35);
+        const resultLines: string[] = doc.splitTextToSize(m.result || '-', 20);
+
+        const maxLines = Math.max(measureLines.length, startingLines.length, goalLines.length, resultLines.length);
+        const rowHeight = maxLines * 5;
+
+        if (y + rowHeight > 280) { 
+          doc.addPage(); 
+          y = 20; 
+        }
+
+        measureLines.forEach((line, idx) => doc.text(line, 17, y + idx * 5));
+        startingLines.forEach((line, idx) => doc.text(line, 90, y + idx * 5));
+        goalLines.forEach((line, idx) => doc.text(line, 130, y + idx * 5));
+        resultLines.forEach((line, idx) => doc.text(line, 170, y + idx * 5));
+
+        y += rowHeight + 2;
       });
       y += 6;
 
@@ -384,30 +396,49 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
       doc.setFont('helvetica', 'bold');
       doc.text("STOP Doing:", 15, y);
       doc.setFont('helvetica', 'normal');
+      let stopOffset = 5;
       plan.stopList?.forEach((item, idx) => {
-        if (item) doc.text(`${idx + 1}. ${item}`, 20, y + (idx + 1) * 5);
+        if (item) {
+          const lines: string[] = doc.splitTextToSize(`${idx + 1}. ${item}`, 175);
+          lines.forEach(line => {
+            doc.text(line, 20, y + stopOffset);
+            stopOffset += 5;
+          });
+        }
       });
-      y += 22;
+      y += stopOffset + 2;
 
       doc.setFont('helvetica', 'bold');
       doc.text("START Doing:", 15, y);
       doc.setFont('helvetica', 'normal');
+      let startOffset = 5;
       plan.startList?.forEach((item, idx) => {
-        if (item) doc.text(`${idx + 1}. ${item}`, 20, y + (idx + 1) * 5);
+        if (item) {
+          const lines: string[] = doc.splitTextToSize(`${idx + 1}. ${item}`, 175);
+          lines.forEach(line => {
+            doc.text(line, 20, y + startOffset);
+            startOffset += 5;
+          });
+        }
       });
-      y += 22;
+      y += startOffset + 2;
 
       doc.setFont('helvetica', 'bold');
       doc.text("CONTINUE Doing:", 15, y);
       doc.setFont('helvetica', 'normal');
+      let contOffset = 5;
       plan.continueList?.forEach((item, idx) => {
-        if (item) doc.text(`${idx + 1}. ${item}`, 20, y + (idx + 1) * 5);
+        if (item) {
+          const lines: string[] = doc.splitTextToSize(`${idx + 1}. ${item}`, 175);
+          lines.forEach(line => {
+            doc.text(line, 20, y + contOffset);
+            contOffset += 5;
+          });
+        }
       });
-      y += 25;
+      y += contOffset + 5;
 
       // Strategies / Required commitments
-      if (y > 220) { doc.addPage(); y = 20; }
-
       const renderSectionTable = (title: string, items: { strategy?: string; commitment?: string; measure?: string; achieving: string; detail: string }[]) => {
         if (y > 250) { doc.addPage(); y = 20; }
         doc.setFontSize(11);
@@ -424,12 +455,31 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
         y += 5;
 
         items.forEach(item => {
-          if (y > 275) { doc.addPage(); y = 20; }
           const desc = item.strategy || item.commitment || item.measure || '';
-          doc.text(desc.substring(0, 50), 17, y);
+          const detail = item.detail || '-';
+
+          const descLines: string[] = doc.splitTextToSize(desc, 95);
+          const detailLines: string[] = doc.splitTextToSize(detail, 40);
+          
+          const maxLines = Math.max(descLines.length, detailLines.length);
+          const rowHeight = maxLines * 5;
+
+          if (y + rowHeight > 280) { 
+            doc.addPage(); 
+            y = 20; 
+          }
+
+          descLines.forEach((line, i) => {
+            doc.text(line, 17, y + (i * 5));
+          });
+
           doc.text(item.achieving === 'Y' ? 'Yes' : item.achieving === 'N' ? 'No' : 'Pending', 120, y);
-          doc.text(item.detail?.substring(0, 20) || '-', 150, y);
-          y += 6;
+
+          detailLines.forEach((line, i) => {
+            doc.text(line, 150, y + (i * 5));
+          });
+
+          y += rowHeight + 2;
         });
         y += 6;
       };
@@ -869,48 +919,52 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     {formState.measures.map((row, idx) => (
                       <TableRow key={idx}>
                         <TableCell className="p-2">
-                          <Input 
+                          <Textarea 
                             value={row.measure}
-                            onChange={(e) => {
+                            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                               const updated = [...formState.measures];
                               updated[idx].measure = e.target.value;
                               setFormState(prev => ({ ...prev, measures: updated }));
                             }}
                             placeholder="e.g. Portfolio Revenue Growth"
-                            className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                            className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                            rows={1}
                           />
                         </TableCell>
                         <TableCell className="p-2">
-                          <Input 
+                          <Textarea 
                             value={row.startingPoint}
-                            onChange={(e) => {
+                            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                               const updated = [...formState.measures];
                               updated[idx].startingPoint = e.target.value;
                               setFormState(prev => ({ ...prev, measures: updated }));
                             }}
-                            className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                            className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                            rows={1}
                           />
                         </TableCell>
                         <TableCell className="p-2">
-                          <Input 
+                          <Textarea 
                             value={row.goal}
-                            onChange={(e) => {
+                            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                               const updated = [...formState.measures];
                               updated[idx].goal = e.target.value;
                               setFormState(prev => ({ ...prev, measures: updated }));
                             }}
-                            className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                            className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                            rows={1}
                           />
                         </TableCell>
                         <TableCell className="p-2">
-                          <Input 
+                          <Textarea 
                             value={row.result}
-                            onChange={(e) => {
+                            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                               const updated = [...formState.measures];
                               updated[idx].result = e.target.value;
                               setFormState(prev => ({ ...prev, measures: updated }));
                             }}
-                            className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                            className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                            rows={1}
                           />
                         </TableCell>
                         <TableCell className="text-center p-2">
@@ -956,16 +1010,17 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 </h4>
                 <div className="space-y-3">
                   {[0, 1, 2].map((idx) => (
-                    <Input
+                    <Textarea
                       key={idx}
                       placeholder={`${idx + 1}. Item to STOP doing`}
                       value={formState.stopList[idx] || ''}
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                         const updated = [...formState.stopList];
                         updated[idx] = e.target.value;
                         setFormState(prev => ({ ...prev, stopList: updated }));
                       }}
-                      className="rounded-xl text-xs border-slate-200 bg-white"
+                      className="rounded-xl text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                      rows={1}
                     />
                   ))}
                 </div>
@@ -977,16 +1032,17 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 </h4>
                 <div className="space-y-3">
                   {[0, 1, 2].map((idx) => (
-                    <Input
+                    <Textarea
                       key={idx}
                       placeholder={`${idx + 1}. Item to START doing`}
                       value={formState.startList[idx] || ''}
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                         const updated = [...formState.startList];
                         updated[idx] = e.target.value;
                         setFormState(prev => ({ ...prev, startList: updated }));
                       }}
-                      className="rounded-xl text-xs border-slate-200 bg-white"
+                      className="rounded-xl text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                      rows={1}
                     />
                   ))}
                 </div>
@@ -998,16 +1054,17 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 </h4>
                 <div className="space-y-3">
                   {[0, 1, 2].map((idx) => (
-                    <Input
+                    <Textarea
                       key={idx}
                       placeholder={`${idx + 1}. Item to CONTINUE doing`}
                       value={formState.continueList[idx] || ''}
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                         const updated = [...formState.continueList];
                         updated[idx] = e.target.value;
                         setFormState(prev => ({ ...prev, continueList: updated }));
                       }}
-                      className="rounded-xl text-xs border-slate-200 bg-white"
+                      className="rounded-xl text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                      rows={1}
                     />
                   ))}
                 </div>
@@ -1038,15 +1095,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                       {formState.strategies.map((row, idx) => (
                         <TableRow key={idx}>
                           <TableCell className="p-2">
-                            <Input 
+                            <Textarea 
                               value={row.strategy}
-                              onChange={(e) => {
+                              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                                 const updated = [...formState.strategies];
                                 updated[idx].strategy = e.target.value;
                                 setFormState(prev => ({ ...prev, strategies: updated }));
                               }}
                               placeholder="Describe your strategy"
-                              className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                              className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                              rows={1}
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -1066,15 +1124,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                             </Select>
                           </TableCell>
                           <TableCell className="p-2">
-                            <Input 
+                            <Textarea 
                               value={row.detail}
-                              onChange={(e) => {
+                              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                                 const updated = [...formState.strategies];
                                 updated[idx].detail = e.target.value;
                                 setFormState(prev => ({ ...prev, strategies: updated }));
                               }}
                               placeholder="Include detail / progress notes"
-                              className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                              className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                              rows={1}
                             />
                           </TableCell>
                           <TableCell className="text-center p-2">
@@ -1111,15 +1170,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                       {formState.measuresToAchieve.map((row, idx) => (
                         <TableRow key={idx}>
                           <TableCell className="p-2">
-                            <Input 
+                            <Textarea 
                               value={row.measure}
-                              onChange={(e) => {
+                              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                                 const updated = [...formState.measuresToAchieve];
                                 updated[idx].measure = e.target.value;
                                 setFormState(prev => ({ ...prev, measuresToAchieve: updated }));
                               }}
                               placeholder="Describe measure details"
-                              className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                              className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                              rows={1}
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -1139,15 +1199,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                             </Select>
                           </TableCell>
                           <TableCell className="p-2">
-                            <Input 
+                            <Textarea 
                               value={row.detail}
-                              onChange={(e) => {
+                              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                                 const updated = [...formState.measuresToAchieve];
                                 updated[idx].detail = e.target.value;
                                 setFormState(prev => ({ ...prev, measuresToAchieve: updated }));
                               }}
                               placeholder="Include details"
-                              className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                              className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                              rows={1}
                             />
                           </TableCell>
                           <TableCell className="text-center p-2">
@@ -1184,15 +1245,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                       {formState.managerCommitments.map((row, idx) => (
                         <TableRow key={idx}>
                           <TableCell className="p-2">
-                            <Input 
+                            <Textarea 
                               value={row.commitment}
-                              onChange={(e) => {
+                              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                                 const updated = [...formState.managerCommitments];
                                 updated[idx].commitment = e.target.value;
                                 setFormState(prev => ({ ...prev, managerCommitments: updated }));
                               }}
                               placeholder="Describe manager's required commitments"
-                              className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                              className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                              rows={1}
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -1212,15 +1274,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                             </Select>
                           </TableCell>
                           <TableCell className="p-2">
-                            <Input 
+                            <Textarea 
                               value={row.detail}
-                              onChange={(e) => {
+                              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                                 const updated = [...formState.managerCommitments];
                                 updated[idx].detail = e.target.value;
                                 setFormState(prev => ({ ...prev, managerCommitments: updated }));
                               }}
                               placeholder="Include progress/detail notes"
-                              className="rounded-lg text-xs border-slate-200 bg-white h-9"
+                              className="rounded-lg text-xs border-slate-200 bg-white min-h-[38px] resize-y py-1.5 font-semibold"
+                              rows={1}
                             />
                           </TableCell>
                           <TableCell className="text-center p-2">
