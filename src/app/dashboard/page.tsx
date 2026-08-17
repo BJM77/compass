@@ -61,14 +61,14 @@ type DashboardView =
 const NAV_ITEMS = [
   // Core Pages (Main Menu)
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
-  { view: 'SUCCESS_PLANS' as DashboardView,     label: 'Success Plans',     icon: ClipboardList,    adminOnly: false, group: 'main' },
-  { view: 'PLAYBOOK' as DashboardView,          label: 'Playbooks',         icon: BookOpen,         adminOnly: false, group: 'main' },
   { view: 'TWIW' as DashboardView,              label: 'TWTW',              icon: CalendarCheck,    adminOnly: false, group: 'main' },
   { view: 'FRIDAY_FW' as DashboardView,         label: 'Friday FW',         icon: Send,             adminOnly: false, group: 'main' },
-  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
-  { view: 'STRATEGIC_ARCHIVE' as DashboardView, label: 'Strategic Archive', icon: Archive,          adminOnly: false, group: 'main' },
-  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
   { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
+  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
+  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
+  { view: 'SUCCESS_PLANS' as DashboardView,     label: 'Success Plans',     icon: ClipboardList,    adminOnly: false, group: 'main' },
+  { view: 'STRATEGIC_ARCHIVE' as DashboardView, label: 'Strategic Archive', icon: Archive,          adminOnly: false, group: 'main' },
+  { view: 'PLAYBOOK' as DashboardView,          label: 'Playbooks',         icon: BookOpen,         adminOnly: false, group: 'main' },
   { view: 'ACTUAL_SPEND' as DashboardView,      label: 'Actual Spend',      icon: Coins,            adminOnly: false, group: 'main' },
   { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
   
