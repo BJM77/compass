@@ -85,8 +85,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
   // Load plans
   const successPlansQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'successPlans'), orderBy('createdAt', 'desc'));
-  }, [db]);
+    if (isLeader) {
+      return query(collection(db, 'successPlans'), orderBy('createdAt', 'desc'));
+    } else {
+      return query(
+        collection(db, 'successPlans'), 
+        where('createdBy', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+    }
+  }, [db, isLeader, userId]);
   const { data: rawPlans, isLoading: isPlansLoading } = useCollection(successPlansQuery);
 
   // Load system users

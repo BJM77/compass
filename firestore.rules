@@ -11,10 +11,14 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.role == 'LEADER' ||
-        request.auth.token.role == 'GM'
+        getUserData().role == 'LEADER' ||
+        getUserData().role == 'GM'
       );
     }
 
