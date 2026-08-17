@@ -696,29 +696,29 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
                   {/* Stop Start Continue */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-red-50/30 border border-red-100 p-4 rounded-2xl space-y-3">
+                    <div className="bg-red-50/30 border border-red-100 p-4 rounded-2xl space-y-3 min-w-0">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-red-600 flex items-center gap-1.5">
                         <AlertCircle className="w-3.5 h-3.5" /> Stop Doing
                       </h4>
-                      <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-decimal pl-4">
+                      <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-decimal pl-4 break-words">
                         {selectedPlan.stopList?.map((item, idx) => item && <li key={idx}>{item}</li>)}
                       </ul>
                     </div>
 
-                    <div className="bg-emerald-50/30 border border-emerald-100 p-4 rounded-2xl space-y-3">
+                    <div className="bg-emerald-50/30 border border-emerald-100 p-4 rounded-2xl space-y-3 min-w-0">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Start Doing
                       </h4>
-                      <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-decimal pl-4">
+                      <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-decimal pl-4 break-words">
                         {selectedPlan.startList?.map((item, idx) => item && <li key={idx}>{item}</li>)}
                       </ul>
                     </div>
 
-                    <div className="bg-blue-50/30 border border-blue-100 p-4 rounded-2xl space-y-3">
+                    <div className="bg-blue-50/30 border border-blue-100 p-4 rounded-2xl space-y-3 min-w-0">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-600 flex items-center gap-1.5">
                         <RefreshCw className="w-3.5 h-3.5" /> Continue Doing
                       </h4>
-                      <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-decimal pl-4">
+                      <ul className="text-xs font-semibold text-slate-700 space-y-1.5 list-decimal pl-4 break-words">
                         {selectedPlan.continueList?.map((item, idx) => item && <li key={idx}>{item}</li>)}
                       </ul>
                     </div>
@@ -739,7 +739,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                         <TableBody>
                           {selectedPlan.strategies?.map((item, idx) => (
                             <TableRow key={idx} className="hover:bg-slate-50/50">
-                              <TableCell className="text-xs font-bold text-slate-900">{item.strategy || '-'}</TableCell>
+                              <TableCell className="text-xs font-bold text-slate-900 max-w-[300px] break-words">{item.strategy || '-'}</TableCell>
                               <TableCell className="text-center">
                                 <Badge className={`font-black text-[9px] uppercase tracking-wider ${
                                   item.achieving === 'Y' ? 'bg-emerald-500/20 text-emerald-600 border-none' : 
@@ -748,7 +748,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                                   {item.achieving === 'Y' ? 'Yes' : item.achieving === 'N' ? 'No' : 'Pending'}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-xs font-semibold text-slate-600">{item.detail || '-'}</TableCell>
+                              <TableCell className="text-xs font-semibold text-slate-600 max-w-[250px] break-words">{item.detail || '-'}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -771,7 +771,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                         <TableBody>
                           {selectedPlan.managerCommitments?.map((item, idx) => (
                             <TableRow key={idx} className="hover:bg-slate-50/50">
-                              <TableCell className="text-xs font-bold text-slate-900">{item.commitment || '-'}</TableCell>
+                              <TableCell className="text-xs font-bold text-slate-900 max-w-[300px] break-words">{item.commitment || '-'}</TableCell>
                               <TableCell className="text-center">
                                 <Badge className={`font-black text-[9px] uppercase tracking-wider ${
                                   item.achieving === 'Y' ? 'bg-emerald-500/20 text-emerald-600 border-none' : 
@@ -780,7 +780,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                                   {item.achieving === 'Y' ? 'Yes' : item.achieving === 'N' ? 'No' : 'Pending'}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-xs font-semibold text-slate-600">{item.detail || '-'}</TableCell>
+                              <TableCell className="text-xs font-semibold text-slate-600 max-w-[250px] break-words">{item.detail || '-'}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
