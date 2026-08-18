@@ -12,8 +12,9 @@ import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select as UISelect, SelectContent, SelectItem, SelectTrigger as UISelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox as UICheckbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -194,7 +195,9 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
     mapNotesTo: '',
     serviceNotes: {},
     isArchived: false,
-    stage: 'New'
+    stage: 'New',
+    currentNote: '',
+    archivedNotes: []
   });
 
   useEffect(() => {
@@ -209,7 +212,9 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
         selectedStatesTo: existingDoc.selectedStatesTo || (existingDoc.mapDirection === 'TO' ? existingDoc.selectedStates || [] : []),
         mapNotesFrom: existingDoc.mapNotesFrom || '',
         mapNotesTo: existingDoc.mapNotesTo || '',
-        serviceNotes: existingDoc.serviceNotes || {}
+        serviceNotes: existingDoc.serviceNotes || {},
+        currentNote: existingDoc.currentNote || '',
+        archivedNotes: existingDoc.archivedNotes || []
       });
     }
   }, [existingDoc]);
@@ -309,18 +314,39 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 
     setIsSaving(true);
     try {
+      const notesToArchive = [...(formData.archivedNotes || [])];
+      if (formData.currentNote?.trim()) {
+        notesToArchive.push({
+          note: formData.currentNote.trim(),
+          createdAt: new Date(),
+          createdByName: profile?.name || user?.email || 'Unknown User',
+          createdBy: user?.uid || ''
+        });
+      }
+
+      const savePayload = {
+        ...formData,
+        currentNote: '',
+        archivedNotes: notesToArchive
+      };
+
       if (docId) {
         await updateDoc(doc(db, 'factFindingDocs', docId), {
-          ...formData,
+          ...savePayload,
           lastModifiedAt: serverTimestamp()
         });
+        setFormData(prev => ({
+          ...prev,
+          currentNote: '',
+          archivedNotes: notesToArchive
+        }));
         toast({ title: "Updated", description: "Fact Finding document updated successfully." });
         if (shouldClose) {
           onBack();
         }
       } else {
         await addDoc(collection(db, 'factFindingDocs'), {
-          ...formData,
+          ...savePayload,
           userId: formData.userId || user.uid,
           createdAt: serverTimestamp(),
           lastModifiedAt: serverTimestamp()
@@ -567,6 +593,36 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                       </button>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 print:hidden bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                <Label className="font-bold text-slate-700 flex justify-between items-center">
+                  <span>Current Note / Quick Update</span>
+                  <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Archives on save</span>
+                </Label>
+                <div className="flex gap-3 items-end">
+                  <Textarea 
+                    value={formData.currentNote || ''} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('currentNote', e.target.value)} 
+                    placeholder="Enter quick update note..."
+                    className="min-h-[60px] text-xs font-semibold bg-white border-slate-200 focus:border-indigo-400 flex-1"
+                    rows={2}
+                  />
+                  {formData.currentNote?.trim() && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(formData.currentNote || '');
+                        toast({ title: "Note Copied", description: "Text copied to clipboard. Opening Salesforce search..." });
+                        window.open(getSalesforceSearchUrl(formData.companyName || ''), '_blank');
+                      }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2 shrink-0 h-10 px-4 rounded-xl shadow-md transition-all text-xs"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy & Search
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -1381,6 +1437,41 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
               </CardContent>
             </Card>
           )}
+
+          {/* Archived Notes Section */}
+          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary print:text-slate-900" />
+                7. Archived Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4 print:px-0">
+              {formData.archivedNotes && formData.archivedNotes.length > 0 ? (
+                <div className="space-y-3">
+                  {formData.archivedNotes.slice().reverse().map((noteObj, idx) => (
+                    <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1.5 break-words">
+                      <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        <span>By {noteObj.createdByName}</span>
+                        <span>
+                          {noteObj.createdAt ? (
+                            noteObj.createdAt.toDate 
+                              ? format(noteObj.createdAt.toDate(), 'MMM d, yyyy h:mm a') 
+                              : format(new Date(noteObj.createdAt), 'MMM d, yyyy h:mm a')
+                          ) : 'Recently'}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-800 leading-relaxed whitespace-pre-wrap">
+                        {noteObj.note}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic font-semibold">No archived notes recorded for this document.</p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Bottom Save Button */}
           {!viewOnly && (
