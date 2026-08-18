@@ -624,6 +624,28 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                     </Button>
                   )}
                 </div>
+
+                {formData.archivedNotes && formData.archivedNotes.length > 0 && (
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-100/80 shadow-sm space-y-1">
+                    <span className="text-[9px] uppercase font-black text-indigo-500 block">Last Saved Note:</span>
+                    <p className="text-xs font-semibold text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+                      {formData.archivedNotes[formData.archivedNotes.length - 1].note}
+                    </p>
+                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex justify-between pt-1 border-t border-slate-50">
+                      <span>By {formData.archivedNotes[formData.archivedNotes.length - 1].createdByName}</span>
+                      <span>
+                        {(() => {
+                          const noteObj = formData.archivedNotes[formData.archivedNotes.length - 1];
+                          return noteObj.createdAt ? (
+                            noteObj.createdAt.toDate 
+                              ? format(noteObj.createdAt.toDate(), 'MMM d, yyyy h:mm a') 
+                              : format(new Date(noteObj.createdAt), 'MMM d, yyyy h:mm a')
+                          ) : 'Recently';
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -1447,9 +1469,9 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4 print:px-0">
-              {formData.archivedNotes && formData.archivedNotes.length > 0 ? (
+              {formData.archivedNotes && formData.archivedNotes.length > 1 ? (
                 <div className="space-y-3">
-                  {formData.archivedNotes.slice().reverse().map((noteObj, idx) => (
+                  {formData.archivedNotes.slice(0, -1).reverse().map((noteObj, idx) => (
                     <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1.5 break-words">
                       <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                         <span>By {noteObj.createdByName}</span>
@@ -1468,7 +1490,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic font-semibold">No archived notes recorded for this document.</p>
+                <p className="text-xs text-slate-400 italic font-semibold">Older historical notes will appear here once new updates are saved.</p>
               )}
             </CardContent>
           </Card>
