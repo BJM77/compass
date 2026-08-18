@@ -14,7 +14,41 @@ import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, Fi
 import { FactFindingForm } from './fact-finding-form';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/lib/mobile-utils';
 import { useNavigation } from '@/contexts/navigation-context';
+
+function getSalesforceSearchUrl(companyName: string) {
+  if (!companyName) return '#';
+  const payload = {
+    componentDef: "forceSearch:searchPageDesktop",
+    attributes: {
+      term: companyName.toUpperCase(),
+      scopeMap: { type: "TOP_RESULTS" },
+      context: {
+        FILTERS: {},
+        searchSource: "ASSISTANT_DIALOG",
+        disableIntentQuery: false,
+        disableSpellCorrection: false,
+        searchDialogSessionId: "f8b0648a-5c61-67fc-c60c-52f615e5e9b1",
+        debugInfo: {
+          appName: "Toll_Lightning_Console",
+          appType: "Console",
+          appNamespace: "c",
+          location: "one:recordHomeFlexipage2Wrapper",
+          subjectType: "Account"
+        }
+      },
+      groupId: "DEFAULT"
+    },
+    state: {}
+  };
+  try {
+    const base64Payload = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    return `https://teamglobalexp.lightning.force.com/one/one.app#${base64Payload}`;
+  } catch (e) {
+    return '#';
+  }
+}
 
 export function FactFindingHub() {
   const { viewParams, navigateTo } = useNavigation();
@@ -337,7 +371,9 @@ export function FactFindingHub() {
                 <TableBody>
                   {filteredAndSortedDocs.map(doc => (
                     <TableRow key={doc.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSelectDoc(doc)}>
-                      <TableCell className="font-black text-primary">{doc.companyName || 'Unnamed'}</TableCell>
+                      <TableCell className="font-black text-primary hover:underline hover:text-indigo-600" onClick={(e) => { e.stopPropagation(); window.open(getSalesforceSearchUrl(doc.companyName || ''), '_blank'); }} title="Search in Salesforce">
+                        {doc.companyName || 'Unnamed'}
+                      </TableCell>
                       <TableCell className="text-slate-600">{doc.freightType || '-'}</TableCell>
                       <TableCell>
                         <span className={cn("text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border shadow-sm", getStageConfig(doc.stage || 'New').color, getStageConfig(doc.stage || 'New').text)}>
@@ -381,7 +417,9 @@ export function FactFindingHub() {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
-                          <span className="line-clamp-1">{doc.companyName || 'Unnamed Company'}</span>
+                          <span className="line-clamp-1 hover:underline hover:text-indigo-600" onClick={(e) => { e.stopPropagation(); window.open(getSalesforceSearchUrl(doc.companyName || ''), '_blank'); }} title="Search in Salesforce">
+                            {doc.companyName || 'Unnamed Company'}
+                          </span>
                           <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
                             {doc.stage || 'New'}
                           </span>
