@@ -31,6 +31,7 @@ import { PlaybookView } from '@/components/dashboard/playbook-view';
 import { ActualSpendView } from '@/components/dashboard/actual-spend-view';
 import { StrategicRepository } from '@/components/dashboard/strategic-repository';
 import { SuccessPlansView } from '@/components/dashboard/success-plans';
+import { ManageTimeView } from '@/components/dashboard/manage-time-view';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -39,7 +40,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -56,11 +57,12 @@ import { NavigationProvider, useNavigation } from '@/contexts/navigation-context
 type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS';
+  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' | 'MANAGE_TIME';
 
 const NAV_ITEMS = [
   // Core Pages (Main Menu)
   { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
+  { view: 'MANAGE_TIME' as DashboardView,       label: 'Manage Time',       icon: Clock,            adminOnly: false, group: 'main' },
   { view: 'TWIW' as DashboardView,              label: 'TWTW',              icon: CalendarCheck,    adminOnly: false, group: 'main' },
   { view: 'FRIDAY_FW' as DashboardView,         label: 'Friday FW',         icon: Send,             adminOnly: false, group: 'main' },
   { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
@@ -145,6 +147,7 @@ function DashboardContent() {
     if (activeView === 'BROADCAST' && isLeader) return <div className="w-full p-4 md:p-8 max-w-xl mx-auto"><SystemBroadcast /></div>;
     if (activeView === 'STRATEGIC_REPOSITORY' && isLeader) return <div className="w-full p-4 md:p-8"><StrategicRepository /></div>;
     if (activeView === 'SUCCESS_PLANS') return <div className="w-full p-4 md:p-8"><SuccessPlansView userId={activeUserId || ''} isLeader={isLeader} /></div>;
+    if (activeView === 'MANAGE_TIME') return <div className="w-full p-4 md:p-8"><ManageTimeView /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
