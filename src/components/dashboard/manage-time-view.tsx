@@ -116,7 +116,7 @@ export function ManageTimeView() {
   const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
 
   // Load current user's plans
-  const { data: myPlans, loading: myPlansLoading } = useCollection<TimePlan>(
+  const { data: myPlans } = useCollection<TimePlan>(
     db ? collection(db, 'timeManagementPlans') : null,
     db && user ? [where('userId', '==', user.uid), orderBy('createdAt', 'desc')] : null
   );
