@@ -99,9 +99,9 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
   // Load system users
   const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isLeader) return null;
     return query(collection(db, 'users'));
-  }, [db]);
+  }, [db, isLeader]);
   const { data: allUsers } = useCollection(usersQuery);
 
   // Filter plans based on roles & filters

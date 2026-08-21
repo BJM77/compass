@@ -238,9 +238,10 @@ export function ActualSpendView() {
           <p className="text-xs text-slate-400 font-medium mt-1">Try clearing your search filters or upload a weekly Actual Spend CSV.</p>
         </div>
       ) : (
-        <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl">
+        <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl max-w-full">
           <ScrollArea className="h-[600px] w-full">
-            <Table>
+            <div className="overflow-x-auto max-w-full">
+              <Table>
               <TableHeader className="bg-slate-50/80 sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="font-bold">Common Customer Name</TableHead>
@@ -274,6 +275,7 @@ export function ActualSpendView() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </ScrollArea>
         </Card>
       )}
