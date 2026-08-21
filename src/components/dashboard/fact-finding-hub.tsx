@@ -19,35 +19,8 @@ import { useNavigation } from '@/contexts/navigation-context';
 
 function getSalesforceSearchUrl(companyName: string) {
   if (!companyName) return '#';
-  const payload = {
-    componentDef: "forceSearch:searchPageDesktop",
-    attributes: {
-      term: companyName.toUpperCase(),
-      scopeMap: { type: "TOP_RESULTS" },
-      context: {
-        FILTERS: {},
-        searchSource: "ASSISTANT_DIALOG",
-        disableIntentQuery: false,
-        disableSpellCorrection: false,
-        searchDialogSessionId: "f8b0648a-5c61-67fc-c60c-52f615e5e9b1",
-        debugInfo: {
-          appName: "Toll_Lightning_Console",
-          appType: "Console",
-          appNamespace: "c",
-          location: "one:recordHomeFlexipage2Wrapper",
-          subjectType: "Account"
-        }
-      },
-      groupId: "DEFAULT"
-    },
-    state: {}
-  };
-  try {
-    const base64Payload = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-    return `https://teamglobalexp.lightning.force.com/one/one.app#${base64Payload}`;
-  } catch (e) {
-    return '#';
-  }
+  const cleanTerm = companyName.split(' (')[0].split(' - ')[0].trim();
+  return `https://teamglobalexp.lightning.force.com/_ui/search/ui/UnifiedSearchResults?searchType=2&str=${encodeURIComponent(cleanTerm)}`;
 }
 
 export function FactFindingHub() {
