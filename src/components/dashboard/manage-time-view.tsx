@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -115,11 +115,13 @@ export function ManageTimeView() {
   const [adminPlans, setAdminPlans] = useState<TimePlan[]>([]);
   const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
 
+  const myPlansQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'timeManagementPlans'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
+  }, [db, user]);
+
   // Load current user's plans
-  const { data: myPlans } = useCollection<TimePlan>(
-    db ? collection(db, 'timeManagementPlans') : null,
-    db && user ? [where('userId', '==', user.uid), orderBy('createdAt', 'desc')] : null
-  );
+  const { data: myPlans } = useCollection<TimePlan>(myPlansQuery);
 
   useEffect(() => {
     if (myPlans && myPlans.length > 0 && !currentPlanId && !adminSelectedUserId) {
