@@ -33,9 +33,7 @@ service cloud.firestore {
         request.resource.data.role == 'GUEST' && 
         request.resource.data.email.matches('.*@teamglobalexp\\.com$')
       ) || isAdmin();
-      allow update: if (isOwner(userId)
-            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
-        || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
 

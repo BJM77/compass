@@ -114,8 +114,7 @@ function DashboardContent() {
     } 
   };
   const handleSimulate = (uid: string) => { setSimulationUid(uid); navigateTo('DASHBOARD'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-
-
+    // Temporary escalation removed in favor of hardcoded check in auth-context
 
   const activeView = profile?.role === 'GUEST' ? 'TWIW' : currentView;
 

@@ -425,6 +425,11 @@ export function WeeklyArchive() {
           ? allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER')
           : allUsers.filter(u => u.id === user?.uid);
 
+        // Deduplicate targetUsers by name to prevent doubling up all data if duplicate records exist
+        const uniqueTargetUsers = Array.from(
+          new Map(targetUsers.map(u => [(u.name || u.id).trim().toLowerCase(), u])).values()
+        );
+
         const nextWeek = getNextWeekKey(selectedWeek);
 
         // Parallel fetch TWTW, Friday FW (commitments), and activity metrics
@@ -434,7 +439,7 @@ export function WeeklyArchive() {
           getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
         ]);
 
-        const results: ArchivedWeek[] = targetUsers.map(u => {
+        const results: ArchivedWeek[] = uniqueTargetUsers.map(u => {
           const commitment = commitmentsSnap.docs.find(d => d.data().userId === u.id)?.data();
           const twtw = twtwSnap.docs.find(d => d.data().userId === u.id)?.data();
           const progress = progressSnap.docs.find(d => d.data().userId === u.id)?.data();

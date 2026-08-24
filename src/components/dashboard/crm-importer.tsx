@@ -156,18 +156,18 @@ function parseAustralianDate(dateStr: string): Date | null {
 
 function getWeekForDate(date: Date): string {
   let currentYear = date.getFullYear();
-  let firstMondayOfApril = new Date(currentYear, 3, 1);
-  while (firstMondayOfApril.getDay() !== 1) {
-    firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+  let firstSundayOfApril = new Date(currentYear, 3, 1);
+  while (firstSundayOfApril.getDay() !== 0) {
+    firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
   }
-  if (isBefore(date, firstMondayOfApril)) {
+  if (isBefore(date, firstSundayOfApril)) {
     currentYear -= 1;
-    firstMondayOfApril = new Date(currentYear, 3, 1);
-    while (firstMondayOfApril.getDay() !== 1) {
-      firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+    firstSundayOfApril = new Date(currentYear, 3, 1);
+    while (firstSundayOfApril.getDay() !== 0) {
+      firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
     }
   }
-  const weekNumber = differenceInCalendarWeeks(date, firstMondayOfApril, { weekStartsOn: 1 }) + 1;
+  const weekNumber = differenceInCalendarWeeks(date, firstSundayOfApril, { weekStartsOn: 0 }) + 1;
   const paddedWeek = weekNumber.toString().padStart(2, '0');
   return `${currentYear}-${paddedWeek}`;
 }
