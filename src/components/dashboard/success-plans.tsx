@@ -243,11 +243,21 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
           createdAt: serverTimestamp()
         });
         toast({ title: 'Success Plan Created', description: 'Your new success plan has been saved.' });
+        setSelectedPlan({
+          id: docRef.id,
+          ...payload,
+          createdAt: { toMillis: () => Date.now() }
+        });
         setIsCreating(false);
         setIsEditing(false);
       } else if (selectedPlan?.id) {
         await updateDoc(doc(db, 'successPlans', selectedPlan.id), payload);
         toast({ title: 'Success Plan Updated', description: 'The success plan details have been updated.' });
+        setSelectedPlan({
+          id: selectedPlan.id,
+          ...payload,
+          createdAt: selectedPlan.createdAt
+        });
         setIsEditing(false);
       }
     } catch (error) {
