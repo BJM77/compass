@@ -378,7 +378,7 @@ export function AMBDManagement() {
                         </div>
                         <div className="text-xs font-black line-clamp-1 mb-0.5">{note.title}</div>
                         <div className={`text-[9px] font-semibold ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
-                          {note.createdAt?.toDate ? format(note.createdAt.toDate(), 'dd MMM yyyy') : 'Recently'}
+                          {note.createdAt?.toDate ? format(note.createdAt.toDate(), 'dd MMM yyyy, HH:mm') : 'Recently'}
                         </div>
                       </button>
                     );
@@ -417,7 +417,7 @@ export function AMBDManagement() {
                     <div>
                       <span className="text-[9px] uppercase font-black text-slate-400 block mb-0.5">Date Sent</span>
                       <span className="text-slate-900 font-extrabold">
-                        {selectedNote.createdAt?.toDate ? format(selectedNote.createdAt.toDate(), 'PPP p') : 'Pending'}
+                        {selectedNote.createdAt?.toDate ? format(selectedNote.createdAt.toDate(), 'dd MMM yyyy, HH:mm') : 'Pending'}
                       </span>
                     </div>
                     <div>
@@ -425,7 +425,7 @@ export function AMBDManagement() {
                       <Badge className={`text-[9px] font-black uppercase tracking-wider ${
                         selectedNote.status === 'READ' ? 'bg-emerald-500/20 text-emerald-600 border-none' : 'bg-amber-500/20 text-amber-600 border-none'
                       }`}>
-                        {selectedNote.status === 'READ' ? `Confirmed at ${selectedNote.readAt?.toDate ? format(selectedNote.readAt.toDate(), 'dd MMM HH:mm') : ''}` : 'Pending Confirmation'}
+                        {selectedNote.status === 'READ' ? `Confirmed at ${selectedNote.readAt?.toDate ? format(selectedNote.readAt.toDate(), 'dd MMM yyyy, HH:mm') : ''}` : 'Pending Confirmation'}
                       </Badge>
                     </div>
                   </div>

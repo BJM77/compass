@@ -138,11 +138,11 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
                     </div>
                     <div className="text-right whitespace-nowrap">
                       <span className="text-[9px] font-semibold text-slate-400 block">
-                        Sent: {note.createdAt?.toDate ? format(note.createdAt.toDate(), 'dd MMM yyyy') : 'N/A'}
+                        Sent: {note.createdAt?.toDate ? format(note.createdAt.toDate(), 'dd MMM yyyy, HH:mm') : 'N/A'}
                       </span>
                       {note.readAt?.toDate && (
                         <span className="text-[9px] font-bold text-emerald-600 block">
-                          Confirmed: {format(note.readAt.toDate(), 'dd MMM HH:mm')}
+                          Confirmed: {format(note.readAt.toDate(), 'dd MMM yyyy, HH:mm')}
                         </span>
                       )}
                     </div>
