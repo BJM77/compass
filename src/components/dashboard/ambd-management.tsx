@@ -38,6 +38,14 @@ export function AMBDManagement() {
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Advanced Filter State
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterUserId, setFilterUserId] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterContentQuery, setFilterContentQuery] = useState('');
+  
   // Form State
   const [formState, setFormState] = useState({
     userId: '',
@@ -84,6 +92,8 @@ export function AMBDManagement() {
   const filteredNotes = useMemo(() => {
     if (!rawNotes) return [];
     let list = [...rawNotes];
+    
+    // Basic search query (covers name, title, and content)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(n => 
@@ -92,8 +102,42 @@ export function AMBDManagement() {
         n.content?.toLowerCase().includes(q)
       );
     }
+    
+    // Advanced Filters
+    if (showAdvancedFilters) {
+      if (filterUserId !== 'all') {
+        list = list.filter(n => n.userId === filterUserId);
+      }
+      
+      if (filterStatus !== 'all') {
+        list = list.filter(n => n.status === filterStatus);
+      }
+      
+      if (filterContentQuery.trim()) {
+        const q = filterContentQuery.toLowerCase();
+        list = list.filter(n => n.content?.toLowerCase().includes(q));
+      }
+      
+      if (filterStartDate) {
+        const start = new Date(filterStartDate);
+        list = list.filter(n => {
+          const date = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+          return date >= start;
+        });
+      }
+      
+      if (filterEndDate) {
+        const end = new Date(filterEndDate);
+        end.setHours(23, 59, 59, 999);
+        list = list.filter(n => {
+          const date = n.createdAt?.toDate ? n.createdAt.toDate() : new Date();
+          return date <= end;
+        });
+      }
+    }
+    
     return list as AMBDNote[];
-  }, [rawNotes, searchQuery]);
+  }, [rawNotes, searchQuery, showAdvancedFilters, filterUserId, filterStatus, filterContentQuery, filterStartDate, filterEndDate]);
 
   const handleStartCreate = () => {
     setFormState({
@@ -215,6 +259,93 @@ export function AMBDManagement() {
                   className="pl-9 text-xs font-semibold rounded-xl border-slate-200"
                 />
               </div>
+              
+              <div className="mt-2 flex justify-end">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  className="text-[10px] font-black uppercase text-slate-500 hover:text-slate-800 h-7"
+                >
+                  {showAdvancedFilters ? 'Hide Advanced' : 'Advanced Search'}
+                </Button>
+              </div>
+
+              {showAdvancedFilters && (
+                <div className="mt-3 p-3 bg-slate-50 border rounded-2xl space-y-3 text-xs font-bold text-slate-700">
+                  <div className="space-y-1">
+                    <label className="text-[9px] uppercase font-black text-slate-400">Search Content</label>
+                    <Input 
+                      placeholder="Words inside note..." 
+                      value={filterContentQuery}
+                      onChange={(e) => setFilterContentQuery(e.target.value)}
+                      className="text-xs font-semibold rounded-lg bg-white border-slate-200 h-8"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] uppercase font-black text-slate-400">Target User</label>
+                    <Select value={filterUserId} onValueChange={setFilterUserId}>
+                      <SelectTrigger className="h-8 rounded-lg text-xs font-bold border-slate-200 bg-white">
+                        <SelectValue placeholder="All Users" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[200px]">
+                        <SelectItem value="all">All Users</SelectItem>
+                        {targetUsers.map(u => (
+                          <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] uppercase font-black text-slate-400">Status</label>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="h-8 rounded-lg text-xs font-bold border-slate-200 bg-white">
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="READ">Confirmed (Read)</SelectItem>
+                        <SelectItem value="UNREAD">Pending (Unread)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] uppercase font-black text-slate-400">From Date</label>
+                      <Input 
+                        type="date"
+                        value={filterStartDate}
+                        onChange={(e) => setFilterStartDate(e.target.value)}
+                        className="text-xs font-semibold rounded-lg bg-white border-slate-200 h-8"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] uppercase font-black text-slate-400">To Date</label>
+                      <Input 
+                        type="date"
+                        value={filterEndDate}
+                        onChange={(e) => setFilterEndDate(e.target.value)}
+                        className="text-xs font-semibold rounded-lg bg-white border-slate-200 h-8"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-1.5 pt-1">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => {
+                        setFilterStartDate('');
+                        setFilterEndDate('');
+                        setFilterUserId('all');
+                        setFilterStatus('all');
+                        setFilterContentQuery('');
+                      }} 
+                      className="h-6 text-[9px] uppercase font-black text-slate-500 rounded-md"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="px-2">
               <div className="space-y-1 max-h-[500px] overflow-y-auto">
