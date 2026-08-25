@@ -105,6 +105,25 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
   }, [db, isLeader]);
   const { data: allUsers } = useCollection(usersQuery);
 
+  const deDuplicatedUsers = useMemo(() => {
+    if (!allUsers) return [];
+    const map = new Map<string, any>();
+    allUsers.forEach(u => {
+      const key = (u.name || u.id || '').trim().toLowerCase();
+      if (!key) return;
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, u);
+      } else {
+        const isRealUid = (id: string) => id.length === 28 && !id.includes('_');
+        if (isRealUid(u.id) && !isRealUid(existing.id)) {
+          map.set(key, u);
+        }
+      }
+    });
+    return Array.from(map.values());
+  }, [allUsers]);
+
   // Filter plans based on roles & filters
   const visiblePlans = useMemo(() => {
     if (!rawPlans) return [];
@@ -217,7 +236,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
     
     // Validation
     const memberName = isLeader 
-      ? (allUsers?.find(u => (u.id || u.uid) === formState.teamMemberId)?.name || formState.teamMemberName)
+      ? (deDuplicatedUsers?.find(u => (u.id || u.uid) === formState.teamMemberId)?.name || formState.teamMemberName)
       : (profile?.name || '');
 
     if (!formState.teamMemberId && isLeader) {
@@ -571,7 +590,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Members</SelectItem>
-                      {allUsers?.map(u => {
+                      {deDuplicatedUsers?.map(u => {
                         const uId = u.id || u.uid;
                         return (
                           <SelectItem key={uId} value={uId}>{u.name}</SelectItem>
@@ -879,14 +898,14 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 <label className="text-[10px] font-black uppercase text-slate-900 block">Team Member</label>
                 {isLeader ? (
                   <Select value={formState.teamMemberId} onValueChange={(val) => {
-                    const selected = allUsers?.find(u => (u.id || u.uid) === val);
+                    const selected = deDuplicatedUsers?.find(u => (u.id || u.uid) === val);
                     setFormState(prev => ({ ...prev, teamMemberId: val, teamMemberName: selected?.name || '' }));
                   }}>
                     <SelectTrigger className="rounded-xl text-xs font-bold border-slate-200 bg-white">
                       <SelectValue placeholder="Select Team Member" />
                     </SelectTrigger>
                     <SelectContent>
-                      {allUsers?.map(u => {
+                      {deDuplicatedUsers?.map(u => {
                         const uId = u.id || u.uid;
                         return (
                           <SelectItem key={uId} value={uId}>{u.name}</SelectItem>

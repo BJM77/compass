@@ -52,10 +52,26 @@ export function AMBDManagement() {
   }, [db]);
   const { data: allUsers } = useCollection(usersQuery);
 
-  // Filter targeted users (AMs and BDMs)
+  // Filter and de-duplicate targeted users (AMs and BDMs)
   const targetUsers = useMemo(() => {
     if (!allUsers) return [];
-    return allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
+    const list = allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
+    
+    const map = new Map<string, any>();
+    list.forEach(u => {
+      const key = (u.name || u.id || '').trim().toLowerCase();
+      if (!key) return;
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, u);
+      } else {
+        const isRealUid = (id: string) => id.length === 28 && !id.includes('_');
+        if (isRealUid(u.id) && !isRealUid(existing.id)) {
+          map.set(key, u);
+        }
+      }
+    });
+    return Array.from(map.values());
   }, [allUsers]);
 
   // Fetch all AM/BD Notes
