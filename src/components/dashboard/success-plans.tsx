@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where, orderBy } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where, orderBy, limit } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,7 +92,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
       return query(
         collection(db, 'successPlans'), 
         where('createdBy', '==', userId),
-        orderBy('createdAt', 'desc')
+        limit(500)
       );
     }
   }, [db, isLeader, userId]);
@@ -113,6 +113,12 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
     // Non-leaders can only see plans they created
     if (!isLeader) {
       list = list.filter(plan => plan.createdBy === userId);
+      // Sort client-side since we removed orderBy for non-leaders to bypass composite index
+      list.sort((a, b) => {
+        const dateA = a.createdAt?.toMillis?.() || 0;
+        const dateB = b.createdAt?.toMillis?.() || 0;
+        return dateB - dateA; // Descending
+      });
     } else if (selectedUserFilter !== 'all') {
       list = list.filter(plan => plan.teamMemberId === selectedUserFilter || plan.createdBy === selectedUserFilter);
     }
