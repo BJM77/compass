@@ -123,7 +123,7 @@ export function AMBDManagement() {
       return;
     }
 
-    const selectedUser = targetUsers.find(u => u.uid === formState.userId);
+    const selectedUser = targetUsers.find(u => (u.id || u.uid) === formState.userId);
     const targetUserName = selectedUser?.name || 'Unknown User';
 
     try {
@@ -330,9 +330,12 @@ export function AMBDManagement() {
                     <SelectValue placeholder="Select Target User" />
                   </SelectTrigger>
                   <SelectContent>
-                    {targetUsers.map(u => (
-                      <SelectItem key={u.uid} value={u.uid}>{u.name} ({u.role})</SelectItem>
-                    ))}
+                    {targetUsers.map(u => {
+                      const uId = u.id || u.uid;
+                      return (
+                        <SelectItem key={uId} value={uId}>{u.name} ({u.role})</SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
