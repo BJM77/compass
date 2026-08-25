@@ -170,7 +170,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
     isArchived: false,
     stage: 'New',
     currentNote: '',
-    archivedNotes: []
+    archivedNotes: [],
+    inSalesforce: false
   });
 
   useEffect(() => {
@@ -187,7 +188,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
         mapNotesTo: existingDoc.mapNotesTo || '',
         serviceNotes: existingDoc.serviceNotes || {},
         currentNote: existingDoc.currentNote || '',
-        archivedNotes: existingDoc.archivedNotes || []
+        archivedNotes: existingDoc.archivedNotes || [],
+        inSalesforce: existingDoc.inSalesforce || false
       });
     }
   }, [existingDoc]);
@@ -520,25 +522,35 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
             <CardContent className="p-6 space-y-6 print:px-0">
               <div className="space-y-2">
                 <Label className="font-bold text-slate-700">Company Name *</Label>
-                <div className="flex gap-2">
-                  <Input 
-                     value={formData.companyName} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('companyName', e.target.value)} 
-                    placeholder="Enter company name"
-                    className="font-medium print:border-0 print:border-b print:rounded-none print:px-0 print:text-lg print:shadow-none flex-1"
-                  />
-                  {formData.companyName && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => window.open(getSalesforceSearchUrl(formData.companyName || ''), '_blank')}
-                      className="gap-2 font-bold text-[#00a1e0] border-[#00a1e0]/20 hover:bg-[#00a1e0]/10 hover:text-[#00a1e0] shrink-0 print:hidden"
-                      title="Search Company in Salesforce"
-                    >
-                      <Building className="w-4 h-4" />
-                      Salesforce
-                    </Button>
-                  )}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  <div className="flex gap-2 flex-1 w-full">
+                    <Input 
+                      value={formData.companyName} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('companyName', e.target.value)} 
+                      placeholder="Enter company name"
+                      className="font-medium print:border-0 print:border-b print:rounded-none print:px-0 print:text-lg print:shadow-none flex-1"
+                    />
+                    {formData.companyName && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => window.open(getSalesforceSearchUrl(formData.companyName || ''), '_blank')}
+                        className="gap-2 font-bold text-[#00a1e0] border-[#00a1e0]/20 hover:bg-[#00a1e0]/10 hover:text-[#00a1e0] shrink-0 print:hidden"
+                        title="Search Company in Salesforce"
+                      >
+                        <Building className="w-4 h-4" />
+                        Salesforce
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl h-10 print:hidden shrink-0">
+                    <Checkbox 
+                      id="inSalesforce"
+                      checked={!!formData.inSalesforce}
+                      onCheckedChange={(checked: boolean | 'indeterminate') => handleChange('inSalesforce', !!checked)}
+                    />
+                    <Label htmlFor="inSalesforce" className="text-sm font-black text-slate-700 cursor-pointer pt-0.5">In Salesforce</Label>
+                  </div>
                 </div>
                 {/* Stage Pipeline */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">

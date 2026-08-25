@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock } from 'lucide-react';
+import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -368,6 +368,9 @@ export function FactFindingHub() {
                           >
                             BG
                           </a>
+                          {doc.inSalesforce && (
+                            <Star className="w-4 h-4 text-amber-400 fill-amber-400 ml-1 shrink-0" title="In Salesforce" />
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-slate-600">{doc.freightType || '-'}</TableCell>
@@ -434,6 +437,9 @@ export function FactFindingHub() {
                             >
                               BG
                             </a>
+                            {doc.inSalesforce && (
+                              <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" title="In Salesforce" />
+                            )}
                           </span>
                           <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
                             {doc.stage || 'New'}

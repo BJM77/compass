@@ -134,6 +134,7 @@ export interface FactFindingDoc {
   serviceAdminNotes?: Record<string, string>;
   currentNote?: string;
   archivedNotes?: { note: string; createdAt: any; createdByName: string; createdBy: string; }[];
+  inSalesforce?: boolean;
 }
 
 export interface OpsReport {
