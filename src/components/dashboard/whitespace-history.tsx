@@ -1,7 +1,7 @@
 "use client";
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, deleteDoc, doc, Timestamp, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, deleteDoc, doc, Timestamp, updateDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +62,8 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     if (!db || !userId) return null;
     return query(
       collection(db, 'whitespacePlans'),
-      orderBy('createdAt', 'desc')
+      orderBy('createdAt', 'desc'),
+      limit(500)
     );
   }, [db, userId]);
 

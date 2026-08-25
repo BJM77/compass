@@ -133,7 +133,10 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
     }
 
     // Leader View: Table showing Users x Past 4 Weeks
-    const targetUsers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER') || [];
+    const targetUsersRaw = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER') || [];
+    const targetUsers = Array.from(
+      new Map(targetUsersRaw.map(u => [(u.name || u.id).trim().toLowerCase(), u])).values()
+    );
     
     return (
       <div className="overflow-x-auto">

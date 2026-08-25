@@ -51,12 +51,14 @@ export function FactFindingHub() {
     if (isLeader) {
       return query(
         collection(db, 'factFindingDocs'),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(500)
       );
     } else {
       return query(
         collection(db, 'factFindingDocs'),
-        where('userId', '==', user.uid)
+        where('userId', '==', user.uid),
+        limit(500)
       );
     }
   }, [db, user, isLeader]);
@@ -344,8 +346,29 @@ export function FactFindingHub() {
                 <TableBody>
                   {filteredAndSortedDocs.map(doc => (
                     <TableRow key={doc.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSelectDoc(doc)}>
-                      <TableCell className="font-black text-primary hover:underline hover:text-indigo-600" onClick={(e) => { e.stopPropagation(); window.open(getSalesforceSearchUrl(doc.companyName || ''), '_blank'); }} title="Search in Salesforce">
-                        {doc.companyName || 'Unnamed'}
+                      <TableCell className="font-black">
+                        <div className="flex items-center gap-2">
+                          <a 
+                            href={getSalesforceSearchUrl(doc.companyName || '')} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline hover:text-indigo-600 truncate max-w-[200px]"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Open in Salesforce"
+                          >
+                            {doc.companyName || 'Unnamed'}
+                          </a>
+                          <a 
+                            href={getSalesforceSearchUrl(doc.companyName || '')} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[8px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 cursor-pointer"
+                            title="Cmd/Ctrl+Click or Middle Click to open in background"
+                          >
+                            BG
+                          </a>
+                        </div>
                       </TableCell>
                       <TableCell className="text-slate-600">{doc.freightType || '-'}</TableCell>
                       <TableCell>
@@ -390,8 +413,27 @@ export function FactFindingHub() {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
-                          <span className="line-clamp-1 hover:underline hover:text-indigo-600" onClick={(e) => { e.stopPropagation(); window.open(getSalesforceSearchUrl(doc.companyName || ''), '_blank'); }} title="Search in Salesforce">
-                            {doc.companyName || 'Unnamed Company'}
+                          <span className="flex items-center gap-2">
+                            <a 
+                              href={getSalesforceSearchUrl(doc.companyName || '')} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="line-clamp-1 hover:underline hover:text-indigo-600" 
+                              onClick={(e) => e.stopPropagation()} 
+                              title="Open in Salesforce"
+                            >
+                              {doc.companyName || 'Unnamed Company'}
+                            </a>
+                            <a 
+                              href={getSalesforceSearchUrl(doc.companyName || '')} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-[8px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 cursor-pointer shrink-0"
+                              title="Cmd/Ctrl+Click or Middle Click to open in background"
+                            >
+                              BG
+                            </a>
                           </span>
                           <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
                             {doc.stage || 'New'}

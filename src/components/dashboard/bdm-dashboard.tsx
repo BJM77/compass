@@ -560,7 +560,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
             <Badge className={cn("border-none font-bold text-[8px] uppercase", 
               twtwStatus === 'SUBMITTED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
             )}>
-              {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due'}
+              {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due: Thursday Morning'}
             </Badge>
           </button>
 
@@ -584,7 +584,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
               fridayStatus === 'SUBMITTED' ? 'bg-emerald-500/20 text-emerald-300' : 
               fridayStatus === 'DRAFT' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'
             )}>
-              {fridayStatus === 'SUBMITTED' ? 'Done' : fridayStatus === 'DRAFT' ? 'Draft' : 'Due'}
+              {fridayStatus === 'SUBMITTED' ? 'Done' : fridayStatus === 'DRAFT' ? 'Draft' : 'Due: Friday Morning'}
             </Badge>
           </button>
 

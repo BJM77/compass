@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, setDoc, increment } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, setDoc, increment, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea as UITextarea } from "@/components/ui/textarea";
@@ -133,7 +133,8 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
     return query(
       collection(db, 'callPlans'),
       where('userId', '==', 'TEAM_NODE'),
-      orderBy('createdAt', 'desc')
+      orderBy('createdAt', 'desc'),
+      limit(500)
     );
   }, [db, userId]);
   

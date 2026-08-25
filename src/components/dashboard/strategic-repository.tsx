@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,21 +23,21 @@ export function StrategicRepository() {
   // 1. Whitespace Reports Query
   const whitespaceQuery = useMemoFirebase(() => {
     if (!db || !isLeader) return null;
-    return query(collection(db, 'whitespacePlans'), orderBy('createdAt', 'desc'));
+    return query(collection(db, 'whitespacePlans'), orderBy('createdAt', 'desc'), limit(500));
   }, [db, isLeader]);
   const { data: whitespaceDocs, isLoading: wsLoading } = useCollection(whitespaceQuery);
 
   // 2. Call Plans Query
   const callPlanQuery = useMemoFirebase(() => {
     if (!db || !isLeader) return null;
-    return query(collection(db, 'callPlans'), orderBy('createdAt', 'desc'));
+    return query(collection(db, 'callPlans'), orderBy('createdAt', 'desc'), limit(500));
   }, [db, isLeader]);
   const { data: callPlanDocs, isLoading: cpLoading } = useCollection(callPlanQuery);
 
   // 3. Fact Finding Docs Query
   const factFindingQuery = useMemoFirebase(() => {
     if (!db || !isLeader) return null;
-    return query(collection(db, 'factFindingDocs'), orderBy('createdAt', 'desc'));
+    return query(collection(db, 'factFindingDocs'), orderBy('createdAt', 'desc'), limit(500));
   }, [db, isLeader]);
   const { data: factFindingDocs, isLoading: ffLoading } = useCollection(factFindingQuery);
 
