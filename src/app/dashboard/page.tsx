@@ -76,6 +76,7 @@ const NAV_ITEMS = [
   { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
   
   // Admin Menu / Submenu Items
+  { view: 'AM_BD' as DashboardView,             label: 'AM/BD Notes Admin', icon: ClipboardList,    adminOnly: true,  group: 'admin' },
   { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'admin' },
   { view: 'OPS_REVIEW' as DashboardView,        label: 'Ops Review Ledger', icon: Shield,           adminOnly: true,  group: 'admin' },
   { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true,  group: 'admin' },
@@ -88,7 +89,6 @@ const NAV_ITEMS = [
   { view: 'UPLOAD' as DashboardView,            label: 'CRM Import',        icon: Upload,           adminOnly: true,  group: 'admin' },
   { view: 'BROADCAST' as DashboardView,         label: 'Broadcast Admin',   icon: Megaphone,        adminOnly: true,  group: 'admin' },
   { view: 'STRATEGIC_REPOSITORY' as DashboardView, label: 'Strategic Repo', icon: Sparkles,         adminOnly: true,  group: 'admin' },
-  { view: 'AM_BD' as DashboardView,             label: 'AM/BD Notes Admin', icon: ClipboardList,    adminOnly: true,  group: 'admin' },
 ];
 
 function DashboardContent() {
