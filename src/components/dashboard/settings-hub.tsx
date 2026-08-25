@@ -216,7 +216,18 @@ export function SettingsHub() {
         const personal = personalDoc.exists() ? personalDoc.data() : {};
         const global = globalDoc?.exists() ? globalDoc.data() : {};
 
-        setSettings(prev => ({ ...prev, ...global, ...personal }));
+        setSettings(prev => {
+          let mergedSettings = { ...prev, ...global, ...personal };
+          
+          if (mergedSettings.dashboardLayout) {
+            const savedIds = new Set(mergedSettings.dashboardLayout.map((w: any) => w.id));
+            const missingWidgets = DEFAULT_DASHBOARD_LAYOUT.filter(w => !savedIds.has(w.id));
+            if (missingWidgets.length > 0) {
+              mergedSettings.dashboardLayout = [...mergedSettings.dashboardLayout, ...missingWidgets];
+            }
+          }
+          return mergedSettings;
+        });
       } finally {
         setIsLoading(false);
       }

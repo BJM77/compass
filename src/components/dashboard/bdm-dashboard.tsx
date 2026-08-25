@@ -94,7 +94,12 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     return doc(db, 'appSettings', 'global');
   }, [db, authUser]);
   const { data: globalSettings } = useDoc(settingsDocRef);
-  const rawLayout = (globalSettings?.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT) as DashboardWidgetConfig[];
+  const rawLayout = useMemo(() => {
+    const savedLayout = (globalSettings?.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT) as DashboardWidgetConfig[];
+    const savedIds = new Set(savedLayout.map(w => w.id));
+    const missingWidgets = DEFAULT_DASHBOARD_LAYOUT.filter(w => !savedIds.has(w.id));
+    return [...savedLayout, ...missingWidgets];
+  }, [globalSettings]);
   
   const layout = useMemo(() => {
     let result = [...rawLayout];

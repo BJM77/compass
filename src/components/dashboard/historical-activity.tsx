@@ -134,9 +134,22 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
 
     // Leader View: Table showing Users x Past 4 Weeks
     const targetUsersRaw = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER') || [];
-    const targetUsers = Array.from(
-      new Map(targetUsersRaw.map(u => [(u.name || u.id).trim().toLowerCase(), u])).values()
-    );
+    
+    // De-duplicate by lowercased name. If duplicates exist, prefer the one with a real Auth UID (28-character alphanumeric) over string IDs like 'rienzie_delilkan'
+    const targetUsersMap = new Map<string, any>();
+    targetUsersRaw.forEach(u => {
+      const key = (u.name || u.id).trim().toLowerCase();
+      const existing = targetUsersMap.get(key);
+      if (!existing) {
+        targetUsersMap.set(key, u);
+      } else {
+        const isRealUid = (id: string) => id.length === 28 && !id.includes('_');
+        if (isRealUid(u.id) && !isRealUid(existing.id)) {
+          targetUsersMap.set(key, u);
+        }
+      }
+    });
+    const targetUsers = Array.from(targetUsersMap.values());
     
     return (
       <div className="overflow-x-auto">
