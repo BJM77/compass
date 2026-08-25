@@ -43,35 +43,35 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
   // Fetch activity for the past 4 weeks
   const progressQuery = useMemoFirebase(() => {
     if (!db) return null;
-    let q = query(collection(db, 'weeklyProgress'), where('week', 'in', pastWeeks));
     if (userId) {
-      q = query(q, where('userId', '==', userId));
+      return query(collection(db, 'weeklyProgress'), where('userId', '==', userId));
     }
-    return q;
+    return query(collection(db, 'weeklyProgress'), where('week', 'in', pastWeeks));
   }, [db, pastWeeks, userId]);
-  const { data: progressData, isLoading } = useCollection(progressQuery);
+  const { data: progressDataRaw, isLoading } = useCollection(progressQuery);
+  const progressData = useMemo(() => progressDataRaw?.filter(d => pastWeeks.includes(d.week)), [progressDataRaw, pastWeeks]);
 
   // Fetch callOutcomes for the past 4 weeks
   const outcomesQuery = useMemoFirebase(() => {
     if (!db) return null;
-    let q = query(collection(db, 'callOutcomes'), where('week', 'in', pastWeeks));
     if (userId) {
-      q = query(q, where('userId', '==', userId));
+      return query(collection(db, 'callOutcomes'), where('userId', '==', userId));
     }
-    return q;
+    return query(collection(db, 'callOutcomes'), where('week', 'in', pastWeeks));
   }, [db, pastWeeks, userId]);
-  const { data: outcomesData } = useCollection(outcomesQuery);
+  const { data: outcomesDataRaw } = useCollection(outcomesQuery);
+  const outcomesData = useMemo(() => outcomesDataRaw?.filter(d => pastWeeks.includes(d.week)), [outcomesDataRaw, pastWeeks]);
 
   // Fetch activityLogs for the past 4 weeks
   const logsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    let q = query(collection(db, 'activityLogs'), where('week', 'in', pastWeeks));
     if (userId) {
-      q = query(q, where('userId', '==', userId));
+      return query(collection(db, 'activityLogs'), where('userId', '==', userId));
     }
-    return q;
+    return query(collection(db, 'activityLogs'), where('week', 'in', pastWeeks));
   }, [db, pastWeeks, userId]);
-  const { data: logsData } = useCollection(logsQuery);
+  const { data: logsDataRaw } = useCollection(logsQuery);
+  const logsData = useMemo(() => logsDataRaw?.filter(d => pastWeeks.includes(d.week)), [logsDataRaw, pastWeeks]);
 
   // Filter outcomes and logs for the active popup
   const activeOutcomes = useMemo(() => {
