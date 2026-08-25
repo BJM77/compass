@@ -7,6 +7,7 @@ import { MobileDashboard } from '@/components/dashboard/mobile-dashboard';
 import { useIsMobile } from '@/lib/mobile-utils';
 import { Loader2 } from 'lucide-react';
 import { PipelineProvider } from '@/contexts/pipeline-context';
+import { NavigationProvider } from '@/contexts/navigation-context';
 
 export default function MobileDashboardPage() {
   const { user, profile, loading } = useAuth();
@@ -44,7 +45,9 @@ export default function MobileDashboardPage() {
 
   return (
     <PipelineProvider>
-      <MobileDashboard userId={user.uid} userName={profile?.name || user.email || 'User'} />
+      <NavigationProvider>
+        <MobileDashboard userId={user.uid} userName={profile?.name || user.email || 'User'} />
+      </NavigationProvider>
     </PipelineProvider>
   );
 }
