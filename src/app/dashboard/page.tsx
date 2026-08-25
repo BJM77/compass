@@ -33,6 +33,7 @@ import { StrategicRepository } from '@/components/dashboard/strategic-repository
 import { SuccessPlansView } from '@/components/dashboard/success-plans';
 import { ManageTimeView } from '@/components/dashboard/manage-time-view';
 import { AMBDManagement } from '@/components/dashboard/ambd-management';
+import { CreateNoteDialog } from '@/components/dashboard/create-note-dialog';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -240,6 +241,13 @@ function DashboardContent() {
               <Compass className="w-5 h-5 text-indigo-600" />
               <span className="font-black uppercase tracking-tight text-xs text-slate-900">BDM Compass</span>
             </div>
+            
+            {isLeader && (
+              <div className="ml-2">
+                <CreateNoteDialog />
+              </div>
+            )}
+
             {simulationUid && isLeader && (
               <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-amber-800 text-xs font-bold animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
