@@ -25,7 +25,8 @@ import {
   ArrowLeft,
   X,
   XCircle,
-  Users
+  Users,
+  Monitor
 } from 'lucide-react';
 import { UserManagement } from './user-management';
 import { MobileModule, MOBILE_MODULES } from '@/lib/mobile-utils';
@@ -217,6 +218,13 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
             <span className="text-[10px] font-bold text-slate-600">
               Week {currentWeek.split('-')[1]}
             </span>
+            <button
+              onClick={() => { localStorage.removeItem('forceMobile'); window.dispatchEvent(new Event('force-mobile-change')); }}
+              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors hidden md:block"
+              title="Exit Mobile Mode"
+            >
+              <Monitor className="w-4 h-4 text-indigo-500" />
+            </button>
             <button
               onClick={handleSignOut}
               className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"

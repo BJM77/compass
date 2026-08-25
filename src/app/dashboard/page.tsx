@@ -40,7 +40,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone
 } from 'lucide-react';
 import { CRMImporter } from '@/components/dashboard/crm-importer';
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -213,7 +213,22 @@ function DashboardContent() {
               </SidebarGroup>
             )}
           </SidebarContent>
-          <SidebarFooter className="p-4 border-t"><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={handleSignOut} className="text-red-500"><LogOut className="w-4 h-4" /><span>Sign Out</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
+          <SidebarFooter className="p-4 border-t">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => { localStorage.setItem('forceMobile', 'true'); window.dispatchEvent(new Event('force-mobile-change')); }} className="text-indigo-600">
+                  <Smartphone className="w-4 h-4" />
+                  <span>Mobile Mode</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleSignOut} className="text-red-500">
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
         </Sidebar>
         <SidebarInset className="bg-[#F7F6F8]">
           <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2 print:hidden">

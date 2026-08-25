@@ -7,13 +7,23 @@ export function useIsMobile(): boolean | undefined {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+      if (typeof window !== 'undefined' && window.localStorage.getItem('forceMobile') === 'true') {
+        setIsMobile(true);
+      } else {
+        setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+      }
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    return () => window.removeEventListener('resize', checkMobile);
+    const onForceMobileChange = () => checkMobile();
+    window.addEventListener('force-mobile-change', onForceMobileChange);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('force-mobile-change', onForceMobileChange);
+    };
   }, []);
 
   return isMobile;
