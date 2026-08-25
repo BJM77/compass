@@ -369,7 +369,9 @@ export function FactFindingHub() {
                             BG
                           </a>
                           {doc.inSalesforce && (
-                            <Star className="w-4 h-4 text-amber-400 fill-amber-400 ml-1 shrink-0" title="In Salesforce" />
+                            <span title="In Salesforce">
+                              <Star className="w-4 h-4 text-amber-400 fill-amber-400 ml-1 shrink-0" />
+                            </span>
                           )}
                         </div>
                       </TableCell>
@@ -438,7 +440,9 @@ export function FactFindingHub() {
                               BG
                             </a>
                             {doc.inSalesforce && (
-                              <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" title="In Salesforce" />
+                              <span title="In Salesforce">
+                                <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+                              </span>
                             )}
                           </span>
                           <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
