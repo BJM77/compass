@@ -358,16 +358,6 @@ export function FactFindingHub() {
                           >
                             {doc.companyName || 'Unnamed'}
                           </a>
-                          <a 
-                            href={getSalesforceSearchUrl(doc.companyName || '')} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-[8px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 cursor-pointer"
-                            title="Cmd/Ctrl+Click or Middle Click to open in background"
-                          >
-                            BG
-                          </a>
                           {doc.inSalesforce && (
                             <span title="In Salesforce">
                               <Star className="w-4 h-4 text-amber-400 fill-amber-400 ml-1 shrink-0" />
@@ -428,16 +418,6 @@ export function FactFindingHub() {
                               title="Open in Salesforce"
                             >
                               {doc.companyName || 'Unnamed Company'}
-                            </a>
-                            <a 
-                              href={getSalesforceSearchUrl(doc.companyName || '')} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-[8px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 cursor-pointer shrink-0"
-                              title="Cmd/Ctrl+Click or Middle Click to open in background"
-                            >
-                              BG
                             </a>
                             {doc.inSalesforce && (
                               <span title="In Salesforce">
