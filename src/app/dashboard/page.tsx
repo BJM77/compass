@@ -32,6 +32,7 @@ import { ActualSpendView } from '@/components/dashboard/actual-spend-view';
 import { StrategicRepository } from '@/components/dashboard/strategic-repository';
 import { SuccessPlansView } from '@/components/dashboard/success-plans';
 import { ManageTimeView } from '@/components/dashboard/manage-time-view';
+import { AMBDManagement } from '@/components/dashboard/ambd-management';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -87,6 +88,7 @@ const NAV_ITEMS = [
   { view: 'UPLOAD' as DashboardView,            label: 'CRM Import',        icon: Upload,           adminOnly: true,  group: 'admin' },
   { view: 'BROADCAST' as DashboardView,         label: 'Broadcast Admin',   icon: Megaphone,        adminOnly: true,  group: 'admin' },
   { view: 'STRATEGIC_REPOSITORY' as DashboardView, label: 'Strategic Repo', icon: Sparkles,         adminOnly: true,  group: 'admin' },
+  { view: 'AM_BD' as DashboardView,             label: 'AM/BD Notes Admin', icon: ClipboardList,    adminOnly: true,  group: 'admin' },
 ];
 
 function DashboardContent() {
@@ -147,6 +149,7 @@ function DashboardContent() {
     if (activeView === 'STRATEGIC_REPOSITORY' && isLeader) return <div className="w-full p-4 md:p-8"><StrategicRepository /></div>;
     if (activeView === 'SUCCESS_PLANS') return <div className="w-full p-4 md:p-8"><SuccessPlansView userId={activeUserId || ''} isLeader={isLeader} /></div>;
     if (activeView === 'MANAGE_TIME') return <div className="w-full p-4 md:p-8"><ManageTimeView /></div>;
+    if (activeView === 'AM_BD' && isLeader) return <div className="w-full p-4 md:p-8"><AMBDManagement /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;

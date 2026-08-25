@@ -16,6 +16,7 @@ import { FridayPerformanceReview } from './friday-performance-review';
 import { VoiceActionLogger } from './voice-action-logger';
 import { HistoricalActivity } from './historical-activity';
 import { AIDealWhisperer } from './ai-deal-whisperer';
+import { AMBDNotesWidget } from './ambd-notes-widget';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -509,6 +510,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         return <CallPlanning userId={userId || ''} />;
       case 'success-plan':
         return <OnboardingPlan userId={userId || 'BDM'} userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} />;
+      case 'ambd-notes':
+        return <AMBDNotesWidget userId={userId || ''} />;
       default:
         return null;
     }

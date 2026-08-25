@@ -79,7 +79,7 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetConfig[] = [
   { id: 'behavioral-pulse', name: 'Behavioral Pulse & Alerts', width: 1, visible: true },
   { id: 'voice-logger', name: 'Voice-to-Text Outcome Logger', width: 1, visible: true },
   { id: 'habit-tracker', name: 'Rapid Habit Tracker', width: 1, visible: true },
-  { id: 'historical-activity', name: 'Historical Activity Tracker', width: 1, visible: true },
+  { id: 'historical-activity', name: 'Historical Activity Tracker', width: 1, visible: false },
   { id: 'territory-playbook', name: 'Territory Playbook (Flex Pool)', width: 2, visible: true },
   { id: 'monday-planning', name: 'Monday Planning (Weekly Goals)', width: 3, visible: false },
   { id: 'customer-review', name: 'Customers Table (Pipeline Review)', width: 3, visible: false },
@@ -88,6 +88,7 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetConfig[] = [
   { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true },
   { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false },
   { id: 'success-plan', name: 'Success Plan Details (Onboarding)', width: 3, visible: false },
+  { id: 'ambd-notes', name: 'AM/BD Notes & Updates', width: 3, visible: true },
 ];
 
 const DEFAULTS: AppSettings = {

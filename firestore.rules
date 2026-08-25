@@ -236,5 +236,13 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
+
+    // ─── AM/BD Targeted Notes ──────────────────────────────────────────────────
+    match /ambdNotes/{noteId} {
+      allow read: if isAdmin() || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
   }
 }
