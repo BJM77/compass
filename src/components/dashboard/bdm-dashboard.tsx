@@ -102,7 +102,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   }, [globalSettings]);
   
   const layout = useMemo(() => {
-    let result = [...rawLayout];
+    let result = [...rawLayout].filter(w => w.id !== 'voice-logger');
     
     const twiwIdx = result.findIndex(w => w.id === 'twiw');
     const fridayIdx = result.findIndex(w => w.id === 'friday-fw');

@@ -78,7 +78,6 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetConfig[] = [
   { id: 'next-best-actions', name: 'Next Best Actions Recommendation Card', width: 1, visible: true },
   { id: 'strategic-nudge', name: 'Strategic Nudge (30-60-90 Success Plan)', width: 1, visible: true },
   { id: 'behavioral-pulse', name: 'Behavioral Pulse & Alerts', width: 1, visible: true },
-  { id: 'voice-logger', name: 'Voice-to-Text Outcome Logger', width: 1, visible: true },
   { id: 'habit-tracker', name: 'Rapid Habit Tracker', width: 1, visible: true },
   { id: 'historical-activity', name: 'Historical Activity Tracker', width: 1, visible: false },
   { id: 'territory-playbook', name: 'Territory Playbook (Flex Pool)', width: 2, visible: true },
