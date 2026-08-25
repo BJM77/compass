@@ -52,6 +52,7 @@ interface SuccessPlan {
     detail: string;
   }[];
   summary: string;
+  status?: 'DRAFT' | 'FINALISED';
   createdBy: string;
   createdByName: string;
   createdAt: any;
@@ -144,7 +145,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
     strategies: [],
     measuresToAchieve: [],
     managerCommitments: [],
-    summary: ''
+    summary: '',
+    status: 'DRAFT'
   });
 
   const handleStartCreate = () => {
@@ -173,7 +175,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
       managerCommitments: [
         { commitment: '', achieving: 'PENDING', detail: '' }
       ],
-      summary: ''
+      summary: '',
+      status: 'DRAFT'
     });
     setIsCreating(true);
     setSelectedPlan(null);
@@ -196,13 +199,14 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
       strategies: plan.strategies || [],
       measuresToAchieve: plan.measuresToAchieve || [],
       managerCommitments: plan.managerCommitments || [],
-      summary: plan.summary || ''
+      summary: plan.summary || '',
+      status: plan.status || 'FINALISED'
     });
     setIsCreating(false);
     setIsEditing(false);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (targetStatus?: 'DRAFT' | 'FINALISED') => {
     if (!db) return;
     
     // Validation
@@ -216,8 +220,11 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
     }
 
     try {
+      const finalStatus = targetStatus || formState.status || 'DRAFT';
+      
       const payload = {
         ...formState,
+        status: finalStatus,
         teamMemberName: memberName || 'Unknown Team Member',
         createdBy: profile?.uid || userId,
         createdByName: profile?.name || 'Unknown Manager',
@@ -600,6 +607,15 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                         <div className={`text-[9px] font-medium leading-normal line-clamp-2 ${isSelected ? 'text-slate-300' : 'text-slate-600'}`}>
                           Manager: {plan.managerName || 'Not Assigned'}
                         </div>
+                        <div className="mt-2">
+                          <Badge className={`text-[9px] font-black uppercase tracking-wider ${
+                            (plan.status || 'FINALISED') === 'DRAFT' 
+                              ? 'bg-amber-100 text-amber-800 border-amber-200' 
+                              : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          }`}>
+                            {(plan.status || 'FINALISED') === 'DRAFT' ? 'Draft' : 'Finalised'}
+                          </Badge>
+                        </div>
                       </button>
                     );
                   })
@@ -614,10 +630,19 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               <div>
                 <CardHeader className="border-b border-slate-100 pb-4 bg-slate-50/50 flex flex-row justify-between items-center gap-4">
                   <div>
-                    <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-900">
-                      Success Program Details
-                    </CardTitle>
-                    <CardDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-900">
+                        Success Program Details
+                      </CardTitle>
+                      <Badge className={`text-[9px] font-black uppercase tracking-wider ${
+                        (selectedPlan.status || 'FINALISED') === 'DRAFT' 
+                          ? 'bg-amber-100 text-amber-800 border-amber-200' 
+                          : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                      }`}>
+                        {(selectedPlan.status || 'FINALISED') === 'DRAFT' ? 'Draft' : 'Finalised'}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
                       Created by {selectedPlan.createdByName}
                     </CardDescription>
                   </div>
@@ -1318,8 +1343,11 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               }} variant="ghost" className="rounded-xl text-xs font-bold uppercase tracking-wider">
                 Cancel
               </Button>
-              <Button onClick={handleSave} className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider px-6">
-                Save Success Plan
+              <Button onClick={() => handleSave('DRAFT')} variant="outline" className="border-slate-300 text-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider px-6">
+                Save as Draft
+              </Button>
+              <Button onClick={() => handleSave('FINALISED')} className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider px-6">
+                Finalise Plan
               </Button>
             </div>
 
