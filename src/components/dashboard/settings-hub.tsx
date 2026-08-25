@@ -72,6 +72,7 @@ interface AppSettings {
 
 export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetConfig[] = [
   { id: 'kpi-cards', name: 'KPI Summary Cards (Rev YTD, Forecast, Yield, Velocity)', width: 3, visible: true },
+  { id: 'ambd-notes', name: 'AM/BD Notes & Updates', width: 3, visible: true },
   { id: 'crm-summary', name: 'CRM Performance Summary Panel (My Perf / Team Combined)', width: 3, visible: true },
   { id: 'smart-goals', name: 'SMART Goals Tracker', width: 2, visible: true },
   { id: 'next-best-actions', name: 'Next Best Actions Recommendation Card', width: 1, visible: true },
@@ -88,7 +89,6 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardWidgetConfig[] = [
   { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true },
   { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false },
   { id: 'success-plan', name: 'Success Plan Details (Onboarding)', width: 3, visible: false },
-  { id: 'ambd-notes', name: 'AM/BD Notes & Updates', width: 3, visible: true },
 ];
 
 const DEFAULTS: AppSettings = {

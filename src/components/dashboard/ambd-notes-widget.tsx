@@ -86,9 +86,6 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
                 <CardHeader className="bg-rose-50/50 pb-3 border-b border-rose-100/50">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <div>
-                      <span className="text-[8px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-700 px-1.5 py-0.5 rounded border border-rose-500/20">
-                        Urgent Broadcast
-                      </span>
                       <h4 className="text-xs font-black uppercase text-slate-900 mt-1.5">{note.title}</h4>
                     </div>
                     <span className="text-[10px] font-bold text-slate-500 whitespace-nowrap">

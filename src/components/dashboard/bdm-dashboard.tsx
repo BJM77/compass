@@ -144,6 +144,18 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     // Insert them sequentially: twiw first, then friday-fw, then call-prep
     result.splice(insertIdx, 0, twiwWidget, fridayWidget, callPrepWidget);
     
+    // Force 'ambd-notes' to be placed under 'kpi-cards'
+    const ambdIdx = result.findIndex(w => w.id === 'ambd-notes');
+    if (ambdIdx !== -1) {
+      const [ambdWidget] = result.splice(ambdIdx, 1);
+      const kpiIdx = result.findIndex(w => w.id === 'kpi-cards');
+      if (kpiIdx !== -1) {
+        result.splice(kpiIdx + 1, 0, ambdWidget);
+      } else {
+        result.unshift(ambdWidget);
+      }
+    }
+    
     return result;
   }, [rawLayout, profile]);
 
