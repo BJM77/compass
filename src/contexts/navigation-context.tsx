@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 export type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
@@ -19,6 +19,7 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 function NavigationContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [currentView, setCurrentView] = useState<DashboardView>('DASHBOARD');
   const [viewParams, setViewParams] = useState<any>(null);
 
@@ -35,6 +36,12 @@ function NavigationContent({ children }: { children: React.ReactNode }) {
   const navigateTo = (view: DashboardView, params?: any) => {
     setCurrentView(view);
     setViewParams(params || null);
+    
+    // Do not alter the URL if we are actively in the mobile view route.
+    // The mobile dashboard manages its own views internally via the switch-view event
+    if (pathname === '/dashboard/mobile') {
+      return;
+    }
     
     // Sync to URL query param
     if (view === 'DASHBOARD') {
