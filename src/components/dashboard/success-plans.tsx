@@ -688,15 +688,15 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     <Button onClick={() => handleExportPDF(selectedPlan)} variant="outline" size="sm" className="rounded-xl border-slate-200 text-xs font-bold gap-2">
                       <FileDown className="w-3.5 h-3.5" /> PDF
                     </Button>
+                    {(isLeader || selectedPlan.createdBy === userId || selectedPlan.teamMemberId === userId) && (
+                      <Button onClick={() => setIsEditing(true)} size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold gap-2">
+                        <Edit className="w-3.5 h-3.5" /> Edit Plan
+                      </Button>
+                    )}
                     {(isLeader || selectedPlan.createdBy === userId) && (
-                      <>
-                        <Button onClick={() => setIsEditing(true)} size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold gap-2">
-                          <Edit className="w-3.5 h-3.5" /> Edit Plan
-                        </Button>
-                        <Button onClick={() => selectedPlan.id && handleDelete(selectedPlan.id)} variant="destructive" size="sm" className="rounded-xl text-xs font-bold gap-2">
-                          <Trash2 className="w-3.5 h-3.5" /> Delete
-                        </Button>
-                      </>
+                      <Button onClick={() => selectedPlan.id && handleDelete(selectedPlan.id)} variant="destructive" size="sm" className="rounded-xl text-xs font-bold gap-2">
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </Button>
                     )}
                   </div>
                 </CardHeader>
