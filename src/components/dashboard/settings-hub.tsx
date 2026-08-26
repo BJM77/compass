@@ -7,6 +7,7 @@ import { useFirestore } from '@/firebase';
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { exportToJson } from '@/lib/export-utils';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ import {
   User, Bell, Sparkles, BarChart3, Link2,
   ShieldCheck, Lock, Trash2, Save,
   Loader2, Copy, Check, RefreshCw, Moon, Sun, Globe, Users, Activity, LayoutDashboard,
-  LayoutGrid, GripVertical, EyeOff
+  LayoutGrid, GripVertical, EyeOff, Database
 } from 'lucide-react';
 
 import { ReportingToolsSettings, CustomDashboard, ReportWidget } from './reporting-tools-settings';
@@ -135,6 +136,7 @@ const SECTIONS = [
   { id: 'governance',   label: 'Data Governance',  icon: ShieldCheck,leaderOnly: true  },
   { id: 'api',          label: 'API Access',       icon: Link2,      leaderOnly: true  },
   { id: 'login-log',    label: 'Login Log',        icon: Users,      leaderOnly: true  },
+  { id: 'backup',       label: 'Database Backup',  icon: Database,   leaderOnly: true  },
   { id: 'danger',       label: 'Danger Zone',      icon: Trash2,     leaderOnly: true  },
 ];
 
@@ -196,6 +198,7 @@ export function SettingsHub() {
   const [dangerConfirmText, setDangerConfirmText] = useState('');
   const [logs, setLogs] = useState<any[]>([]);
   const [userLogs, setUserLogs] = useState<any[]>([]);
+  const [isBackingUp, setIsBackingUp] = useState(false);
 
   useEffect(() => {
     if (activeSection === 'login-log' && isLeader && db) {
@@ -300,6 +303,33 @@ export function SettingsHub() {
     const q = query(collection(db, 'aiUsageLogs'), orderBy('calledAt', 'desc'), limit(10));
     const snap = await getDocs(q);
     setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  };
+
+  const handleGenerateBackup = async () => {
+    if (!db) return;
+    setIsBackingUp(true);
+    try {
+      const collectionsToBackup = [
+        'users', 'pipelineReviews', 'weeklyReports', 'weeklyCommitments', 
+        'weeklyProgress', 'factFindingDocs', 'timeManagementPlans', 
+        'successPlans', 'aiUsageLogs', 'appSettings', 'systemAnnouncements', 'strategyConfig'
+      ];
+      const backupData: Record<string, any[]> = {};
+      
+      for (const colName of collectionsToBackup) {
+        const snap = await getDocs(collection(db, colName));
+        backupData[colName] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      exportToJson(backupData, `compass-backup-${timestamp}.json`);
+      toast({ title: "Backup Complete", description: "Your database backup has been downloaded." });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Backup Failed", description: "There was an error generating the database backup." });
+    } finally {
+      setIsBackingUp(false);
+    }
   };
 
   const visibleSections = SECTIONS.filter(s => !s.leaderOnly || isLeader);
@@ -615,6 +645,32 @@ export function SettingsHub() {
                      </div>
                    )}
                  </div>
+              </div>
+
+            </SectionCard>
+          )}
+
+          {activeSection === 'backup' && isLeader && (
+            <SectionCard 
+              title="Database Backup" 
+              description="Download a complete snapshot of all core collections in the system. Use this to safely archive data periodically." 
+              icon={Database}
+            >
+              <div className="flex flex-col gap-4">
+                <p className="text-sm text-slate-600">
+                  This will export the following collections into a single JSON file: 
+                  <span className="font-mono text-xs ml-2 bg-slate-100 p-1 rounded">users, pipelineReviews, weeklyReports, weeklyCommitments, weeklyProgress, factFindingDocs, timeManagementPlans, successPlans, aiUsageLogs, appSettings, systemAnnouncements, strategyConfig</span>
+                </p>
+                <div className="pt-4 border-t">
+                  <Button 
+                    onClick={handleGenerateBackup} 
+                    disabled={isBackingUp}
+                    className="bg-primary text-white font-black h-11 px-6 shadow-lg gap-2"
+                  >
+                    {isBackingUp ? <Loader2 className="animate-spin w-4 h-4" /> : <Database className="w-4 h-4" />}
+                    {isBackingUp ? "Generating Backup..." : "Generate Full Backup (JSON)"}
+                  </Button>
+                </div>
               </div>
             </SectionCard>
           )}

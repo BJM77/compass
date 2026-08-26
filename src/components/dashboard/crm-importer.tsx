@@ -56,8 +56,20 @@ function matchUser(users: any[], ownerName: string): any | null {
   if (!ownerName) return null;
   const lower = ownerName.trim().toLowerCase();
   
+  let normalizedOwner = lower;
+  if (normalizedOwner.includes(',')) {
+    const parts = normalizedOwner.split(',');
+    if (parts.length === 2) {
+      normalizedOwner = `${parts[1].trim()} ${parts[0].trim()}`;
+    }
+  }
+  
   // Exact match first
-  let found = users.find(u => (u.name || '').trim().toLowerCase() === lower);
+  let found = users.find(u => (u.name || '').trim().toLowerCase() === normalizedOwner);
+  if (found) return found;
+
+  // Fallback exact match on original
+  found = users.find(u => (u.name || '').trim().toLowerCase() === lower);
   if (found) return found;
   
   // Isaac special handling
@@ -99,7 +111,13 @@ function matchUser(users: any[], ownerName: string): any | null {
   // Partial match fallback
   found = users.find(u => {
     const uname = (u.name || '').trim().toLowerCase();
-    return uname.includes(lower) || lower.includes(uname);
+    
+    // Check if all parts of normalizedOwner exist in uname
+    const ownerParts = normalizedOwner.split(/\s+/).filter(Boolean);
+    const allPartsMatch = ownerParts.length > 0 && ownerParts.every(part => uname.includes(part));
+    if (allPartsMatch) return true;
+
+    return uname.includes(normalizedOwner) || normalizedOwner.includes(uname) || uname.includes(lower) || lower.includes(uname);
   });
   return found || null;
 }
