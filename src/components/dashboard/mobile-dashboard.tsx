@@ -26,7 +26,9 @@ import {
   X,
   XCircle,
   Users,
-  Monitor
+  Monitor,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { UserManagement } from './user-management';
 import { MobileModule, MOBILE_MODULES } from '@/lib/mobile-utils';
@@ -37,6 +39,7 @@ import { WeeklyGoals } from './weekly-goals';
 import { FridayPerformanceReview } from './friday-performance-review';
 import { TWIWView } from './twiw-view';
 import { CallPlanning } from './call-planning';
+import { ManageTimeView } from './manage-time-view';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { getCurrentWeek, formatEAV } from '@/lib/utils';
@@ -143,6 +146,8 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
         return <FactFindingHub />;
       case 'WHITE_SPACE':
         return <WhitespaceAnalysis userId={currentUserId} />;
+      case 'MANAGE_TIME':
+        return <ManageTimeView />;
       case 'MONDAY_PLANNING':
         return <CallPlanning userId={currentUserId} />;
       case 'FRIDAY_FW':
@@ -177,7 +182,8 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
       'MONDAY_PLANNING': 'Call Plan',
       'FRIDAY_FW': 'Friday FW',
       'TWIW': 'TWTW',
-      'TEAM': 'Team Governance'
+      'TEAM': 'Team Governance',
+      'MANAGE_TIME': 'Manage Time'
     };
     return titles[module] || 'Dashboard';
   };
@@ -234,6 +240,63 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
           </div>
         </div>
       </header>
+
+      {/* Top Sub-Navigation Menu for authorized roles */}
+      {(profile?.role === 'LEADER' || profile?.role === 'GM' || profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER' || isLeader) && (
+        <div className="bg-slate-50 border-b border-slate-200 px-4 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 scrollbar-none shadow-inner">
+          <a
+            href="https://studio--studio-7521332906-59af2.us-central1.hosted.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-100/50 whitespace-nowrap shrink-0 shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Just Easy</span>
+          </a>
+          <button
+            onClick={() => {
+              setActiveModule('MANAGE_TIME');
+              setShowBackButton(true);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap shrink-0 transition-all border ${
+              activeModule === 'MANAGE_TIME'
+                ? 'bg-white text-indigo-600 border-indigo-100 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 bg-slate-100/50 border-transparent'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Manage Time</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveModule('FACT_FINDING');
+              setShowBackButton(true);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap shrink-0 transition-all border ${
+              activeModule === 'FACT_FINDING'
+                ? 'bg-white text-indigo-600 border-indigo-100 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 bg-slate-100/50 border-transparent'
+            }`}
+          >
+            <FileSearch className="w-3.5 h-3.5" />
+            <span>Fact Finding</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveModule('WHITE_SPACE');
+              setShowBackButton(true);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap shrink-0 transition-all border ${
+              activeModule === 'WHITE_SPACE'
+                ? 'bg-white text-indigo-600 border-indigo-100 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 bg-slate-100/50 border-transparent'
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>White Space</span>
+          </button>
+        </div>
+      )}
 
       {/* Simulation Banner */}
       {simulationUid && isLeader && (

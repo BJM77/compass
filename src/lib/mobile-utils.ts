@@ -36,7 +36,8 @@ export const MOBILE_MODULES = [
   'MONDAY_PLANNING',
   'FRIDAY_FW',
   'TWIW',
-  'TEAM'
+  'TEAM',
+  'MANAGE_TIME'
 ] as const;
 
 export type MobileModule = typeof MOBILE_MODULES[number];

@@ -263,6 +263,55 @@ function DashboardContent() {
                 </button>
               </div>
             )}
+
+            {/* Top Menu for Admin, Leaders, Bdms, and AMs */}
+            {(profile?.role === 'LEADER' || profile?.role === 'GM' || profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER' || isLeader) && (
+              <nav className="hidden md:flex items-center gap-1.5 ml-6 bg-slate-50/80 p-1 rounded-xl border border-slate-100/80">
+                <a
+                  href="https://studio--studio-7521332906-59af2.us-central1.hosted.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Just Easy</span>
+                </a>
+                <button
+                  onClick={() => navigateTo('MANAGE_TIME')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                    activeView === 'MANAGE_TIME'
+                      ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Manage Time</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('FACT_FINDING')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                    activeView === 'FACT_FINDING'
+                      ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                  }`}
+                >
+                  <FileSearch className="w-3.5 h-3.5" />
+                  <span>Fact Finding</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('WHITE_SPACE')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                    activeView === 'WHITE_SPACE'
+                      ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>White Space</span>
+                </button>
+              </nav>
+            )}
+
             <div className="flex-1" />
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
