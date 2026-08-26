@@ -198,9 +198,9 @@ service cloud.firestore {
     // ─── Success Plans ────────────────────────────────────────────────────────────
     // Only the creator or an admin can read a plan.
     match /successPlans/{planId} {
-      allow read: if isAdmin() || (isSignedIn() && resource != null && resource.data.createdBy == request.auth.uid);
+      allow read: if isAdmin() || (isSignedIn() && resource != null && (resource.data.createdBy == request.auth.uid || resource.data.teamMemberId == request.auth.uid));
       allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && resource.data.createdBy == request.auth.uid);
+      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && (resource.data.createdBy == request.auth.uid || resource.data.teamMemberId == request.auth.uid));
     }
 
     // ─── System Config ────────────────────────────────────────────────────────────

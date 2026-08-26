@@ -91,7 +91,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
     } else {
       return query(
         collection(db, 'successPlans'), 
-        where('createdBy', '==', userId),
+        where('teamMemberId', '==', userId),
         limit(500)
       );
     }
@@ -129,9 +129,9 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
     if (!rawPlans) return [];
     let list = [...rawPlans];
     
-    // Non-leaders can only see plans they created
+    // Non-leaders can only see plans they created or that are for them
     if (!isLeader) {
-      list = list.filter(plan => plan.createdBy === userId);
+      list = list.filter(plan => plan.teamMemberId === userId || plan.createdBy === userId);
       // Sort client-side since we removed orderBy for non-leaders to bypass composite index
       list.sort((a, b) => {
         const dateA = a.createdAt?.toMillis?.() || 0;
