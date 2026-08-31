@@ -220,12 +220,14 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                      </div>
                      <ChevronRight className={`w-4 h-4 transition-transform ${selectedPlanId === plan.id ? 'translate-x-1 text-accent' : 'text-slate-300'}`} />
                   </div>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleDelete(plan.id); }}
-                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {isLeader && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDelete(plan.id); }}
+                      className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               );
             })}

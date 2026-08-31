@@ -271,14 +271,16 @@ export function AdminCallPlanning({ userId }: AdminCallPlanningProps) {
                             <ExternalLink className="h-4 w-4" />
                           </button>
                         )}
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleDelete(plan.id)}
-                          className="text-red-300 hover:text-red-600 hover:bg-red-50 h-8 w-8"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {isLeader && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDelete(plan.id)}
+                            className="text-red-300 hover:text-red-600 hover:bg-red-50 h-8 w-8"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
