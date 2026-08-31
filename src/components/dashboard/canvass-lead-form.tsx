@@ -376,17 +376,17 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => handleSave(false)}
             disabled={saving}
-            className="gap-1.5"
+            className="flex-1 md:flex-none gap-1.5"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-emerald-600" />}
-            <span>Save to Compass</span>
+            <span>Save Draft</span>
           </Button>
 
           <Button
@@ -394,10 +394,10 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             size="sm"
             onClick={() => handleSave(true)}
             disabled={saving}
-            className="gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold"
+            className="flex-1 md:flex-none gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold"
           >
             <ExternalLink className="h-4 w-4" />
-            <span>1-Click Salesforce Lead</span>
+            <span>1-Click SF Upload</span>
           </Button>
         </div>
       </div>
@@ -844,28 +844,28 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
       </div>
 
-      {/* Bottom Sticky Action Bar on Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 p-3 bg-background/95 backdrop-blur-md border-t shadow-lg flex items-center justify-between gap-3 z-30 md:hidden">
+      {/* Bottom Action Bar */}
+      <div className="p-4 bg-card rounded-xl border shadow-sm flex flex-col sm:flex-row items-center justify-end gap-3 mt-8">
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="lg"
           onClick={() => handleSave(false)}
           disabled={saving}
-          className="flex-1"
+          className="w-full sm:w-auto"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1 text-emerald-600" />}
-          Save Draft
+          Save as Draft
         </Button>
         <Button
           type="button"
-          size="sm"
+          size="lg"
           onClick={() => handleSave(true)}
           disabled={saving}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md"
         >
           <ExternalLink className="h-4 w-4 mr-1" />
-          1-Click SF
+          1-Click Salesforce Upload
         </Button>
       </div>
 
