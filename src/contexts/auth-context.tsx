@@ -107,10 +107,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user: mockProfile ? ({ uid: mockProfile.uid, email: 'demo@example.com' } as User) : firebaseUser,
     profile,
     loading: isUserLoading || profileLoading,
-    isLeader: profile?.role === 'LEADER' || profile?.role === 'GM' || firebaseUser?.email === '1@1.com',
+    isLeader: profile?.role === 'LEADER' || profile?.role === 'GM' || firebaseUser?.email === '1@1.com' || mockProfile?.email === '1@1.com' || profile?.email === '1@1.com',
     isBDM: profile?.role === 'BDM',
     isAM: profile?.role === 'ACCOUNT_MANAGER',
-    isGM: profile?.role === 'GM',
+    isGM: profile?.role === 'GM' || firebaseUser?.email === '1@1.com' || mockProfile?.email === '1@1.com' || profile?.email === '1@1.com',
     isGuest: profile?.role === 'GUEST',
     setMockAuth,
   };
