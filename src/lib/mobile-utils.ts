@@ -37,6 +37,7 @@ export const MOBILE_MODULES = [
   'FRIDAY_FW',
   'TWIW',
   'TEAM',
+  'CANVASSING',
   'MANAGE_TIME'
 ] as const;
 

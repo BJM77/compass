@@ -40,6 +40,7 @@ import { FridayPerformanceReview } from './friday-performance-review';
 import { TWIWView } from './twiw-view';
 import { CallPlanning } from './call-planning';
 import { ManageTimeView } from './manage-time-view';
+import { CanvassingHub } from './canvassing-hub';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { getCurrentWeek, formatEAV } from '@/lib/utils';
@@ -77,6 +78,7 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
           'FRIDAY_FW': 'FRIDAY_FW',
           'TWIW': 'TWIW',
           'TEAM': 'TEAM',
+          'CANVASSING': 'CANVASSING',
           'DASHBOARD': 'DASHBOARD'
         };
         const module = viewMap[e.detail.view];
@@ -146,6 +148,8 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
         return <FactFindingHub />;
       case 'WHITE_SPACE':
         return <WhitespaceAnalysis userId={currentUserId} />;
+      case 'CANVASSING':
+        return <CanvassingHub />;
       case 'MANAGE_TIME':
         return <ManageTimeView />;
       case 'MONDAY_PLANNING':
@@ -253,6 +257,20 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
             <Sparkles className="w-3.5 h-3.5" />
             <span>Just Easy</span>
           </a>
+          <button
+            onClick={() => {
+              setActiveModule('CANVASSING');
+              setShowBackButton(true);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap shrink-0 transition-all border ${
+              activeModule === 'CANVASSING'
+                ? 'bg-white text-indigo-600 border-indigo-100 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 bg-slate-100/50 border-transparent'
+            }`}
+          >
+            <Compass className="w-3.5 h-3.5" />
+            <span>Canvassing</span>
+          </button>
           <button
             onClick={() => {
               setActiveModule('MANAGE_TIME');
