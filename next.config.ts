@@ -8,7 +8,7 @@ const securityHeaders = [
   // Limit referrer information sent to third parties
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   // Disable access to sensitive browser APIs
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), payment=()' },
   // Force HTTPS for all future requests (1 year)
   { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
 ];

@@ -158,3 +158,49 @@ export interface ActualSpendRecord {
   category: string;
   uploadedAt: any;
 }
+
+export interface CanvassLead {
+  id: string;
+  userId: string;
+  userName?: string;
+  companyName: string;
+  leadTopic?: string;
+  firstName?: string;
+  lastName: string;
+  title?: string;
+  phone: string;
+  email?: string;
+  preferredContactMethod?: string;
+  customerConsent?: boolean;
+  referrerId?: string;
+  driverEmail?: string;
+  productPage?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  gpsAccuracy?: number;
+  industry?: string;
+  businessUnit?: string;
+  services?: string[];
+  freightProfile?: string;
+  quoteNumber?: string;
+  estimatedRevenue?: number;
+  incumbent?: string;
+  otherIncumbent?: string;
+  leadSource?: string;
+  leadType?: string;
+  leadStatus?: string;
+  estimatedConversionDate?: string;
+  tenderReleaseDate?: string;
+  notes?: string;
+  salesforceId?: string;
+  inSalesforce?: boolean;
+  syncedAt?: any;
+  createdAt?: any;
+  updatedAt?: any;
+}

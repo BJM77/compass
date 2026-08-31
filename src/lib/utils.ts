@@ -52,6 +52,83 @@ export function openSalesforceSearch(term: string, salesforceId?: string) {
 }
 
 /**
+ * Generate Salesforce Lightning URL for creating a new Lead with pre-populated field values.
+ */
+export function createSalesforceLeadUrl(lead: {
+  companyName?: string;
+  firstName?: string;
+  lastName?: string;
+  title?: string;
+  phone?: string;
+  email?: string;
+  preferredContactMethod?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  industry?: string;
+  businessUnit?: string;
+  services?: string[];
+  freightProfile?: string;
+  quoteNumber?: string;
+  estimatedRevenue?: number;
+  incumbent?: string;
+  otherIncumbent?: string;
+  leadSource?: string;
+  leadType?: string;
+  leadStatus?: string;
+  leadTopic?: string;
+  notes?: string;
+}) {
+  const streetParts = [lead.addressLine1, lead.addressLine2].filter(Boolean).join(', ');
+  
+  const values: Record<string, string> = {};
+  if (lead.companyName) values['Company'] = lead.companyName;
+  if (lead.firstName) values['FirstName'] = lead.firstName;
+  if (lead.lastName) values['LastName'] = lead.lastName;
+  if (lead.title) values['Title'] = lead.title;
+  if (lead.phone) values['Phone'] = lead.phone;
+  if (lead.email) values['Email'] = lead.email;
+  if (streetParts) values['Street'] = streetParts;
+  if (lead.suburb) values['City'] = lead.suburb;
+  if (lead.state) values['State'] = lead.state;
+  if (lead.postcode) values['PostalCode'] = lead.postcode;
+  values['Country'] = lead.country || 'Australia';
+  if (lead.leadSource) values['LeadSource'] = lead.leadSource;
+  if (lead.leadStatus) values['Status'] = lead.leadStatus;
+  if (lead.industry) values['Industry'] = lead.industry;
+  if (lead.estimatedRevenue) values['AnnualRevenue'] = String(lead.estimatedRevenue);
+
+  let descParts: string[] = [];
+  if (lead.leadTopic) descParts.push(`Topic: ${lead.leadTopic}`);
+  if (lead.businessUnit) descParts.push(`Business Unit: ${lead.businessUnit}`);
+  if (lead.services && lead.services.length > 0) descParts.push(`Services: ${lead.services.join(', ')}`);
+  if (lead.freightProfile) descParts.push(`Freight Profile: ${lead.freightProfile}`);
+  if (lead.incumbent) descParts.push(`Incumbent: ${lead.incumbent}${lead.otherIncumbent ? ` (${lead.otherIncumbent})` : ''}`);
+  if (lead.preferredContactMethod) descParts.push(`Preferred Contact: ${lead.preferredContactMethod}`);
+  if (lead.quoteNumber) descParts.push(`Quote (QBL): ${lead.quoteNumber}`);
+  if (lead.notes) descParts.push(`\nNotes:\n${lead.notes}`);
+
+  if (descParts.length > 0) {
+    values['Description'] = descParts.join('\n');
+  }
+
+  // Salesforce Lightning standard defaultFieldValues format: Field1=Val1,Field2=Val2
+  const defaultFieldValues = Object.entries(values)
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join(',');
+
+  return `https://teamglobalexp.lightning.force.com/lightning/o/Lead/new?defaultFieldValues=${defaultFieldValues}`;
+}
+
+export function openSalesforceCreateLead(lead: Parameters<typeof createSalesforceLeadUrl>[0]) {
+  const url = createSalesforceLeadUrl(lead);
+  window.open(url, '_blank');
+}
+
+/**
  * Canonical week key for all Firestore weekly documents.
  * Uses Sunday as week start for consistent alignment across 
  * Monday Planning, Friday Synthesis, and GM Report aggregation.
