@@ -116,9 +116,16 @@ export function createSalesforceLeadUrl(lead: {
   }
 
   // Salesforce Lightning standard defaultFieldValues format: Field1=Val1,Field2=Val2
-  const defaultFieldValues = Object.entries(values)
-    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+  // We construct the key=value pairs, escaping commas in the values with a backslash (\,),
+  // and then URL-encode the entire parameter to prevent special characters (&, ?, #, etc.) from breaking the URL structure.
+  const rawDefaultFields = Object.entries(values)
+    .map(([k, v]) => {
+      const cleanValue = String(v).replace(/,/g, '\\,');
+      return `${k}=${cleanValue}`;
+    })
     .join(',');
+
+  const defaultFieldValues = encodeURIComponent(rawDefaultFields);
 
   return `https://teamglobalexp.lightning.force.com/lightning/o/Lead/new?defaultFieldValues=${defaultFieldValues}`;
 }
