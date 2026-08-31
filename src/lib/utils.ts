@@ -127,7 +127,7 @@ export function createSalesforceLeadUrl(lead: {
 
   const defaultFieldValues = encodeURIComponent(rawDefaultFields);
 
-  return `https://teamglobalexp.lightning.force.com/lightning/o/Lead/new?defaultFieldValues=${defaultFieldValues}`;
+  return `https://teamglobalexp.lightning.force.com/lightning/o/Lead/new?nooverride=1&defaultFieldValues=${defaultFieldValues}`;
 }
 
 export function openSalesforceCreateLead(lead: Parameters<typeof createSalesforceLeadUrl>[0]) {
