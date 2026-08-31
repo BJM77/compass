@@ -187,6 +187,7 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
       'FRIDAY_FW': 'Friday FW',
       'TWIW': 'TWTW',
       'TEAM': 'Team Governance',
+      'CANVASSING': 'Canvassing',
       'MANAGE_TIME': 'Manage Time'
     };
     return titles[module] || 'Dashboard';
