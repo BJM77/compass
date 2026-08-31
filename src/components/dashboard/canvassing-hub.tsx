@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, 
   Search, 
@@ -50,11 +51,11 @@ import {
 import { format } from 'date-fns';
 
 export function CanvassingHub() {
-  const { user, profile, isLeader } = useAuth();
+  const { profile, isLeader, user } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
 
-  const [isCreating, setIsCreating] = useState(false);
+  const [activeTab, setActiveTab] = useState<'NEW_LEAD' | 'VIEW_LEADS'>('VIEW_LEADS');
   const [editingLead, setEditingLead] = useState<CanvassLead | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBu, setSelectedBu] = useState<string>('ALL');
@@ -168,22 +169,6 @@ export function CanvassingHub() {
     });
   };
 
-  if (isCreating || editingLead) {
-    return (
-      <CanvassLeadForm
-        initialLead={editingLead}
-        onSaved={() => {
-          setIsCreating(false);
-          setEditingLead(null);
-        }}
-        onCancel={() => {
-          setIsCreating(false);
-          setEditingLead(null);
-        }}
-      />
-    );
-  }
-
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 pb-20">
       
@@ -212,7 +197,7 @@ export function CanvassingHub() {
           <Button
             onClick={() => {
               setEditingLead(null);
-              setIsCreating(true);
+              setActiveTab('NEW_LEAD');
             }}
             className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold shadow-lg gap-2 h-11 px-5 rounded-xl transition-transform active:scale-95"
           >
@@ -221,6 +206,28 @@ export function CanvassingHub() {
           </Button>
         </div>
       </div>
+
+      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-slate-100/50">
+          <TabsTrigger value="NEW_LEAD" className="font-bold uppercase tracking-wider text-xs">New Lead</TabsTrigger>
+          <TabsTrigger value="VIEW_LEADS" className="font-bold uppercase tracking-wider text-xs">View Leads</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="NEW_LEAD" className="mt-0">
+          <CanvassLeadForm
+            initialLead={editingLead}
+            onSaved={() => {
+              setActiveTab('VIEW_LEADS');
+              setEditingLead(null);
+            }}
+            onCancel={() => {
+              setActiveTab('VIEW_LEADS');
+              setEditingLead(null);
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="VIEW_LEADS" className="mt-0 space-y-6">
 
       {/* Stats Counter Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
@@ -336,10 +343,10 @@ export function CanvassingHub() {
           <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
             {searchTerm || syncFilter !== 'ALL' || selectedBu !== 'ALL'
               ? 'Try adjusting your filters or search terms.'
-              : 'Tap "New Field Lead" to log your first on-site customer discovery!'}
+              : 'Tap "New Lead" to log your first on-site customer discovery!'}
           </p>
           <Button
-            onClick={() => setIsCreating(true)}
+            onClick={() => setActiveTab('NEW_LEAD')}
             size="sm"
             className="mt-4 gap-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
           >
@@ -474,14 +481,16 @@ export function CanvassingHub() {
                       <span>1-Click SF</span>
                     </Button>
 
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setEditingLead(lead)}
-                      className="h-8 w-8 p-0"
-                      title="Edit Lead"
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => {
+                        setEditingLead(lead);
+                        setActiveTab('NEW_LEAD');
+                      }} 
+                      className="gap-1 text-xs font-semibold hover:bg-blue-50 hover:text-blue-600"
                     >
-                      <Edit3 className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Edit3 className="h-3.5 w-3.5" /> Edit
                     </Button>
 
                     <Button
@@ -525,7 +534,8 @@ export function CanvassingHub() {
           })}
         </div>
       )}
-
+      </TabsContent>
+      </Tabs>
     </div>
   );
 }
