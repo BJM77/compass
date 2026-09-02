@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,13 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Loader2, TrendingUp, DollarSign, Target, Phone, CalendarCheck, 
   Users, Briefcase, AlertTriangle, CheckCircle2, ArrowRight,
   FileText, Calendar, RefreshCw, Save, Send, ChevronRight,
   Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy, ClipboardCheck,
-  Search, Building2, Eye, ShieldCheck
+  Search, Building2, Eye, ShieldCheck, MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -42,21 +43,53 @@ export function FridayPerformanceReview({
 }: FridayPerformanceReviewProps) {
   const { toast } = useToast();
   const db = useFirestore();
-  const { profile, isLeader } = useAuth();
+  const { profile, isLeader, user } = useAuth();
   
-  // Get next week key for planning
+  // Get week keys for current week review & next week planning
   const nextWeek = getNextWeekKey(selectedWeek);
   const currentWeek = selectedWeek;
   
-  // Loading states
+  // Loading & submission states
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [status, setStatus] = useState<'DRAFT' | 'SUBMITTED' | 'NOT_STARTED'>('NOT_STARTED');
-  
+  const [status, setStatus] = useState<'DRAFT' | 'SUBMITTED' | 'NOT_STARTED' | 'REVIEWED_BY_ADMIN'>('NOT_STARTED');
+
+  const isSuperAdminOrLeader = isLeader || profile?.role === 'LEADER' || profile?.role === 'GM' || user?.email === '1@1.com';
+
+  // Fetch all users for Super Admin Representative Selector
+  const usersQuery = useMemoFirebase(() => {
+    if (!db || !isSuperAdminOrLeader) return null;
+    return collection(db, 'users');
+  }, [db, isSuperAdminOrLeader]);
+  const { data: rawUsers } = useCollection<any>(usersQuery);
+
+  const teamUsers = useMemo(() => {
+    if (!rawUsers) return [];
+    return rawUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
+  }, [rawUsers]);
+
+  // Selected Rep ID state for Super Admin switching
+  const [selectedRepId, setSelectedRepId] = useState<string>(userId);
+
+  useEffect(() => {
+    if (userId) setSelectedRepId(userId);
+  }, [userId]);
+
+  const activeUserId = selectedRepId || userId;
+  const activeUserObj = teamUsers.find(u => u.id === activeUserId);
+  const activeUserName = normalizeBdmName(activeUserObj?.name || userName, activeUserId);
+  const activeUserRole = activeUserObj?.role || userRole;
+  const activeUserState = activeUserObj?.state || userState;
+
+  // Super Admin Review & Coaching Notes
+  const [adminCoachingNotes, setAdminCoachingNotes] = useState('');
+  const [adminReviewedBy, setAdminReviewedBy] = useState('');
+  const [adminReviewedAt, setAdminReviewedAt] = useState<any>(null);
+
   // ─── CRM Data (from existing hooks) ──────────────────────────────────────
   const { pipelineReviews: allDeals, weeklyProgresses: allActivity } = usePipelineData();
-  const crmSummary = useCRMSummary(userId, isLeader);
+  const crmSummary = useCRMSummary(activeUserId, isLeader);
 
   // ─── Compliance Audit Data ───────────────────────────────────────────────
   const callPlansQuery = useMemoFirebase(() => {
@@ -77,16 +110,16 @@ export function FridayPerformanceReview({
   }, [db, selectedWeek]);
   const { data: opsReports } = useCollection(opsReportsQuery);
 
-  const userCallPlans = callPlans?.filter(p => p.userId === userId) || [];
-  const userWhitespace = whitespaceReports?.filter(p => p.userId === userId) || [];
-  const userOps = opsReports?.filter(p => p.userId === userId) || [];
+  const userCallPlans = callPlans?.filter(p => p.userId === activeUserId) || [];
+  const userWhitespace = whitespaceReports?.filter(p => p.userId === activeUserId) || [];
+  const userOps = opsReports?.filter(p => p.userId === activeUserId) || [];
 
   // ─── Previous Friday FW Viewer ───────────────────────────────────────────
   const previousWeekKey = getPreviousWeekKey(selectedWeek);
   const previousFridayFwRef = useMemoFirebase(() => {
-    if (!db) return null;
-    return doc(db, 'weeklyCommitments', `${userId}_${previousWeekKey}`);
-  }, [db, userId, previousWeekKey]);
+    if (!db || !activeUserId) return null;
+    return doc(db, 'weeklyCommitments', `${activeUserId}_${previousWeekKey}`);
+  }, [db, activeUserId, previousWeekKey]);
   const { data: previousFridayFw } = useDoc(previousFridayFwRef);
   const [showPreviousPlan, setShowPreviousPlan] = useState(false);
   
@@ -136,14 +169,14 @@ export function FridayPerformanceReview({
   // ─── Load All Data ────────────────────────────────────────────────────────
   useEffect(() => {
     async function loadAllData() {
-      if (!db || !userId) return;
+      if (!db || !activeUserId) return;
       setIsLoading(true);
       
       try {
         // 1. Load Thursday TWTW submission
         const twtwDoc = await getDocs(
           query(collection(db, 'twiwSubmissions'), 
-            where('userId', '==', userId),
+            where('userId', '==', activeUserId),
             where('week', '==', currentWeek)
           )
         );
@@ -156,7 +189,7 @@ export function FridayPerformanceReview({
         // 2. Load user's weeklyProgress for activity
         const progressDoc = await getDocs(
           query(collection(db, 'weeklyProgress'),
-            where('userId', '==', userId),
+            where('userId', '==', activeUserId),
             where('week', '==', currentWeek)
           )
         );
@@ -169,7 +202,7 @@ export function FridayPerformanceReview({
         // 3. Load next week's commitments (if they exist)
         const nextWeekDoc = await getDocs(
           query(collection(db, 'weeklyCommitments'),
-            where('userId', '==', userId),
+            where('userId', '==', activeUserId),
             where('week', '==', nextWeek)
           )
         );
@@ -180,8 +213,8 @@ export function FridayPerformanceReview({
         }
         
         // 4. Filter CRM data for current week
-        const userDeals = allDeals?.filter(d => d.userId === userId && d.week === currentWeek) || [];
-        const userActivity = allActivity?.filter(a => a.userId === userId && a.week === currentWeek) || [];
+        const userDeals = allDeals?.filter(d => d.userId === activeUserId && (!d.week || d.week === currentWeek)) || [];
+        const userActivity = allActivity?.filter(a => a.userId === activeUserId && a.week === currentWeek) || [];
         
         // 5. Build the data objects
         setCurrentWeekData({
@@ -214,12 +247,15 @@ export function FridayPerformanceReview({
           keyLearnings: twtwData.keyLearnings || '',
         });
         
-        // 6. Load next week planning data (if exists)
+        // 6. Load next week planning data & admin notes (if exists)
         const twtwPriorities = twtwData.priorities || [];
         const twtwActions = twtwPriorities.map((p: any) => typeof p === 'string' ? p : p.text).filter((t: string) => t && t.trim());
 
         if (nextWeekData && Object.keys(nextWeekData).length > 0) {
           setStatus(nextWeekData.status || 'NOT_STARTED');
+          setAdminCoachingNotes(nextWeekData.adminCoachingNotes || '');
+          setAdminReviewedBy(nextWeekData.adminReviewedBy || '');
+          setAdminReviewedAt(nextWeekData.adminReviewedAt || null);
           
           let actionPlan = nextWeekData.actionPlan || [];
           if ((actionPlan.length === 0 || actionPlan.every((a: string) => !a.trim())) && twtwActions.length > 0) {
@@ -232,8 +268,8 @@ export function FridayPerformanceReview({
           setNextWeekPlan({
             focusAccounts: nextWeekData.focusAccounts || [],
             kpiTargets: nextWeekData.kpiTargets || {
-              callsToMake: userRole === 'BDM' ? 50 : 30,
-              appointmentsToSet: userRole === 'BDM' ? 15 : 10,
+              callsToMake: activeUserRole === 'BDM' ? 50 : 30,
+              appointmentsToSet: activeUserRole === 'BDM' ? 15 : 10,
               proposalsToSend: 8,
               dealsToClose: 3,
               revenueTarget: 250000
@@ -245,11 +281,16 @@ export function FridayPerformanceReview({
           });
         } else {
           const initialActions = twtwActions.length > 0 ? twtwActions : ['', '', '', '', ''];
+          setStatus('NOT_STARTED');
+          setAdminCoachingNotes('');
+          setAdminReviewedBy('');
+          setAdminReviewedAt(null);
+
           setNextWeekPlan({
             focusAccounts: [],
             kpiTargets: {
-              callsToMake: userRole === 'BDM' ? 50 : 30,
-              appointmentsToSet: userRole === 'BDM' ? 15 : 10,
+              callsToMake: activeUserRole === 'BDM' ? 50 : 30,
+              appointmentsToSet: activeUserRole === 'BDM' ? 15 : 10,
               proposalsToSend: 8,
               dealsToClose: 3,
               revenueTarget: 250000
@@ -266,7 +307,7 @@ export function FridayPerformanceReview({
         toast({ 
           variant: "destructive", 
           title: "Data Load Failed", 
-          description: "Could not load your performance data." 
+          description: "Could not load performance data." 
         });
       } finally {
         setIsLoading(false);
@@ -274,17 +315,16 @@ export function FridayPerformanceReview({
     }
     
     loadAllData();
-  }, [db, userId, currentWeek, nextWeek, allDeals, allActivity, crmSummary]);
+  }, [db, activeUserId, currentWeek, nextWeek, allDeals, allActivity, crmSummary, activeUserRole]);
   
-  // ─── Save Functions ──────────────────────────────────────────────────────
+  // ─── Save & Approve Functions ───────────────────────────────────────────────
   const handleSaveDraft = async () => {
-    if (!db || !userId) return;
+    if (!db || !activeUserId) return;
     setIsSaving(true);
     
     try {
-      // Save next week's commitments
-      await setDoc(doc(db, 'weeklyCommitments', `${userId}_${nextWeek}`), {
-        userId,
+      await setDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${nextWeek}`), {
+        userId: activeUserId,
         week: nextWeek,
         focusAccounts: nextWeekPlan.focusAccounts,
         kpiTargets: nextWeekPlan.kpiTargets,
@@ -292,6 +332,7 @@ export function FridayPerformanceReview({
         roadblocks: nextWeekPlan.roadblocks,
         supportNeeded: nextWeekPlan.supportNeeded,
         strategicFocus: nextWeekPlan.strategicFocus,
+        adminCoachingNotes,
         status: 'DRAFT',
         updatedAt: serverTimestamp()
       }, { merge: true });
@@ -307,13 +348,12 @@ export function FridayPerformanceReview({
   };
   
   const handleSubmit = async () => {
-    if (!db || !userId) return;
+    if (!db || !activeUserId) return;
     setIsSubmitting(true);
     
     try {
-      // 1. Save next week's commitments as SUBMITTED
-      await setDoc(doc(db, 'weeklyCommitments', `${userId}_${nextWeek}`), {
-        userId,
+      await setDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${nextWeek}`), {
+        userId: activeUserId,
         week: nextWeek,
         focusAccounts: nextWeekPlan.focusAccounts,
         kpiTargets: nextWeekPlan.kpiTargets,
@@ -321,15 +361,15 @@ export function FridayPerformanceReview({
         roadblocks: nextWeekPlan.roadblocks,
         supportNeeded: nextWeekPlan.supportNeeded,
         strategicFocus: nextWeekPlan.strategicFocus,
+        adminCoachingNotes,
         status: 'SUBMITTED',
         submittedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }, { merge: true });
       
-      // 2. Update weeklyReports with the review data
-      await setDoc(doc(db, 'weeklyReports', `${userId}_${currentWeek}`), {
-        userId,
-        userName,
+      await setDoc(doc(db, 'weeklyReports', `${activeUserId}_${currentWeek}`), {
+        userId: activeUserId,
+        userName: activeUserName,
         week: currentWeek,
         weeklyNotes: currentWeekData.narrative,
         keyLearnings: currentWeekData.keyLearnings,
@@ -352,7 +392,7 @@ export function FridayPerformanceReview({
       
       toast({ 
         title: "✅ Friday Pack Submitted", 
-        description: "Your weekly review has been submitted and next week's plan is locked in." 
+        description: "Weekly review submitted and next week's plan is locked in." 
       });
       setStatus('SUBMITTED');
     } catch (error) {
@@ -362,11 +402,56 @@ export function FridayPerformanceReview({
       setIsSubmitting(false);
     }
   };
+
+  const handleAdminApprove = async () => {
+    if (!db || !activeUserId) return;
+    setIsSaving(true);
+    try {
+      const adminName = profile?.name || user?.email || 'Super Admin';
+      await setDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${nextWeek}`), {
+        userId: activeUserId,
+        week: nextWeek,
+        focusAccounts: nextWeekPlan.focusAccounts,
+        kpiTargets: nextWeekPlan.kpiTargets,
+        actionPlan: nextWeekPlan.actionPlan.filter(a => a.trim()),
+        roadblocks: nextWeekPlan.roadblocks,
+        supportNeeded: nextWeekPlan.supportNeeded,
+        strategicFocus: nextWeekPlan.strategicFocus,
+        adminCoachingNotes,
+        adminReviewedBy: adminName,
+        adminReviewedAt: serverTimestamp(),
+        status: 'REVIEWED_BY_ADMIN',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      await setDoc(doc(db, 'weeklyReports', `${activeUserId}_${currentWeek}`), {
+        userId: activeUserId,
+        userName: activeUserName,
+        week: currentWeek,
+        adminCoachingNotes,
+        adminReviewedBy: adminName,
+        adminReviewedAt: serverTimestamp(),
+        status: 'REVIEWED_BY_ADMIN',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      toast({
+        title: "✅ Friday 1-on-1 Approved",
+        description: `Review completed & approved for ${activeUserName}.`
+      });
+      setStatus('REVIEWED_BY_ADMIN');
+      setAdminReviewedBy(adminName);
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Approval Failed', description: err.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
   // ─── CRM Account Selector Logic ──────────────────────────────────────────
   const crmAccounts = useMemo(() => {
-    return allDeals?.filter((d: any) => d.userId === userId) || [];
-  }, [allDeals, userId]);
+    return allDeals?.filter((d: any) => d.userId === activeUserId) || [];
+  }, [allDeals, activeUserId]);
 
   const filteredCrmAccounts = useMemo(() => {
     if (!crmSearch.trim()) return crmAccounts;
@@ -474,6 +559,48 @@ export function FridayPerformanceReview({
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+      {/* Super Admin / Leader Representative Selector */}
+      {isSuperAdminOrLeader && (
+        <Card className="border-2 border-indigo-500 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-500 text-slate-950 rounded-xl font-bold shadow-md shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
+                  Super Admin 1-on-1 Friday Review Mode
+                  {adminReviewedBy && (
+                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
+                      ✓ Reviewed
+                    </Badge>
+                  )}
+                </h3>
+                <p className="text-xs text-indigo-200 mt-0.5">
+                  Reviewing: <strong className="text-emerald-300 font-bold">{activeUserName}</strong> ({activeUserRole})
+                </p>
+              </div>
+            </div>
+
+            <div className="w-full sm:w-auto shrink-0 flex items-center gap-2">
+              <span className="text-xs font-bold text-indigo-200">Select Rep:</span>
+              <Select value={selectedRepId} onValueChange={(val) => setSelectedRepId(val)}>
+                <SelectTrigger className="w-full sm:w-[240px] bg-white text-slate-900 font-bold text-xs h-10">
+                  <SelectValue placeholder="Select BDM / AM" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamUsers.map(u => (
+                    <SelectItem key={u.id} value={u.id} className="font-bold text-xs">
+                      {normalizeBdmName(u.name, u.id)} ({u.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Header */}
       <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-12 opacity-5">
@@ -487,7 +614,7 @@ export function FridayPerformanceReview({
             Week {currentWeek.split('-')[1]} Review &amp; Week {nextWeek.split('-')[1]} Planning
           </h2>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Registered User · {userName} · {userState} Region
+            {activeUserName} · {activeUserRole} · {activeUserState} Region
           </p>
         </div>
         <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full lg:w-auto justify-end">
@@ -1135,6 +1262,70 @@ export function FridayPerformanceReview({
           </div>
         </CardContent>
       </Card>
+
+      {/* Super Admin 1-on-1 Review & Approval Panel */}
+      {isSuperAdminOrLeader && (
+        <Card className="border-2 border-indigo-500 shadow-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white overflow-hidden rounded-3xl mt-8">
+          <CardHeader className="border-b border-indigo-800/60 pb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-emerald-500 text-slate-950 rounded-xl shadow-md font-bold">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-black uppercase tracking-tight text-white flex items-center gap-2">
+                    Super Admin 1-on-1 Friday Review &amp; Sign-off
+                  </CardTitle>
+                  <CardDescription className="text-xs text-indigo-200">
+                    Conducting Friday afternoon review with <strong className="text-emerald-300 font-bold">{activeUserName}</strong> ({activeUserRole})
+                  </CardDescription>
+                </div>
+              </div>
+
+              {adminReviewedBy && (
+                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-xs px-3 py-1 font-bold">
+                  ✓ Reviewed by {adminReviewedBy}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-indigo-200 flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                Super Admin Coaching Notes &amp; 1-on-1 Discussion Summary
+              </Label>
+              <Textarea
+                placeholder="Enter 1-on-1 coaching feedback, agreed key actions, or performance notes discussed during Friday afternoon review..."
+                value={adminCoachingNotes}
+                onChange={e => setAdminCoachingNotes(e.target.value)}
+                className="bg-slate-950/80 border-indigo-800 text-white placeholder:text-slate-500 min-h-[100px] text-xs font-medium focus-visible:ring-indigo-400"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-indigo-800/60">
+              <div className="text-xs text-indigo-300 font-medium">
+                {status === 'REVIEWED_BY_ADMIN' ? (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4" /> This Friday Review Pack has been signed off and locked by Admin.
+                  </span>
+                ) : (
+                  <span>Review status: <strong className="text-amber-400 uppercase">{status}</strong>. Click button to complete 1-on-1 sign-off.</span>
+                )}
+              </div>
+
+              <Button
+                onClick={handleAdminApprove}
+                disabled={isSaving}
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-black text-xs h-11 px-6 rounded-xl shadow-lg gap-2"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                <span>Approve &amp; Mark 1-on-1 Reviewed ✓</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* CRM Account Selector Dialog popup */}
       <Dialog open={isSelectorOpen} onOpenChange={setIsSelectorOpen}>
