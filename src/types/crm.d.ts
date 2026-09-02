@@ -201,6 +201,8 @@ export interface CanvassLead {
   salesforceId?: string;
   inSalesforce?: boolean;
   archived?: boolean;
+  searchTimestamp?: any;
+  formCompletedAt?: any;
   syncedAt?: any;
   createdAt?: any;
   updatedAt?: any;

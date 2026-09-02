@@ -31,11 +31,13 @@ import {
   ArrowLeft,
   Share2,
   FileCheck,
-  Camera
+  Camera,
+  Building2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { openSalesforceCreateLead, openSalesforceSearch } from '@/lib/utils';
 import { parseBusinessCard } from '@/ai/flows/parse-business-card';
+import { NearbyBusinessModal } from './nearby-business-modal';
 
 const BUSINESS_UNITS = [
   'Priority Services',
@@ -116,6 +118,8 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
   const [acquiringGps, setAcquiringGps] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [scanningCard, setScanningCard] = useState(false);
+  const [nearbyModalOpen, setNearbyModalOpen] = useState(false);
+  const [searchTimestamp, setSearchTimestamp] = useState<any>(initialLead?.searchTimestamp || null);
 
   // Form State
   const [companyName, setCompanyName] = useState(initialLead?.companyName || '');
@@ -351,6 +355,8 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
       leadStatus,
       notes: notes.trim(),
       inSalesforce,
+      searchTimestamp: searchTimestamp || serverTimestamp(),
+      formCompletedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
   };
@@ -489,7 +495,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             </div>
           </div>
 
-          <div className="w-full sm:w-auto shrink-0">
+          <div className="w-full sm:w-auto shrink-0 flex items-center gap-2">
             <input
               type="file"
               id="businessCardInput"
@@ -498,6 +504,17 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               className="hidden"
               onChange={handleScanBusinessCard}
             />
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setNearbyModalOpen(true)}
+              variant="outline"
+              className="w-full sm:w-auto gap-1.5 border-amber-400 text-amber-900 dark:text-amber-300 font-semibold"
+            >
+              <Building2 className="h-4 w-4 text-indigo-600" />
+              <span>Find Nearby (50m)</span>
+            </Button>
+
             <Button
               type="button"
               size="sm"
@@ -513,13 +530,27 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               ) : (
                 <>
                   <Camera className="h-4 w-4" />
-                  <span>Scan Business Card</span>
+                  <span>Scan Card</span>
                 </>
               )}
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      <NearbyBusinessModal
+        open={nearbyModalOpen}
+        onOpenChange={setNearbyModalOpen}
+        latitude={latitude}
+        longitude={longitude}
+        onSelectBusiness={({ companyName: bName, street, suburb: bSuburb, postcode: bPostcode, searchTimestamp: sTime }) => {
+          setCompanyName(bName);
+          if (street) setAddressLine1(street);
+          if (bSuburb) setSuburb(bSuburb);
+          if (bPostcode) setPostcode(bPostcode);
+          setSearchTimestamp(sTime);
+        }}
+      />
 
       {/* GPS Location Banner */}
       <Card className="border-blue-200 dark:border-blue-900 bg-gradient-to-r from-blue-50/70 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">

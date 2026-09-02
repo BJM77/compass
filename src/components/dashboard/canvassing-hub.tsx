@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, deleteDoc, doc, updateDoc, serverTimestamp, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { CanvassLead } from '@/types/crm';
 import { CanvassLeadForm } from './canvass-lead-form';
 import CanvassMapView from './canvass-map-view';
+import { CanvassTimelineView } from './canvass-timeline-view';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,8 @@ import {
   Clock, 
   DollarSign,
   Layers,
-  Sparkles
+  Sparkles,
+  Timer
 } from 'lucide-react';
 import { openSalesforceCreateLead, openSalesforceSearch } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -56,7 +58,7 @@ export function CanvassingHub() {
   const db = useFirestore();
   const { toast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'NEW_LEAD' | 'VIEW_LEADS'>('VIEW_LEADS');
+  const [activeTab, setActiveTab] = useState<'NEW_LEAD' | 'VIEW_LEADS' | 'TIMELINE'>('VIEW_LEADS');
   const [editingLead, setEditingLead] = useState<CanvassLead | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBu, setSelectedBu] = useState<string>('ALL');
@@ -66,15 +68,16 @@ export function CanvassingHub() {
 
   // Query Canvassing Leads from Firestore
   const leadsQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !user?.uid) return null;
     if (isLeader) {
+      if (scopeFilter === 'MY') {
+        return query(collection(db, 'canvass_leads'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
+      }
       return query(collection(db, 'canvass_leads'), orderBy('createdAt', 'desc'));
     }
-    if (user?.uid) {
-      return query(collection(db, 'canvass_leads'), orderBy('createdAt', 'desc'));
-    }
-    return null;
-  }, [db, isLeader, user?.uid]);
+    // Regular rep: scoped to own userId to satisfy security rules
+    return query(collection(db, 'canvass_leads'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
+  }, [db, isLeader, user?.uid, scopeFilter]);
 
   const { data: rawLeads, isLoading } = useCollection<CanvassLead>(leadsQuery);
 
@@ -230,7 +233,7 @@ export function CanvassingHub() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-slate-100/50">
+        <TabsList className={`grid w-full ${isLeader || user?.email === '1@1.com' ? 'grid-cols-4' : 'grid-cols-3'} mb-6 h-12 bg-slate-100/50`}>
           <TabsTrigger value="NEW_LEAD" className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5">
             <Plus className="h-3.5 w-3.5 text-amber-500" />
             <span>New Lead</span>
@@ -254,6 +257,15 @@ export function CanvassingHub() {
             <MapPin className="h-3.5 w-3.5 text-red-500" />
             <span>Visited Areas Map</span>
           </TabsTrigger>
+          {(isLeader || user?.email === '1@1.com') && (
+            <TabsTrigger 
+              value="TIMELINE" 
+              className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
+            >
+              <Timer className="h-3.5 w-3.5 text-indigo-600" />
+              <span>Timeline</span>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="NEW_LEAD" className="mt-0">
@@ -269,6 +281,10 @@ export function CanvassingHub() {
               setEditingLead(null);
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="TIMELINE" className="mt-0">
+          <CanvassTimelineView leads={rawLeads || []} />
         </TabsContent>
 
         <TabsContent value="VIEW_LEADS" className="mt-0 space-y-6">
