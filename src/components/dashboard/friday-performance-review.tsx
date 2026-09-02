@@ -260,17 +260,40 @@ export function FridayPerformanceReview({
         }
         
         // 4. Filter CRM data for current week
-        const userDeals = allDeals?.filter(d => d.userId === activeUserId && (!d.week || d.week === currentWeek)) || [];
-        const userActivity = allActivity?.filter(a => a.userId === activeUserId && a.week === currentWeek) || [];
+        const userDeals = allDeals?.filter(d => {
+          if (d.userId !== activeUserId && (!d.userName || normalizeBdmName(d.userName, d.userId) !== activeUserName)) return false;
+          return !d.week || d.week === currentWeek;
+        }) || [];
+
+        const userActivity = allActivity?.filter(a => {
+          if (a.week !== currentWeek) return false;
+          if (a.userId === activeUserId) return true;
+          if (a.userName && normalizeBdmName(a.userName, a.userId) === activeUserName) return true;
+          return false;
+        }) || [];
         
-        // 5. Build the data objects
+        // 5. Build the data objects with comprehensive appointment calculations
+        const crmActCalls = userActivity.reduce((sum, a) => sum + (a.calls || 0) + (a.crmCalls || 0), 0);
+        const crmActApps = userActivity.reduce((sum, a) => sum + (a.apps || 0) + (a.crmApps || 0) + (a.meetingsHeld || 0), 0);
+
+        const totalCallsCount = Math.max(
+          (progressData?.crmCalls || 0) + (progressData?.calls || 0),
+          crmActCalls
+        );
+
+        const totalAppsCount = Math.max(
+          (progressData?.crmApps || 0) + (progressData?.apps || 0) + (progressData?.meetingsHeld || 0),
+          crmActApps,
+          userCallPlans.length
+        );
+
         setCurrentWeekData({
           // CRM Data
           opportunities: userDeals.filter(d => !d.isBareAccount),
           accounts: userDeals.filter(d => d.isBareAccount),
           activity: {
-            calls: progressData?.calls || userActivity.reduce((sum, a) => sum + (a.calls || 0), 0),
-            apps: progressData?.apps || userActivity.reduce((sum, a) => sum + (a.apps || 0), 0),
+            calls: totalCallsCount,
+            apps: totalAppsCount,
             proposals: progressData?.proposals || userActivity.reduce((sum, a) => sum + (a.proposals || 0), 0),
             deals: progressData?.deals || userActivity.reduce((sum, a) => sum + (a.deals || 0), 0),
           },

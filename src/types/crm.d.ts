@@ -52,11 +52,14 @@ export interface PipelineReview {
 export interface WeeklyProgress {
   id: string;
   userId: string;
+  userName?: string;
   week: string;
   crmCalls?: number;
   crmApps?: number;
   calls?: number;
   apps?: number;
+  meetingsHeld?: number;
+  appointments?: number;
   proposals?: number;
   deals?: number;
   createdAt?: any;

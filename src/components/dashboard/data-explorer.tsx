@@ -977,8 +977,8 @@ export function DataExplorer() {
                   ) : activities.map(a => (
                     <TableRow key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                       <TableCell className="font-bold text-sm">{normalizeBdmName(userIdToName.get(a.userId), a.userId)}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.calls || 0}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.apps || 0}</TableCell>
+                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{(a.calls || 0) + (a.crmCalls || 0)}</TableCell>
+                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{(a.apps || 0) + (a.crmApps || 0) + (a.meetingsHeld || 0)}</TableCell>
                       <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.proposals || 0}</TableCell>
                       <TableCell className="text-center font-black text-emerald-600">{a.deals || 0}</TableCell>
                     </TableRow>
