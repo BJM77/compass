@@ -45,9 +45,36 @@ export function FridayPerformanceReview({
   const db = useFirestore();
   const { profile, isLeader, user } = useAuth();
   
-  // Get week keys for current week review & next week planning
-  const nextWeek = getNextWeekKey(selectedWeek);
-  const currentWeek = selectedWeek;
+  // Active Week state for reviewing past & current weeks
+  const [activeWeek, setActiveWeek] = useState<string>(selectedWeek || getCurrentWeek());
+
+  useEffect(() => {
+    if (selectedWeek) setActiveWeek(selectedWeek);
+  }, [selectedWeek]);
+
+  const currentWeek = activeWeek;
+  const nextWeek = getNextWeekKey(activeWeek);
+  const previousWeekKey = getPreviousWeekKey(activeWeek);
+
+  const availableWeeks = useMemo(() => {
+    const curr = getCurrentWeek();
+    const parts = curr.split('-');
+    const year = parseInt(parts[0], 10) || 2026;
+    const currNum = parseInt(parts[1], 10) || 36;
+    const list: string[] = [];
+
+    for (let i = 0; i < 20; i++) {
+      let wNum = currNum - i;
+      let wYear = year;
+      if (wNum <= 0) {
+        wNum = 52 + wNum;
+        wYear = year - 1;
+      }
+      const padded = wNum.toString().padStart(2, '0');
+      list.push(`${wYear}-${padded}`);
+    }
+    return list;
+  }, []);
   
   // Loading & submission states
   const [isLoading, setIsLoading] = useState(true);
@@ -136,7 +163,6 @@ export function FridayPerformanceReview({
   const currentWeekSalesforceLeadsCount = currentWeekSalesforceLeads.length;
 
   // ─── Previous Friday FW Viewer ───────────────────────────────────────────
-  const previousWeekKey = getPreviousWeekKey(selectedWeek);
   const previousFridayFwRef = useMemoFirebase(() => {
     if (!db || !activeUserId) return null;
     return doc(db, 'weeklyCommitments', `${activeUserId}_${previousWeekKey}`);
@@ -605,20 +631,42 @@ export function FridayPerformanceReview({
               </div>
             </div>
 
-            <div className="w-full sm:w-auto shrink-0 flex items-center gap-2">
-              <span className="text-xs font-bold text-indigo-200">Select Rep:</span>
-              <Select value={selectedRepId} onValueChange={(val) => setSelectedRepId(val)}>
-                <SelectTrigger className="w-full sm:w-[240px] bg-white text-slate-900 font-bold text-xs h-10">
-                  <SelectValue placeholder="Select BDM / AM" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teamUsers.map(u => (
-                    <SelectItem key={u.id} value={u.id} className="font-bold text-xs">
-                      {normalizeBdmName(u.name, u.id)} ({u.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="w-full sm:w-auto shrink-0 flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-indigo-200">Rep:</span>
+                <Select value={selectedRepId} onValueChange={(val) => setSelectedRepId(val)}>
+                  <SelectTrigger className="w-[190px] bg-white text-slate-900 font-bold text-xs h-10">
+                    <SelectValue placeholder="Select BDM / AM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamUsers.map(u => (
+                      <SelectItem key={u.id} value={u.id} className="font-bold text-xs">
+                        {normalizeBdmName(u.name, u.id)} ({u.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-indigo-200">Week:</span>
+                <Select value={activeWeek} onValueChange={(val) => setActiveWeek(val)}>
+                  <SelectTrigger className="w-[160px] bg-white text-slate-900 font-bold text-xs h-10">
+                    <SelectValue placeholder="Select Week" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableWeeks.map(w => {
+                      const wNum = w.split('-')[1];
+                      const isCurr = w === getCurrentWeek();
+                      return (
+                        <SelectItem key={w} value={w} className="font-bold text-xs">
+                          Week {wNum} {isCurr ? '(Current)' : ''}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </Card>
