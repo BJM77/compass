@@ -190,7 +190,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             : commitData?.nextWeekCommitments || '';
 
           // Compute CRM statistics directly from the current week's pipeline reviews for this BDM
-          const bdmDeals = weekDeals.filter(r => r.userId === bdm.id);
+          const bdmDeals = weekDeals.filter(r => isUserSubmissionMatch(bdm, { id: r.id, ...r }));
           const bdmOpps = bdmDeals.filter(d => !d.isBareAccount && d.stage !== 'Closed Won' && d.stage !== 'Closed Lost');
           const bdmSigned = bdmDeals.filter(d => ['Finalise', 'Pending Trade'].includes(d.stage || ''));
           const bdmWon = bdmDeals.filter(d => d.stage === 'Closed Won');
@@ -646,8 +646,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         <MetricCard title="Total Opps" value={metrics.totalOpps} sub="Active Pipeline" icon={<Target className="w-4 h-4" />} color="green" />
         <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-4 h-4" />} color="purple" />
         <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-4 h-4" />} color="orange" />
-        <MetricCard title="Team Calls" value={metrics.totalCrmCalls} sub={`Man: ${metrics.totalCalls} completed`} icon={<Phone className="w-4 h-4" />} color="blue" />
-        <MetricCard title="Team Apps" value={metrics.totalCrmApps} sub={`Man: ${metrics.totalApps} completed`} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
+        <MetricCard title="Team Calls" value={metrics.totalCrmCalls} icon={<Phone className="w-4 h-4" />} color="blue" />
+        <MetricCard title="Team Apps" value={metrics.totalCrmApps} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
       </div>
 
       {/* Temporary Developer Diagnostics Node */}
@@ -693,9 +693,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
               <TableRow className="uppercase text-[8px] font-black tracking-widest border-b">
                 <TableHead className="pl-6">BDM/AM Identity</TableHead>
                 <TableHead className="text-center">CRM Calls</TableHead>
-                <TableHead className="text-center">Manual Calls</TableHead>
                 <TableHead className="text-center">CRM Appointments</TableHead>
-                <TableHead className="text-center">Manual Appointments</TableHead>
                 <TableHead className="text-right pr-6">Weekly Wins Value</TableHead>
               </TableRow>
             </TableHeader>
@@ -706,9 +704,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                   <TableRow key={r.userId} className="hover:bg-slate-50 transition-colors">
                     <TableCell className="pl-6 font-black uppercase text-xs">{r.userName}</TableCell>
                     <TableCell className="text-center font-bold text-xs text-blue-600">{r.summary.crmCalls || 0}</TableCell>
-                    <TableCell className="text-center text-xs text-slate-505 font-medium">{r.summary.callsMade || 0}</TableCell>
                     <TableCell className="text-center font-bold text-xs text-emerald-600">{r.summary.crmApps || 0}</TableCell>
-                    <TableCell className="text-center text-xs text-slate-505 font-medium">{r.summary.meetingsHeld || 0}</TableCell>
                     <TableCell className="text-right pr-6 font-black text-xs text-primary">${winsVal.toLocaleString()}</TableCell>
                   </TableRow>
                 );
@@ -980,7 +976,7 @@ function BDMReportCard({
   const [isOpen, setIsOpen] = useState(false);
 
   const userDeals = useMemo(() => {
-    return allDeals.filter((d: any) => d.userId === report.userId);
+    return allDeals.filter((d: any) => isUserSubmissionMatch({ id: report.userId, name: report.userName }, { id: d.id, ...d }));
   }, [allDeals, report.userId]);
 
   const opps = useMemo(() => {
@@ -992,7 +988,7 @@ function BDMReportCard({
   }, [userDeals]);
 
   const userFactFindings = useMemo(() => {
-    return factFindings.filter((ff: any) => ff.userId === report.userId);
+    return factFindings.filter((ff: any) => isUserSubmissionMatch({ id: report.userId, name: report.userName }, { id: ff.id, ...ff }));
   }, [factFindings, report.userId]);
 
   const cfyRevenue = useMemo(() => {
@@ -1081,12 +1077,10 @@ function BDMReportCard({
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p>
             <p className="text-xl font-black text-primary">{report.summary.crmCalls || 0}</p>
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Man: {report.summary.callsMade || 0}</p>
           </div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <p className="text-[9px] font-black text-emerald-600 uppercase mb-1">Apps</p>
             <p className="text-xl font-black text-primary">{report.summary.crmApps || 0}</p>
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Man: {report.summary.meetingsHeld || 0}</p>
           </div>
           <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">{formatEAV(crmMetrics?.eav ?? report.summary.totalEAV)}</p></div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-indigo-600 uppercase mb-1">Whitespace</p><p className="text-xl font-black text-primary">{report.whitespaceCount || 0}</p></div>
