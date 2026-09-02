@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName, getWeekForDate } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName, getWeekForDate, openSalesforceSearch } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Loader2, TrendingUp, DollarSign, Target, Phone, CalendarCheck, 
@@ -76,6 +77,9 @@ export function FridayPerformanceReview({
     return list;
   }, []);
   
+  // KPI Detail Modal Popup State
+  const [kpiModalType, setKpiModalType] = useState<'CALLS' | 'APPOINTMENTS' | 'OPPORTUNITIES' | 'PIPELINE_VALUE' | 'CANVASS_LEADS' | 'SENT_TO_SF' | null>(null);
+
   // Loading & submission states
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -849,49 +853,114 @@ export function FridayPerformanceReview({
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          {/* KPI Cards */}
+          {/* KPI Cards (Clickable to view detailed breakdowns in popup) */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-              <div className="flex items-center gap-2 mb-1">
-                <Phone className="w-4 h-4 text-blue-600" />
-                <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Calls</p>
+            {/* 1. Calls Card */}
+            <div 
+              onClick={() => setKpiModalType('CALLS')}
+              className="bg-blue-50 hover:bg-blue-100/80 p-4 rounded-2xl border border-blue-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Calls</p>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-2xl font-black text-slate-800">{currentWeekData.activity.calls}</p>
+              <p className="text-[9px] font-semibold text-blue-600/70 mt-1 flex items-center gap-1">
+                View Details <ArrowRight className="w-2.5 h-2.5" />
+              </p>
             </div>
-            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-              <div className="flex items-center gap-2 mb-1">
-                <CalendarCheck className="w-4 h-4 text-emerald-600" />
-                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Appointments</p>
+
+            {/* 2. Appointments Card */}
+            <div 
+              onClick={() => setKpiModalType('APPOINTMENTS')}
+              className="bg-emerald-50 hover:bg-emerald-100/80 p-4 rounded-2xl border border-emerald-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <CalendarCheck className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Appointments</p>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-2xl font-black text-slate-800">{currentWeekData.activity.apps}</p>
+              <p className="text-[9px] font-semibold text-emerald-600/70 mt-1 flex items-center gap-1">
+                View Details <ArrowRight className="w-2.5 h-2.5" />
+              </p>
             </div>
-            <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100">
-              <div className="flex items-center gap-2 mb-1">
-                <Briefcase className="w-4 h-4 text-purple-600" />
-                <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest">Opportunities</p>
+
+            {/* 3. Opportunities Card */}
+            <div 
+              onClick={() => setKpiModalType('OPPORTUNITIES')}
+              className="bg-purple-50 hover:bg-purple-100/80 p-4 rounded-2xl border border-purple-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <Briefcase className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest">Opportunities</p>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-2xl font-black text-slate-800">{currentWeekData.opportunities.length}</p>
+              <p className="text-[9px] font-semibold text-purple-600/70 mt-1 flex items-center gap-1">
+                View Details <ArrowRight className="w-2.5 h-2.5" />
+              </p>
             </div>
-            <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
-              <div className="flex items-center gap-2 mb-1">
-                <DollarSign className="w-4 h-4 text-amber-600" />
-                <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Pipeline Value</p>
+
+            {/* 4. Pipeline Value Card */}
+            <div 
+              onClick={() => setKpiModalType('PIPELINE_VALUE')}
+              className="bg-amber-50 hover:bg-amber-100/80 p-4 rounded-2xl border border-amber-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <DollarSign className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Pipeline Value</p>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-2xl font-black text-slate-800">{formatEAV(currentWeekData.revenue.pipeline)}</p>
+              <p className="text-[9px] font-semibold text-amber-600/70 mt-1 flex items-center gap-1">
+                View Details <ArrowRight className="w-2.5 h-2.5" />
+              </p>
             </div>
-            <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
-              <div className="flex items-center gap-2 mb-1">
-                <MapPin className="w-4 h-4 text-indigo-600" />
-                <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Canvass Leads</p>
+
+            {/* 5. Canvass Leads Card */}
+            <div 
+              onClick={() => setKpiModalType('CANVASS_LEADS')}
+              className="bg-indigo-50 hover:bg-indigo-100/80 p-4 rounded-2xl border border-indigo-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Canvass Leads</p>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-2xl font-black text-slate-800">{currentWeekCanvassLeadsCount}</p>
+              <p className="text-[9px] font-semibold text-indigo-600/70 mt-1 flex items-center gap-1">
+                View Details <ArrowRight className="w-2.5 h-2.5" />
+              </p>
             </div>
-            <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100">
-              <div className="flex items-center gap-2 mb-1">
-                <ExternalLink className="w-4 h-4 text-teal-600" />
-                <p className="text-[9px] font-black text-teal-600 uppercase tracking-widest">Sent to SF</p>
+
+            {/* 6. Sent to SF Card */}
+            <div 
+              onClick={() => setKpiModalType('SENT_TO_SF')}
+              className="bg-teal-50 hover:bg-teal-100/80 p-4 rounded-2xl border border-teal-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <ExternalLink className="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-teal-600 uppercase tracking-widest">Sent to SF</p>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-2xl font-black text-slate-800">{currentWeekSalesforceLeadsCount}</p>
+              <p className="text-[9px] font-semibold text-teal-600/70 mt-1 flex items-center gap-1">
+                View Details <ArrowRight className="w-2.5 h-2.5" />
+              </p>
             </div>
           </div>
           
@@ -1523,6 +1592,278 @@ export function FridayPerformanceReview({
               <div className="py-20 text-center">
                 <Building2 className="w-12 h-12 text-slate-200 mx-auto mb-3" />
                 <p className="text-xs text-slate-400 font-medium">No uploaded accounts found matching search.</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── KPI Detail Breakdown Dialog Popup ────────────────────────────────── */}
+      <Dialog open={!!kpiModalType} onOpenChange={(open) => { if (!open) setKpiModalType(null); }}>
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-slate-100 shadow-2xl bg-white">
+          <DialogHeader className="pb-4 border-b">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "p-2.5 rounded-2xl font-bold text-white shadow-md",
+                kpiModalType === 'CALLS' ? "bg-blue-600" :
+                kpiModalType === 'APPOINTMENTS' ? "bg-emerald-600" :
+                kpiModalType === 'OPPORTUNITIES' ? "bg-purple-600" :
+                kpiModalType === 'PIPELINE_VALUE' ? "bg-amber-600" :
+                kpiModalType === 'CANVASS_LEADS' ? "bg-indigo-600" : "bg-teal-600"
+              )}>
+                {kpiModalType === 'CALLS' && <Phone className="w-5 h-5" />}
+                {kpiModalType === 'APPOINTMENTS' && <CalendarCheck className="w-5 h-5" />}
+                {kpiModalType === 'OPPORTUNITIES' && <Briefcase className="w-5 h-5" />}
+                {kpiModalType === 'PIPELINE_VALUE' && <DollarSign className="w-5 h-5" />}
+                {kpiModalType === 'CANVASS_LEADS' && <MapPin className="w-5 h-5" />}
+                {kpiModalType === 'SENT_TO_SF' && <ExternalLink className="w-5 h-5" />}
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-black uppercase tracking-tight text-slate-900">
+                  {kpiModalType === 'CALLS' && `Phone Calls Breakdown · Week ${currentWeek.split('-')[1]}`}
+                  {kpiModalType === 'APPOINTMENTS' && `Appointments & Meetings Breakdown · Week ${currentWeek.split('-')[1]}`}
+                  {kpiModalType === 'OPPORTUNITIES' && `Active Opportunities · Week ${currentWeek.split('-')[1]}`}
+                  {kpiModalType === 'PIPELINE_VALUE' && `Pipeline Value Breakdown · Week ${currentWeek.split('-')[1]}`}
+                  {kpiModalType === 'CANVASS_LEADS' && `Canvassed Field Leads · Week ${currentWeek.split('-')[1]}`}
+                  {kpiModalType === 'SENT_TO_SF' && `Salesforce Submitted Leads · Week ${currentWeek.split('-')[1]}`}
+                </DialogTitle>
+                <DialogDescription className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+                  Representative: <strong className="text-slate-900 font-black">{activeUserName}</strong> · Week {currentWeek.split('-')[1]}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* Modal Content Details */}
+          <div className="flex-1 overflow-y-auto py-4 space-y-4 min-h-[300px] max-h-[55vh] pr-1">
+            {/* CALLS DETAIL */}
+            {kpiModalType === 'CALLS' && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-blue-900 uppercase tracking-wide">Total Calls Logged</span>
+                  <Badge className="bg-blue-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.calls}</Badge>
+                </div>
+                <div className="border rounded-2xl overflow-hidden divide-y">
+                  {userCallPlans.length > 0 || currentWeekData.activity.calls > 0 ? (
+                    userCallPlans.map((plan: any, i: number) => (
+                      <div key={plan.id || i} className="p-3 text-xs flex items-center justify-between hover:bg-slate-50">
+                        <div>
+                          <p className="font-bold text-slate-900">{plan.customerName || plan.companyName || `Call Activity #${i+1}`}</p>
+                          <p className="text-[10px] text-slate-500">{plan.notes || plan.purpose || 'Call activity logged'}</p>
+                        </div>
+                        <Badge variant="outline" className="text-[9px] uppercase font-bold text-blue-600 border-blue-200">Call Logged</Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No detailed call logs found for this week.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* APPOINTMENTS DETAIL */}
+            {kpiModalType === 'APPOINTMENTS' && (
+              <div className="space-y-4">
+                <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Total Appointments &amp; Meetings</span>
+                  <Badge className="bg-emerald-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.apps}</Badge>
+                </div>
+                <div className="border rounded-2xl overflow-hidden divide-y">
+                  {userCallPlans.length > 0 || currentWeekCanvassLeads.length > 0 ? (
+                    <>
+                      {userCallPlans.map((plan: any, i: number) => (
+                        <div key={plan.id || i} className="p-3 text-xs flex items-center justify-between hover:bg-slate-50">
+                          <div>
+                            <p className="font-bold text-slate-900">{plan.customerName || plan.companyName || `Appointment #${i+1}`}</p>
+                            <p className="text-[10px] text-slate-500">{plan.location || plan.suburb || plan.purpose || 'Customer visit appointment'}</p>
+                          </div>
+                          <Badge className="bg-emerald-100 text-emerald-800 border-none text-[9px] uppercase font-bold">Call Plan Visit</Badge>
+                        </div>
+                      ))}
+                      {currentWeekCanvassLeads.map((lead: any, i: number) => (
+                        <div key={lead.id || i} className="p-3 text-xs flex items-center justify-between hover:bg-slate-50">
+                          <div>
+                            <p className="font-bold text-slate-900">{lead.companyName}</p>
+                            <p className="text-[10px] text-slate-500">{lead.suburb ? `${lead.suburb}, ${lead.state || 'WA'}` : 'On-site field visit'}</p>
+                          </div>
+                          <Badge className="bg-indigo-100 text-indigo-800 border-none text-[9px] uppercase font-bold">Field Visit</Badge>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No appointment or meeting entries found for this week.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* OPPORTUNITIES DETAIL */}
+            {kpiModalType === 'OPPORTUNITIES' && (
+              <div className="space-y-4">
+                <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">Active Opportunities Count</span>
+                  <Badge className="bg-purple-600 text-white font-black text-sm px-3 py-1">{currentWeekData.opportunities.length}</Badge>
+                </div>
+                <div className="border rounded-2xl overflow-hidden">
+                  {currentWeekData.opportunities.length > 0 ? (
+                    <Table>
+                      <TableHeader className="bg-slate-50">
+                        <TableRow>
+                          <TableHead className="text-xs font-black">Opportunity / Pipeline</TableHead>
+                          <TableHead className="text-xs font-black">Stage</TableHead>
+                          <TableHead className="text-xs font-black text-right">Expected EAV</TableHead>
+                          <TableHead className="text-xs font-black text-center">Salesforce</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentWeekData.opportunities.map((opp: any) => (
+                          <TableRow key={opp.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{opp.pipeline || opp.opportunityName}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[9px] uppercase">{opp.stage || 'Discovery'}</Badge></TableCell>
+                            <TableCell className="text-right font-black text-emerald-600">{formatEAV(opp.value || 0)}</TableCell>
+                            <TableCell className="text-center">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-7 text-xs text-primary font-bold gap-1"
+                                onClick={() => openSalesforceSearch(opp.pipeline, opp.salesforceId)}
+                              >
+                                View <ExternalLink className="w-3 h-3" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No active opportunities found for this week.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* PIPELINE VALUE DETAIL */}
+            {kpiModalType === 'PIPELINE_VALUE' && (
+              <div className="space-y-4">
+                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Total Pipeline Value</span>
+                  <Badge className="bg-amber-600 text-white font-black text-base px-4 py-1">{formatEAV(currentWeekData.revenue.pipeline)}</Badge>
+                </div>
+                <div className="border rounded-2xl overflow-hidden">
+                  {currentWeekData.opportunities.length > 0 ? (
+                    <Table>
+                      <TableHeader className="bg-slate-50">
+                        <TableRow>
+                          <TableHead className="text-xs font-black">Deal / Account</TableHead>
+                          <TableHead className="text-xs font-black">Stage</TableHead>
+                          <TableHead className="text-xs font-black">Business Unit</TableHead>
+                          <TableHead className="text-xs font-black text-right">Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentWeekData.opportunities.map((opp: any) => (
+                          <TableRow key={opp.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{opp.pipeline}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[9px] uppercase">{opp.stage}</Badge></TableCell>
+                            <TableCell className="text-xs font-semibold text-slate-500">{opp.businessUnit || 'General'}</TableCell>
+                            <TableCell className="text-right font-black text-amber-700">{formatEAV(opp.value || 0)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No pipeline deals found for this week.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* CANVASS LEADS DETAIL */}
+            {kpiModalType === 'CANVASS_LEADS' && (
+              <div className="space-y-4">
+                <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">Canvassed Field Leads</span>
+                  <Badge className="bg-indigo-600 text-white font-black text-sm px-3 py-1">{currentWeekCanvassLeadsCount}</Badge>
+                </div>
+                <div className="border rounded-2xl overflow-hidden">
+                  {currentWeekCanvassLeads.length > 0 ? (
+                    <Table>
+                      <TableHeader className="bg-slate-50">
+                        <TableRow>
+                          <TableHead className="text-xs font-black">Company Name</TableHead>
+                          <TableHead className="text-xs font-black">Contact Person</TableHead>
+                          <TableHead className="text-xs font-black">Phone / Email</TableHead>
+                          <TableHead className="text-xs font-black">Location</TableHead>
+                          <TableHead className="text-xs font-black text-center">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentWeekCanvassLeads.map((lead: any) => (
+                          <TableRow key={lead.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{lead.companyName}</TableCell>
+                            <TableCell className="text-xs font-medium">{lead.firstName ? `${lead.firstName} ${lead.lastName}` : lead.lastName}</TableCell>
+                            <TableCell className="text-xs text-slate-500">{lead.phone} · {lead.email || 'No email'}</TableCell>
+                            <TableCell className="text-xs text-slate-500">{lead.suburb || lead.addressLine1 || 'Perth Metro'}</TableCell>
+                            <TableCell className="text-center">
+                              {lead.inSalesforce ? (
+                                <Badge className="bg-teal-100 text-teal-800 border-none text-[9px] uppercase font-bold">In Salesforce</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-[9px] uppercase font-bold">Captured</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No canvassing leads logged for this week.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* SENT TO SF DETAIL */}
+            {kpiModalType === 'SENT_TO_SF' && (
+              <div className="space-y-4">
+                <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-teal-900 uppercase tracking-wide">Leads Submitted to Salesforce</span>
+                  <Badge className="bg-teal-600 text-white font-black text-sm px-3 py-1">{currentWeekSalesforceLeadsCount}</Badge>
+                </div>
+                <div className="border rounded-2xl overflow-hidden">
+                  {currentWeekSalesforceLeads.length > 0 ? (
+                    <Table>
+                      <TableHeader className="bg-slate-50">
+                        <TableRow>
+                          <TableHead className="text-xs font-black">Company Name</TableHead>
+                          <TableHead className="text-xs font-black">Contact Name</TableHead>
+                          <TableHead className="text-xs font-black">Salesforce ID</TableHead>
+                          <TableHead className="text-xs font-black text-center">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentWeekSalesforceLeads.map((lead: any) => (
+                          <TableRow key={lead.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{lead.companyName}</TableCell>
+                            <TableCell className="text-xs font-medium">{lead.firstName ? `${lead.firstName} ${lead.lastName}` : lead.lastName}</TableCell>
+                            <TableCell className="text-xs font-mono text-slate-500">{lead.salesforceId || 'Submitted'}</TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs font-bold gap-1 border-teal-200 text-teal-700 hover:bg-teal-50"
+                                onClick={() => openSalesforceSearch(lead.companyName, lead.salesforceId)}
+                              >
+                                View in SF <ExternalLink className="w-3 h-3" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No leads submitted to Salesforce for this week yet.</div>
+                  )}
+                </div>
               </div>
             )}
           </div>
