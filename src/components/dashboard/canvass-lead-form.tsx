@@ -373,8 +373,9 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
       <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-4 rounded-xl border shadow-sm sticky top-0 z-20 backdrop-blur-md bg-card/95">
         <div className="flex items-center gap-3">
           {onCancel && (
-            <Button variant="ghost" size="icon" onClick={onCancel} className="h-9 w-9">
+            <Button variant="outline" size="sm" onClick={onCancel} className="gap-1.5 text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Leads</span>
             </Button>
           )}
           <div>
@@ -868,6 +869,18 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
       {/* Bottom Action Bar */}
       <div className="p-4 bg-card rounded-xl border shadow-sm flex flex-col sm:flex-row items-center justify-end gap-3 mt-8">
+        {onCancel && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            onClick={onCancel}
+            disabled={saving}
+            className="w-full sm:w-auto text-muted-foreground hover:text-foreground sm:mr-auto"
+          >
+            Close
+          </Button>
+        )}
         <Button
           type="button"
           variant="outline"
