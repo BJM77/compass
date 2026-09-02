@@ -214,9 +214,30 @@ export function CanvassingHub() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-slate-100/50">
-          <TabsTrigger value="NEW_LEAD" className="font-bold uppercase tracking-wider text-xs">New Lead</TabsTrigger>
-          <TabsTrigger value="VIEW_LEADS" className="font-bold uppercase tracking-wider text-xs">View Leads</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-slate-100/50">
+          <TabsTrigger value="NEW_LEAD" className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5">
+            <Plus className="h-3.5 w-3.5 text-amber-500" />
+            <span>New Lead</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="VIEW_LEADS" 
+            onClick={() => setViewMode('LIST')} 
+            className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
+          >
+            <Layers className="h-3.5 w-3.5 text-blue-500" />
+            <span>Leads Cards</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="MAP_VIEW" 
+            onClick={() => {
+              setActiveTab('VIEW_LEADS');
+              setViewMode('MAP');
+            }} 
+            className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
+          >
+            <MapPin className="h-3.5 w-3.5 text-red-500" />
+            <span>Visited Areas Map</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="NEW_LEAD" className="mt-0">
@@ -224,6 +245,7 @@ export function CanvassingHub() {
             initialLead={editingLead}
             onSaved={() => {
               setActiveTab('VIEW_LEADS');
+              setViewMode('LIST');
               setEditingLead(null);
             }}
             onCancel={() => {
@@ -314,32 +336,32 @@ export function CanvassingHub() {
             </SelectContent>
           </Select>
 
-          {isLeader && (
-            <div className="flex bg-slate-100 p-0.5 rounded-lg border">
-              <button
-                onClick={() => setViewMode('LIST')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'LIST' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                List
-              </button>
-              <button
-                onClick={() => setViewMode('MAP')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'MAP' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                Map
-              </button>
-            </div>
-          )}
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border">
+            <button
+              onClick={() => setViewMode('LIST')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
+                viewMode === 'LIST' ? 'bg-white dark:bg-slate-900 shadow-sm text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              <span>Cards</span>
+            </button>
+            <button
+              onClick={() => setViewMode('MAP')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
+                viewMode === 'MAP' ? 'bg-white dark:bg-slate-900 shadow-sm text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <MapPin className="h-3.5 w-3.5 text-red-500" />
+              <span>Map</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Leads List / Cards */}
-      {viewMode === 'MAP' && isLeader ? (
-        <div className="h-[600px] w-full mt-4">
+      {/* Leads List / Cards or Visited Areas Map */}
+      {viewMode === 'MAP' ? (
+        <div className="w-full mt-4">
           <CanvassMapView leads={filteredLeads} />
         </div>
       ) : filteredLeads.length === 0 ? (
