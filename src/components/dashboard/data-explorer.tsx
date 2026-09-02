@@ -83,22 +83,6 @@ export function DataExplorer() {
     return Array.from(latestMap.values());
   }, [allPipelineReviews, selectedWeek]);
 
-  const weeklyProgresses = useMemo(() => {
-    if (selectedWeek !== 'all') {
-      return allWeeklyProgresses.filter(r => r.week === selectedWeek);
-    }
-    const userTotals = new Map<string, WeeklyProgress>();
-    allWeeklyProgresses.forEach(r => {
-      const existing = userTotals.get(r.userId) || { ...r, calls: 0, apps: 0, proposals: 0, deals: 0 };
-      existing.calls = (existing.calls || 0) + (r.calls || 0);
-      existing.apps = (existing.apps || 0) + (r.apps || 0);
-      existing.proposals = (existing.proposals || 0) + (r.proposals || 0);
-      existing.deals = (existing.deals || 0) + (r.deals || 0);
-      userTotals.set(r.userId, existing);
-    });
-    return Array.from(userTotals.values());
-  }, [allWeeklyProgresses, selectedWeek]);
-
   // Create a helper map to resolve userId -> userName from all data
   const userIdToName = useMemo(() => {
     const map = new Map<string, string>();
@@ -126,6 +110,46 @@ export function DataExplorer() {
     }
     return set;
   }, [allUsers]);
+
+  const weeklyProgresses = useMemo(() => {
+    const rawFiltered = selectedWeek === 'all'
+      ? allWeeklyProgresses
+      : allWeeklyProgresses.filter(r => r.week === selectedWeek);
+
+    const bdmTotalsMap = new Map<string, WeeklyProgress>();
+
+    rawFiltered.forEach(r => {
+      if (r.userId && guestUserIds.has(r.userId)) return;
+
+      const rawName = r.userName || userIdToName.get(r.userId) || r.userId;
+      const normalizedName = normalizeBdmName(rawName, r.userId);
+      if (!normalizedName || normalizedName === 'Unassigned') return;
+
+      const key = normalizedName.toLowerCase();
+      const existing = bdmTotalsMap.get(key) || {
+        id: r.id || key,
+        userId: r.userId,
+        userName: normalizedName,
+        week: selectedWeek === 'all' ? 'All Weeks' : selectedWeek,
+        calls: 0,
+        apps: 0,
+        proposals: 0,
+        deals: 0,
+      };
+
+      const callsVal = (r.calls || 0) + (r.crmCalls || 0);
+      const appsVal = (r.apps || 0) + (r.crmApps || 0) + (r.meetingsHeld || 0);
+
+      existing.calls = (existing.calls || 0) + callsVal;
+      existing.apps = (existing.apps || 0) + appsVal;
+      existing.proposals = (existing.proposals || 0) + (r.proposals || 0);
+      existing.deals = (existing.deals || 0) + (r.deals || 0);
+
+      bdmTotalsMap.set(key, existing);
+    });
+
+    return Array.from(bdmTotalsMap.values());
+  }, [allWeeklyProgresses, selectedWeek, userIdToName, guestUserIds]);
 
   // Extract unique users from data for the filter dropdown (EXCLUDING GUESTS & DEDUPLICATED BY NAME)
   const users = useMemo(() => {
@@ -256,11 +280,16 @@ export function DataExplorer() {
   // Filter & Sort Activities
   const activities = useMemo(() => {
     const filtered = weeklyProgresses.filter(r => {
-      if (r.userId && guestUserIds.has(r.userId)) return false; // Exclude Guest user records
-      if (selectedUser !== 'all' && r.userId !== selectedUser) return false;
+      if (r.userId && guestUserIds.has(r.userId)) return false;
+      if (selectedUser !== 'all') {
+        const selUserNorm = normalizeBdmName(userIdToName.get(selectedUser) || selectedUser, selectedUser);
+        const rNorm = normalizeBdmName(r.userName || userIdToName.get(r.userId) || r.userId, r.userId);
+        if (selUserNorm.toLowerCase() !== rNorm.toLowerCase()) return false;
+      }
       if (searchQuery) {
-        const name = userIdToName.get(r.userId) || r.userId;
-        if (!name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        const q = searchQuery.toLowerCase();
+        const normName = (r.userName || userIdToName.get(r.userId) || '').toLowerCase();
+        if (!normName.includes(q)) return false;
       }
       return true;
     });
@@ -273,8 +302,8 @@ export function DataExplorer() {
         valA = (a.calls || 0) + (a.apps || 0) + (a.proposals || 0) + (a.deals || 0);
         valB = (b.calls || 0) + (b.apps || 0) + (b.proposals || 0) + (b.deals || 0);
       } else if (actSortField === 'name') {
-        const nameA = (userIdToName.get(a.userId) || '').toLowerCase();
-        const nameB = (userIdToName.get(b.userId) || '').toLowerCase();
+        const nameA = (a.userName || userIdToName.get(a.userId) || '').toLowerCase();
+        const nameB = (b.userName || userIdToName.get(b.userId) || '').toLowerCase();
         if (nameA < nameB) return actSortDir === 'asc' ? -1 : 1;
         if (nameA > nameB) return actSortDir === 'asc' ? 1 : -1;
         return 0;
@@ -422,7 +451,7 @@ export function DataExplorer() {
 
   const activitiesChartData = useMemo(() => {
     return activities.map(a => {
-      const name = userIdToName.get(a.userId) || `BDM (${a.userId})`;
+      const name = a.userName || userIdToName.get(a.userId) || `BDM (${a.userId})`;
       return {
         name,
         calls: a.calls || 0,
@@ -976,11 +1005,11 @@ export function DataExplorer() {
                     <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">No activities match criteria.</TableCell></TableRow>
                   ) : activities.map(a => (
                     <TableRow key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                      <TableCell className="font-bold text-sm">{normalizeBdmName(userIdToName.get(a.userId), a.userId)}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{(a.calls || 0) + (a.crmCalls || 0)}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{(a.apps || 0) + (a.crmApps || 0) + (a.meetingsHeld || 0)}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.proposals || 0}</TableCell>
-                      <TableCell className="text-center font-black text-emerald-600">{a.deals || 0}</TableCell>
+                      <TableCell className="font-bold text-sm">{normalizeBdmName(a.userName || userIdToName.get(a.userId), a.userId)}</TableCell>
+                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.calls || 0}</TableCell>
+                      <TableCell className="text-center font-black text-blue-600 dark:text-blue-400">{a.apps || 0}</TableCell>
+                      <TableCell className="text-center font-black text-amber-600 dark:text-amber-400">{a.proposals || 0}</TableCell>
+                      <TableCell className="text-center font-black text-emerald-600 dark:text-emerald-400">{a.deals || 0}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
