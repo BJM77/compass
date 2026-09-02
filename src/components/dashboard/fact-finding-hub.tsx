@@ -81,12 +81,13 @@ export function FactFindingHub() {
     }, {});
   }, [users]);
 
-  // Derived unique users for filter dropdown
+  // Derived unique users for filter dropdown (BDMs & AMs only, excluding GUESTs)
   const uniqueUsers = useMemo(() => {
     if (!docs) return [];
-    const userIds = Array.from(new Set(docs.map(d => d.userId)));
+    const guestUserIds = new Set(users?.filter((u: any) => (u.role || '').toUpperCase() === 'GUEST').map((u: any) => u.id));
+    const userIds = Array.from(new Set(docs.map(d => d.userId))).filter(id => !guestUserIds.has(id));
     return userIds.map(id => ({ id, name: userMap[id] || 'Unknown User' }));
-  }, [docs, userMap]);
+  }, [docs, userMap, users]);
 
   // Derived filtered & sorted docs
   const filteredAndSortedDocs = useMemo(() => {

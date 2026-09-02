@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { getCurrentWeek } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { PipelineReview, WeeklyProgress } from '@/types/crm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,16 +11,53 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, FileText, Database, Users, Briefcase, Activity, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  Search, 
+  Filter, 
+  FileText, 
+  Database, 
+  Users, 
+  Briefcase, 
+  Activity, 
+  Sparkles, 
+  AlertTriangle, 
+  ShieldCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Download,
+  Building2
+} from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, Legend, PieChart, Pie } from 'recharts';
 
 export function DataExplorer() {
   const { allPipelineReviews, allWeeklyProgresses, isLoading } = usePipelineData();
   const { isLeader } = useAuth();
+  const db = useFirestore();
+
+  // Fetch Firestore users to identify and filter out GUEST users
+  const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
+  const { data: allUsers } = useCollection<any>(usersQuery);
 
   const [activeTab, setActiveTab] = useState('customers');
   const [selectedWeek, setSelectedWeek] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState('all');
+  const [selectedStage, setSelectedStage] = useState('all');
+  const [selectedBu, setSelectedBu] = useState('all');
+  const [creditHoldFilter, setCreditHoldFilter] = useState('all');
+  const [valueRangeFilter, setValueRangeFilter] = useState('all');
+
+  // Sort states for each tab
+  const [customerSortField, setCustomerSortField] = useState<'currentRevenue' | 'closedWonValue' | 'pipeline' | 'accountMasterCode'>('currentRevenue');
+  const [customerSortDir, setCustomerSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const [oppSortField, setOppSortField] = useState<'value' | 'probability' | 'opportunityName' | 'pipeline' | 'stage'>('value');
+  const [oppSortDir, setOppSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const [actSortField, setActSortField] = useState<'total' | 'calls' | 'apps' | 'proposals' | 'deals' | 'name'>('total');
+  const [actSortDir, setActSortDir] = useState<'asc' | 'desc'>('desc');
 
   const availableWeeks = useMemo(() => {
     const current = getCurrentWeek();
@@ -59,8 +98,6 @@ export function DataExplorer() {
     });
     return Array.from(userTotals.values());
   }, [allWeeklyProgresses, selectedWeek]);
-  const [selectedUser, setSelectedUser] = useState('all');
-  const [selectedStage, setSelectedStage] = useState('all');
 
   // Create a helper map to resolve userId -> userName from all data
   const userIdToName = useMemo(() => {
@@ -71,19 +108,47 @@ export function DataExplorer() {
     return map;
   }, [allPipelineReviews]);
 
-  // Extract unique users from data for the filter dropdown
+  // Set of guest user IDs to EXCLUDE from reporting tools & dropdowns
+  const guestUserIds = useMemo(() => {
+    const set = new Set<string>();
+    if (allUsers) {
+      allUsers.forEach((u: any) => {
+        const roleUpper = (u.role || '').toUpperCase();
+        if (roleUpper === 'GUEST') {
+          set.add(u.id);
+        }
+      });
+    }
+    return set;
+  }, [allUsers]);
+
+  // Extract unique users from data for the filter dropdown (EXCLUDING GUESTS)
   const users = useMemo(() => {
     const userMap = new Map<string, string>();
+
     allPipelineReviews.forEach(r => {
-      if (r.userName) userMap.set(r.userId, r.userName);
+      if (r.userId && !guestUserIds.has(r.userId)) {
+        if (r.userName) userMap.set(r.userId, r.userName);
+      }
     });
+
     allWeeklyProgresses.forEach(r => {
-      if (!userMap.has(r.userId)) {
+      if (r.userId && !guestUserIds.has(r.userId) && !userMap.has(r.userId)) {
         userMap.set(r.userId, userIdToName.get(r.userId) || `BDM (${r.userId})`);
       }
     });
+
     return Array.from(userMap.entries()).map(([id, name]) => ({ id, name }));
-  }, [allPipelineReviews, allWeeklyProgresses, userIdToName]);
+  }, [allPipelineReviews, allWeeklyProgresses, userIdToName, guestUserIds]);
+
+  // Extract unique business units
+  const businessUnits = useMemo(() => {
+    const set = new Set<string>();
+    allPipelineReviews.forEach(r => {
+      if (r.businessUnit) set.add(r.businessUnit);
+    });
+    return Array.from(set);
+  }, [allPipelineReviews]);
 
   // Extract unique stages for opportunities
   const stages = useMemo(() => {
@@ -96,35 +161,86 @@ export function DataExplorer() {
     return Array.from(stageSet);
   }, [allPipelineReviews]);
 
-  // Filter Data
+  // Filter & Sort Customers
   const customers = useMemo(() => {
-    return pipelineReviews.filter(r => {
+    const filtered = pipelineReviews.filter(r => {
       const isCustomer = r.isBareAccount || r.stage === 'Existing Customer';
       if (!isCustomer) return false;
+      if (r.userId && guestUserIds.has(r.userId)) return false; // Exclude Guest user records
       if (selectedUser !== 'all' && r.userId !== selectedUser) return false;
+      if (selectedBu !== 'all' && r.businessUnit !== selectedBu) return false;
+      
+      if (creditHoldFilter === 'yes' && !r.creditHold) return false;
+      if (creditHoldFilter === 'no' && r.creditHold) return false;
+
+      const rev = r.currentRevenue || 0;
+      if (valueRangeFilter === 'under100k' && rev >= 100000) return false;
+      if (valueRangeFilter === '100kTo500k' && (rev < 100000 || rev > 500000)) return false;
+      if (valueRangeFilter === 'over500k' && rev < 500000) return false;
+
       if (searchQuery) {
         const queryStr = searchQuery.toLowerCase();
         const matchesPipeline = r.pipeline.toLowerCase().includes(queryStr);
         const matchesCode = r.accountMasterCode?.toLowerCase().includes(queryStr) ?? false;
-        if (!matchesPipeline && !matchesCode) return false;
+        const matchesUser = r.userName?.toLowerCase().includes(queryStr) ?? false;
+        if (!matchesPipeline && !matchesCode && !matchesUser) return false;
       }
       return true;
     });
-  }, [pipelineReviews, selectedUser, searchQuery]);
 
+    return filtered.sort((a, b) => {
+      let valA: any = a[customerSortField] ?? 0;
+      let valB: any = b[customerSortField] ?? 0;
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+
+      if (valA < valB) return customerSortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return customerSortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [pipelineReviews, selectedUser, selectedBu, creditHoldFilter, valueRangeFilter, searchQuery, customerSortField, customerSortDir, guestUserIds]);
+
+  // Filter & Sort Opportunities
   const opportunities = useMemo(() => {
-    return pipelineReviews.filter(r => {
+    const filtered = pipelineReviews.filter(r => {
       const isOpp = !r.isBareAccount && r.stage !== 'Existing Customer';
       if (!isOpp) return false;
+      if (r.userId && guestUserIds.has(r.userId)) return false; // Exclude Guest user records
       if (selectedUser !== 'all' && r.userId !== selectedUser) return false;
       if (selectedStage !== 'all' && r.stage !== selectedStage) return false;
-      if (searchQuery && !r.pipeline.toLowerCase().includes(searchQuery.toLowerCase()) && !r.opportunityName?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (selectedBu !== 'all' && r.businessUnit !== selectedBu) return false;
+
+      const val = r.value || 0;
+      if (valueRangeFilter === 'under100k' && val >= 100000) return false;
+      if (valueRangeFilter === '100kTo500k' && (val < 100000 || val > 500000)) return false;
+      if (valueRangeFilter === 'over500k' && val < 500000) return false;
+
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchesPipe = r.pipeline.toLowerCase().includes(q);
+        const matchesOpp = r.opportunityName?.toLowerCase().includes(q) ?? false;
+        const matchesUser = r.userName?.toLowerCase().includes(q) ?? false;
+        if (!matchesPipe && !matchesOpp && !matchesUser) return false;
+      }
       return true;
     });
-  }, [pipelineReviews, selectedUser, selectedStage, searchQuery]);
 
+    return filtered.sort((a, b) => {
+      let valA: any = a[oppSortField] ?? 0;
+      let valB: any = b[oppSortField] ?? 0;
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+
+      if (valA < valB) return oppSortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return oppSortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [pipelineReviews, selectedUser, selectedStage, selectedBu, valueRangeFilter, searchQuery, oppSortField, oppSortDir, guestUserIds]);
+
+  // Filter & Sort Activities
   const activities = useMemo(() => {
-    return weeklyProgresses.filter(r => {
+    const filtered = weeklyProgresses.filter(r => {
+      if (r.userId && guestUserIds.has(r.userId)) return false; // Exclude Guest user records
       if (selectedUser !== 'all' && r.userId !== selectedUser) return false;
       if (searchQuery) {
         const name = userIdToName.get(r.userId) || r.userId;
@@ -132,9 +248,65 @@ export function DataExplorer() {
       }
       return true;
     });
-  }, [weeklyProgresses, selectedUser, searchQuery, userIdToName]);
+
+    return filtered.sort((a, b) => {
+      let valA = 0;
+      let valB = 0;
+
+      if (actSortField === 'total') {
+        valA = (a.calls || 0) + (a.apps || 0) + (a.proposals || 0) + (a.deals || 0);
+        valB = (b.calls || 0) + (b.apps || 0) + (b.proposals || 0) + (b.deals || 0);
+      } else if (actSortField === 'name') {
+        const nameA = (userIdToName.get(a.userId) || '').toLowerCase();
+        const nameB = (userIdToName.get(b.userId) || '').toLowerCase();
+        if (nameA < nameB) return actSortDir === 'asc' ? -1 : 1;
+        if (nameA > nameB) return actSortDir === 'asc' ? 1 : -1;
+        return 0;
+      } else {
+        valA = (a[actSortField] as number) || 0;
+        valB = (b[actSortField] as number) || 0;
+      }
+
+      if (valA < valB) return actSortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return actSortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [weeklyProgresses, selectedUser, searchQuery, userIdToName, actSortField, actSortDir, guestUserIds]);
 
   const formatMoney = (val: number) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(val || 0);
+
+  // CSV Exporter
+  const handleExportCsv = () => {
+    let csvContent = '';
+    let filename = `compass_${activeTab}_export.csv`;
+
+    if (activeTab === 'customers') {
+      csvContent = 'Account Code,Account Name,BDM,Business Unit,YTD Revenue,Closed Won Revenue,Credit Hold\n';
+      customers.forEach(c => {
+        csvContent += `"${c.accountMasterCode || ''}","${(c.pipeline || '').replace(/"/g, '""')}","${c.userName || ''}","${c.businessUnit || ''}",${c.currentRevenue || 0},${c.closedWonValue || 0},"${c.creditHold ? 'YES' : 'NO'}"\n`;
+      });
+    } else if (activeTab === 'opportunities') {
+      csvContent = 'Salesforce ID,Opportunity Name,Account Name,BDM,Business Unit,Stage,Amount,Probability\n';
+      opportunities.forEach(o => {
+        csvContent += `"${o.salesforceId || ''}","${(o.opportunityName || '').replace(/"/g, '""')}","${(o.pipeline || '').replace(/"/g, '""')}","${o.userName || ''}","${o.businessUnit || ''}","${o.stage || ''}",${o.value || 0},${o.probability || 0}\n`;
+      });
+    } else if (activeTab === 'activities') {
+      csvContent = 'BDM Name,Calls Logged,Meetings/Apps,Proposals,Deals Won\n';
+      activities.forEach(a => {
+        const name = userIdToName.get(a.userId) || a.userId;
+        csvContent += `"${name}",${a.calls || 0},${a.apps || 0},${a.proposals || 0},${a.deals || 0}\n`;
+      });
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Automated Smart Insights
   const smartInsights = useMemo(() => {
@@ -227,7 +399,7 @@ export function DataExplorer() {
     });
     return Array.from(stageMap.values()).map(s => ({
       stage: s.stage,
-      value: Math.round(s.value / 1000) / 1000, // format to Millions (e.g., $1.2M)
+      value: Math.round(s.value / 1000) / 1000,
       count: s.count
     }));
   }, [opportunities]);
@@ -256,12 +428,39 @@ export function DataExplorer() {
     const COLORS = ['#2563eb', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#64748b'];
     return Array.from(buMap.values()).map((bu, index) => ({
       ...bu,
-      value: Math.round(bu.value / 1000) / 1000, // Millions
+      value: Math.round(bu.value / 1000) / 1000,
       color: COLORS[index % COLORS.length]
     }));
   }, [customers]);
 
   const [insightIndex, setInsightIndex] = useState(0);
+
+  const toggleCustomerSort = (field: 'currentRevenue' | 'closedWonValue' | 'pipeline' | 'accountMasterCode') => {
+    if (customerSortField === field) {
+      setCustomerSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setCustomerSortField(field);
+      setCustomerSortDir('desc');
+    }
+  };
+
+  const toggleOppSort = (field: 'value' | 'probability' | 'opportunityName' | 'pipeline' | 'stage') => {
+    if (oppSortField === field) {
+      setOppSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setOppSortField(field);
+      setOppSortDir('desc');
+    }
+  };
+
+  const toggleActSort = (field: 'total' | 'calls' | 'apps' | 'proposals' | 'deals' | 'name') => {
+    if (actSortField === field) {
+      setActSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setActSortField(field);
+      setActSortDir('desc');
+    }
+  };
 
   if (isLoading) {
     return <div className="flex h-[400px] items-center justify-center text-slate-500 font-bold uppercase tracking-widest">Loading CRM Data...</div>;
@@ -269,81 +468,125 @@ export function DataExplorer() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border shadow-sm">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-slate-800 flex items-center gap-3">
-            <Database className="w-8 h-8 text-primary" />
-            Data Explorer
+          <h2 className="text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-3">
+            <Database className="w-7 h-7 text-primary" />
+            CRM Data Explorer & Analytics
           </h2>
-          <p className="text-slate-500 mt-1 font-medium">Browse, filter, and inspect all imported CRM records.</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-xs font-medium">
+            Multi-dimensional reporting, advanced filtering, and instant CSV export across all accounts and representatives.
+          </p>
         </div>
         
-        <div className="flex flex-col gap-4 w-full md:w-auto items-end">
-          <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input 
-              placeholder="Search names or IDs..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 font-medium border-slate-200"
-            />
-          </div>
-          <Select value={selectedWeek} onValueChange={setSelectedWeek}>
-            <SelectTrigger className="w-full sm:w-[160px] font-bold">
-              <SelectValue placeholder="All Time" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="font-bold">All Time</SelectItem>
-              {availableWeeks.map(w => (
-                <SelectItem key={w} value={w} className="font-medium">Week {w}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedUser} onValueChange={setSelectedUser}>
-            <SelectTrigger className="w-full sm:w-[200px] font-bold">
-              <SelectValue placeholder="Filter by User" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="font-bold">All Users</SelectItem>
-              {users.map(u => (
-                <SelectItem key={u.id} value={u.id} className="font-medium">{u.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          </div>
-          
-          <div className="flex flex-wrap gap-2 justify-end">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 self-center mr-2">Quick Views:</span>
+        <Button onClick={handleExportCsv} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shrink-0">
+          <Download className="w-4 h-4" />
+          <span>Export {activeTab.toUpperCase()} CSV</span>
+        </Button>
+      </div>
+
+      {/* Advanced Filter Toolbar */}
+      <Card className="p-4 bg-slate-50/80 dark:bg-slate-900/50 border shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-indigo-500" /> Filter & Search Controls
+          </span>
+          <div className="flex flex-wrap gap-2">
             <button 
               onClick={() => { setActiveTab('activities'); setSelectedWeek(availableWeeks[0] || 'all'); setSearchQuery(''); setSelectedUser('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
             >
               This Week's Activity
             </button>
             <button 
               onClick={() => { setActiveTab('opportunities'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); setSelectedStage('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
             >
               All Revenue & Pipeline
             </button>
             <button 
-              onClick={() => { setActiveTab('customers'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+              onClick={() => { setActiveTab('customers'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); setSelectedBu('all'); setCreditHoldFilter('all'); }}
+              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
             >
               Customer Accounts
             </button>
           </div>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {/* Search */}
+          <div className="relative col-span-1 sm:col-span-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input 
+              placeholder="Search accounts, opps, or reps..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 text-xs h-9 font-medium bg-white dark:bg-slate-950"
+            />
+          </div>
+
+          {/* Week */}
+          <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+              <SelectValue placeholder="All Time" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="font-bold text-xs">All Time</SelectItem>
+              {availableWeeks.map(w => (
+                <SelectItem key={w} value={w} className="font-medium text-xs">Week {w}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* User (BDM & AM Only) */}
+          <Select value={selectedUser} onValueChange={setSelectedUser}>
+            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+              <SelectValue placeholder="BDMs & AMs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="font-bold text-xs">All BDMs & AMs</SelectItem>
+              {users.map(u => (
+                <SelectItem key={u.id} value={u.id} className="font-medium text-xs">{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Business Unit */}
+          <Select value={selectedBu} onValueChange={setSelectedBu}>
+            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+              <SelectValue placeholder="Business Unit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="font-bold text-xs">All Business Units</SelectItem>
+              {businessUnits.map(bu => (
+                <SelectItem key={bu} value={bu} className="font-medium text-xs">{bu}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Value Range */}
+          <Select value={valueRangeFilter} onValueChange={setValueRangeFilter}>
+            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+              <SelectValue placeholder="Revenue Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="font-bold text-xs">All Value Ranges</SelectItem>
+              <SelectItem value="under100k" className="font-medium text-xs">&lt; $100K</SelectItem>
+              <SelectItem value="100kTo500k" className="font-medium text-xs">$100K - $500K</SelectItem>
+              <SelectItem value="over500k" className="font-medium text-xs">$500K+</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Card>
 
       {/* Smart Insights Banner */}
       {smartInsights.length > 0 && (
-        <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-slate-50 to-indigo-50/20 border-b border-slate-100">
+        <Card className="border border-slate-200 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-slate-50 to-indigo-50/20 dark:from-slate-900 dark:to-indigo-950/20 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4.5 h-4.5 text-indigo-600 animate-pulse" />
-              <span className="text-[10px] font-black uppercase text-indigo-950 tracking-widest">Compass CRM Insights Engine</span>
+              <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
+              <span className="text-[10px] font-black uppercase text-indigo-950 dark:text-indigo-300 tracking-widest">Compass CRM Insights Engine</span>
             </div>
             {smartInsights.length > 1 && (
               <div className="flex items-center gap-1.5">
@@ -364,24 +607,25 @@ export function DataExplorer() {
             )}
           </div>
           <CardContent className="p-4 px-6 flex items-center justify-between min-h-[52px]">
-            <p className="text-xs font-bold text-slate-700 leading-relaxed">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300 leading-relaxed">
               {smartInsights[insightIndex].text}
             </p>
           </CardContent>
         </Card>
       )}
 
+      {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-slate-100/50 p-1 rounded-xl mb-6">
-          <TabsTrigger value="customers" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">
+        <TabsList className="bg-slate-100/80 dark:bg-slate-800 p-1 rounded-xl mb-6">
+          <TabsTrigger value="customers" className="rounded-lg font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
             <Users className="w-4 h-4 mr-2" />
             Customers ({customers.length})
           </TabsTrigger>
-          <TabsTrigger value="opportunities" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">
+          <TabsTrigger value="opportunities" className="rounded-lg font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
             <Briefcase className="w-4 h-4 mr-2" />
             Opportunities ({opportunities.length})
           </TabsTrigger>
-          <TabsTrigger value="activities" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">
+          <TabsTrigger value="activities" className="rounded-lg font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
             <Activity className="w-4 h-4 mr-2" />
             Activities ({activities.length})
           </TabsTrigger>
@@ -390,8 +634,8 @@ export function DataExplorer() {
         {/* CUSTOMERS TAB */}
         <TabsContent value="customers">
           {customersChartData.length > 0 && (
-            <Card className="border-none shadow-xl bg-white p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider mb-4">Customer Revenue Split by Business Unit</h3>
+            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider mb-4">Customer Revenue Split by Business Unit</h3>
               <div className="h-[250px] w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -417,31 +661,86 @@ export function DataExplorer() {
             </Card>
           )}
 
-          <Card className="border-none shadow-xl bg-white overflow-hidden">
+          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+            {/* Customer Specific Sub-Filters */}
+            <div className="bg-slate-50 dark:bg-slate-950 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Credit Hold:</span>
+                <Select value={creditHoldFilter} onValueChange={setCreditHoldFilter}>
+                  <SelectTrigger className="w-[150px] h-8 text-xs font-bold bg-white dark:bg-slate-900">
+                    <SelectValue placeholder="Credit Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="font-bold text-xs">All Customers</SelectItem>
+                    <SelectItem value="yes" className="font-medium text-xs text-red-600 font-bold">Credit Hold Only</SelectItem>
+                    <SelectItem value="no" className="font-medium text-xs">Normal (No Hold)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="text-xs font-bold text-slate-500">
+                Showing {customers.length} Accounts
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 border-b">
+                <TableHeader className="bg-slate-50 dark:bg-slate-950 border-b">
                   <TableRow>
-                    <TableHead className="font-black text-slate-500">Customer ID</TableHead>
-                    <TableHead className="font-black text-slate-500">Account Name</TableHead>
-                    <TableHead className="font-black text-slate-500">BDM</TableHead>
-                    <TableHead className="font-black text-slate-500 text-right">YTD Revenue</TableHead>
-                    <TableHead className="font-black text-slate-500 text-right">Won Revenue</TableHead>
-                    <TableHead className="font-black text-slate-500 text-center">Credit Hold</TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleCustomerSort('accountMasterCode')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Customer ID</span>
+                        {customerSortField === 'accountMasterCode' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleCustomerSort('pipeline')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Account Name</span>
+                        {customerSortField === 'pipeline' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-black text-slate-600 dark:text-slate-400">BDM / AM</TableHead>
+                    <TableHead className="font-black text-slate-600 dark:text-slate-400">Business Unit</TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleCustomerSort('currentRevenue')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        <span>YTD Revenue</span>
+                        {customerSortField === 'currentRevenue' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleCustomerSort('closedWonValue')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        <span>Won Revenue</span>
+                        {customerSortField === 'closedWonValue' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-black text-slate-600 dark:text-slate-400 text-center">Credit Hold</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {customers.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-400 font-bold">No customers found.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-400 font-bold">No customer accounts match criteria.</TableCell></TableRow>
                   ) : customers.map(c => (
-                    <TableRow key={c.id} className="hover:bg-slate-50">
-                      <TableCell className="font-medium text-xs">{c.accountMasterCode}</TableCell>
-                      <TableCell className="font-bold">{c.pipeline}</TableCell>
-                      <TableCell className="text-xs">{c.userName}</TableCell>
+                    <TableRow key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                      <TableCell className="font-medium text-xs">{c.accountMasterCode || '—'}</TableCell>
+                      <TableCell className="font-bold text-slate-900 dark:text-slate-100">{c.pipeline}</TableCell>
+                      <TableCell className="text-xs">{c.userName || 'Unassigned'}</TableCell>
+                      <TableCell className="text-xs font-semibold text-slate-500">{c.businessUnit || 'General'}</TableCell>
                       <TableCell className="text-right font-medium">{formatMoney(c.currentRevenue || 0)}</TableCell>
                       <TableCell className="text-right font-bold text-emerald-600">{formatMoney(c.closedWonValue || 0)}</TableCell>
                       <TableCell className="text-center">
-                        {c.creditHold ? <Badge variant="destructive" className="text-[10px]">YES</Badge> : <Badge variant="secondary" className="text-[10px] bg-slate-100 text-slate-400">NO</Badge>}
+                        {c.creditHold ? <Badge variant="destructive" className="text-[10px]">YES</Badge> : <Badge variant="secondary" className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-400">NO</Badge>}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -454,8 +753,8 @@ export function DataExplorer() {
         {/* OPPORTUNITIES TAB */}
         <TabsContent value="opportunities">
           {opportunitiesChartData.length > 0 && (
-            <Card className="border-none shadow-xl bg-white p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider mb-4">Active Pipeline Value by Stage</h3>
+            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider mb-4">Active Pipeline Value by Stage</h3>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={opportunitiesChartData}>
@@ -474,12 +773,12 @@ export function DataExplorer() {
             </Card>
           )}
 
-          <Card className="border-none shadow-xl bg-white overflow-hidden">
-            {activeTab === 'opportunities' && (
-              <div className="bg-slate-50 border-b p-3 flex gap-4 items-center">
-                <span className="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Stage Filter:</span>
+          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+            <div className="bg-slate-50 dark:bg-slate-950 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Stage Filter:</span>
                 <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger className="w-[200px] h-8 text-xs font-bold bg-white">
+                  <SelectTrigger className="w-[180px] h-8 text-xs font-bold bg-white dark:bg-slate-900">
                     <SelectValue placeholder="All Stages" />
                   </SelectTrigger>
                   <SelectContent>
@@ -490,29 +789,74 @@ export function DataExplorer() {
                   </SelectContent>
                 </Select>
               </div>
-            )}
+
+              <div className="text-xs font-bold text-slate-500">
+                Showing {opportunities.length} Opportunities
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 border-b">
+                <TableHeader className="bg-slate-50 dark:bg-slate-950 border-b">
                   <TableRow>
-                    <TableHead className="font-black text-slate-500">Opp ID</TableHead>
-                    <TableHead className="font-black text-slate-500">Opp Name</TableHead>
-                    <TableHead className="font-black text-slate-500">Account Name</TableHead>
-                    <TableHead className="font-black text-slate-500">BDM</TableHead>
-                    <TableHead className="font-black text-slate-500">Stage</TableHead>
-                    <TableHead className="font-black text-slate-500 text-right">Amount</TableHead>
-                    <TableHead className="font-black text-slate-500 text-right">Prob (%)</TableHead>
+                    <TableHead className="font-black text-slate-600 dark:text-slate-400">Opp ID</TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleOppSort('opportunityName')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Opp Name</span>
+                        {oppSortField === 'opportunityName' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleOppSort('pipeline')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Account Name</span>
+                        {oppSortField === 'pipeline' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-black text-slate-600 dark:text-slate-400">BDM / AM</TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleOppSort('stage')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Stage</span>
+                        {oppSortField === 'stage' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleOppSort('value')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        <span>Amount</span>
+                        {oppSortField === 'value' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleOppSort('probability')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        <span>Prob (%)</span>
+                        {oppSortField === 'probability' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {opportunities.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-400 font-bold">No opportunities found.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-400 font-bold">No opportunities match criteria.</TableCell></TableRow>
                   ) : opportunities.map(o => (
-                    <TableRow key={o.id} className="hover:bg-slate-50">
-                      <TableCell className="font-medium text-xs text-slate-500">{o.salesforceId}</TableCell>
+                    <TableRow key={o.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                      <TableCell className="font-medium text-xs text-slate-500">{o.salesforceId || '—'}</TableCell>
                       <TableCell className="font-bold text-sm text-primary">{o.opportunityName || '—'}</TableCell>
                       <TableCell className="font-medium text-xs">{o.pipeline}</TableCell>
-                      <TableCell className="text-xs">{o.userName}</TableCell>
+                      <TableCell className="text-xs">{o.userName || 'Unassigned'}</TableCell>
                       <TableCell>
                         <Badge className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">{o.stage}</Badge>
                       </TableCell>
@@ -529,8 +873,8 @@ export function DataExplorer() {
         {/* ACTIVITIES TAB */}
         <TabsContent value="activities">
           {activitiesChartData.length > 0 && (
-            <Card className="border-none shadow-xl bg-white p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider mb-4">BDM Weekly Activity Comparison</h3>
+            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider mb-4">BDM Weekly Activity Comparison</h3>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={activitiesChartData}>
@@ -548,37 +892,78 @@ export function DataExplorer() {
             </Card>
           )}
 
-          <Card className="border-none shadow-xl bg-white overflow-hidden">
-            <div className="bg-blue-50/50 p-4 border-b border-blue-100 flex items-start gap-3">
+          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+            <div className="bg-blue-50/50 dark:bg-blue-950/20 p-4 border-b border-blue-100 dark:border-blue-900 flex items-start gap-3">
               <Activity className="w-5 h-5 text-blue-500 mt-0.5" />
               <div>
-                <h4 className="text-sm font-black text-blue-900 uppercase">Aggregated Weekly Activity</h4>
-                <p className="text-xs text-blue-700/80 mt-1 font-medium max-w-2xl">
-                  This table shows the summarized totals of all activities imported for the current week. 
-                  Individual phone calls and meetings are aggregated into these totals during the CRM import process.
+                <h4 className="text-sm font-black text-blue-900 dark:text-blue-300 uppercase">Aggregated Weekly Activity</h4>
+                <p className="text-xs text-blue-700/80 dark:text-blue-400 mt-1 font-medium max-w-2xl">
+                  This table shows the summarized totals of all activities imported for the selected timeframe.
+                  Click column headers to sort by calls, meetings, proposals, or wins.
                 </p>
               </div>
             </div>
+
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 border-b">
+                <TableHeader className="bg-slate-50 dark:bg-slate-950 border-b">
                   <TableRow>
-                    <TableHead className="font-black text-slate-500">BDM Name</TableHead>
-                    <TableHead className="font-black text-slate-500 text-center">Calls</TableHead>
-                    <TableHead className="font-black text-slate-500 text-center">Meetings / Apps</TableHead>
-                    <TableHead className="font-black text-slate-500 text-center">Opps Created</TableHead>
-                    <TableHead className="font-black text-slate-500 text-center">Wins</TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleActSort('name')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>BDM / AM Name</span>
+                        {actSortField === 'name' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleActSort('calls')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span>Calls</span>
+                        {actSortField === 'calls' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleActSort('apps')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span>Meetings / Apps</span>
+                        {actSortField === 'apps' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleActSort('proposals')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span>Opps Created</span>
+                        {actSortField === 'proposals' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleActSort('deals')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span>Wins</span>
+                        {actSortField === 'deals' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                      </div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {activities.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">No activities found.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">No activities match criteria.</TableCell></TableRow>
                   ) : activities.map(a => (
-                    <TableRow key={a.id} className="hover:bg-slate-50">
+                    <TableRow key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                       <TableCell className="font-bold text-sm">{userIdToName.get(a.userId) || `BDM (${a.userId})`}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700">{a.calls || 0}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700">{a.apps || 0}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700">{a.proposals || 0}</TableCell>
+                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.calls || 0}</TableCell>
+                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.apps || 0}</TableCell>
+                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.proposals || 0}</TableCell>
                       <TableCell className="text-center font-black text-emerald-600">{a.deals || 0}</TableCell>
                     </TableRow>
                   ))}
