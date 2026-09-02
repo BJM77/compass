@@ -30,10 +30,12 @@ import {
   Compass, 
   ArrowLeft,
   Share2,
-  FileCheck
+  FileCheck,
+  Camera
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { openSalesforceCreateLead, openSalesforceSearch } from '@/lib/utils';
+import { parseBusinessCard } from '@/ai/flows/parse-business-card';
 
 const BUSINESS_UNITS = [
   'Priority Services',
@@ -113,6 +115,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
   const [saving, setSaving] = useState(false);
   const [acquiringGps, setAcquiringGps] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [scanningCard, setScanningCard] = useState(false);
 
   // Form State
   const [companyName, setCompanyName] = useState(initialLead?.companyName || '');
@@ -168,6 +171,59 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
     setServices(prev => 
       prev.includes(svc) ? prev.filter(s => s !== svc) : [...prev, svc]
     );
+  };
+
+  // AI Business Card Scanner Handler
+  const handleScanBusinessCard = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so re-selecting same file triggers onChange
+    e.target.value = '';
+
+    setScanningCard(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const photoDataUri = reader.result as string;
+        try {
+          const result = await parseBusinessCard({ photoDataUri });
+          if (result) {
+            if (result.companyName) setCompanyName(result.companyName);
+            if (result.firstName) setFirstName(result.firstName);
+            if (result.lastName) setLastName(result.lastName);
+            if (result.title) setTitle(result.title);
+            if (result.phone) setPhone(result.phone);
+            if (result.email) setEmail(result.email);
+            if (result.addressLine1) setAddressLine1(result.addressLine1);
+            if (result.suburb) setSuburb(result.suburb);
+            if (result.state) setState(result.state);
+            if (result.postcode) setPostcode(result.postcode);
+
+            toast({
+              title: 'Business Card Scanned! 📸',
+              description: `Extracted details for ${result.firstName || ''} ${result.lastName || result.companyName || 'Lead'}. Please verify fields.`,
+            });
+          }
+        } catch (err: any) {
+          toast({
+            title: 'Scan Failed',
+            description: err.message || 'Could not extract business card details.',
+            variant: 'destructive',
+          });
+        } finally {
+          setScanningCard(false);
+        }
+      };
+    } catch (err: any) {
+      setScanningCard(false);
+      toast({
+        title: 'File Read Error',
+        description: 'Failed to process image file.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // GPS Acquisition & Reverse Geocoding
@@ -412,6 +468,58 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
           </Button>
         </div>
       </div>
+
+      {/* AI Business Card Scanner Banner */}
+      <Card className="border-amber-200 dark:border-amber-900 bg-gradient-to-r from-amber-50/80 via-orange-50/40 to-amber-50/80 dark:from-amber-950/20 dark:to-orange-950/20">
+        <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg shadow-sm">
+              <Camera className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm">AI Business Card Scanner (OCR)</span>
+                <Badge variant="outline" className="bg-amber-100/80 text-amber-900 border-amber-300 text-[10px] gap-1 font-bold">
+                  <Sparkles className="h-3 w-3 text-amber-600" /> Gemini Vision
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Snap or upload a business card photo to auto-fill Name, Title, Company, Phone & Email.
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full sm:w-auto shrink-0">
+            <input
+              type="file"
+              id="businessCardInput"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleScanBusinessCard}
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => document.getElementById('businessCardInput')?.click()}
+              disabled={scanningCard}
+              className="w-full sm:w-auto gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold shadow-sm"
+            >
+              {scanningCard ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Analyzing Card...</span>
+                </>
+              ) : (
+                <>
+                  <Camera className="h-4 w-4" />
+                  <span>Scan Business Card</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* GPS Location Banner */}
       <Card className="border-blue-200 dark:border-blue-900 bg-gradient-to-r from-blue-50/70 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
