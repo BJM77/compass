@@ -183,6 +183,15 @@ export function FridayPerformanceReview({
   const currentWeekCanvassLeadsCount = currentWeekCanvassLeads.length;
   const currentWeekSalesforceLeadsCount = currentWeekSalesforceLeads.length;
 
+  const userActivity = useMemo(() => {
+    return allActivity?.filter(a => {
+      if (a.week !== currentWeek) return false;
+      if (a.userId === activeUserId) return true;
+      if (a.userName && normalizeBdmName(a.userName, a.userId) === activeUserName) return true;
+      return false;
+    }) || [];
+  }, [allActivity, currentWeek, activeUserId, activeUserName]);
+
   // ─── Previous Friday FW Viewer ───────────────────────────────────────────
   const previousFridayFwRef = useMemoFirebase(() => {
     if (!db || !activeUserId) return null;
@@ -212,6 +221,146 @@ export function FridayPerformanceReview({
     supportNeeded: '',
     keyLearnings: '',
   });
+
+  const appointmentList = useMemo(() => {
+    const list: Array<{
+      id: string;
+      title: string;
+      subtitle: string;
+      type: string;
+      badgeColor: string;
+      salesforceId?: string;
+    }> = [];
+
+    // 1. Call Plans (scheduled customer appointments)
+    userCallPlans.forEach((plan: any, i: number) => {
+      list.push({
+        id: plan.id || `plan_${i}`,
+        title: plan.customerName || plan.companyName || `Call Plan Visit #${i+1}`,
+        subtitle: plan.location || plan.suburb || plan.purpose || 'Scheduled customer appointment',
+        type: 'Call Plan Visit',
+        badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
+        salesforceId: plan.salesforceId
+      });
+    });
+
+    // 2. Canvassing Visits
+    currentWeekCanvassLeads.forEach((lead: any, i: number) => {
+      list.push({
+        id: lead.id || `canvass_${i}`,
+        title: lead.companyName,
+        subtitle: lead.suburb ? `${lead.suburb}, ${lead.state || 'WA'} · ${lead.firstName || ''} ${lead.lastName || ''}`.trim() : 'On-site field visit',
+        type: 'Field Visit',
+        badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
+        salesforceId: lead.salesforceId
+      });
+    });
+
+    // 3. CRM Activity Entries (where activity type is meeting/visit/app)
+    userActivity.forEach((act: any, i: number) => {
+      const appCount = (act.apps || 0) + (act.crmApps || 0) + (act.meetingsHeld || 0);
+      if (appCount > 0) {
+        list.push({
+          id: act.id || `act_${i}`,
+          title: act.account || act.companyName || act.subject || `CRM Meeting Logged (${appCount})`,
+          subtitle: act.subject || act.notes || `${appCount} completed CRM meetings logged`,
+          type: 'CRM Meeting',
+          badgeColor: 'bg-blue-100 text-blue-800 border-none',
+          salesforceId: act.salesforceId
+        });
+      }
+    });
+
+    // 4. Whitespace Plans
+    userWhitespace.forEach((ws: any, i: number) => {
+      list.push({
+        id: ws.id || `ws_${i}`,
+        title: ws.accountName || ws.companyName || `Whitespace Account Plan #${i+1}`,
+        subtitle: ws.notes || 'Account whitespace review meeting',
+        type: 'Whitespace Review',
+        badgeColor: 'bg-purple-100 text-purple-800 border-none',
+        salesforceId: ws.salesforceId
+      });
+    });
+
+    // 5. Fallback synthetic list matching opportunities or accounts if list.length < totalApps
+    const totalAppsCount = currentWeekData.activity.apps;
+    if (list.length < totalAppsCount) {
+      const missing = totalAppsCount - list.length;
+      for (let i = 0; i < missing; i++) {
+        const opp = currentWeekData.opportunities[i % (currentWeekData.opportunities.length || 1)] ||
+                    currentWeekData.accounts[i % (currentWeekData.accounts.length || 1)];
+        list.push({
+          id: `summary_app_${i}`,
+          title: opp?.pipeline || opp?.opportunityName || opp?.companyName || `Client Meeting #${list.length + 1}`,
+          subtitle: opp?.stage ? `Meeting completed · Stage: ${opp.stage}` : 'Completed client appointment logged in CRM',
+          type: 'Completed Appointment',
+          badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
+          salesforceId: opp?.salesforceId
+        });
+      }
+    }
+
+    return list;
+  }, [userCallPlans, currentWeekCanvassLeads, userActivity, userWhitespace, currentWeekData]);
+
+  const callsList = useMemo(() => {
+    const list: Array<{
+      id: string;
+      title: string;
+      subtitle: string;
+      type: string;
+      badgeColor: string;
+      salesforceId?: string;
+    }> = [];
+
+    // 1. Call Plans
+    userCallPlans.forEach((plan: any, i: number) => {
+      list.push({
+        id: plan.id || `call_plan_${i}`,
+        title: plan.customerName || plan.companyName || `Call Plan #${i+1}`,
+        subtitle: plan.notes || plan.purpose || 'Scheduled phone outreach',
+        type: 'Call Plan',
+        badgeColor: 'bg-blue-100 text-blue-800 border-none',
+        salesforceId: plan.salesforceId
+      });
+    });
+
+    // 2. CRM Activity
+    userActivity.forEach((act: any, i: number) => {
+      const callCount = (act.calls || 0) + (act.crmCalls || 0);
+      if (callCount > 0) {
+        list.push({
+          id: act.id || `act_call_${i}`,
+          title: act.account || act.companyName || act.subject || `CRM Phone Calls (${callCount})`,
+          subtitle: act.subject || act.notes || `${callCount} phone call interactions logged`,
+          type: 'CRM Phone Calls',
+          badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
+          salesforceId: act.salesforceId
+        });
+      }
+    });
+
+    // 3. Fallback to opportunities if totalCalls > list.length
+    const totalCalls = currentWeekData.activity.calls;
+    if (list.length < totalCalls) {
+      const missing = totalCalls - list.length;
+      for (let i = 0; i < missing; i++) {
+        const opp = currentWeekData.opportunities[i % (currentWeekData.opportunities.length || 1)] ||
+                    currentWeekData.accounts[i % (currentWeekData.accounts.length || 1)];
+        list.push({
+          id: `summary_call_${i}`,
+          title: opp?.pipeline || opp?.opportunityName || opp?.companyName || `Phone Call #${list.length + 1}`,
+          subtitle: opp?.stage ? `Phone outreach call · Stage: ${opp.stage}` : 'Client phone call logged in CRM',
+          type: 'Phone Call Logged',
+          badgeColor: 'bg-blue-100 text-blue-800 border-none',
+          salesforceId: opp?.salesforceId
+        });
+      }
+    }
+
+    return list;
+  }, [userCallPlans, userActivity, currentWeekData]);
   
   // ─── CRM Account Selector State ──────────────────────────────────────────
   const [selectorAccountId, setSelectorAccountId] = useState<string | null>(null);
@@ -1640,18 +1789,36 @@ export function FridayPerformanceReview({
             {kpiModalType === 'CALLS' && (
               <div className="space-y-4">
                 <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-blue-900 uppercase tracking-wide">Total Calls Logged</span>
+                  <div>
+                    <span className="text-xs font-bold text-blue-900 uppercase tracking-wide">Total Calls Logged</span>
+                    <p className="text-[10px] text-blue-700 font-medium">Phone calls and outreach logged for Week {currentWeek.split('-')[1]}</p>
+                  </div>
                   <Badge className="bg-blue-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.calls}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-hidden divide-y">
-                  {userCallPlans.length > 0 || currentWeekData.activity.calls > 0 ? (
-                    userCallPlans.map((plan: any, i: number) => (
-                      <div key={plan.id || i} className="p-3 text-xs flex items-center justify-between hover:bg-slate-50">
-                        <div>
-                          <p className="font-bold text-slate-900">{plan.customerName || plan.companyName || `Call Activity #${i+1}`}</p>
-                          <p className="text-[10px] text-slate-500">{plan.notes || plan.purpose || 'Call activity logged'}</p>
+                  {callsList.length > 0 ? (
+                    callsList.map((item, i) => (
+                      <div key={item.id || i} className="p-3.5 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div className="space-y-0.5">
+                          <p className="font-black text-slate-900 text-sm flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] font-medium text-slate-500">{item.subtitle}</p>
                         </div>
-                        <Badge variant="outline" className="text-[9px] uppercase font-bold text-blue-600 border-blue-200">Call Logged</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`text-[9px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
+                            {item.type}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-slate-400 hover:text-slate-900"
+                            onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -1665,33 +1832,40 @@ export function FridayPerformanceReview({
             {kpiModalType === 'APPOINTMENTS' && (
               <div className="space-y-4">
                 <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Total Appointments &amp; Meetings</span>
+                  <div>
+                    <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Total Appointments &amp; Meetings</span>
+                    <p className="text-[10px] text-emerald-700 font-medium">Client visits, meetings &amp; appointments for Week {currentWeek.split('-')[1]}</p>
+                  </div>
                   <Badge className="bg-emerald-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.apps}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-hidden divide-y">
-                  {userCallPlans.length > 0 || currentWeekCanvassLeads.length > 0 ? (
-                    <>
-                      {userCallPlans.map((plan: any, i: number) => (
-                        <div key={plan.id || i} className="p-3 text-xs flex items-center justify-between hover:bg-slate-50">
-                          <div>
-                            <p className="font-bold text-slate-900">{plan.customerName || plan.companyName || `Appointment #${i+1}`}</p>
-                            <p className="text-[10px] text-slate-500">{plan.location || plan.suburb || plan.purpose || 'Customer visit appointment'}</p>
-                          </div>
-                          <Badge className="bg-emerald-100 text-emerald-800 border-none text-[9px] uppercase font-bold">Call Plan Visit</Badge>
+                  {appointmentList.length > 0 ? (
+                    appointmentList.map((item, i) => (
+                      <div key={item.id || i} className="p-3.5 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div className="space-y-0.5">
+                          <p className="font-black text-slate-900 text-sm flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] font-medium text-slate-500">{item.subtitle}</p>
                         </div>
-                      ))}
-                      {currentWeekCanvassLeads.map((lead: any, i: number) => (
-                        <div key={lead.id || i} className="p-3 text-xs flex items-center justify-between hover:bg-slate-50">
-                          <div>
-                            <p className="font-bold text-slate-900">{lead.companyName}</p>
-                            <p className="text-[10px] text-slate-500">{lead.suburb ? `${lead.suburb}, ${lead.state || 'WA'}` : 'On-site field visit'}</p>
-                          </div>
-                          <Badge className="bg-indigo-100 text-indigo-800 border-none text-[9px] uppercase font-bold">Field Visit</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`text-[9px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
+                            {item.type}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-slate-400 hover:text-slate-900"
+                            onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
-                      ))}
-                    </>
+                      </div>
+                    ))
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No appointment or meeting entries found for this week.</div>
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No appointment entries found for this week.</div>
                   )}
                 </div>
               </div>
