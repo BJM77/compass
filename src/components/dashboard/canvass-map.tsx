@@ -6,9 +6,10 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { CanvassLead } from '@/types/crm';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Building, User, Phone, Navigation } from 'lucide-react';
+import { ExternalLink, Building, User, Phone, Navigation, Clock } from 'lucide-react';
 import { openSalesforceCreateLead } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 // Fix Leaflet's default icon path issues with Webpack/Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -106,6 +107,12 @@ export default function CanvassMap({ leads }: MapProps) {
                     <Navigation className="h-3 w-3" />
                     <span className="truncate">{lead.suburb}, {lead.state}</span>
                   </div>
+                  {lead.createdAt?.toDate && (
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                      <Clock className="h-3 w-3" />
+                      <span>{format(lead.createdAt.toDate(), 'dd MMM yyyy, h:mm a')}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-2.5 flex flex-wrap gap-1">

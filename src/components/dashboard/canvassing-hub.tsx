@@ -468,10 +468,13 @@ export function CanvassingHub() {
                   )}
 
                   {/* Rep & Date info */}
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground/70 pt-1">
-                    <span>Rep: {lead.userName || 'Unknown'}</span>
-                    <span>
-                      {lead.createdAt?.toDate ? format(lead.createdAt.toDate(), 'dd MMM yyyy') : 'Recently'}
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+                    <span className="font-medium truncate max-w-[140px]">
+                      Rep: <strong className="text-foreground">{lead.userName || 'Unknown'}</strong>
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 text-[10px] shrink-0 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded">
+                      <Clock className="h-3 w-3 text-muted-foreground" />
+                      {lead.createdAt?.toDate ? format(lead.createdAt.toDate(), 'dd MMM yyyy, h:mm a') : 'Recently'}
                     </span>
                   </div>
 
