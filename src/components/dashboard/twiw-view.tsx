@@ -3249,7 +3249,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
   function renderCollationHub() {
     const collatedSubmissionsCount = mappedSubmissions?.length || 0;
-    const teamUsers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'GUEST') || [];
+    const teamUsers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM') || [];
 
     const renderItem = (item: any, type: string, subId: string, content: React.ReactNode) => {
       if (item.isHidden && !showHiddenItems) return null;

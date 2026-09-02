@@ -107,8 +107,9 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
   const deDuplicatedUsers = useMemo(() => {
     if (!allUsers) return [];
+    const filtered = allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM' || u.role === 'LEADER' || u.role === 'GM');
     const map = new Map<string, any>();
-    allUsers.forEach(u => {
+    filtered.forEach(u => {
       const key = (u.name || u.id || '').trim().toLowerCase();
       if (!key) return;
       const existing = map.get(key);

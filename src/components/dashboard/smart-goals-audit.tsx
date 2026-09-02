@@ -25,7 +25,7 @@ export function SmartGoalsAudit() {
   }, [db, isLeader]);
   const { data: allUsers, isLoading: isUsersLoading } = useCollection(usersQuery);
 
-  const teamMembers = allUsers?.filter(u => u.role !== 'LEADER') || [];
+  const teamMembers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM') || [];
   const activeBdmId = selectedBdmId || teamMembers[0]?.id || '';
   const selectedUser = teamMembers.find(u => u.id === activeBdmId);
 

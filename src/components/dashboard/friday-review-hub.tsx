@@ -35,9 +35,14 @@ export function FridayReviewHub() {
     if (!db || !isLeader) return null;
     return collection(db, 'users');
   }, [db, isLeader]);
-  const { data: teamUsers } = useCollection(usersQuery);
+  const { data: rawTeamUsers } = useCollection(usersQuery);
 
-  const activeBdmId = isLeader ? selectedBdmId || (teamUsers?.[0]?.id || '') : user?.uid;
+  const teamUsers = useMemo(() => {
+    if (!rawTeamUsers) return [];
+    return rawTeamUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
+  }, [rawTeamUsers]);
+
+  const activeBdmId = isLeader ? selectedBdmId || (teamUsers[0]?.id || '') : user?.uid;
   
   const bdmReviews = useMemo(() => {
     if (!allSelectedReviews) return [];
@@ -46,7 +51,7 @@ export function FridayReviewHub() {
 
   const teamSelectionSummary = useMemo(() => {
     if (!allSelectedReviews || !teamUsers) return [];
-    return teamUsers.filter(u => u.role !== 'LEADER').map(u => ({
+    return teamUsers.map(u => ({
       userId: u.id,
       userName: u.name,
       territory: u.territory,

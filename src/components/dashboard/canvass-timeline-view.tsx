@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { CanvassLead } from '@/types/crm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,19 +29,34 @@ interface CanvassTimelineViewProps {
 }
 
 export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
+  const db = useFirestore();
   const [selectedUser, setSelectedUser] = useState<string>('ALL');
   const [timeframe, setTimeframe] = useState<'DAY' | 'WEEK' | 'MONTH'>('DAY');
 
-  // Extract unique user names for filter
+  const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
+  const { data: allUsers } = useCollection<any>(usersQuery);
+
+  const guestUserIds = useMemo(() => {
+    const set = new Set<string>();
+    allUsers?.forEach(u => {
+      if ((u.role || '').toUpperCase() === 'GUEST') {
+        set.add(u.id);
+      }
+    });
+    return set;
+  }, [allUsers]);
+
+  // Extract unique user names for filter (excluding guests)
   const userList = useMemo(() => {
     const map = new Map<string, string>();
     leads.forEach(l => {
-      if (l.userId) {
-        map.set(l.userId, l.userName || l.userId);
+      if (l.userId && !guestUserIds.has(l.userId)) {
+        const found = allUsers?.find(u => u.id === l.userId);
+        map.set(l.userId, found?.name || l.userName || l.userId);
       }
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [leads]);
+  }, [leads, guestUserIds, allUsers]);
 
   // Filter and sort leads chronologically (newest to oldest or oldest to newest)
   const timelineData = useMemo(() => {
