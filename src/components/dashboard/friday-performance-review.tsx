@@ -20,7 +20,7 @@ import {
   Users, Briefcase, AlertTriangle, CheckCircle2, ArrowRight,
   FileText, Calendar, RefreshCw, Save, Send, ChevronRight,
   Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy, ClipboardCheck,
-  Search, Building2, Eye, ShieldCheck, MessageSquare
+  Search, Building2, Eye, ShieldCheck, MessageSquare, MapPin, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -113,6 +113,27 @@ export function FridayPerformanceReview({
   const userCallPlans = callPlans?.filter(p => p.userId === activeUserId) || [];
   const userWhitespace = whitespaceReports?.filter(p => p.userId === activeUserId) || [];
   const userOps = opsReports?.filter(p => p.userId === activeUserId) || [];
+
+  // ─── Canvassing Leads Query ─────────────────────────────────────────────
+  const canvassLeadsQuery = useMemoFirebase(() => {
+    if (!db || !activeUserId) return null;
+    return query(collection(db, 'canvass_leads'), where('userId', '==', activeUserId));
+  }, [db, activeUserId]);
+  const { data: userCanvassLeads } = useCollection<any>(canvassLeadsQuery);
+
+  const currentWeekCanvassLeads = useMemo(() => {
+    if (!userCanvassLeads) return [];
+    return userCanvassLeads.filter(lead => !lead.archived);
+  }, [userCanvassLeads]);
+
+  const currentWeekSalesforceLeads = useMemo(() => {
+    return currentWeekCanvassLeads.filter(lead => 
+      lead.inSalesforce || !!lead.salesforceId || lead.leadStatus === 'SUBMITTED' || lead.leadStatus === 'COMPLETED'
+    );
+  }, [currentWeekCanvassLeads]);
+
+  const currentWeekCanvassLeadsCount = currentWeekCanvassLeads.length;
+  const currentWeekSalesforceLeadsCount = currentWeekSalesforceLeads.length;
 
   // ─── Previous Friday FW Viewer ───────────────────────────────────────────
   const previousWeekKey = getPreviousWeekKey(selectedWeek);
@@ -383,7 +404,9 @@ export function FridayPerformanceReview({
           callsMade: currentWeekData.activity.calls,
           meetingsHeld: currentWeekData.activity.apps,
           crmCalls: currentWeekData.activity.calls,
-          crmApps: currentWeekData.activity.apps
+          crmApps: currentWeekData.activity.apps,
+          totalCanvassLeads: currentWeekCanvassLeadsCount,
+          salesforceLeadsSubmitted: currentWeekSalesforceLeadsCount
         },
         status: 'REVIEWED',
         submittedAt: serverTimestamp(),
@@ -739,7 +762,7 @@ export function FridayPerformanceReview({
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           {/* KPI Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
               <div className="flex items-center gap-2 mb-1">
                 <Phone className="w-4 h-4 text-blue-600" />
@@ -767,6 +790,20 @@ export function FridayPerformanceReview({
                 <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Pipeline Value</p>
               </div>
               <p className="text-2xl font-black text-slate-800">{formatEAV(currentWeekData.revenue.pipeline)}</p>
+            </div>
+            <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+              <div className="flex items-center gap-2 mb-1">
+                <MapPin className="w-4 h-4 text-indigo-600" />
+                <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Canvass Leads</p>
+              </div>
+              <p className="text-2xl font-black text-slate-800">{currentWeekCanvassLeadsCount}</p>
+            </div>
+            <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100">
+              <div className="flex items-center gap-2 mb-1">
+                <ExternalLink className="w-4 h-4 text-teal-600" />
+                <p className="text-[9px] font-black text-teal-600 uppercase tracking-widest">Sent to SF</p>
+              </div>
+              <p className="text-2xl font-black text-slate-800">{currentWeekSalesforceLeadsCount}</p>
             </div>
           </div>
           
