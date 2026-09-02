@@ -23,6 +23,7 @@ import {
   Mail, 
   Edit3, 
   Trash2, 
+  Archive,
   CheckCircle2, 
   Building2, 
   Truck, 
@@ -59,7 +60,7 @@ export function CanvassingHub() {
   const [editingLead, setEditingLead] = useState<CanvassLead | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBu, setSelectedBu] = useState<string>('ALL');
-  const [syncFilter, setSyncFilter] = useState<'ALL' | 'SYNCED' | 'DRAFT'>('ALL');
+  const [syncFilter, setSyncFilter] = useState<'ACTIVE' | 'SYNCED' | 'DRAFT' | 'ARCHIVED'>('ACTIVE');
   const [scopeFilter, setScopeFilter] = useState<'MY' | 'ALL'>('ALL');
   const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('LIST');
 
@@ -81,6 +82,10 @@ export function CanvassingHub() {
   const filteredLeads = useMemo(() => {
     if (!rawLeads) return [];
     return rawLeads.filter(lead => {
+      // Archive Filter
+      if (syncFilter === 'ARCHIVED' && !lead.archived) return false;
+      if (syncFilter !== 'ARCHIVED' && lead.archived) return false;
+
       // User / Scope Filter
       if (scopeFilter === 'MY' && !isLeader && lead.userId && lead.userId !== user?.uid) {
         return false;
@@ -112,18 +117,29 @@ export function CanvassingHub() {
   }, [rawLeads, scopeFilter, syncFilter, selectedBu, searchTerm, user?.uid, isLeader]);
 
   // Quick stats
-  const totalLeads = rawLeads?.length || 0;
-  const myLeads = rawLeads?.filter(l => l.userId === user?.uid).length || 0;
-  const syncedCount = rawLeads?.filter(l => l.inSalesforce).length || 0;
+  const activeLeads = rawLeads?.filter(l => !l.archived) || [];
+  const totalLeads = activeLeads.length;
+  const myLeads = activeLeads.filter(l => l.userId === user?.uid).length;
+  const syncedCount = activeLeads.filter(l => l.inSalesforce).length;
   const pendingCount = totalLeads - syncedCount;
 
   const handleDeleteLead = async (leadId: string, companyName: string) => {
     if (!db) return;
     try {
       await deleteDoc(doc(db, 'canvass_leads', leadId));
-      toast({ title: 'Lead Deleted', description: `${companyName} was removed.` });
+      toast({ title: 'Lead Deleted', description: `${companyName} was removed permanently.` });
     } catch (e: any) {
       toast({ title: 'Error deleting lead', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const handleArchiveLead = async (leadId: string, companyName: string) => {
+    if (!db) return;
+    try {
+      await updateDoc(doc(db, 'canvass_leads', leadId), { archived: true });
+      toast({ title: 'Lead Archived', description: `${companyName} was archived.` });
+    } catch (e: any) {
+      toast({ title: 'Error archiving lead', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -311,14 +327,15 @@ export function CanvassingHub() {
             </Select>
           )}
 
-          <Select value={syncFilter} onValueChange={(v: 'ALL' | 'SYNCED' | 'DRAFT') => setSyncFilter(v)}>
+          <Select value={syncFilter} onValueChange={(v: 'ACTIVE' | 'SYNCED' | 'DRAFT' | 'ARCHIVED') => setSyncFilter(v)}>
             <SelectTrigger className="h-9 text-xs w-[130px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Status</SelectItem>
+              <SelectItem value="ACTIVE">All Active</SelectItem>
               <SelectItem value="DRAFT">Pending SF</SelectItem>
               <SelectItem value="SYNCED">In Salesforce</SelectItem>
+              <SelectItem value="ARCHIVED">Archived</SelectItem>
             </SelectContent>
           </Select>
 
@@ -534,30 +551,59 @@ export function CanvassingHub() {
                       <Check className="h-3.5 w-3.5" />
                     </Button>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Canvassed Lead?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete <strong>{lead.companyName}</strong>? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteLead(lead.id, lead.companyName)}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {!lead.archived && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50" title="Archive Lead">
+                            <Archive className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Archive Canvassed Lead?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to archive <strong>{lead.companyName}</strong>? It will be hidden from the active list but retained for reporting.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleArchiveLead(lead.id, lead.companyName)}
+                              className="bg-amber-600 hover:bg-amber-700 text-white"
+                            >
+                              Archive
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+
+                    {user?.email === '1@1.com' && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50" title="Permanently Delete Lead">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Canvassed Lead?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete <strong>{lead.companyName}</strong>? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteLead(lead.id, lead.companyName)}
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 </CardContent>
               </Card>

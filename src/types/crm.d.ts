@@ -200,6 +200,7 @@ export interface CanvassLead {
   notes?: string;
   salesforceId?: string;
   inSalesforce?: boolean;
+  archived?: boolean;
   syncedAt?: any;
   createdAt?: any;
   updatedAt?: any;
