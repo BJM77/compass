@@ -48,6 +48,41 @@ export function normalizeBdmName(name?: string, id?: string): string {
 }
 
 /**
+ * Flexible matching for user submissions to handle alias user IDs (e.g. namra, namra_khan, Namra Khan, UIDs).
+ */
+export function isUserSubmissionMatch(
+  user: { id?: string; name?: string },
+  sub: { userId?: string; userName?: string; salespersonName?: string; id?: string }
+): boolean {
+  if (!user || !sub) return false;
+
+  const uid = (user.id || '').trim();
+  const uname = (user.name || '').trim();
+  const subUid = (sub.userId || '').trim();
+  const subUName = (sub.userName || sub.salespersonName || '').trim();
+  const subDocId = (sub.id || '').trim();
+
+  // 1. Direct ID match
+  if (uid && subUid && uid === subUid) return true;
+  if (uid && subDocId && subDocId.startsWith(`${uid}_`)) return true;
+
+  // 2. Normalized BDM Name match
+  const normUser = normalizeBdmName(uname, uid).toLowerCase();
+  const normSubUser = normalizeBdmName(subUName, subUid).toLowerCase();
+  if (normUser && normSubUser && normUser === normSubUser && normUser !== 'unassigned') {
+    return true;
+  }
+
+  // 3. Special Namra alias fallback
+  const isNamraUser = normUser.includes('namra') || uid.toLowerCase().includes('namra') || uname.toLowerCase().includes('namra');
+  const isNamraSub = normSubUser.includes('namra') || subUid.toLowerCase().includes('namra') || subUName.toLowerCase().includes('namra') || subDocId.toLowerCase().includes('namra');
+
+  if (isNamraUser && isNamraSub) return true;
+
+  return false;
+}
+
+/**
  * Intelligent Salesforce Router
  * 
  * Priority 1: If a Salesforce Record ID is provided, navigate directly to the record.

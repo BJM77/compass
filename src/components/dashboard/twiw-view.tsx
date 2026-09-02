@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
-import { getCurrentWeek, getNextWeekKey, formatEAV, cn } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, cn, normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
 import { computeMomentum } from '@/lib/momentum';
@@ -446,9 +446,19 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       if (!db || !userId) return;
       setIsLoading(true);
       try {
+        let data: any = null;
         const subDoc = await getDoc(doc(db, 'twiwSubmissions', `${userId}_${selectedWeek}`));
         if (subDoc.exists()) {
-          const data = subDoc.data();
+          data = subDoc.data();
+        } else {
+          const allSnap = await getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek)));
+          const found = allSnap.docs.find(d => isUserSubmissionMatch({ id: userId, name: bdmName }, { id: d.id, ...d.data() }));
+          if (found) {
+            data = found.data();
+          }
+        }
+
+        if (data) {
           setWins((data.wins || []).map((w: any) => ({ ...w, id: w.id || crypto.randomUUID() })));
           setRisks((data.risks || []).map((r: any) => ({ ...r, id: r.id || crypto.randomUUID() })));
           setUpdates(data.updates || '');
@@ -3289,12 +3299,12 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <CardContent className="p-4 space-y-4">
               <div className="divide-y divide-slate-100">
                 {teamUsers.map(u => {
-                  const sub = mappedSubmissions?.find(s => s.userId === u.id);
-                  const subStatus = sub ? sub.status : 'NONE';
+                  const sub = mappedSubmissions?.find(s => isUserSubmissionMatch(u, s));
+                  const subStatus = sub ? (sub.status || (sub.submitted ? 'SUBMITTED' : 'DRAFT')) : 'NONE';
                   return (
                     <div key={u.id} className="flex justify-between items-center py-3">
                       <div>
-                        <p className="text-xs font-black text-slate-800">{u.name}</p>
+                        <p className="text-xs font-black text-slate-800">{normalizeBdmName(u.name, u.id)}</p>
                         <p className="text-[9px] text-muted-foreground font-bold uppercase mt-0.5">{u.role?.replace('_', ' ')}</p>
                       </div>
                       <Badge className={cn(

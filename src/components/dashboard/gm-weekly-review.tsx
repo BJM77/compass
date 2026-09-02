@@ -22,7 +22,7 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek } from '@/lib/utils';
+import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek, isUserSubmissionMatch } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
@@ -172,12 +172,12 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         const weekDeals = allPipelineReviews?.filter(r => r.week === selectedWeek) || [];
         
         const reports = bdms.map(bdm => {
-          const reportDoc = reportsSnap.docs.find(d => d.data().userId === bdm.id);
-          const twiwDoc = twiwSnap.docs.find(d => d.data().userId === bdm.id);
-          const commitmentDoc = commitmentsSnap.docs.find(d => d.data().userId === bdm.id);
-          const progressDoc = progressSnap.docs.find(d => d.data().userId === bdm.id);
-          const userWS = whitespaceSnap.docs.filter(d => d.data().userId === bdm.id).length;
-          const userCP = callPlansSnap.docs.filter(d => d.data().userId === bdm.id).length;
+          const reportDoc = reportsSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const twiwDoc = twiwSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const commitmentDoc = commitmentsSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const progressDoc = progressSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const userWS = whitespaceSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
+          const userCP = callPlansSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
           
           const reportData = reportDoc?.data();
           const twiwData = twiwDoc?.data();
