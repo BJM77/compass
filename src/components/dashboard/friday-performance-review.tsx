@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName, getWeekForDate } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -150,8 +150,25 @@ export function FridayPerformanceReview({
 
   const currentWeekCanvassLeads = useMemo(() => {
     if (!userCanvassLeads) return [];
-    return userCanvassLeads.filter(lead => !lead.archived);
-  }, [userCanvassLeads]);
+    return userCanvassLeads.filter(lead => {
+      if (lead.archived) return false;
+
+      let leadDate: Date | null = null;
+      if (lead.createdAt?.toDate) leadDate = lead.createdAt.toDate();
+      else if (lead.createdAt) leadDate = new Date(lead.createdAt);
+      else if (lead.formCompletedAt?.toDate) leadDate = lead.formCompletedAt.toDate();
+      else if (lead.formCompletedAt) leadDate = new Date(lead.formCompletedAt);
+      else if (lead.searchTimestamp?.toDate) leadDate = lead.searchTimestamp.toDate();
+      else if (lead.searchTimestamp) leadDate = new Date(lead.searchTimestamp);
+
+      if (!leadDate || isNaN(leadDate.getTime())) {
+        return currentWeek === getCurrentWeek();
+      }
+
+      const leadWeek = getWeekForDate(leadDate);
+      return leadWeek === currentWeek;
+    });
+  }, [userCanvassLeads, currentWeek]);
 
   const currentWeekSalesforceLeads = useMemo(() => {
     return currentWeekCanvassLeads.filter(lead => 
