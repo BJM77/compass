@@ -58,6 +58,14 @@
     stroke-dashoffset: -20;
   }
 }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  animation: shimmer 3s infinite linear;
+}
 @media print {
   /* Force page to auto height and show all overflow content */
   html, body, #__next, [data-sidebar="wrapper"], [data-sidebar="content"], main, .flex-1, .grid {

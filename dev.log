@@ -1,0 +1,24 @@
+
+> nextn@0.1.0 dev
+> next dev -p 9003
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:9003
+   - Network:      http://192.168.1.124:9003
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1049ms
+ ✓ Compiled /middleware in 250ms (159 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s (970 modules)
+ GET / 200 in 2886ms
+ ✓ Compiled in 273ms (314 modules)
+ ✓ Compiled /favicon.ico in 339ms (673 modules)
+ GET /favicon.ico 200 in 419ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 5.9s (5432 modules)
+ GET /dashboard 200 in 6642ms
+ GET / 200 in 36ms
+ GET /favicon.ico 200 in 27ms
+ GET /dashboard 200 in 63ms

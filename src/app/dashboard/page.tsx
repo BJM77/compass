@@ -104,6 +104,7 @@ function DashboardContent() {
   
   const { activeUserId, simulationUid, setSimulationUid } = usePipelineData();
 
+
   const usersQuery = useMemoFirebase(() => { if (!db || !isLeader) return null; return collection(db, 'users'); }, [db, isLeader]);
   const { data: allUsers } = useCollection(usersQuery);
   const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);

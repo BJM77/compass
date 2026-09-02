@@ -48,15 +48,6 @@ export function AnnouncementBanner() {
           <X className="w-4 h-4" />
         </button>
       </div>
-      <style jsx>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .animate-shimmer {
-          animation: shimmer 3s infinite linear;
-        }
-      `}</style>
     </div>
   );
 }
