@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, openSalesforceSearch, normalizeBdmName } from '@/lib/utils';
 import { useIsMobile } from '@/lib/mobile-utils';
 import { useNavigation } from '@/contexts/navigation-context';
 
@@ -76,7 +76,7 @@ export function FactFindingHub() {
   const userMap = useMemo(() => {
     if (!users) return {};
     return users.reduce((acc: Record<string, string>, u: any) => {
-      acc[u.id] = u.name || u.email || 'Unknown User';
+      acc[u.id] = normalizeBdmName(u.name || u.email, u.id);
       return acc;
     }, {});
   }, [users]);
@@ -86,7 +86,7 @@ export function FactFindingHub() {
     if (!docs) return [];
     const guestUserIds = new Set(users?.filter((u: any) => (u.role || '').toUpperCase() === 'GUEST').map((u: any) => u.id));
     const userIds = Array.from(new Set(docs.map(d => d.userId))).filter(id => !guestUserIds.has(id));
-    return userIds.map(id => ({ id, name: userMap[id] || 'Unknown User' }));
+    return userIds.map(id => ({ id, name: userMap[id] || normalizeBdmName(undefined, id) }));
   }, [docs, userMap, users]);
 
   // Derived filtered & sorted docs

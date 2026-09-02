@@ -26,6 +26,28 @@ export function getWidgetSpanClass(width: 1 | 2 | 3): string {
 }
 
 /**
+ * Normalizes BDM/AM names to prevent duplicates (e.g. "Namra", "namra_khan", "BDM (Namra)" -> "Namra Khan").
+ */
+export function normalizeBdmName(name?: string, id?: string): string {
+  const str = (name || id || '').trim();
+  if (!str) return 'Unassigned';
+  const lower = str.toLowerCase();
+
+  if (lower.includes('namra') || lower.includes('khan')) return 'Namra Khan';
+  if (lower.includes('jacqui') || lower.includes('tibos')) return 'Jacqui Tibos';
+  if (lower.includes('joanne') || lower.includes('ballantyne')) return 'Joanne Ballantyne';
+  if (lower.includes('joshua') || lower.includes('mostratos')) return 'Joshua Mostratos';
+  if (lower.includes('rienzie') || lower.includes('delilkan')) return 'Rienzie Delilkan';
+  if (lower.includes('isaac') || lower.includes('pina') || lower.includes('depina')) return 'Isaac De Pina';
+
+  if (str.startsWith('BDM (') && str.endsWith(')')) {
+    return str.substring(5, str.length - 1).trim();
+  }
+
+  return str;
+}
+
+/**
  * Intelligent Salesforce Router
  * 
  * Priority 1: If a Salesforce Record ID is provided, navigate directly to the record.

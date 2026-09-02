@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, normalizeBdmName } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -103,10 +103,15 @@ export function DataExplorer() {
   const userIdToName = useMemo(() => {
     const map = new Map<string, string>();
     allPipelineReviews.forEach(r => {
-      if (r.userName) map.set(r.userId, r.userName);
+      if (r.userName) map.set(r.userId, normalizeBdmName(r.userName, r.userId));
     });
+    if (allUsers) {
+      allUsers.forEach((u: any) => {
+        if (u.id && u.name) map.set(u.id, normalizeBdmName(u.name, u.id));
+      });
+    }
     return map;
-  }, [allPipelineReviews]);
+  }, [allPipelineReviews, allUsers]);
 
   // Set of guest user IDs to EXCLUDE from reporting tools & dropdowns
   const guestUserIds = useMemo(() => {
@@ -122,19 +127,30 @@ export function DataExplorer() {
     return set;
   }, [allUsers]);
 
-  // Extract unique users from data for the filter dropdown (EXCLUDING GUESTS)
+  // Extract unique users from data for the filter dropdown (EXCLUDING GUESTS & DEDUPLICATED BY NAME)
   const users = useMemo(() => {
     const userMap = new Map<string, string>();
+    const seenNames = new Map<string, string>(); // normalizedName -> userId
 
     allPipelineReviews.forEach(r => {
       if (r.userId && !guestUserIds.has(r.userId)) {
-        if (r.userName) userMap.set(r.userId, r.userName);
+        const norm = normalizeBdmName(r.userName, r.userId);
+        const normKey = norm.toLowerCase();
+        if (!seenNames.has(normKey)) {
+          seenNames.set(normKey, r.userId);
+          userMap.set(r.userId, norm);
+        }
       }
     });
 
     allWeeklyProgresses.forEach(r => {
-      if (r.userId && !guestUserIds.has(r.userId) && !userMap.has(r.userId)) {
-        userMap.set(r.userId, userIdToName.get(r.userId) || `BDM (${r.userId})`);
+      if (r.userId && !guestUserIds.has(r.userId)) {
+        const norm = userIdToName.get(r.userId) || normalizeBdmName(undefined, r.userId);
+        const normKey = norm.toLowerCase();
+        if (!seenNames.has(normKey) && !userMap.has(r.userId)) {
+          seenNames.set(normKey, r.userId);
+          userMap.set(r.userId, norm);
+        }
       }
     });
 
@@ -735,7 +751,7 @@ export function DataExplorer() {
                     <TableRow key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                       <TableCell className="font-medium text-xs">{c.accountMasterCode || '—'}</TableCell>
                       <TableCell className="font-bold text-slate-900 dark:text-slate-100">{c.pipeline}</TableCell>
-                      <TableCell className="text-xs">{c.userName || 'Unassigned'}</TableCell>
+                      <TableCell className="text-xs font-semibold">{normalizeBdmName(c.userName, c.userId)}</TableCell>
                       <TableCell className="text-xs font-semibold text-slate-500">{c.businessUnit || 'General'}</TableCell>
                       <TableCell className="text-right font-medium">{formatMoney(c.currentRevenue || 0)}</TableCell>
                       <TableCell className="text-right font-bold text-emerald-600">{formatMoney(c.closedWonValue || 0)}</TableCell>
@@ -856,7 +872,7 @@ export function DataExplorer() {
                       <TableCell className="font-medium text-xs text-slate-500">{o.salesforceId || '—'}</TableCell>
                       <TableCell className="font-bold text-sm text-primary">{o.opportunityName || '—'}</TableCell>
                       <TableCell className="font-medium text-xs">{o.pipeline}</TableCell>
-                      <TableCell className="text-xs">{o.userName || 'Unassigned'}</TableCell>
+                      <TableCell className="text-xs font-semibold">{normalizeBdmName(o.userName, o.userId)}</TableCell>
                       <TableCell>
                         <Badge className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">{o.stage}</Badge>
                       </TableCell>
@@ -960,7 +976,7 @@ export function DataExplorer() {
                     <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">No activities match criteria.</TableCell></TableRow>
                   ) : activities.map(a => (
                     <TableRow key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                      <TableCell className="font-bold text-sm">{userIdToName.get(a.userId) || `BDM (${a.userId})`}</TableCell>
+                      <TableCell className="font-bold text-sm">{normalizeBdmName(userIdToName.get(a.userId), a.userId)}</TableCell>
                       <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.calls || 0}</TableCell>
                       <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.apps || 0}</TableCell>
                       <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.proposals || 0}</TableCell>

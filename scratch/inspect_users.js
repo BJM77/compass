@@ -16,12 +16,17 @@ try {
   // Query users
   queryFirestore(accessToken, 'users').then(users => {
     console.log('--- USERS ---');
+    if (!users.documents) {
+      console.log('Result:', JSON.stringify(users, null, 2));
+      process.exit(0);
+    }
     users.documents.forEach(d => {
       const fields = d.fields;
       const id = d.name.split('/').pop();
       const name = fields.name?.stringValue || id;
-      const uid = fields.uid?.stringValue;
-      console.log(`Document ID: "${id}" | name field: "${name}" | uid field: "${uid}"`);
+      const email = fields.email?.stringValue;
+      const role = fields.role?.stringValue;
+      console.log(`Doc ID: "${id}" | name: "${name}" | email: "${email}" | role: "${role}"`);
     });
     process.exit(0);
   });

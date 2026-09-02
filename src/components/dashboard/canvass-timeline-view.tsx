@@ -22,7 +22,7 @@ import {
   Search
 } from 'lucide-react';
 import { format, differenceInMinutes, differenceInHours, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
-import { openSalesforceSearch } from '@/lib/utils';
+import { openSalesforceSearch, normalizeBdmName } from '@/lib/utils';
 
 interface CanvassTimelineViewProps {
   leads: CanvassLead[];
@@ -46,13 +46,20 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
     return set;
   }, [allUsers]);
 
-  // Extract unique user names for filter (excluding guests)
+  // Extract unique user names for filter (excluding guests & normalized)
   const userList = useMemo(() => {
     const map = new Map<string, string>();
+    const seenNames = new Set<string>();
+
     leads.forEach(l => {
       if (l.userId && !guestUserIds.has(l.userId)) {
         const found = allUsers?.find(u => u.id === l.userId);
-        map.set(l.userId, found?.name || l.userName || l.userId);
+        const norm = normalizeBdmName(found?.name || l.userName, l.userId);
+        const key = norm.toLowerCase();
+        if (!seenNames.has(key)) {
+          seenNames.add(key);
+          map.set(l.userId, norm);
+        }
       }
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
@@ -80,7 +87,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
 
     sorted.forEach((lead) => {
       const dateObj = lead.createdAt?.toDate ? lead.createdAt.toDate() : new Date(lead.createdAt || Date.now());
-      const userName = lead.userName || 'Field Rep';
+      const userName = normalizeBdmName(lead.userName, lead.userId);
 
       // Calculate time gap from previous lead of the SAME user
       let timeGap: number | undefined;
