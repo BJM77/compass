@@ -122,7 +122,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
   const [title, setTitle] = useState(initialLead?.title || '');
   const [phone, setPhone] = useState(initialLead?.phone || '');
   const [email, setEmail] = useState(initialLead?.email || '');
-  const [preferredContactMethod, setPreferredContactMethod] = useState(initialLead?.preferredContactMethod || 'Phone');
+  const [preferredContactMethod, setPreferredContactMethod] = useState(initialLead?.preferredContactMethod || 'In Person Visit');
   const [customerConsent, setCustomerConsent] = useState(initialLead?.customerConsent ?? true);
   
   // Location
@@ -136,10 +136,14 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
   const [longitude, setLongitude] = useState<number | undefined>(initialLead?.longitude);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | undefined>(initialLead?.gpsAccuracy);
 
-  // Commercial / Freight Details
+  // Commercial / Freight Details - Defaulting to IPEC Road Services
   const [industry, setIndustry] = useState(initialLead?.industry || 'Manufacturing & Industrial');
-  const [businessUnit, setBusinessUnit] = useState(initialLead?.businessUnit || 'Priority Services');
-  const [services, setServices] = useState<string[]>(initialLead?.services || []);
+  const [businessUnit, setBusinessUnit] = useState(initialLead?.businessUnit || 'IPEC Road Services');
+  const [services, setServices] = useState<string[]>(
+    initialLead?.services && initialLead.services.length > 0 
+      ? initialLead.services 
+      : ['Road Express (1-8 Days)']
+  );
   const [freightProfile, setFreightProfile] = useState(initialLead?.freightProfile || '');
   const [quoteNumber, setQuoteNumber] = useState(initialLead?.quoteNumber || '');
   const [estimatedRevenue, setEstimatedRevenue] = useState<string>(
@@ -251,16 +255,22 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
   };
 
   const getLeadPayload = () => {
+    const finalLastName = lastName.trim() || 'Canvass';
+    const finalPhone = phone.trim() || '0400000000';
+    const finalEmail = email.trim() || 'no@email.com';
+    const finalBusinessUnit = businessUnit || 'IPEC Road Services';
+    const finalServices = services.length > 0 ? services : ['Road Express (1-8 Days)'];
+
     return {
       userId: user?.uid || '',
       userName: profile?.name || user?.displayName || 'Sales Rep',
       companyName: companyName.trim(),
       leadTopic: leadTopic.trim(),
       firstName: firstName.trim(),
-      lastName: lastName.trim() || 'Lead',
+      lastName: finalLastName,
       title: title.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
+      phone: finalPhone,
+      email: finalEmail,
       preferredContactMethod,
       customerConsent,
       addressLine1: addressLine1.trim(),
@@ -273,8 +283,8 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
       longitude: longitude ?? null,
       gpsAccuracy: gpsAccuracy ?? null,
       industry,
-      businessUnit,
-      services,
+      businessUnit: finalBusinessUnit,
+      services: finalServices,
       freightProfile,
       quoteNumber: quoteNumber.trim(),
       estimatedRevenue: estimatedRevenue ? parseFloat(estimatedRevenue) : null,
@@ -291,11 +301,11 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
   const handleSave = async (andLaunchSalesforce = false) => {
     if (!companyName.trim()) {
-      toast({ title: 'Company Name is Required', description: 'Please enter the prospect company name.', variant: 'destructive' });
+      toast({ title: 'Company Name Required', description: 'Please enter the prospect company name.', variant: 'destructive' });
       return;
     }
-    if (!phone.trim() && !email.trim()) {
-      toast({ title: 'Contact Info Required', description: 'Please provide at least a phone number or email address.', variant: 'destructive' });
+    if (!notes.trim()) {
+      toast({ title: 'Field Notes Required', description: 'Please enter Field Canvassing Notes & Follow-up Actions before saving.', variant: 'destructive' });
       return;
     }
 
@@ -306,44 +316,44 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
       if (leadId && db) {
         await updateDoc(doc(db, 'canvass_leads', leadId), payload);
-        toast({ title: 'Lead Updated', description: `${companyName} has been saved.` });
+        toast({ title: 'Lead Updated', description: `${payload.companyName} has been saved.` });
       } else if (db) {
         const docRef = await addDoc(collection(db, 'canvass_leads'), {
           ...payload,
           createdAt: serverTimestamp(),
         });
         leadId = docRef.id;
-        toast({ title: 'Lead Captured!', description: `${companyName} logged to Compass.` });
+        toast({ title: 'Lead Captured!', description: `${payload.companyName} logged to Compass.` });
       }
 
       if (andLaunchSalesforce) {
         openSalesforceCreateLead({
-          companyName,
-          firstName,
-          lastName: lastName || 'Lead',
-          title,
-          phone,
-          email,
-          preferredContactMethod,
-          addressLine1,
-          addressLine2,
-          suburb,
-          state,
-          postcode,
-          country,
-          industry,
-          businessUnit,
-          services,
-          freightProfile,
-          quoteNumber,
-          estimatedRevenue: estimatedRevenue ? parseFloat(estimatedRevenue) : undefined,
-          incumbent,
-          otherIncumbent,
-          leadSource,
-          leadType,
-          leadStatus,
-          leadTopic,
-          notes: notes ? `${notes}\n[Captured on-site via Compass Canvassing]` : '[Captured on-site via Compass Canvassing]'
+          companyName: payload.companyName,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          title: payload.title,
+          phone: payload.phone,
+          email: payload.email,
+          preferredContactMethod: payload.preferredContactMethod,
+          addressLine1: payload.addressLine1,
+          addressLine2: payload.addressLine2,
+          suburb: payload.suburb,
+          state: payload.state,
+          postcode: payload.postcode,
+          country: payload.country,
+          industry: payload.industry,
+          businessUnit: payload.businessUnit,
+          services: payload.services,
+          freightProfile: payload.freightProfile,
+          quoteNumber: payload.quoteNumber,
+          estimatedRevenue: payload.estimatedRevenue || undefined,
+          incumbent: payload.incumbent,
+          otherIncumbent: payload.otherIncumbent,
+          leadSource: payload.leadSource,
+          leadType: payload.leadType,
+          leadStatus: payload.leadStatus,
+          leadTopic: payload.leadTopic,
+          notes: payload.notes ? `${payload.notes}\n[Captured on-site via Compass Canvassing]` : '[Captured on-site via Compass Canvassing]'
         });
       }
 
@@ -386,7 +396,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             className="flex-1 md:flex-none gap-1.5"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-emerald-600" />}
-            <span>Save Draft</span>
+            <span>Save & Close</span>
           </Button>
 
           <Button
@@ -469,7 +479,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             <div>
               <Label className="text-xs font-semibold flex items-center justify-between">
                 <span>Company Name *</span>
-                <span className="text-[10px] text-muted-foreground font-normal">Required for Salesforce</span>
+                <span className="text-[10px] text-muted-foreground font-normal">Required</span>
               </Label>
               <Input
                 placeholder="e.g. West Coast Distribution Pty Ltd"
@@ -500,9 +510,12 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
                 />
               </div>
               <div>
-                <Label className="text-xs font-semibold">Last Name *</Label>
+                <Label className="text-xs font-semibold flex items-center justify-between">
+                  <span>Last Name</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">Defaults to 'Canvass'</span>
+                </Label>
                 <Input
-                  placeholder="Smith"
+                  placeholder="Smith (or blank for Canvass)"
                   value={lastName}
                   onChange={e => setLastName(e.target.value)}
                   className="mt-1"
@@ -537,9 +550,12 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-semibold flex items-center gap-1.5">
-                  <Phone className="h-3 w-3 text-muted-foreground" />
-                  Phone / Mobile *
+                <Label className="text-xs font-semibold flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 text-muted-foreground" />
+                    Phone / Mobile
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-normal">0400000000 if empty</span>
                 </Label>
                 <Input
                   type="tel"
@@ -550,9 +566,12 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
                 />
               </div>
               <div>
-                <Label className="text-xs font-semibold flex items-center gap-1.5">
-                  <Mail className="h-3 w-3 text-muted-foreground" />
-                  Email Address *
+                <Label className="text-xs font-semibold flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="h-3 w-3 text-muted-foreground" />
+                    Email Address
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-normal">no@email.com if empty</span>
                 </Label>
                 <Input
                   type="email"
@@ -814,13 +833,16 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
             {/* Description / Field Notes */}
             <div className="pt-3 border-t">
-              <Label className="text-xs font-semibold">Field Canvassing Notes & Follow-up Actions</Label>
+              <Label className="text-xs font-semibold flex items-center justify-between">
+                <span className="text-foreground">Field Canvassing Notes & Follow-up Actions *</span>
+                <span className="text-[10px] text-red-500 font-bold">Mandatory</span>
+              </Label>
               <Textarea
                 rows={3}
-                placeholder="Met with warehouse supervisor. Currently dispatching 15 pallets/wk with StarTrack to Sydney & Melbourne. Dissatisfied with DIFOT. Wants rate comparison next Tuesday."
+                placeholder="e.g. Met with warehouse supervisor. Currently dispatching 15 pallets/wk with StarTrack to Sydney. Dissatisfied with DIFOT. Rate comparison required by Tuesday."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                className="mt-1 text-xs resize-y"
+                className="mt-1 text-xs resize-y border-amber-300/80 dark:border-amber-900/60 focus:border-blue-500"
               />
             </div>
 
@@ -855,7 +877,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
           className="w-full sm:w-auto"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1 text-emerald-600" />}
-          Save as Draft
+          Save & Close
         </Button>
         <Button
           type="button"
