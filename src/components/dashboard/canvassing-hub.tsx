@@ -60,14 +60,20 @@ export function CanvassingHub() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBu, setSelectedBu] = useState<string>('ALL');
   const [syncFilter, setSyncFilter] = useState<'ALL' | 'SYNCED' | 'DRAFT'>('ALL');
-  const [scopeFilter, setScopeFilter] = useState<'MY' | 'ALL'>('MY');
+  const [scopeFilter, setScopeFilter] = useState<'MY' | 'ALL'>('ALL');
   const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('LIST');
 
   // Query Canvassing Leads from Firestore
   const leadsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'canvass_leads'), orderBy('createdAt', 'desc'));
-  }, [db]);
+    if (isLeader) {
+      return query(collection(db, 'canvass_leads'), orderBy('createdAt', 'desc'));
+    }
+    if (user?.uid) {
+      return query(collection(db, 'canvass_leads'), orderBy('createdAt', 'desc'));
+    }
+    return null;
+  }, [db, isLeader, user?.uid]);
 
   const { data: rawLeads, isLoading } = useCollection<CanvassLead>(leadsQuery);
 

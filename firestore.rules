@@ -17,9 +17,11 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        getUserData().role == 'LEADER' ||
-        getUserData().role == 'GM' ||
-        request.auth.token.email == '1@1.com'
+        request.auth.token.email == '1@1.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          getUserData().role == 'LEADER' ||
+          getUserData().role == 'GM'
+        ))
       );
     }
 
