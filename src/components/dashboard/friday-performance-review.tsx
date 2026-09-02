@@ -223,10 +223,55 @@ export function FridayPerformanceReview({
   });
 
   const appointmentList = useMemo(() => {
+    function getFormattedDateTime(record: any): string {
+      if (!record) return '';
+      const dateVal = record.date || record.callDate || record.meetingDate || record.createdAt || record.formCompletedAt || record.completedDate || record.searchTimestamp || record.createdDate;
+      const timeVal = record.time || record.appointmentTime || record.callTime || record.meetingTime;
+
+      let dateStr = '';
+      if (dateVal) {
+        try {
+          let d: Date | null = null;
+          if (dateVal?.toDate) d = dateVal.toDate();
+          else if (dateVal instanceof Date) d = dateVal;
+          else if (typeof dateVal === 'string' || typeof dateVal === 'number') d = new Date(dateVal);
+
+          if (d && !isNaN(d.getTime())) {
+            dateStr = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+          } else if (typeof dateVal === 'string') {
+            dateStr = dateVal;
+          }
+        } catch (e) {}
+      }
+
+      let timeStr = '';
+      if (timeVal) {
+        timeStr = typeof timeVal === 'string' ? timeVal : '';
+      } else if (dateVal?.toDate || dateVal instanceof Date) {
+        try {
+          const d = dateVal.toDate ? dateVal.toDate() : dateVal;
+          if (d && !isNaN(d.getTime()) && (d.getHours() !== 0 || d.getMinutes() !== 0)) {
+            timeStr = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true });
+          }
+        } catch (e) {}
+      }
+
+      if (dateStr && timeStr) return `${dateStr} at ${timeStr}`;
+      if (dateStr) return dateStr;
+      if (timeStr) return `Time: ${timeStr}`;
+      return '';
+    }
+
     const list: Array<{
       id: string;
       title: string;
-      subtitle: string;
+      dateTime?: string;
+      contactName?: string;
+      contactPhone?: string;
+      contactEmail?: string;
+      location?: string;
+      notes?: string;
+      businessUnit?: string;
       type: string;
       badgeColor: string;
       salesforceId?: string;
@@ -237,7 +282,13 @@ export function FridayPerformanceReview({
       list.push({
         id: plan.id || `plan_${i}`,
         title: plan.customerName || plan.companyName || `Call Plan Visit #${i+1}`,
-        subtitle: plan.location || plan.suburb || plan.purpose || 'Scheduled customer appointment',
+        dateTime: getFormattedDateTime(plan) || `Scheduled Visit (Week ${currentWeek.split('-')[1]})`,
+        contactName: plan.contactName || plan.contactPerson,
+        contactPhone: plan.phone,
+        contactEmail: plan.email,
+        location: plan.location || plan.suburb || plan.address,
+        notes: plan.purpose || plan.notes || plan.objective,
+        businessUnit: plan.businessUnit,
         type: 'Call Plan Visit',
         badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
         salesforceId: plan.salesforceId
@@ -249,7 +300,13 @@ export function FridayPerformanceReview({
       list.push({
         id: lead.id || `canvass_${i}`,
         title: lead.companyName,
-        subtitle: lead.suburb ? `${lead.suburb}, ${lead.state || 'WA'} · ${lead.firstName || ''} ${lead.lastName || ''}`.trim() : 'On-site field visit',
+        dateTime: getFormattedDateTime(lead) || `Field Visit (Week ${currentWeek.split('-')[1]})`,
+        contactName: [lead.firstName, lead.lastName].filter(Boolean).join(' '),
+        contactPhone: lead.phone,
+        contactEmail: lead.email,
+        location: [lead.addressLine1, lead.suburb, lead.state || 'WA'].filter(Boolean).join(', '),
+        notes: lead.notes || lead.leadTopic || lead.freightProfile,
+        businessUnit: lead.businessUnit,
         type: 'Field Visit',
         badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
         salesforceId: lead.salesforceId
@@ -263,7 +320,11 @@ export function FridayPerformanceReview({
         list.push({
           id: act.id || `act_${i}`,
           title: act.account || act.companyName || act.subject || `CRM Meeting Logged (${appCount})`,
-          subtitle: act.subject || act.notes || `${appCount} completed CRM meetings logged`,
+          dateTime: getFormattedDateTime(act) || `CRM Meeting (Week ${currentWeek.split('-')[1]})`,
+          contactName: act.contactName || act.contact,
+          location: act.location || act.suburb,
+          notes: act.subject || act.notes || `${appCount} completed CRM meeting(s) logged`,
+          businessUnit: act.businessUnit,
           type: 'CRM Meeting',
           badgeColor: 'bg-blue-100 text-blue-800 border-none',
           salesforceId: act.salesforceId
@@ -276,7 +337,8 @@ export function FridayPerformanceReview({
       list.push({
         id: ws.id || `ws_${i}`,
         title: ws.accountName || ws.companyName || `Whitespace Account Plan #${i+1}`,
-        subtitle: ws.notes || 'Account whitespace review meeting',
+        dateTime: getFormattedDateTime(ws) || `Whitespace Plan (Week ${currentWeek.split('-')[1]})`,
+        notes: ws.notes || ws.strategy || 'Account whitespace review meeting',
         type: 'Whitespace Review',
         badgeColor: 'bg-purple-100 text-purple-800 border-none',
         salesforceId: ws.salesforceId
@@ -293,7 +355,9 @@ export function FridayPerformanceReview({
         list.push({
           id: `summary_app_${i}`,
           title: opp?.pipeline || opp?.opportunityName || opp?.companyName || `Client Meeting #${list.length + 1}`,
-          subtitle: opp?.stage ? `Meeting completed · Stage: ${opp.stage}` : 'Completed client appointment logged in CRM',
+          dateTime: getFormattedDateTime(opp) || `Week ${currentWeek.split('-')[1]} Scheduled Meeting`,
+          notes: opp?.stage ? `Meeting completed · Stage: ${opp.stage} · BU: ${opp.businessUnit || 'General'}` : 'Completed client appointment logged in CRM',
+          businessUnit: opp?.businessUnit,
           type: 'Completed Appointment',
           badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
           salesforceId: opp?.salesforceId
@@ -302,13 +366,58 @@ export function FridayPerformanceReview({
     }
 
     return list;
-  }, [userCallPlans, currentWeekCanvassLeads, userActivity, userWhitespace, currentWeekData]);
+  }, [userCallPlans, currentWeekCanvassLeads, userActivity, userWhitespace, currentWeekData, currentWeek]);
 
   const callsList = useMemo(() => {
+    function getFormattedDateTime(record: any): string {
+      if (!record) return '';
+      const dateVal = record.date || record.callDate || record.meetingDate || record.createdAt || record.formCompletedAt || record.completedDate || record.searchTimestamp || record.createdDate;
+      const timeVal = record.time || record.appointmentTime || record.callTime || record.meetingTime;
+
+      let dateStr = '';
+      if (dateVal) {
+        try {
+          let d: Date | null = null;
+          if (dateVal?.toDate) d = dateVal.toDate();
+          else if (dateVal instanceof Date) d = dateVal;
+          else if (typeof dateVal === 'string' || typeof dateVal === 'number') d = new Date(dateVal);
+
+          if (d && !isNaN(d.getTime())) {
+            dateStr = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+          } else if (typeof dateVal === 'string') {
+            dateStr = dateVal;
+          }
+        } catch (e) {}
+      }
+
+      let timeStr = '';
+      if (timeVal) {
+        timeStr = typeof timeVal === 'string' ? timeVal : '';
+      } else if (dateVal?.toDate || dateVal instanceof Date) {
+        try {
+          const d = dateVal.toDate ? dateVal.toDate() : dateVal;
+          if (d && !isNaN(d.getTime()) && (d.getHours() !== 0 || d.getMinutes() !== 0)) {
+            timeStr = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true });
+          }
+        } catch (e) {}
+      }
+
+      if (dateStr && timeStr) return `${dateStr} at ${timeStr}`;
+      if (dateStr) return dateStr;
+      if (timeStr) return `Time: ${timeStr}`;
+      return '';
+    }
+
     const list: Array<{
       id: string;
       title: string;
-      subtitle: string;
+      dateTime?: string;
+      contactName?: string;
+      contactPhone?: string;
+      contactEmail?: string;
+      location?: string;
+      notes?: string;
+      businessUnit?: string;
       type: string;
       badgeColor: string;
       salesforceId?: string;
@@ -319,7 +428,13 @@ export function FridayPerformanceReview({
       list.push({
         id: plan.id || `call_plan_${i}`,
         title: plan.customerName || plan.companyName || `Call Plan #${i+1}`,
-        subtitle: plan.notes || plan.purpose || 'Scheduled phone outreach',
+        dateTime: getFormattedDateTime(plan) || `Scheduled Call (Week ${currentWeek.split('-')[1]})`,
+        contactName: plan.contactName || plan.contactPerson,
+        contactPhone: plan.phone,
+        contactEmail: plan.email,
+        location: plan.location || plan.suburb || plan.address,
+        notes: plan.notes || plan.purpose || 'Scheduled phone outreach',
+        businessUnit: plan.businessUnit,
         type: 'Call Plan',
         badgeColor: 'bg-blue-100 text-blue-800 border-none',
         salesforceId: plan.salesforceId
@@ -333,7 +448,9 @@ export function FridayPerformanceReview({
         list.push({
           id: act.id || `act_call_${i}`,
           title: act.account || act.companyName || act.subject || `CRM Phone Calls (${callCount})`,
-          subtitle: act.subject || act.notes || `${callCount} phone call interactions logged`,
+          dateTime: getFormattedDateTime(act) || `CRM Phone Call (Week ${currentWeek.split('-')[1]})`,
+          contactName: act.contactName || act.contact,
+          notes: act.subject || act.notes || `${callCount} phone call interactions logged`,
           type: 'CRM Phone Calls',
           badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
           salesforceId: act.salesforceId
@@ -351,7 +468,9 @@ export function FridayPerformanceReview({
         list.push({
           id: `summary_call_${i}`,
           title: opp?.pipeline || opp?.opportunityName || opp?.companyName || `Phone Call #${list.length + 1}`,
-          subtitle: opp?.stage ? `Phone outreach call · Stage: ${opp.stage}` : 'Client phone call logged in CRM',
+          dateTime: getFormattedDateTime(opp) || `Week ${currentWeek.split('-')[1]} Phone Call`,
+          notes: opp?.stage ? `Phone outreach call · Stage: ${opp.stage} · BU: ${opp.businessUnit || 'General'}` : 'Client phone call logged in CRM',
+          businessUnit: opp?.businessUnit,
           type: 'Phone Call Logged',
           badgeColor: 'bg-blue-100 text-blue-800 border-none',
           salesforceId: opp?.salesforceId
@@ -360,7 +479,7 @@ export function FridayPerformanceReview({
     }
 
     return list;
-  }, [userCallPlans, userActivity, currentWeekData]);
+  }, [userCallPlans, userActivity, currentWeekData, currentWeek]);
   
   // ─── CRM Account Selector State ──────────────────────────────────────────
   const [selectorAccountId, setSelectorAccountId] = useState<string | null>(null);
@@ -1795,30 +1914,75 @@ export function FridayPerformanceReview({
                   </div>
                   <Badge className="bg-blue-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.calls}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden divide-y">
+                <div className="border rounded-2xl overflow-hidden divide-y divide-slate-100">
                   {callsList.length > 0 ? (
                     callsList.map((item, i) => (
-                      <div key={item.id || i} className="p-3.5 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors">
-                        <div className="space-y-0.5">
-                          <p className="font-black text-slate-900 text-sm flex items-center gap-2">
-                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                            {item.title}
+                      <div key={item.id || i} className="p-4 bg-white hover:bg-slate-50 transition-colors space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h4 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                              {item.title}
+                            </h4>
+                            {item.dateTime && (
+                              <p className="text-xs font-bold text-blue-700 mt-0.5 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                                {item.dateTime}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge className={`text-[10px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
+                              {item.type}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs font-bold gap-1 text-slate-700 border-slate-200 hover:bg-slate-100"
+                              onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
+                            >
+                              Salesforce <ExternalLink className="w-3 h-3 text-slate-400" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Details Metadata */}
+                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium pt-1 border-t border-slate-50">
+                          {item.contactName && (
+                            <span className="flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5 text-slate-400" />
+                              <strong>Contact:</strong> {item.contactName}
+                            </span>
+                          )}
+                          {item.contactPhone && (
+                            <span className="flex items-center gap-1">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              {item.contactPhone}
+                            </span>
+                          )}
+                          {item.contactEmail && (
+                            <span className="flex items-center gap-1 text-slate-500">
+                              ✉ {item.contactEmail}
+                            </span>
+                          )}
+                          {item.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              {item.location}
+                            </span>
+                          )}
+                          {item.businessUnit && (
+                            <span className="font-bold text-indigo-600 uppercase text-[10px]">
+                              BU: {item.businessUnit}
+                            </span>
+                          )}
+                        </div>
+
+                        {item.notes && (
+                          <p className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            "{item.notes}"
                           </p>
-                          <p className="text-[11px] font-medium text-slate-500">{item.subtitle}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={`text-[9px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
-                            {item.type}
-                          </Badge>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 px-2 text-slate-400 hover:text-slate-900"
-                            onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -1838,30 +2002,75 @@ export function FridayPerformanceReview({
                   </div>
                   <Badge className="bg-emerald-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.apps}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden divide-y">
+                <div className="border rounded-2xl overflow-hidden divide-y divide-slate-100">
                   {appointmentList.length > 0 ? (
                     appointmentList.map((item, i) => (
-                      <div key={item.id || i} className="p-3.5 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors">
-                        <div className="space-y-0.5">
-                          <p className="font-black text-slate-900 text-sm flex items-center gap-2">
-                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                            {item.title}
+                      <div key={item.id || i} className="p-4 bg-white hover:bg-slate-50 transition-colors space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h4 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                              {item.title}
+                            </h4>
+                            {item.dateTime && (
+                              <p className="text-xs font-bold text-emerald-700 mt-0.5 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                                {item.dateTime}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge className={`text-[10px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
+                              {item.type}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs font-bold gap-1 text-slate-700 border-slate-200 hover:bg-slate-100"
+                              onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
+                            >
+                              Salesforce <ExternalLink className="w-3 h-3 text-slate-400" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Details Metadata */}
+                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium pt-1 border-t border-slate-50">
+                          {item.contactName && (
+                            <span className="flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5 text-slate-400" />
+                              <strong>Contact:</strong> {item.contactName}
+                            </span>
+                          )}
+                          {item.contactPhone && (
+                            <span className="flex items-center gap-1">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              {item.contactPhone}
+                            </span>
+                          )}
+                          {item.contactEmail && (
+                            <span className="flex items-center gap-1 text-slate-500">
+                              ✉ {item.contactEmail}
+                            </span>
+                          )}
+                          {item.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              {item.location}
+                            </span>
+                          )}
+                          {item.businessUnit && (
+                            <span className="font-bold text-indigo-600 uppercase text-[10px]">
+                              BU: {item.businessUnit}
+                            </span>
+                          )}
+                        </div>
+
+                        {item.notes && (
+                          <p className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            "{item.notes}"
                           </p>
-                          <p className="text-[11px] font-medium text-slate-500">{item.subtitle}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={`text-[9px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
-                            {item.type}
-                          </Badge>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 px-2 text-slate-400 hover:text-slate-900"
-                            onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                        )}
                       </div>
                     ))
                   ) : (
