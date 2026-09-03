@@ -28,10 +28,10 @@ export function ActualSpendView() {
 
   const { data: records, isLoading } = useCollection<ActualSpendRecord>(actualQuery);
 
-  const { userProfile, isLeader } = useAuth();
+  const { profile, isLeader } = useAuth();
   const { allPipelineReviews } = usePipelineData();
 
-  const isAdmin = userProfile?.role === 'ADMIN' || userProfile?.role === 'SUPER_ADMIN' || userProfile?.role === 'GM' || isLeader;
+  const isAdmin = profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN' || profile?.role === 'GM' || isLeader;
 
   const userAccountIds = useMemo(() => {
     if (isAdmin || !allPipelineReviews) return new Set<string>();
