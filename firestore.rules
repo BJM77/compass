@@ -20,7 +20,9 @@ service cloud.firestore {
         request.auth.token.email == '1@1.com' ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
           getUserData().role == 'LEADER' ||
-          getUserData().role == 'GM'
+          getUserData().role == 'GM' ||
+          getUserData().role == 'ADMIN' ||
+          getUserData().role == 'SUPER_ADMIN'
         ))
       );
     }
