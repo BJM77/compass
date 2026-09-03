@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { collection, query } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
 
 // ─── Active stages that qualify as an "Opportunity" row ──────────────────────
 const ACTIVE_STAGES = new Set([
@@ -55,14 +56,21 @@ function aggregateRecords(
     if (!oppRevLY.has(code)) oppRevLY.set(code, Number(r.lastYearRevenue) || 0);
   });
 
-  // Customer maps across ALL rows (opportunities + bare accounts)
   const custRevFY = new Map<string, number>();
   const custRevLY = new Map<string, number>();
   const uniqueCustMap = new Map<string, any>();
   records.forEach(r => {
     const code = r.accountMasterCode || r.id;
-    if (!custRevFY.has(code)) custRevFY.set(code, Number(r.currentRevenue)  || 0);
-    if (!custRevLY.has(code)) custRevLY.set(code, Number(r.lastYearRevenue) || 0);
+    // Always take the max revenue across all rows for this account to avoid zeros overriding real data
+    const thisFY = Number(r.currentRevenue) || 0;
+    const lastFY = Number(r.lastYearRevenue) || 0;
+    
+    if (!custRevFY.has(code) || thisFY > custRevFY.get(code)!) {
+      custRevFY.set(code, thisFY);
+    }
+    if (!custRevLY.has(code) || lastFY > custRevLY.get(code)!) {
+      custRevLY.set(code, lastFY);
+    }
     if (!uniqueCustMap.has(code)) uniqueCustMap.set(code, r);
   });
 
@@ -148,28 +156,37 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
     });
     const records = Array.from(latestMap.values());
 
-    // Group records by userId
-    const byUserId = new Map<string, { name: string; rows: any[] }>();
+    // Group records by Normalized User Name to prevent duplicate users
+    const byUserName = new Map<string, { id: string, name: string; rows: any[] }>();
     records.forEach(r => {
       if (!r.userId) return;
-      if (!byUserId.has(r.userId)) {
-        byUserId.set(r.userId, { name: r.userName || r.userId, rows: [] });
+      const normName = normalizeBdmName(r.userName, r.userId);
+      if (normName === 'Unassigned') return;
+      
+      if (!byUserName.has(normName)) {
+        // Keep the original userId for reference but group by normalized name
+        byUserName.set(normName, { id: r.userId, name: normName, rows: [] });
       }
-      byUserId.get(r.userId)!.rows.push(r);
+      byUserName.get(normName)!.rows.push(r);
     });
 
     // Build per-user summaries sorted by name
-    const byUser = Array.from(byUserId.entries())
-      .map(([uid, { name, rows }]) => aggregateRecords(rows, uid, name))
+    const byUser = Array.from(byUserName.entries())
+      .map(([name, { id, rows }]) => aggregateRecords(rows, id, name))
       .sort((a, b) => a.userName.localeCompare(b.userName));
 
     // Team total = sum of all per-user summaries
     const team = byUser.reduce(addSummaries, { ...EMPTY_SUMMARY });
 
     // Caller's own row
-    const myStats = myUserId
-      ? (byUser.find(u => u.userId === myUserId) ?? { ...EMPTY_SUMMARY, userId: myUserId, userName: '' })
-      : null;
+    let myStats = null;
+    if (myUserId) {
+      // Find using flexible match to support aliases
+      const matchedUser = byUser.find(u => 
+        isUserSubmissionMatch({ id: myUserId }, { userId: u.userId, userName: u.userName })
+      );
+      myStats = matchedUser ?? { ...EMPTY_SUMMARY, userId: myUserId, userName: '' };
+    }
 
     return {
       // Only expose individual breakdown to leaders/GMs; BDMs get empty array
