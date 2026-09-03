@@ -12,6 +12,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Search, Banknote, Calendar, Layers, Coins, Landmark } from 'lucide-react';
 import { ActualSpendRecord } from '@/types/crm';
+import { useAuth } from '@/contexts/auth-context';
+import { usePipelineData } from '@/contexts/pipeline-context';
 
 export function ActualSpendView() {
   const db = useFirestore();
@@ -26,6 +28,21 @@ export function ActualSpendView() {
 
   const { data: records, isLoading } = useCollection<ActualSpendRecord>(actualQuery);
 
+  const { userProfile, isLeader } = useAuth();
+  const { allPipelineReviews } = usePipelineData();
+
+  const isAdmin = userProfile?.role === 'ADMIN' || userProfile?.role === 'SUPER_ADMIN' || userProfile?.role === 'GM' || isLeader;
+
+  const userAccountIds = useMemo(() => {
+    if (isAdmin || !allPipelineReviews) return new Set<string>();
+    return new Set(allPipelineReviews.map((d: any) => d.accountMasterCode).filter(Boolean) as string[]);
+  }, [allPipelineReviews, isAdmin]);
+
+  const userAccountNames = useMemo(() => {
+    if (isAdmin || !allPipelineReviews) return new Set<string>();
+    return new Set(allPipelineReviews.map((d: any) => d.pipeline?.toLowerCase()).filter(Boolean) as string[]);
+  }, [allPipelineReviews, isAdmin]);
+
   const businessUnits = useMemo(() => {
     if (!records) return [];
     return Array.from(new Set(records.map(r => r.businessUnit).filter(Boolean))).sort();
@@ -39,6 +56,13 @@ export function ActualSpendView() {
   const filteredRecords = useMemo(() => {
     if (!records) return [];
     let result = [...records];
+
+    if (!isAdmin) {
+      result = result.filter(r => 
+        (r.account && userAccountIds.has(r.account)) || 
+        (r.companyName && userAccountNames.has(r.companyName.toLowerCase()))
+      );
+    }
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -58,7 +82,7 @@ export function ActualSpendView() {
     }
 
     return result;
-  }, [records, searchQuery, buFilter, weekFilter]);
+  }, [records, searchQuery, buFilter, weekFilter, isAdmin, userAccountIds, userAccountNames]);
 
   const groupedRecords = useMemo(() => {
     if (filteredRecords.length === 0) return [];
