@@ -22,3 +22,81 @@
  GET / 200 in 36ms
  GET /favicon.ico 200 in 27ms
  GET /dashboard 200 in 63ms
+ GET /dashboard?view=ARCHIVE 200 in 23ms
+ GET /dashboard 200 in 23ms
+ GET /dashboard 200 in 27ms
+ GET /dashboard?view=GM_REVIEW 200 in 16ms
+ ✓ Compiled in 841ms (5396 modules)
+ GET /dashboard?view=GM_REVIEW 200 in 153ms
+ ✓ Compiled in 859ms (5413 modules)
+ GET /dashboard?view=GM_REVIEW 200 in 172ms
+ ✓ Compiled in 610ms (5413 modules)
+ GET /dashboard?view=GM_REVIEW 200 in 104ms
+ ✓ Compiled in 404ms (5396 modules)
+ GET /dashboard?view=GM_REVIEW 200 in 161ms
+ GET /dashboard?view=CANVASSING 200 in 29ms
+ GET /dashboard?view=MANAGE_TIME 200 in 26ms
+ GET /dashboard?view=TWIW 200 in 22ms
+ GET /dashboard?view=TEAM 200 in 24ms
+ ✓ Compiled in 543ms (5396 modules)
+ GET /dashboard?view=TEAM 200 in 111ms
+ GET /dashboard?view=GM_REVIEW 200 in 22ms
+ GET /dashboard?view=OPS_REPORT 200 in 14ms
+ GET /dashboard?view=ARCHIVE 200 in 15ms
+ ✓ Compiled in 819ms (5396 modules)
+ GET /dashboard?view=ARCHIVE 200 in 139ms
+ GET /dashboard?view=ARCHIVE 200 in 27ms
+ GET /dashboard?view=OPS_REVIEW 200 in 17ms
+ GET /dashboard?view=DATA_EXPLORER 200 in 17ms
+ ✓ Compiled in 874ms (5413 modules)
+ GET /dashboard?view=DATA_EXPLORER 200 in 174ms
+ GET /dashboard 200 in 19ms
+ GET /dashboard?view=TWIW 200 in 19ms
+ GET /dashboard?view=FRIDAY_FW 200 in 22ms
+ GET /dashboard?view=SUCCESS_PLANS 200 in 24ms
+ GET /dashboard?view=STRATEGIC_ARCHIVE 200 in 25ms
+ GET /dashboard?view=CALL_PLANNING 200 in 18ms
+ GET /dashboard?view=STRATEGIC_ARCHIVE 200 in 26ms
+ GET /dashboard?view=ARCHIVE 200 in 22ms
+ GET /dashboard?view=ACTUAL_SPEND 200 in 23ms
+ GET /dashboard?view=PLAYBOOK 200 in 25ms
+ GET /dashboard?view=STRATEGIC_ARCHIVE 200 in 24ms
+ GET /dashboard?view=SUCCESS_PLANS 200 in 22ms
+ GET /dashboard?view=CALL_PLANNING 200 in 17ms
+ GET /dashboard?view=OPS_REVIEW 200 in 21ms
+ GET /dashboard?view=DATA_EXPLORER 200 in 24ms
+ GET /dashboard?view=STRATEGY 200 in 20ms
+ GET /dashboard?view=GM_REVIEW 200 in 22ms
+ GET /dashboard?view=STRATEGIC_REPOSITORY 200 in 26ms
+ GET /dashboard?view=OPS_REPORT 200 in 23ms
+ GET /dashboard?view=ACTUAL_SPEND 200 in 21ms
+ GET /dashboard?view=ACTUAL_SPEND 200 in 14ms
+ GET /dashboard?view=PLAYBOOK 200 in 21ms
+ GET /dashboard?view=STRATEGIC_ARCHIVE 200 in 20ms
+ GET /dashboard?view=SUCCESS_PLANS 200 in 23ms
+ GET /dashboard?view=CALL_PLANNING 200 in 21ms
+ GET /dashboard?view=WHITE_SPACE 200 in 16ms
+ GET /dashboard?view=FACT_FINDING 200 in 18ms
+ GET /dashboard?view=FRIDAY_FW 200 in 22ms
+ GET /dashboard 200 in 13ms
+ GET /dashboard?view=CANVASSING 200 in 24ms
+ GET /dashboard 200 in 22ms
+ GET /dashboard 200 in 444ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1043ms (3484 modules)
+ GET /favicon.ico 200 in 1121ms
+ ✓ Compiled in 862ms (5396 modules)
+ GET /dashboard 200 in 236ms
+ GET /dashboard?view=FRIDAY_FW 200 in 236ms
+ GET /dashboard 200 in 423ms
+ ✓ Compiled in 687ms (5396 modules)
+ GET /dashboard?view=FRIDAY_FW 200 in 140ms
+ ✓ Compiled /favicon.ico in 177ms (3476 modules)
+ GET /favicon.ico 200 in 254ms
+ GET /dashboard 200 in 469ms
+ GET /dashboard 200 in 23ms
+ GET /favicon.ico 200 in 8ms
+ GET /dashboard 200 in 25ms
+ GET /dashboard?view=CANVASSING 200 in 17ms
+ GET /dashboard 200 in 11ms
+ GET /dashboard?view=GM_REVIEW 200 in 17ms

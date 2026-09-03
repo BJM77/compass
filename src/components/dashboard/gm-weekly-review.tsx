@@ -190,7 +190,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             : commitData?.nextWeekCommitments || '';
 
           // Compute CRM statistics directly from the current week's pipeline reviews for this BDM
-          const bdmDeals = weekDeals.filter(r => isUserSubmissionMatch(bdm, { id: r.id, ...r }));
+          const bdmDeals = weekDeals.filter(r => isUserSubmissionMatch(bdm, r));
           const bdmOpps = bdmDeals.filter(d => !d.isBareAccount && d.stage !== 'Closed Won' && d.stage !== 'Closed Lost');
           const bdmSigned = bdmDeals.filter(d => ['Finalise', 'Pending Trade'].includes(d.stage || ''));
           const bdmWon = bdmDeals.filter(d => d.stage === 'Closed Won');
