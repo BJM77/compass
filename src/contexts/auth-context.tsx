@@ -5,7 +5,7 @@ import { User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useUser, useFirestore } from '@/firebase';
 
-export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM' | 'GUEST';
+export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM' | 'GUEST' | 'ADMIN' | 'SUPER_ADMIN';
 export type Territory = 'METRO_NORTH' | 'METRO_SOUTH' | 'WESTERN_TRADE_COAST' | 'REGIONAL' | 'FLEX';
 
 export interface UserProfile {

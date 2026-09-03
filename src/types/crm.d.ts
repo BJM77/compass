@@ -1,4 +1,4 @@
-export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM';
+export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM' | 'ADMIN' | 'SUPER_ADMIN';
 export type Territory = 'METRO_NORTH' | 'METRO_SOUTH' | 'WESTERN_TRADE_COAST' | 'REGIONAL' | 'FLEX';
 
 export interface UserProfile {
