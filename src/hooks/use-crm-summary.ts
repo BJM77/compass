@@ -51,7 +51,7 @@ function aggregateRecords(
   const oppRevFY  = new Map<string, number>();
   const oppRevLY  = new Map<string, number>();
   oppRows.forEach(r => {
-    const code = r.accountMasterCode || r.id;
+    const code = r.accountMasterCode || r.pipeline?.trim().toLowerCase() || r.id;
     if (!oppRevFY.has(code)) oppRevFY.set(code, Number(r.currentRevenue)  || 0);
     if (!oppRevLY.has(code)) oppRevLY.set(code, Number(r.lastYearRevenue) || 0);
   });
@@ -60,7 +60,7 @@ function aggregateRecords(
   const custRevLY = new Map<string, number>();
   const uniqueCustMap = new Map<string, any>();
   records.forEach(r => {
-    const code = r.accountMasterCode || r.id;
+    const code = r.accountMasterCode || r.pipeline?.trim().toLowerCase() || r.id;
     // Always take the max revenue across all rows for this account to avoid zeros overriding real data
     const thisFY = Number(r.currentRevenue) || 0;
     const lastFY = Number(r.lastYearRevenue) || 0;
@@ -180,8 +180,8 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
       .map(([name, { id, rows }]) => aggregateRecords(rows, id, name))
       .sort((a, b) => a.userName.localeCompare(b.userName));
 
-    // Team total = sum of all per-user summaries
-    const team = byUser.reduce(addSummaries, { ...EMPTY_SUMMARY });
+    // Team total = aggregate across all unique records globally to prevent double-counting shared accounts
+    const team = aggregateRecords(records, 'TEAM', 'Team Total');
 
     // Caller's own row
     let myStats = null;

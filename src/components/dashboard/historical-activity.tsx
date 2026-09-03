@@ -179,11 +179,11 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   {u.name}
                 </td>
                 {pastWeeks.map((week, idx) => {
-                  const data = progressData?.find(d => d.userId === u.id && d.week === week);
-                  const crmCalls = Number(data?.crmCalls || 0);
-                  const crmApps = Number(data?.crmApps || 0);
-                  const calls = Number(data?.calls || 0);
-                  const apps = Number(data?.apps || 0);
+                  const dataEntries = progressData?.filter(d => (d.userId === u.id || d.userName?.trim().toLowerCase() === u.name?.trim().toLowerCase()) && d.week === week) || [];
+                  const crmCalls = dataEntries.reduce((sum, d) => sum + Number(d.crmCalls || 0), 0);
+                  const crmApps = dataEntries.reduce((sum, d) => sum + Number(d.crmApps || 0), 0);
+                  const calls = dataEntries.reduce((sum, d) => sum + Number(d.calls || 0), 0);
+                  const apps = dataEntries.reduce((sum, d) => sum + Number(d.apps || 0), 0);
                   return (
                     <td 
                       key={week} 
