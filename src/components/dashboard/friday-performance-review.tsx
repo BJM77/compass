@@ -122,23 +122,22 @@ export function FridayPerformanceReview({
   const { pipelineReviews: allDeals, weeklyProgresses: allActivity } = usePipelineData();
   const crmSummary = useCRMSummary(activeUserId, isLeader);
 
-  // ─── Compliance Audit Data ───────────────────────────────────────────────
   const callPlansQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'callPlans'), where('week', '==', selectedWeek));
-  }, [db, selectedWeek]);
+    if (!db || !activeUserId) return null;
+    return query(collection(db, 'callPlans'), where('userId', '==', activeUserId), where('week', '==', selectedWeek));
+  }, [db, activeUserId, selectedWeek]);
   const { data: callPlans } = useCollection(callPlansQuery);
 
   const whitespaceReportsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'whitespacePlans'), where('week', '==', selectedWeek));
-  }, [db, selectedWeek]);
+    if (!db || !activeUserId) return null;
+    return query(collection(db, 'whitespacePlans'), where('userId', '==', activeUserId), where('week', '==', selectedWeek));
+  }, [db, activeUserId, selectedWeek]);
   const { data: whitespaceReports } = useCollection(whitespaceReportsQuery);
 
   const opsReportsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'opsReports'), where('week', '==', selectedWeek));
-  }, [db, selectedWeek]);
+    if (!db || !activeUserId) return null;
+    return query(collection(db, 'opsReports'), where('userId', '==', activeUserId), where('week', '==', selectedWeek));
+  }, [db, activeUserId, selectedWeek]);
   const { data: opsReports } = useCollection(opsReportsQuery);
 
   const userCallPlans = callPlans?.filter(p => p.userId === activeUserId) || [];
