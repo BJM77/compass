@@ -434,9 +434,15 @@ export function WeeklyArchive() {
 
         // Parallel fetch TWTW, Friday FW (commitments), and activity metrics
         const [commitmentsSnap, twtwSnap, progressSnap] = await Promise.all([
-          getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', nextWeek))),
-          getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek))),
-          getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
+          getDocs(canViewAll 
+            ? query(collection(db, 'weeklyCommitments'), where('week', '==', nextWeek)) 
+            : query(collection(db, 'weeklyCommitments'), where('week', '==', nextWeek), where('userId', '==', user?.uid))),
+          getDocs(canViewAll 
+            ? query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek)) 
+            : query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek), where('userId', '==', user?.uid))),
+          getDocs(canViewAll 
+            ? query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek)) 
+            : query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek), where('userId', '==', user?.uid))),
         ]);
 
         const results: ArchivedWeek[] = uniqueTargetUsers.map(u => {
