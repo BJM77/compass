@@ -29,6 +29,7 @@ export function OpsReportForm() {
     if (!db || !user) return null;
     return query(
       collection(db, 'opsReports'),
+      where('userId', '==', user.uid),
       where('week', '==', currentWeek)
     );
   }, [db, user, currentWeek]);

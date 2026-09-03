@@ -526,6 +526,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       case 'call-prep':
         return <CallPlanning userId={userId || ''} />;
       case 'success-plan':
+        if (authProfile?.role === 'SUPER_ADMIN') return null;
         return <OnboardingPlan userId={userId || 'BDM'} userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} />;
       case 'ambd-notes':
         return <AMBDNotesWidget userId={userId || ''} />;
@@ -685,7 +686,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
 
         {/* Dynamic Grid Layout */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {layout.filter(w => w.visible).map(widget => {
+          {layout.filter(w => w.visible && !(w.id === 'success-plan' && authProfile?.role === 'SUPER_ADMIN')).map(widget => {
             const isCollapsed = collapsedWidgets[widget.id] ?? false;
             const spanClass = getWidgetSpanClass(widget.width as 1 | 2 | 3);
             return (

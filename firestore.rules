@@ -49,7 +49,7 @@ service cloud.firestore {
 
     // ─── Strategy Documents ──────────────────────────────────────────────────────
     match /callPlans/{planId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || resource.data.userId == 'TEAM_NODE'));
       allow create: if isSignedIn();
       allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
       allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
@@ -62,7 +62,7 @@ service cloud.firestore {
     }
 
     match /whitespacePlans/{planId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || resource.data.userId == 'TEAM_NODE'));
       allow create: if isSignedIn();
       allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
     }
