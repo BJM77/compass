@@ -130,12 +130,17 @@ function addSummaries(a: CRMUserSummary, b: CRMUserSummary): CRMUserSummary {
 export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTeamSummary {
   const db = useFirestore();
 
-  // Fetch ALL team records independently so "TEAM COMBINED" sees everyone,
-  // even if the user is a BDM or a Leader simulating a specific user.
+  // Fetch records based on role to respect Firestore security rules.
+  // Leaders fetch all records, BDMs fetch only their own.
   const allQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'pipelineReviews'));
-  }, [db]);
+    if (isLeader) {
+      return query(collection(db, 'pipelineReviews'));
+    } else if (myUserId) {
+      return query(collection(db, 'pipelineReviews'), where('userId', '==', myUserId));
+    }
+    return null;
+  }, [db, isLeader, myUserId]);
 
   const { data: rawRecords, isLoading } = useCollection(allQuery);
 
