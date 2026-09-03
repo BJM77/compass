@@ -2,12 +2,12 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth, UserRole } from '@/contexts/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  allowedRoles?: ('LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM' | 'GUEST')[];
+  allowedRoles?: UserRole[];
 }
 
 export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
