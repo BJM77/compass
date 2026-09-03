@@ -96,7 +96,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
           <CardHeader className="border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><ShieldCheck className="text-green-600" /> Registry</CardTitle></CardHeader>
           <CardContent className="p-0">
             {isLoading ? <div className="py-20 text-center"><Loader2 className="animate-spin mx-auto" /></div> : (
-              <div className="divide-y">{users?.map(u => (
+              <div className="divide-y">{users?.filter(u => Number(u.target) > 0).map(u => (
                 <div key={u.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
