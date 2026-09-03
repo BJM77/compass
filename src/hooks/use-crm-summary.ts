@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from 'react';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
 
