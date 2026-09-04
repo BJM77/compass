@@ -15,7 +15,7 @@ import {
   Loader2, AlertTriangle, LifeBuoy, Briefcase, Users, Clock, Mail
 } from 'lucide-react';
 import { format, startOfWeek, subWeeks, addDays } from 'date-fns';
-import { getCurrentWeek, getWeekForDate, cn, getNextWeekKey } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, cn, getNextWeekKey, isUserSubmissionMatch } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 // ─── Generate last N weeks as selectable options ──────────────────────────────
@@ -446,9 +446,9 @@ export function WeeklyArchive() {
         ]);
 
         const results: ArchivedWeek[] = uniqueTargetUsers.map(u => {
-          const commitment = commitmentsSnap.docs.find(d => d.data().userId === u.id)?.data();
-          const twtw = twtwSnap.docs.find(d => d.data().userId === u.id)?.data();
-          const progress = progressSnap.docs.find(d => d.data().userId === u.id)?.data();
+          const commitment = commitmentsSnap.docs.find(d => isUserSubmissionMatch({ id: u.id, name: u.name }, { id: d.id, ...d.data() }))?.data();
+          const twtw = twtwSnap.docs.find(d => isUserSubmissionMatch({ id: u.id, name: u.name }, { id: d.id, ...d.data() }))?.data();
+          const progress = progressSnap.docs.find(d => isUserSubmissionMatch({ id: u.id, name: u.name }, { id: d.id, ...d.data() }))?.data();
 
           const crmCalls = progress?.crmCalls !== undefined ? progress.crmCalls : 0;
           const crmApps = progress?.crmApps !== undefined ? progress.crmApps : 0;
