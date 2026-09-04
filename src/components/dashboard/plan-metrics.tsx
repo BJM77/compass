@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { PhoneCall, LayoutGrid, Loader2, Calendar, FileSpreadsheet, Sparkles, PlusCircle, CheckCircle2, Activity } from 'lucide-react';
 import { startOfWeek, format } from 'date-fns';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
 
 export function PlanMetrics() {
   const db = useFirestore();
@@ -67,41 +67,51 @@ export function PlanMetrics() {
 
   const activeUsers = useMemo(() => {
     if (!allUsers) return [];
-    return allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
+    const filtered = allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
+    const userMap = new Map<string, any>();
+    filtered.forEach(u => {
+      const norm = normalizeBdmName(u.name, u.id);
+      if (!userMap.has(norm)) {
+        userMap.set(norm, { ...u });
+      } else {
+        const existing = userMap.get(norm);
+        if (!existing.aliasIds) existing.aliasIds = [];
+        existing.aliasIds.push(u.id);
+      }
+    });
+    return Array.from(userMap.values());
   }, [allUsers]);
 
   const userMetrics = useMemo(() => {
     return activeUsers.map(user => {
-      const uId = user.id;
-
       // 1. Appointments: crmApps (from weeklyProgress) + manual apps (from weeklyProgress)
-      const progress = weeklyProgress?.find(p => p.userId === uId);
-      const crmApps = progress?.crmApps || 0;
-      const manualApps = progress?.apps || 0;
+      const progressDocs = weeklyProgress?.filter(p => isUserSubmissionMatch(user, { id: p.id, ...p })) || [];
+      const crmApps = progressDocs.reduce((sum, p) => sum + (Number(p.crmApps) || 0), 0);
+      const manualApps = progressDocs.reduce((sum, p) => sum + (Number(p.apps) || 0), 0);
       const totalAppointments = crmApps + manualApps;
 
       // 2. Fact Findings: count of factFindingDocs created by this user
-      const userFactFindings = factFindings?.filter(f => f.userId === uId) || [];
+      const userFactFindings = factFindings?.filter(f => isUserSubmissionMatch(user, { id: f.id, ...f })) || [];
       const totalFactFindings = userFactFindings.length;
 
       // 3. Opportunities Created: Count of pipelineReviews where week is currentWeek, not isBareAccount, stage is not Won/Lost
-      const userDeals = pipelineReviews?.filter(r => r.userId === uId) || [];
+      const userDeals = pipelineReviews?.filter(r => isUserSubmissionMatch(user, { id: r.id, ...r })) || [];
       const oppsCreated = userDeals.filter(d => !d.isBareAccount && d.stage !== 'Closed Won' && d.stage !== 'Closed Lost').length;
 
       // 4. Opportunities Closed Won
       const oppsWon = userDeals.filter(d => d.stage === 'Closed Won').length;
 
       // 5. Call plans logged this week
-      const userCallPlans = callPlans?.filter(p => p.userId === uId) || [];
+      const userCallPlans = callPlans?.filter(p => isUserSubmissionMatch(user, { id: p.id, ...p })) || [];
       const totalCallPlans = userCallPlans.length;
 
       // 6. Whitespace plans logged this week
-      const userWhitespace = whitespacePlans?.filter(p => p.userId === uId) || [];
+      const userWhitespace = whitespacePlans?.filter(p => isUserSubmissionMatch(user, { id: p.id, ...p })) || [];
       const totalWhitespace = userWhitespace.length;
 
       // 7. Calls (CRM + Manual) from weeklyProgress
-      const crmCalls = progress?.crmCalls || 0;
-      const manualCalls = progress?.calls || 0;
+      const crmCalls = progressDocs.reduce((sum, p) => sum + (Number(p.crmCalls) || 0), 0);
+      const manualCalls = progressDocs.reduce((sum, p) => sum + (Number(p.calls) || 0), 0);
       const totalCalls = crmCalls + manualCalls;
 
       // Total Weekly Activities (sum of all activities)
