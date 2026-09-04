@@ -428,17 +428,27 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
   }, [allMonthlySubmissions, monthlySelectedMonth]);
 
   // Fetch BDM Profile (for displayName)
-  const [bdmName, setBdmName] = useState('BDM');
+  const [bdmName, setBdmName] = useState(() => {
+    const pName = profile?.name || (profile as any)?.displayName;
+    const norm = normalizeBdmName(pName, userId);
+    return norm !== 'Unassigned' && norm !== 'BDM' ? norm : (pName || 'BDM');
+  });
   useEffect(() => {
     async function getProfile() {
       if (!db || !userId) return;
       const uDoc = await getDoc(doc(db, 'users', userId));
       if (uDoc.exists()) {
-        setBdmName(uDoc.data().name || 'BDM');
+        const fetchedName = uDoc.data().name || uDoc.data().displayName;
+        const norm = normalizeBdmName(fetchedName, userId);
+        setBdmName(norm !== 'Unassigned' && norm !== 'BDM' ? norm : (fetchedName || 'BDM'));
+      } else if (profile?.name || (profile as any)?.displayName) {
+        const pName = profile?.name || (profile as any)?.displayName;
+        const norm = normalizeBdmName(pName, userId);
+        if (norm !== 'Unassigned') setBdmName(norm);
       }
     }
     getProfile();
-  }, [db, userId]);
+  }, [db, userId, profile]);
 
   // Load BDM's own submission
   useEffect(() => {
@@ -1315,15 +1325,20 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
             });
             return sortedEntries.map(([state, subs], idx) => {
-              const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden && !(isMonthly && hiddenMonthlyItems.includes(w.id))).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
-              const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden && !(isMonthly && hiddenMonthlyItems.includes(r.id))).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
+              const getRepName = (sub: any, itemRep?: string) => {
+                const raw = itemRep || sub.salespersonName || sub.userName;
+                const norm = normalizeBdmName(raw, sub.userId);
+                return norm !== 'Unassigned' && norm !== 'BDM' ? norm : (raw || 'N/A');
+              };
+              const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden && !(isMonthly && hiddenMonthlyItems.includes(w.id))).map((w: any) => ({ ...w, rep: getRepName(sub, w.salespersonName) })));
+              const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden && !(isMonthly && hiddenMonthlyItems.includes(r.id))).map((r: any) => ({ ...r, rep: getRepName(sub, r.salespersonName) })));
               const allStateUpdates = subs.flatMap(sub => {
-                const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.salespersonName || sub.userName || 'N/A' }] : [];
-                const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden && !(isMonthly && hiddenMonthlyItems.includes(m.id))).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
+                const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: getRepName(sub) }] : [];
+                const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden && !(isMonthly && hiddenMonthlyItems.includes(m.id))).map((m: any) => ({ ...m, rep: getRepName(sub, m.salespersonName) }));
                 return [...legacy, ...updates];
               });
-              const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden && !(isMonthly && hiddenMonthlyItems.includes(p.id))).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
-              const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden && !(isMonthly && hiddenMonthlyItems.includes(pr.id))).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
+              const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden && !(isMonthly && hiddenMonthlyItems.includes(p.id))).map((p: any) => ({ ...p, rep: getRepName(sub, p.salespersonName) })));
+              const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden && !(isMonthly && hiddenMonthlyItems.includes(pr.id))).map((pr: any) => ({ ...pr, rep: getRepName(sub, pr.salespersonName) })));
 
               return `
               <div class="page-container" style="${idx === 0 && !hasStandouts ? 'page-break-before: avoid;' : ''}">
@@ -1454,15 +1469,20 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     });
 
     const regionsHtml = sortedEntries.map(([state, subs]) => {
-      const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden && !(isMonthly && hiddenMonthlyItems.includes(w.id))).map((w: any) => ({ ...w, rep: sub.salespersonName || sub.userName || 'N/A' })));
-      const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden && !(isMonthly && hiddenMonthlyItems.includes(r.id))).map((r: any) => ({ ...r, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const getRepName = (sub: any, itemRep?: string) => {
+        const raw = itemRep || sub.salespersonName || sub.userName;
+        const norm = normalizeBdmName(raw, sub.userId);
+        return norm !== 'Unassigned' && norm !== 'BDM' ? norm : (raw || 'N/A');
+      };
+      const allStateWins = subs.flatMap(sub => (sub.wins || []).filter((w: any) => !w.isHidden && !(isMonthly && hiddenMonthlyItems.includes(w.id))).map((w: any) => ({ ...w, rep: getRepName(sub, w.salespersonName) })));
+      const allStateRisks = subs.flatMap(sub => (sub.risks || []).filter((r: any) => !r.isHidden && !(isMonthly && hiddenMonthlyItems.includes(r.id))).map((r: any) => ({ ...r, rep: getRepName(sub, r.salespersonName) })));
       const allStateUpdates = subs.flatMap(sub => {
-        const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: sub.salespersonName || sub.userName || 'N/A' }] : [];
-        const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden && !(isMonthly && hiddenMonthlyItems.includes(m.id))).map((m: any) => ({ ...m, rep: sub.salespersonName || sub.userName || 'N/A' }));
+        const legacy = sub.updates ? [{ isLegacy: true, text: sub.updates, rep: getRepName(sub) }] : [];
+        const updates = (sub.majorUpdates || []).filter((m: any) => !m.isHidden && !(isMonthly && hiddenMonthlyItems.includes(m.id))).map((m: any) => ({ ...m, rep: getRepName(sub, m.salespersonName) }));
         return [...legacy, ...updates];
       });
-      const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden && !(isMonthly && hiddenMonthlyItems.includes(p.id))).map((p: any) => ({ ...p, rep: sub.salespersonName || sub.userName || 'N/A' })));
-      const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden && !(isMonthly && hiddenMonthlyItems.includes(pr.id))).map((pr: any) => ({ ...pr, rep: sub.salespersonName || sub.userName || 'N/A' })));
+      const allStateProjected = subs.flatMap(sub => (sub.projectedWins || []).filter((p: any) => !p.isHidden && !(isMonthly && hiddenMonthlyItems.includes(p.id))).map((p: any) => ({ ...p, rep: getRepName(sub, p.salespersonName) })));
+      const allStatePriorities = subs.flatMap(sub => (sub.priorities || []).filter((pr: any) => !pr.isHidden && !(isMonthly && hiddenMonthlyItems.includes(pr.id))).map((pr: any) => ({ ...pr, rep: getRepName(sub, pr.salespersonName) })));
 
       return `
         <div class="page-container">
