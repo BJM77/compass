@@ -6,11 +6,10 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { History, Phone, CalendarCheck, Clock, FileText, ClipboardList } from 'lucide-react';
 import { format, subWeeks, startOfWeek } from 'date-fns';
-import { getCurrentWeek, getWeekForDate } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, isUserSubmissionMatch, cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { usePipelineData } from '@/contexts/pipeline-context';
-import { cn } from '@/lib/utils';
 
 interface HistoricalActivityProps {
   userId?: string; // If provided, shows just for this user. If omitted, shows for all users.
@@ -179,7 +178,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   {u.name}
                 </td>
                 {pastWeeks.map((week, idx) => {
-                  const dataEntries = progressData?.filter(d => (d.userId === u.id || d.userName?.trim().toLowerCase() === u.name?.trim().toLowerCase()) && d.week === week) || [];
+                  const dataEntries = progressData?.filter(d => d.week === week && isUserSubmissionMatch({ id: u.id, name: u.name }, d)) || [];
                   const crmCalls = dataEntries.reduce((sum, d) => sum + Number(d.crmCalls || 0), 0);
                   const crmApps = dataEntries.reduce((sum, d) => sum + Number(d.crmApps || 0), 0);
                   const calls = dataEntries.reduce((sum, d) => sum + Number(d.calls || 0), 0);
