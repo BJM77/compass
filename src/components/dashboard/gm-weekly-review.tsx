@@ -151,7 +151,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         const bdmsMap = new Map<string, any>();
         activeUsers.forEach(u => {
           const norm = normalizeBdmName(u.name, u.id);
-          bdmsMap.set(norm, u);
+          bdmsMap.set(norm, { ...u });
         });
         crmUsersMap.forEach((val, key) => {
           const norm = normalizeBdmName(val.name, key);
@@ -165,6 +165,11 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
               state: val.state || 'WA',
               target: 2500000
             });
+          } else {
+            // Store legacy string ID as an alias on the user object so isUserSubmissionMatch can match both Auth UID and legacy string ID
+            const existing = bdmsMap.get(norm);
+            if (!existing.aliasIds) existing.aliasIds = [];
+            existing.aliasIds.push(key);
           }
         });
         const bdms = Array.from(bdmsMap.values());

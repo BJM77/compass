@@ -51,7 +51,7 @@ export function normalizeBdmName(name?: string, id?: string): string {
  * Flexible matching for user submissions to handle alias user IDs (e.g. namra, namra_khan, Namra Khan, UIDs).
  */
 export function isUserSubmissionMatch(
-  user: { id?: string; name?: string },
+  user: { id?: string; name?: string; aliasIds?: string[] },
   sub: { userId?: string; userName?: string; salespersonName?: string; id?: string }
 ): boolean {
   if (!user || !sub) return false;
@@ -62,9 +62,12 @@ export function isUserSubmissionMatch(
   const subUName = (sub.userName || sub.salespersonName || '').trim();
   const subDocId = (sub.id || '').trim();
 
-  // 1. Direct ID match
+  // 1. Direct ID match or alias ID match
   if (uid && subUid && uid === subUid) return true;
   if (uid && subDocId && subDocId.startsWith(`${uid}_`)) return true;
+  if (user.aliasIds && user.aliasIds.length > 0) {
+    if (user.aliasIds.some(alias => alias === subUid || subDocId.startsWith(`${alias}_`))) return true;
+  }
 
   // 2. Normalized BDM Name match
   const normUser = normalizeBdmName(uname, uid).toLowerCase();
