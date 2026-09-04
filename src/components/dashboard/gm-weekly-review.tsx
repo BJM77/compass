@@ -180,7 +180,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           bdmsCount: bdms.length
         });
 
-        const weekDeals = allPipelineReviews?.filter(r => r.week === selectedWeek) || [];
+        const weekDeals = (allPipelineReviews?.some(r => r.week === selectedWeek))
+          ? allPipelineReviews.filter(r => r.week === selectedWeek)
+          : (allPipelineReviews || []);
         
         const reports = bdms.map(bdm => {
           const reportDocs = reportsSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
