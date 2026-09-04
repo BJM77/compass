@@ -91,7 +91,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (docSnap.exists()) {
           setProfile({ uid: firebaseUser.uid, ...docSnap.data() } as UserProfile);
         } else {
-          setProfile(null);
+          // Fallback search by email in users collection (for pre-seeded users like namra_khan / jacqui_tibos)
+          const { collection, query, where, getDocs } = await import('firebase/firestore');
+          const emailQuery = query(collection(db, 'users'), where('email', '==', firebaseUser.email));
+          const emailSnap = await getDocs(emailQuery);
+          if (!emailSnap.empty) {
+            setProfile({ uid: firebaseUser.uid, ...emailSnap.docs[0].data() } as UserProfile);
+          } else {
+            setProfile(null);
+          }
         }
       } catch (e) {
         console.error("AuthContext: Error fetching profile", e);
