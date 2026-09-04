@@ -183,17 +183,29 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         const weekDeals = allPipelineReviews?.filter(r => r.week === selectedWeek) || [];
         
         const reports = bdms.map(bdm => {
-          const reportDoc = reportsSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const twiwDoc = twiwSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const commitmentDoc = commitmentsSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const progressDoc = progressSnap.docs.find(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const reportDocs = reportsSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const twiwDocs = twiwSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const commitmentDocs = commitmentsSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const progressDocs = progressSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
           const userWS = whitespaceSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
           const userCP = callPlansSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
           
+          const reportDoc = reportDocs[0];
+          
+          // Merge all matching TWTW submissions and Commitments for this BDM
+          const combinedTwiwWins = twiwDocs.flatMap(d => d.data().wins || []);
+          const combinedTwiwRisks = twiwDocs.flatMap(d => d.data().risks || []);
+          const combinedTwiwMajorUpdates = twiwDocs.flatMap(d => d.data().majorUpdates || []);
+          const combinedTwiwProjectedWins = twiwDocs.flatMap(d => d.data().projectedWins || []);
+          const combinedTwiwPriorities = twiwDocs.flatMap(d => d.data().priorities || []);
+          const combinedFocusAccounts = commitmentDocs.flatMap(d => d.data().focusAccounts || []);
+
+          const twiwDoc = twiwDocs.find(d => d.data().status === 'SUBMITTED') || twiwDocs[0];
+          const commitmentDoc = commitmentDocs.find(d => d.data().status === 'SUBMITTED') || commitmentDocs[0];
+
           const reportData = reportDoc?.data();
           const twiwData = twiwDoc?.data();
           const commitData = commitmentDoc?.data();
-          const progressData = progressDoc?.data();
 
           // Join actionPlan array into a single string for display
           const joinedCommitments = commitData?.actionPlan?.length > 0 
@@ -211,14 +223,14 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           const newBusinessCount = bdmWon.length;
           const totalEAV = bdmDeals.reduce((sum, d) => sum + (d.value || 0), 0);
 
-          // Activity counts from manual/CRM progress logs
-          const callsMade = progressData?.calls || 0;
-          const meetingsHeld = progressData?.apps || 0;
-          const crmCalls = progressData?.crmCalls || 0;
-          const crmApps = progressData?.crmApps || 0;
+          // Aggregate activity counts across all matching progress docs
+          const callsMade = progressDocs.reduce((sum, d) => sum + (Number(d.data().calls) || 0), 0);
+          const meetingsHeld = progressDocs.reduce((sum, d) => sum + (Number(d.data().apps) || 0), 0);
+          const crmCalls = progressDocs.reduce((sum, d) => sum + (Number(d.data().crmCalls) || 0), 0);
+          const crmApps = progressDocs.reduce((sum, d) => sum + (Number(d.data().crmApps) || 0), 0);
 
           return {
-            id: commitmentDoc?.id || reportDoc?.id || `${bdm.id}_${selectedWeek}`,
+            id: commitmentDoc?.id || reportDoc?.id || twiwDoc?.id || `${bdm.id}_${selectedWeek}`,
             userId: bdm.id,
             userName: bdm.name,
             week: selectedWeek,
@@ -241,12 +253,12 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             whitespaceCount: userWS,
             callPlanCount: userCP,
             submittedAt: commitData?.submittedAt || twiwData?.submittedAt || reportData?.submittedAt || null,
-            twtwWins: twiwData?.wins || [],
-            twtwRisks: twiwData?.risks || [],
-            twtwMajorUpdates: twiwData?.majorUpdates || [],
-            twtwProjectedWins: twiwData?.projectedWins || [],
-            twtwPriorities: twiwData?.priorities || [],
-            focusAccounts: commitData?.focusAccounts || []
+            twtwWins: combinedTwiwWins.length > 0 ? combinedTwiwWins : (twiwData?.wins || []),
+            twtwRisks: combinedTwiwRisks.length > 0 ? combinedTwiwRisks : (twiwData?.risks || []),
+            twtwMajorUpdates: combinedTwiwMajorUpdates.length > 0 ? combinedTwiwMajorUpdates : (twiwData?.majorUpdates || []),
+            twtwProjectedWins: combinedTwiwProjectedWins.length > 0 ? combinedTwiwProjectedWins : (twiwData?.projectedWins || []),
+            twtwPriorities: combinedTwiwPriorities.length > 0 ? combinedTwiwPriorities : (twiwData?.priorities || []),
+            focusAccounts: combinedFocusAccounts.length > 0 ? combinedFocusAccounts : (commitData?.focusAccounts || [])
           } as any;
         });
 
