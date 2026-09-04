@@ -446,13 +446,13 @@ export function CRMImporter() {
         { id: 'jacqui_tibos', name: 'Jacqui Tibos', email: 'jacqui.tibos@teamglobalexpress.com', role: 'BDM', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
         { id: 'joanne_ballantyne', name: 'Joanne Ballantyne', email: 'joanne.ballantyne@teamglobalexpress.com', role: 'BDM', territory: 'METRO_SOUTH', state: 'WA', target: 2500000 },
         { id: 'joshua_mostratos', name: 'Joshua Mostratos', email: 'joshua.mostratos@teamglobalexpress.com', role: 'BDM', territory: 'REGIONAL', state: 'WA', target: 2500000 },
-        { id: 'namra_khan', name: 'Namra Khan', email: 'namra.khan@teamglobalexpress.com', role: 'BDM', territory: 'WESTERN_TRADE_COAST', state: 'WA', target: 2500000 },
+        { id: 'waHEXgLsIhVQTIvju6xiIef2gZg1', name: 'Namra Khan', email: 'namra.khan@teamglobalexpress.com', role: 'BDM', territory: 'WESTERN_TRADE_COAST', state: 'WA', target: 2500000 },
         { id: 'rienzie_delilkan', name: 'Rienzie Delilkan', email: 'rienzie.delilkan@teamglobalexpress.com', role: 'BDM', territory: 'FLEX', state: 'WA', target: 2500000 },
         { id: 'isaac_depina', name: 'Isaac De Pina', email: 'isaac.depina@teamglobalexpress.com', role: 'BDM', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
       ];
 
       for (const bdm of KNOWN_BDMS) {
-        const exists = users.some(u => (u.name || '').trim().toLowerCase() === bdm.name.toLowerCase() || u.id === bdm.id);
+        const exists = users.some(u => u.id === bdm.id);
         if (!exists) {
           console.log(`Auto-seeding BDM: ${bdm.name}`);
           await setDoc(doc(db, 'users', bdm.id), {
