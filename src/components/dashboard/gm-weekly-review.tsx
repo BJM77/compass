@@ -22,7 +22,7 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek, isUserSubmissionMatch } from '@/lib/utils';
+import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek, isUserSubmissionMatch, normalizeBdmName } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
@@ -148,10 +148,15 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         });
 
         const activeUsers = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
-        const bdms = [...activeUsers];
+        const bdmsMap = new Map<string, any>();
+        activeUsers.forEach(u => {
+          const norm = normalizeBdmName(u.name, u.id);
+          bdmsMap.set(norm, u);
+        });
         crmUsersMap.forEach((val, key) => {
-          if (!bdms.some(u => u.id === key)) {
-            bdms.push({
+          const norm = normalizeBdmName(val.name, key);
+          if (!bdmsMap.has(norm)) {
+            bdmsMap.set(norm, {
               id: key,
               name: val.name,
               role: val.role,
@@ -159,9 +164,10 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
               territory: 'FLEX',
               state: val.state || 'WA',
               target: 2500000
-            } as any);
+            });
           }
         });
+        const bdms = Array.from(bdmsMap.values());
 
         setDebugStats({
           activeUsersCount: activeUsers.length,
