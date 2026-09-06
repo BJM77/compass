@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { cn, openSalesforceSearch, normalizeBdmName } from '@/lib/utils';
 import { useIsMobile } from '@/lib/mobile-utils';
 import { useNavigation } from '@/contexts/navigation-context';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 
 function getSalesforceSearchUrl(companyName: string) {
   if (!companyName) return '#';
@@ -80,6 +81,49 @@ export function FactFindingHub() {
       return acc;
     }, {});
   }, [users]);
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => {
+    const docsWithoutUser = (docs || []).filter(d => !d.userId);
+    const docsWithoutCompany = (docs || []).filter(d => !d.companyName);
+
+    return {
+      pageName: 'Fact Finding Hub (FACT_FINDING)',
+      reportedAt: new Date(),
+      collections: [
+        { 
+          name: 'factFindingDocs', 
+          count: docs?.length, 
+          status: loading ? 'loading' : (docs ? 'ready' : 'empty'),
+          sampleNames: docs?.slice(0, 4).map(d => d.companyName || 'Unnamed Lead')
+        },
+        { name: 'users', count: users?.length, status: users ? 'ready' : 'not-loaded' }
+      ],
+      customMetrics: {
+        'User Filter': userFilter,
+        'Stage Filter': stageFilter,
+        'View Mode': viewMode,
+        'Show Archived': showArchived ? 'YES' : 'NO',
+        'Total Resolved Reps': Object.keys(userMap).length
+      },
+      issues: [
+        ...(docsWithoutUser.length > 0 ? [{
+          severity: 'error' as const,
+          category: 'identity' as const,
+          title: 'Fact Finding Docs Missing User ID',
+          detail: `${docsWithoutUser.length} fact finding documents have no userId assigned.`,
+          docIds: docsWithoutUser.slice(0, 5).map(d => d.id || '')
+        }] : []),
+        ...(docsWithoutCompany.length > 0 ? [{
+          severity: 'warning' as const,
+          category: 'schema' as const,
+          title: 'Fact Finding Docs Missing Company Name',
+          detail: `${docsWithoutCompany.length} documents have empty company names.`,
+          docIds: docsWithoutCompany.slice(0, 5).map(d => d.id || '')
+        }] : [])
+      ]
+    };
+  }, [docs, users, loading, userFilter, stageFilter, viewMode, showArchived, userMap]);
 
   // Derived unique users for filter dropdown (BDMs & AMs only, excluding GUESTs)
   const uniqueUsers = useMemo(() => {

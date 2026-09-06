@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import {
   Dialog,
   DialogContent,
@@ -84,6 +85,47 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
   }, [db, isLeader]);
   
   const { data: allUsers } = useCollection(usersQuery);
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => {
+    const plansMissingAccount = (plans || []).filter(p => !p.accountName);
+    const plansMissingUser = (plans || []).filter(p => !p.userId);
+
+    return {
+      pageName: 'White Space History (WHITESPACE_HISTORY)',
+      reportedAt: new Date(),
+      collections: [
+        { 
+          name: 'whitespacePlans', 
+          count: plans?.length, 
+          status: isLoading ? 'loading' : (plans ? 'ready' : 'empty'),
+          sampleNames: plans?.slice(0, 4).map(p => p.accountName || 'Unnamed Plan')
+        },
+        { name: 'users', count: allUsers?.length, status: allUsers ? 'ready' : 'not-loaded' }
+      ],
+      customMetrics: {
+        'Active (Non-expired) Plans': filteredPlans.length,
+        'Selected Plan ID': selectedPlanId || 'None',
+        'Viewing Mode': isLeader ? 'All Team Plans' : 'Personal Plans'
+      },
+      issues: [
+        ...(plansMissingAccount.length > 0 ? [{
+          severity: 'warning' as const,
+          category: 'schema' as const,
+          title: 'Whitespace Plans Missing Account Name',
+          detail: `${plansMissingAccount.length} plans have no accountName set.`,
+          docIds: plansMissingAccount.slice(0, 5).map(p => p.id || '')
+        }] : []),
+        ...(plansMissingUser.length > 0 ? [{
+          severity: 'error' as const,
+          category: 'identity' as const,
+          title: 'Whitespace Plans Missing User ID',
+          detail: `${plansMissingUser.length} plans have no owner userId assigned.`,
+          docIds: plansMissingUser.slice(0, 5).map(p => p.id || '')
+        }] : [])
+      ]
+    };
+  }, [plans, allUsers, isLoading, filteredPlans, selectedPlanId, isLeader]);
 
   const userMap = useMemo(() => {
     const map: Record<string, string> = { 'TEAM_NODE': 'TEAM BLUEPRINT' };

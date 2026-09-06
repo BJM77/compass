@@ -33,6 +33,7 @@ interface AuthContextType {
   isAM: boolean;
   isGM: boolean;
   isGuest: boolean;
+  isSuperAdmin: boolean;
   setMockAuth: (profile: UserProfile | null) => void;
 }
 
@@ -45,6 +46,7 @@ const AuthContext = createContext<AuthContextType>({
   isAM: false,
   isGM: false,
   isGuest: false,
+  isSuperAdmin: false,
   setMockAuth: () => {},
 });
 
@@ -120,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAM: profile?.role === 'ACCOUNT_MANAGER',
     isGM: profile?.role === 'GM' || firebaseUser?.email === '1@1.com' || mockProfile?.email === '1@1.com' || profile?.email === '1@1.com',
     isGuest: profile?.role === 'GUEST',
+    isSuperAdmin: profile?.role === 'SUPER_ADMIN' || firebaseUser?.email === '1@1.com' || mockProfile?.email === '1@1.com' || profile?.email === '1@1.com',
     setMockAuth,
   };
 

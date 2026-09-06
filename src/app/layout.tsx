@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
+import { DiagnosticsProvider } from '@/contexts/diagnostics-context';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 import { AnnouncementBanner } from '@/components/ui/announcement-banner';
@@ -36,9 +37,11 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background">
         <FirebaseClientProvider>
           <AuthProvider>
-            <AnnouncementBanner />
-            {children}
-            <Toaster />
+            <DiagnosticsProvider>
+              <AnnouncementBanner />
+              {children}
+              <Toaster />
+            </DiagnosticsProvider>
           </AuthProvider>
         </FirebaseClientProvider>
       </body>

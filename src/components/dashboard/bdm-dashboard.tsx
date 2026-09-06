@@ -40,6 +40,7 @@ import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { calculateDealHealth } from '@/lib/deal-health';
 import { DEFAULT_DASHBOARD_LAYOUT, DashboardWidgetConfig } from './settings-hub';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 
 interface BDMDashboardProps {
   simulatedUser?: {
@@ -100,6 +101,42 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     const missingWidgets = DEFAULT_DASHBOARD_LAYOUT.filter(w => !savedIds.has(w.id));
     return [...savedLayout, ...missingWidgets];
   }, [globalSettings]);
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => ({
+    pageName: 'BDM Rep Dashboard (DASHBOARD)',
+    reportedAt: new Date(),
+    collections: [
+      { name: `bdmStats/${userId}`, count: stats ? 1 : 0, status: isStatsLoading ? 'loading' : (stats ? 'ready' : 'empty') },
+      { name: `twiwSubmissions/${userId}_${currentWeek}`, count: twtwData ? 1 : 0, status: twtwData ? 'ready' : 'empty' },
+      { name: `weeklyCommitments/${userId}_${nextWeekKey}`, count: commitmentsData ? 1 : 0, status: commitmentsData ? 'ready' : 'empty' },
+      { name: 'appSettings/global', count: globalSettings ? 1 : 0, status: globalSettings ? 'ready' : 'empty' }
+    ],
+    customMetrics: {
+      'Active User ID': userId || 'None',
+      'User Name': profile?.name || 'Unknown',
+      'User Role': profile?.role || 'BDM',
+      'Sales Week': currentWeek,
+      'Next Week Key': nextWeekKey,
+      'TWTW Status': twtwStatus,
+      'Friday FW Status': fridayStatus,
+      'Target Assigned ($)': stats?.target ? `$${Number(stats.target).toLocaleString()}` : 'No Target Set',
+    },
+    issues: [
+      ...(!stats?.target ? [{
+        severity: 'warning' as const,
+        category: 'schema' as const,
+        title: 'Missing BDM Revenue Target',
+        detail: `User ${profile?.name || userId} has no revenue target set in bdmStats.`
+      }] : []),
+      ...(twtwStatus === 'NOT_STARTED' ? [{
+        severity: 'info' as const,
+        category: 'sync' as const,
+        title: 'TWTW Not Submitted',
+        detail: `User has not submitted TWTW report for week ${currentWeek}.`
+      }] : [])
+    ]
+  }), [userId, profile, stats, isStatsLoading, twtwData, commitmentsData, globalSettings, currentWeek, nextWeekKey, twtwStatus, fridayStatus]);
   
   const layout = useMemo(() => {
     let result = [...rawLayout].filter(w => w.id !== 'voice-logger');

@@ -33,6 +33,7 @@ import { getCurrentWeek, getCurrentMonthWeeks, openSalesforceSearch } from '@/li
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 
 interface LeaderDashboardProps {
   onSimulate?: (userId: string) => void;
@@ -83,6 +84,35 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     teamStats?.forEach(s => { if (s.name) m.set(s.id, s.name); });
     return m;
   }, [allDeals, teamStats]);
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => ({
+    pageName: 'Leader Dashboard (DASHBOARD)',
+    reportedAt: new Date(),
+    collections: [
+      { name: 'bdmStats', count: teamStats?.length, status: isStatsLoading ? 'loading' : 'ready' },
+      { name: 'pipelineReviews (allDeals)', count: allDeals?.length, status: 'ready' },
+      { name: 'weeklyProgress (teamActivity)', count: teamActivity?.length, status: 'ready' },
+      { name: 'actualRevenues', count: actualSpendData?.length, status: actualSpendData ? 'ready' : 'loading' }
+    ],
+    customMetrics: {
+      'Sales Week': currentWeek,
+      'CRM Summary Loading': crmSummary.isLoading ? 'YES' : 'NO',
+      'Team Members Tracked': teamStats?.length || 0,
+      'Total Customers Tracked': crmSummary.team.customerCount,
+      'Total Opportunities': crmSummary.team.opportunityCount,
+      'Total Pipeline Value': `$${Math.round(crmSummary.team.opportunityValue).toLocaleString()}`
+    },
+    issues: [
+      ...((allDeals || []).filter(d => !d.userId).map(d => ({
+        severity: 'error' as const,
+        category: 'identity' as const,
+        title: 'Deal Record Missing Owner ID',
+        detail: `Pipeline opportunity ${d.opportunityName || d.id} has no assigned userId.`,
+        docIds: [d.id]
+      })))
+    ]
+  }), [teamStats, allDeals, teamActivity, actualSpendData, crmSummary, isStatsLoading, currentWeek]);
 
   const filteredRevRecords = useMemo(() => {
     let records = crmSummary.team.custRecords.filter(r => (Number(r.currentRevenue) || 0) > 0);

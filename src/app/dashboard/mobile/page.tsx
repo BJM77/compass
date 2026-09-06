@@ -9,6 +9,8 @@ import { Loader2 } from 'lucide-react';
 import { PipelineProvider } from '@/contexts/pipeline-context';
 import { NavigationProvider } from '@/contexts/navigation-context';
 
+import { DeveloperDiagnostics } from '@/components/dev/developer-diagnostics';
+
 export default function MobileDashboardPage() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
@@ -47,6 +49,7 @@ export default function MobileDashboardPage() {
     <PipelineProvider>
       <NavigationProvider>
         <MobileDashboard userId={user.uid} userName={profile?.name || user.email || 'User'} />
+        <DeveloperDiagnostics />
       </NavigationProvider>
     </PipelineProvider>
   );

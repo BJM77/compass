@@ -35,6 +35,7 @@ import { ManageTimeView } from '@/components/dashboard/manage-time-view';
 import { AMBDManagement } from '@/components/dashboard/ambd-management';
 import { CreateNoteDialog } from '@/components/dashboard/create-note-dialog';
 import { CanvassingHub } from '@/components/dashboard/canvassing-hub';
+import { DeveloperDiagnostics } from '@/components/dev/developer-diagnostics';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
   SidebarTrigger, SidebarInset, SidebarFooter, SidebarMenu,
@@ -357,6 +358,7 @@ function DashboardContent() {
           <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto px-3 md:px-4 lg:px-6 pb-24 md:pb-8">
             {renderContent()}
           </main>
+          <DeveloperDiagnostics />
         </SidebarInset>
       </SidebarProvider>
     </AuthGuard>

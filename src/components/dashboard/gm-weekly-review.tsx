@@ -30,6 +30,7 @@ import { ActualSpendView } from './actual-spend-view';
 import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { calculateDealHealth } from '@/lib/deal-health';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 
 export interface CrmMetrics {
   eav: number;
@@ -87,6 +88,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const [opsReports, setOpsReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [hasCrmDataForWeek, setHasCrmDataForWeek] = useState(true);
   const [debugStats, setDebugStats] = useState({ activeUsersCount: 0, crmUsersMapSize: 0, bdmsCount: 0 });
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -264,9 +266,12 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           bdmsCount: bdms.length
         });
 
-        const weekDeals = (allPipelineReviews?.some(r => r.week === selectedWeek))
-          ? allPipelineReviews.filter(r => r.week === selectedWeek)
-          : (allPipelineReviews || []);
+        const crmRecordsForSelectedWeek = (allPipelineReviews || []).filter(r => r.week === selectedWeek);
+        const hasCrmData = crmRecordsForSelectedWeek.length > 0;
+        setHasCrmDataForWeek(hasCrmData);
+
+        // Only use deals for the selected week. If no deals were imported for this week, do NOT silently fall back to other weeks.
+        const weekDeals = crmRecordsForSelectedWeek;
         
         const reports = bdms.map(bdm => {
           const reportDocs: any[] = reportsSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
@@ -387,6 +392,40 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         setAllCallPlans(callPlansSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
         setAllWhitespacePlans(whitespaceSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
   }, [rawSnaps, users, selectedWeek, allPipelineReviews]);
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => ({
+    pageName: 'GM Command Hub (GM_REVIEW)',
+    reportedAt: new Date(),
+    collections: [
+      { name: 'users', count: users?.length, status: users ? 'ready' : 'loading', sampleNames: users?.slice(0, 3).map((u: any) => u.name) },
+      { name: 'pipelineReviews', count: allPipelineReviews?.length, status: 'ready', sampleNames: Array.from(new Set(allPipelineReviews?.slice(0, 4).map(r => r.userName || 'No Name'))) },
+      { name: 'weeklyReports', count: reportData?.length, status: rawSnaps?.reportsSnap ? 'ready' : 'loading' },
+      { name: 'weeklyCommitments', count: rawSnaps?.commitmentsSnap?.size, status: rawSnaps?.commitmentsSnap ? 'ready' : 'loading' },
+      { name: 'weeklyProgress', count: rawSnaps?.progressSnap?.size, status: rawSnaps?.progressSnap ? 'ready' : 'loading' },
+      { name: 'opsReports', count: opsReports?.length, status: 'ready' },
+      { name: 'factFindingDocs', count: allFactFindings?.length, status: 'ready' },
+      { name: 'callPlans', count: allCallPlans?.length, status: 'ready' },
+      { name: 'whitespacePlans', count: allWhitespacePlans?.length, status: 'ready' },
+    ],
+    customMetrics: {
+      'Selected Week': selectedWeek,
+      'CRM Data Imported for Week': hasCrmDataForWeek ? 'YES' : 'NO (Awaiting Sync)',
+      'Active Users in Registry': debugStats.activeUsersCount,
+      'Mapped BDMs': reportData?.length || 0,
+      'CRM Users Map Size': debugStats.crmUsersMapSize,
+      'Unique Weeks in Pipeline': Array.from(new Set(allPipelineReviews?.map(r => r.week))).slice(0, 5).join(', ')
+    },
+    issues: [
+      ...(fetchError ? [{ severity: 'error' as const, category: 'performance' as const, title: 'Query Execution Failure', detail: fetchError }] : []),
+      ...(!hasCrmDataForWeek ? [{
+        severity: 'warning' as const,
+        category: 'sync' as const,
+        title: 'No CRM Snapshot for Selected Week',
+        detail: `Selected week ${selectedWeek} has 0 records in pipelineReviews. Opportunities and signed paperwork are 0.`
+      }] : [])
+    ]
+  }), [users, allPipelineReviews, reportData, rawSnaps, opsReports, allFactFindings, allCallPlans, allWhitespacePlans, selectedWeek, debugStats, fetchError, hasCrmDataForWeek]);
 
   const saveGMFeedback = async (userId: string, feedback: string) => {
 
@@ -739,6 +778,27 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         </div>
       </header>
 
+      {!hasCrmDataForWeek && (
+        <div className="bg-amber-50 border border-amber-250 p-4 rounded-xl flex items-center justify-between text-amber-900 shadow-sm animate-in fade-in duration-300">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-100 rounded-lg text-amber-700">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-bold text-xs uppercase tracking-wide text-amber-950">
+                No CRM data imported for Week {selectedWeek.split('-')[1]}
+              </p>
+              <p className="text-[11px] text-amber-800/90 font-medium">
+                Pipeline opportunities, signed paperwork, and CRM calls reflect 0 for this week because no Salesforce CSV snapshot exists for {selectedWeek}.
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="bg-white border-amber-300 text-amber-800 text-[10px] font-black uppercase">
+            Awaiting CRM Sync
+          </Badge>
+        </div>
+      )}
+
       {showReviewArea && (
         <Card className="border-none shadow-md bg-white overflow-hidden p-6 animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-center justify-between mb-3">
@@ -829,34 +889,6 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Temporary Developer Diagnostics Node */}
-      <div className="bg-yellow-50 border border-yellow-250 p-4 rounded-xl text-[11px] font-sans text-yellow-900 space-y-2">
-        <p className="font-bold uppercase tracking-wider text-red-800">🔧 Developer Diagnostics Node (Temporary)</p>
-        {fetchError && (
-          <div className="bg-red-100 border border-red-200 text-red-800 p-3 rounded-lg font-black uppercase text-xs">
-            Query Execution Failure: {fetchError}
-          </div>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div><strong>Selected Week:</strong> {selectedWeek}</div>
-          <div><strong>Users in registry:</strong> {users?.length || 0}</div>
-          <div><strong>BDMs dynamically mapped:</strong> {reportData?.length || 0}</div>
-          <div><strong>All Pipeline Records:</strong> {allPipelineReviews?.length || 0}</div>
-          <div><strong>Active Users Count (Registry):</strong> {debugStats.activeUsersCount}</div>
-          <div><strong>CRM Users Map Size (Dynamic):</strong> {debugStats.crmUsersMapSize}</div>
-          <div><strong>Total BDMs list Count:</strong> {debugStats.bdmsCount}</div>
-        </div>
-        <p><strong>First 5 Owner Names in current week:</strong> {
-          Array.from(new Set(allPipelineReviews?.filter(r => r.week === selectedWeek).map(r => r.userName || 'No Name'))).slice(0, 5).join(', ') || 'None found for this week'
-        }</p>
-        <p><strong>First 5 Owner IDs in current week:</strong> {
-          Array.from(new Set(allPipelineReviews?.filter(r => r.week === selectedWeek).map(r => r.userId || 'No ID'))).slice(0, 5).join(', ') || 'None found for this week'
-        }</p>
-        <p><strong>Unique Weeks in Pipeline Reviews:</strong> {
-          Array.from(new Set(allPipelineReviews?.map(r => r.week))).sort().reverse().slice(0, 10).join(', ')
-        }</p>
       </div>
 
       {/* Team Activity Scorecard Table */}

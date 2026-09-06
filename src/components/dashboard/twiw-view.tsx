@@ -18,6 +18,7 @@ import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import { getCurrentWeek, getNextWeekKey, formatEAV, cn, normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
@@ -426,6 +427,33 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
        return monthStr === monthlySelectedMonth;
     });
   }, [allMonthlySubmissions, monthlySelectedMonth]);
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => ({
+    pageName: 'TWTW (The Week That Was)',
+    reportedAt: new Date(),
+    collections: [
+      { name: 'twiwSubmissions (week)', count: allSubmissions?.length, status: allSubmissions ? 'ready' : 'loading' },
+      { name: 'twiwSubmissions (month)', count: allMonthlySubmissions?.length, status: allMonthlySubmissions ? 'ready' : 'loading' },
+      { name: 'users', count: allUsers?.length, status: allUsers ? 'ready' : 'loading' }
+    ],
+    customMetrics: {
+      'Selected Week': selectedWeek,
+      'Active Tab': activeTab,
+      'Monthly Selected State': monthlySelectedState,
+      'Monthly Selected Month': monthlySelectedMonth,
+      'Registered User Mode': isRegisteredUser ? 'YES' : 'NO'
+    },
+    issues: [
+      ...((allSubmissions || []).filter(s => !(s.wins?.length || s.risks?.length || s.majorUpdates?.length)).map(s => ({
+        severity: 'warning' as const,
+        category: 'schema' as const,
+        title: 'Empty Submission Document',
+        detail: `Submission ${s.id} has no wins, risks, or updates recorded.`,
+        docIds: [s.id]
+      })))
+    ]
+  }), [allSubmissions, allMonthlySubmissions, allUsers, selectedWeek, activeTab, monthlySelectedState, monthlySelectedMonth, isRegisteredUser]);
 
   // Fetch BDM Profile (for displayName)
   const [bdmName, setBdmName] = useState(() => {

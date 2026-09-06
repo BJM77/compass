@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { openSalesforceCreateLead, openSalesforceSearch, deduplicateUsers } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,6 +88,57 @@ export function CanvassingHub() {
     return collection(db, 'users');
   }, [db, user?.email]);
   const { data: allUsers } = useCollection<any>(usersQuery);
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => {
+    const leadsWithNoCoords = (rawLeads || []).filter(l => !l.latitude || !l.longitude);
+    const leadsWithNoOwner = (rawLeads || []).filter(l => !l.userId);
+
+    const issues = [];
+    if (leadsWithNoCoords.length > 0) {
+      issues.push({
+        severity: 'warning' as const,
+        category: 'schema' as const,
+        title: 'Leads Missing GPS Coordinates',
+        detail: `${leadsWithNoCoords.length} leads have missing latitude/longitude coordinates and cannot appear on map.`,
+        count: leadsWithNoCoords.length,
+        docIds: leadsWithNoCoords.slice(0, 5).map(l => l.id || 'unknown')
+      });
+    }
+    if (leadsWithNoOwner.length > 0) {
+      issues.push({
+        severity: 'error' as const,
+        category: 'identity' as const,
+        title: 'Unassigned Leads (Missing Owner ID)',
+        detail: `${leadsWithNoOwner.length} leads are missing a valid userId assignment.`,
+        count: leadsWithNoOwner.length,
+        docIds: leadsWithNoOwner.slice(0, 5).map(l => l.id || 'unknown')
+      });
+    }
+
+    return {
+      pageName: 'Canvassing Hub (CANVASSING)',
+      reportedAt: new Date(),
+      collections: [
+        { 
+          name: 'canvass_leads', 
+          count: rawLeads?.length, 
+          status: isLoading ? 'loading' : (rawLeads ? 'ready' : 'empty'),
+          sampleNames: rawLeads?.slice(0, 4).map(l => l.companyName || 'Unnamed Lead')
+        },
+        { name: 'users', count: allUsers?.length, status: allUsers ? 'ready' : 'not-loaded' }
+      ],
+      customMetrics: {
+        'Active Tab': activeTab,
+        'Scope Filter': scopeFilter,
+        'Sync Filter': syncFilter,
+        'View Mode': viewMode,
+        'Synced with Salesforce': rawLeads?.filter(l => l.inSalesforce).length || 0,
+        'Pending/Draft Leads': rawLeads?.filter(l => !l.inSalesforce && !l.archived).length || 0
+      },
+      issues
+    };
+  }, [rawLeads, allUsers, isLoading, activeTab, scopeFilter, syncFilter, viewMode]);
 
   // Filter leads
   const filteredLeads = useMemo(() => {

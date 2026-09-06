@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { getCurrentWeek, normalizeBdmName, deduplicateUsers } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
+import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { PipelineReview, WeeklyProgress } from '@/types/crm';
@@ -50,6 +51,47 @@ export function DataExplorer() {
   const [selectedBu, setSelectedBu] = useState('all');
   const [creditHoldFilter, setCreditHoldFilter] = useState('all');
   const [valueRangeFilter, setValueRangeFilter] = useState('all');
+
+  // Report telemetry to Developer Diagnostics bus
+  useReportDiagnostic(() => {
+    const rawOppRecords = allPipelineReviews || [];
+    const oppsMissingStage = rawOppRecords.filter(r => !r.stage);
+    const oppsNegativeValue = rawOppRecords.filter(r => (Number(r.value) || 0) < 0);
+
+    return {
+      pageName: 'Data Explorer (DATA_EXPLORER)',
+      reportedAt: new Date(),
+      collections: [
+        { name: 'pipelineReviews', count: allPipelineReviews?.length, status: isLoading ? 'loading' : 'ready' },
+        { name: 'weeklyProgress', count: allWeeklyProgresses?.length, status: isLoading ? 'loading' : 'ready' },
+        { name: 'users', count: allUsers?.length, status: allUsers ? 'ready' : 'loading' }
+      ],
+      customMetrics: {
+        'Active Tab': activeTab,
+        'Selected Week Filter': selectedWeek,
+        'Selected User Filter': selectedUser,
+        'Selected BU Filter': selectedBu,
+        'Total Pipeline Records': rawOppRecords.length,
+        'Unique Users in Registry': allUsers?.length || 0
+      },
+      issues: [
+        ...(oppsMissingStage.length > 0 ? [{
+          severity: 'warning' as const,
+          category: 'schema' as const,
+          title: 'Deals Without Stage Assigned',
+          detail: `${oppsMissingStage.length} records in pipelineReviews have no stage set.`,
+          docIds: oppsMissingStage.slice(0, 5).map(r => r.id || '')
+        }] : []),
+        ...(oppsNegativeValue.length > 0 ? [{
+          severity: 'error' as const,
+          category: 'schema' as const,
+          title: 'Negative Deal Value Detected',
+          detail: `${oppsNegativeValue.length} opportunities have a negative dollar value.`,
+          docIds: oppsNegativeValue.slice(0, 5).map(r => r.id || '')
+        }] : [])
+      ]
+    };
+  }, [allPipelineReviews, allWeeklyProgresses, allUsers, isLoading, activeTab, selectedWeek, selectedUser, selectedBu]);
 
   // Sort states for each tab
   const [customerSortField, setCustomerSortField] = useState<'currentRevenue' | 'closedWonValue' | 'pipeline' | 'accountMasterCode'>('currentRevenue');
