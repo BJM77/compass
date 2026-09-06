@@ -176,15 +176,19 @@ function parseAustralianDate(dateStr: string): Date | null {
 
 function classifyActivity(row: any): 'CALL' | 'APP' {
   const activityType = getField(row, 'Activity Type', 'activity type').trim().toLowerCase();
-  const subject = getField(row, 'Subject', 'subject').trim().toLowerCase();
 
-  // 1. Explicit phone call or email checks
-  if (activityType === 'call' || activityType === 'email') return 'CALL';
-  if (subject.includes('cold call') || subject.includes('phone call') || subject.includes('introductory call')) return 'CALL';
+  // "Video / Conference Call" or "Face to face visit" are Meetings (APP)
+  if (
+    activityType.includes('video') || 
+    activityType.includes('conference') || 
+    activityType.includes('face to face') || 
+    activityType.includes('visit')
+  ) {
+    return 'APP';
+  }
 
-  // 2. User uploads curated meetings report in the Activity CSV:
-  // All rows in this report represent completed client meetings/appointments
-  return 'APP';
+  // All other activity types (Call, Email, etc.) are counted as Calls
+  return 'CALL';
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -1240,7 +1244,7 @@ export function CRMImporter() {
             />
             <FileZone
               label="Activity Export"
-              hint="Created By · Date · Subject · Completed?"
+              hint="Created By · Activity Type · Date · Completed?"
               file={activityFile}
               onFile={f => handleFileChange(f, 'activity')}
             />
