@@ -922,6 +922,7 @@ export function CRMImporter() {
             const progressRef = doc(db, 'weeklyProgress', docId);
             batch.set(progressRef, {
               userId: record.userId,
+              userName: record.userName || 'Unknown',
               week: record.week,
               crmCalls: record.calls,
               crmApps: record.apps,
