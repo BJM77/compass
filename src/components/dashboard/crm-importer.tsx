@@ -247,7 +247,7 @@ interface ImportStats {
   totalRows: number;
   activeOpportunities: number;
   bareAccounts: number;
-  closedWonHidden: number;
+  closedWonCount: number;
   closedLostIgnored: number;
   unmatchedOwners: string[];
   matchedBDMs: string[];
@@ -279,11 +279,12 @@ interface ProcessedActualSpendRecord {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  'Develop':       'bg-blue-100 text-blue-800',
-  'Propose':       'bg-indigo-100 text-indigo-800',
-  'Negotiating':   'bg-purple-100 text-purple-800',
-  'Finalise':      'bg-orange-100 text-orange-800',
-  'Pending Trade': 'bg-amber-100 text-amber-800',
+  'Develop':           'bg-blue-100 text-blue-800',
+  'Propose':           'bg-indigo-100 text-indigo-800',
+  'Negotiating':       'bg-purple-100 text-purple-800',
+  'Finalise':          'bg-orange-100 text-orange-800',
+  'Pending Trade':     'bg-amber-100 text-amber-800',
+  'Closed Won':        'bg-emerald-100 text-emerald-800',
   'Existing Customer': 'bg-slate-100 text-slate-600',
 };
 
@@ -586,7 +587,7 @@ export function CRMImporter() {
 
       // Pre-calculate closed-won totals per customer
       const closedWonMap = new Map<string, number>();
-      let closedWonHidden = 0;
+      let closedWonCount = 0;
       let closedLostIgnored = 0;
       const unmatchedOwners = new Set<string>();
       const matchedBDMSet = new Set<string>();
@@ -597,7 +598,7 @@ export function CRMImporter() {
         const cls = classifyStage(stage);
         if (cls === 'CLOSED_WON') {
           closedWonMap.set(cid, (closedWonMap.get(cid) || 0) + parseMoney(getField(row, 'Amount', 'amount')));
-          closedWonHidden++;
+          closedWonCount++;
         }
         if (cls === 'IGNORE') closedLostIgnored++;
       });
@@ -605,10 +606,11 @@ export function CRMImporter() {
       const records: ProcessedRecord[] = [];
       const processedOpportunityCustomers = new Set<string>(); // track which customers got opp rows
 
-      // PASS 1: Active opportunity rows
+      // PASS 1: Active and Closed Won opportunity rows
       opportunityRows.forEach(row => {
         const stage = getField(row, 'Sales Stage', 'sales stage');
-        if (classifyStage(stage) !== 'ACTIVE') return;
+        const stageClass = classifyStage(stage);
+        if (stageClass !== 'ACTIVE' && stageClass !== 'CLOSED_WON') return;
 
         const customerId   = getField(row, 'Customer ID', 'customer id');
         const opportunityId = getField(row, 'Opportunity ID', 'opportunity id');
@@ -784,9 +786,9 @@ export function CRMImporter() {
       setPreviewActualSpendRecords(actSpendRecords);
       setStats({
         totalRows:           customerRows.length + opportunityRows.length + activityRows.length,
-        activeOpportunities: records.filter(r => !r.isBareAccount).length,
+        activeOpportunities: records.filter(r => !r.isBareAccount && r.stage !== 'Closed Won').length,
         bareAccounts:        records.filter(r => r.isBareAccount).length,
-        closedWonHidden,
+        closedWonCount,
         closedLostIgnored,
         unmatchedOwners:     Array.from(unmatchedOwners),
         matchedBDMs:         Array.from(matchedBDMSet),
@@ -1245,8 +1247,8 @@ export function CRMImporter() {
                   ✓ {s}
                 </Badge>
               ))}
-              <Badge className="bg-amber-100 text-amber-800 font-bold text-[9px] border-none">
-                $ Closed Won (value summed, row hidden)
+              <Badge className="bg-emerald-100 text-emerald-800 font-bold text-[9px] border-none">
+                ✓ Closed Won (New Biz Started)
               </Badge>
               <Badge className="bg-red-100 text-red-800 font-bold text-[9px] border-none">
                 ✕ Closed Lost (ignored)
@@ -1322,7 +1324,7 @@ export function CRMImporter() {
           {[
             { label: 'Active Opps', value: stats.activeOpportunities, color: 'text-green-700 bg-green-50 border-green-100' },
             { label: 'Bare Accounts', value: stats.bareAccounts, color: 'text-blue-700 bg-blue-50 border-blue-100' },
-            { label: 'Closed Won (hidden)', value: stats.closedWonHidden, color: 'text-amber-700 bg-amber-50 border-amber-100' },
+            { label: 'Closed Won (New Biz)', value: stats.closedWonCount, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
             { label: 'Closed Lost (ignored)', value: stats.closedLostIgnored, color: 'text-red-700 bg-red-50 border-red-100' },
             { label: 'Total Pipeline Rows', value: previewRecords.length, color: 'text-primary bg-slate-50 border-slate-200' },
           ].map(s => (
