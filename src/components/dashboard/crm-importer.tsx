@@ -176,31 +176,15 @@ function parseAustralianDate(dateStr: string): Date | null {
 
 function classifyActivity(row: any): 'CALL' | 'APP' {
   const activityType = getField(row, 'Activity Type', 'activity type').trim().toLowerCase();
-  const subject = getField(row, 'Subject', 'subject').toLowerCase();
+  const subject = getField(row, 'Subject', 'subject').trim().toLowerCase();
 
-  // 1. Explicit Activity Type Checks (User's Exact Mapping):
-  if (activityType === 'call') return 'CALL';
-  if (activityType === 'email') return 'CALL';
-  if (activityType === 'face to face visit' || activityType.includes('face to face') || activityType.includes('visit')) return 'APP';
-  if (activityType === 'video / conference call' || activityType.includes('video') || activityType.includes('conference')) return 'APP';
+  // 1. Explicit phone call or email checks
+  if (activityType === 'call' || activityType === 'email') return 'CALL';
+  if (subject.includes('cold call') || subject.includes('phone call') || subject.includes('introductory call')) return 'CALL';
 
-  // Specific mappings requested by user
-  if (activityType.includes('monthly fuel update') || subject.includes('monthly fuel update')) return 'APP';
-  if (activityType.includes('fuel levy update') || subject.includes('fuel levy update')) return 'APP';
-  if (activityType.includes('contract review') || subject.includes('contract review')) return 'APP';
-  if (activityType.includes('customer issue') || subject.includes('customer issue')) return 'CALL';
-  if (activityType.includes('client meeting') || subject.includes('client meeting')) return 'APP';
-  if (activityType.includes('cold call') || subject.includes('cold call')) return 'CALL';
-  if (activityType.includes('proposal 1') || subject.includes('proposal 1')) return 'APP';
-  if (activityType.includes('1st pick up review') || subject.includes('1st pick up review')) return 'APP';
-
-  // 2. Generic/Fallback Checks on Activity Type and Subject:
-  const isMeeting = 
-    activityType.includes('meeting') || activityType.includes('appointment') || activityType.includes('app') || activityType.includes('f2f') ||
-    subject.includes('meeting') || subject.includes('appointment') || subject.includes('app') || subject.includes('visit') || subject.includes('f2f') || subject.includes('? m');
-
-  if (isMeeting) return 'APP';
-  return 'CALL';
+  // 2. User uploads curated meetings report in the Activity CSV:
+  // All rows in this report represent completed client meetings/appointments
+  return 'APP';
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -1256,7 +1240,7 @@ export function CRMImporter() {
             />
             <FileZone
               label="Activity Export"
-              hint="Assigned · Completed Date · Subject · Status"
+              hint="Created By · Date · Subject · Completed?"
               file={activityFile}
               onFile={f => handleFileChange(f, 'activity')}
             />
