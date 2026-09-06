@@ -682,17 +682,20 @@ export function CRMImporter() {
         }
         processedActivityKeys.add(dedupKey);
 
-        const completedFlag = getField(row, 'Completed?', 'completed', 'Status');
+        const completedFlag = getField(row, 'Completed?', 'completed', 'Status').trim().toLowerCase();
+        
+        // In the new CSV export, Meetings and Calls often have an empty Status.
+        // We will count everything EXCEPT explicitly uncompleted items.
+        const isNotCompleted = completedFlag === '0' || 
+                               completedFlag === 'false' || 
+                               completedFlag === 'no' || 
+                               completedFlag === 'not started';
+        
+        if (isNotCompleted) return;
+
         const completedDateStr = getField(row, 'Date', 'date', 'Created Date');
         const assignedName = getField(row, 'Assigned', 'assigned', 'Created By: Full Name', 'Created By', 'Owner');
-
-        // Check if completed: completed flag is '1' or 'true' or 'yes', or if Status is 'Completed'
-        const isCompleted = completedFlag === '1' || 
-                            completedFlag.toLowerCase() === 'true' || 
-                            completedFlag.toLowerCase() === 'yes' || 
-                            completedFlag.toLowerCase() === 'completed';
-        
-        if (!isCompleted || !assignedName || !completedDateStr) return;
+        if (!assignedName || !completedDateStr) return;
 
         const matchedUser = matchUser(users, assignedName);
         if (!matchedUser) {
