@@ -708,7 +708,7 @@ export function CRMImporter() {
         if (!date) return;
 
         const week = getWeekForDate(date);
-        const key = `${matchedUser.id}_${week}`;
+        const key = `${matchedUser.id}###${week}`;
 
         const type = classifyActivity(row);
         if (!activityMap.has(key)) {
@@ -727,7 +727,7 @@ export function CRMImporter() {
       let completedCalls = 0;
       let completedApps = 0;
       activityMap.forEach((counts, key) => {
-        const [uid, w] = key.split('_');
+        const [uid, w] = key.split('###');
         const u = users.find(x => x.id === uid);
         actRecords.push({
           userId: uid,
