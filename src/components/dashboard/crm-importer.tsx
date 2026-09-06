@@ -666,8 +666,22 @@ export function CRMImporter() {
       const activityMap = new Map<string, { calls: number; apps: number }>();
       const unmatchedActivityOwners = new Set<string>();
       const matchedActivityBDMSet = new Set<string>();
+      const processedActivityKeys = new Set<string>();
 
       activityRows.forEach(row => {
+        // Deduplication check: ignore rows that share the same Company / Customer, Created By, Activity Type, Created Date, and Date
+        const company = getField(row, 'Company / Customer', 'company / customer');
+        const creator = getField(row, 'Created By', 'created by', 'Assigned', 'assigned', 'Created By: Full Name', 'Owner');
+        const activityTypeStr = getField(row, 'Activity Type', 'activity type');
+        const createdDateStr = getField(row, 'Created Date', 'created date');
+        const dateStr = getField(row, 'Date', 'date');
+        
+        const dedupKey = `${company}|${creator}|${activityTypeStr}|${createdDateStr}|${dateStr}`;
+        if (processedActivityKeys.has(dedupKey)) {
+          return;
+        }
+        processedActivityKeys.add(dedupKey);
+
         const completedFlag = getField(row, 'Completed?', 'completed', 'Status');
         const completedDateStr = getField(row, 'Date', 'date', 'Created Date');
         const assignedName = getField(row, 'Assigned', 'assigned', 'Created By: Full Name', 'Created By', 'Owner');
