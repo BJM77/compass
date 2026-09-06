@@ -12,8 +12,8 @@ const USER_ID_MIGRATION_MAP: Record<string, string> = {
   // BDM & Account Manager legacy string IDs to Auth UIDs mapping
   'namra_khan': 'waHEXgLsIhVQTIvju6xiIef2gZg1',
   'namra': 'waHEXgLsIhVQTIvju6xiIef2gZg1',
-  'jacqui_tibos': 'jacqui_tibos_uid_here',
-  'jacqui': 'jacqui_tibos_uid_here',
+  // Jacqui Tibos: Intentionally omitted until authoritative Auth UID is confirmed.
+  // Add via customMappings or update this map once real UID is retrieved from users collection.
   'joanne_ballantyne': 'Yk45HRB1jgUEMNt8KA9d0A2J4Ec2',
   'joanne': 'Yk45HRB1jgUEMNt8KA9d0A2J4Ec2',
   'joshua_mostratos': 'RkDxqotbg4a9KnQSJmFUpF2w5952',
@@ -45,19 +45,30 @@ function getAdminDb() {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { secret, customMappings } = body;
-    const migrationSecret = process.env.MIGRATION_SECRET || 'compass-migration-secret';
+    const { secret, customMappings, dryRun = false } = body;
+    const migrationSecret = process.env.MIGRATION_SECRET;
 
-    if (secret !== migrationSecret) {
-      return NextResponse.json({ error: 'Unauthorized. Invalid secret.' }, { status: 401 });
+    if (!migrationSecret || secret !== migrationSecret) {
+      return NextResponse.json({ error: 'Unauthorized. Invalid or missing secret.' }, { status: 401 });
     }
+
+    const db = getAdminDb();
 
     const migrationMap = {
       ...USER_ID_MIGRATION_MAP,
       ...(customMappings || {}),
     };
 
-    const db = getAdminDb();
+    // Structural validation: verify every target UID exists in the `users` collection
+    for (const [legacyId, targetUid] of Object.entries(migrationMap)) {
+      if (!targetUid || typeof targetUid !== 'string' || targetUid.includes('_here')) {
+        throw new Error(`Migration aborted: target UID "${targetUid}" for legacy ID "${legacyId}" is invalid/placeholder.`);
+      }
+      const userSnap = await db.collection('users').doc(targetUid).get();
+      if (!userSnap.exists) {
+        throw new Error(`Migration aborted: target UID "${targetUid}" for "${legacyId}" not found in users collection.`);
+      }
+    }
 
     // Define all collections that contain a `userId` or user key field
     const collectionsToMigrate = [

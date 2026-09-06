@@ -104,11 +104,6 @@ export function isUserSubmissionMatch(
     return true;
   }
 
-  // 6. Namra specific identity matching safety net
-  const isNamraUser = userNorm.includes('namra') || userUid.toLowerCase().includes('namra');
-  const isNamraSub = subNorm.includes('namra') || subUid.toLowerCase().includes('namra') || subDocId.toLowerCase().includes('namra');
-  if (isNamraUser && isNamraSub) return true;
-
   return false;
 }
 

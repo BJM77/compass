@@ -162,22 +162,34 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
     const records = Array.from(latestMap.values());
 
     // Group records by Normalized User Name to prevent duplicate users
-    const byUserName = new Map<string, { id: string, name: string; rows: any[] }>();
+    const byUserName = new Map<string, { id: string, name: string; rows: any[], allIds: Set<string> }>();
     records.forEach(r => {
-      if (!r.userId) return;
+      if (!r.userId && !r.userName) return;
       const normName = normalizeBdmName(r.userName, r.userId);
       if (normName === 'Unassigned') return;
       
       if (!byUserName.has(normName)) {
         // Keep the original userId for reference but group by normalized name
-        byUserName.set(normName, { id: r.userId, name: normName, rows: [] });
+        byUserName.set(normName, { id: r.userId || 'unknown', name: normName, rows: [], allIds: new Set<string>() });
       }
-      byUserName.get(normName)!.rows.push(r);
+      const group = byUserName.get(normName)!;
+      if (r.userId) group.allIds.add(r.userId);
+      group.rows.push(r);
+    });
+
+    // Duplicate-name warning: specify where and how
+    byUserName.forEach((group, normName) => {
+      if (group.allIds.size > 1) {
+        console.warn(`[identity-fragmentation] "${normName}" has ${group.allIds.size} distinct userIds:`, Array.from(group.allIds));
+      }
     });
 
     // Build per-user summaries sorted by name
-    const byUser = Array.from(byUserName.entries())
-      .map(([name, { id, rows }]) => aggregateRecords(rows, id, name))
+    const byUser = Array.from(byUserName.values())
+      .map(({ id, name, rows, allIds }) => ({
+        ...aggregateRecords(rows, id, name),
+        allIds: Array.from(allIds) // Attach all known IDs to the summary for robust matching
+      }))
       .sort((a, b) => a.userName.localeCompare(b.userName));
 
     // Team total = aggregate across all unique records globally to prevent double-counting shared accounts
@@ -186,10 +198,12 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
     // Caller's own row
     let myStats = null;
     if (myUserId) {
-      // Find using flexible match to support aliases
-      const matchedUser = byUser.find(u => 
-        isUserSubmissionMatch({ id: myUserId }, { userId: u.userId, userName: u.userName })
-      );
+      // Find using flexible match to support aliases and legacy IDs
+      // byUser now has allIds attached from the aggregation step
+      const matchedUser = byUser.find(u => {
+        // Create a dummy user object with the target myUserId to check if it's in the summary's allIds
+        return u.allIds.includes(myUserId) || normalizeBdmName(u.userName) === normalizeBdmName('', myUserId);
+      });
       myStats = matchedUser ?? { ...EMPTY_SUMMARY, userId: myUserId, userName: '' };
     }
 

@@ -188,6 +188,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           const existingUser = userMap.get(normalizedName);
 
           if (existingUser) {
+            // Collect all possible identifiers for this person
             if (!existingUser.legacyIds.includes(r.userId)) {
               existingUser.legacyIds.push(r.userId);
             }
@@ -195,30 +196,33 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
               existingUser.crmIds.push(r.userId);
             }
           } else {
+            // This user might not exist in the 'users' collection yet.
             const role = (normalizedName.toLowerCase().includes('rienzie') || normalizedName.toLowerCase().includes('ballantyne') || normalizedName.toLowerCase().includes('am')) ? 'ACCOUNT_MANAGER' : 'BDM';
             userMap.set(normalizedName, {
-              id: r.userId,
+              id: r.userId, // Use the CRM ID as the primary for now
               name: r.userName,
               role,
               state: r.state || 'WA',
-              authUid: null,
+              authUid: null, // No Auth UID yet
               legacyIds: [r.userId],
               crmIds: [r.userId]
             });
           }
         });
 
-        // Step 3: Convert the map to an array where each real person appears exactly once
+        // Step 3: Convert the map to an array of "persons" with all their aliases.
         const bdms = Array.from(userMap.values()).map(user => {
+          // Prefer Auth UID as the primary ID
           const primaryId = user.authUid || user.legacyIds[0] || user.id;
+          // Combine all known IDs for this person
           const allIds = [primaryId, ...user.legacyIds, ...user.crmIds].filter((v, i, a) => a.indexOf(v) === i);
           return {
             id: primaryId,
             name: user.name,
             role: user.role,
             state: user.state,
-            allIds,
-            aliasIds: allIds,
+            allIds, // Crucial field for the isUserSubmissionMatch function
+            aliasIds: allIds, // keep for backward compatibility
             authUid: user.authUid,
             legacyIds: user.legacyIds,
             crmIds: user.crmIds
