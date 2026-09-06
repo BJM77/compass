@@ -26,7 +26,7 @@ export function KPICard({ title, value, subtitle, status, icon, info, className,
     <Card 
       className={cn(
         "overflow-hidden border-none shadow-md transition-all h-full flex flex-col", 
-        onClick && "cursor-pointer hover:shadow-xl hover:scale-[1.02] active:scale-95 group",
+        onClick && "cursor-pointer hover:shadow-xl active:scale-[0.98] group",
         className
       )}
       onClick={onClick}
@@ -52,7 +52,7 @@ export function KPICard({ title, value, subtitle, status, icon, info, className,
         </div>
       </CardHeader>
       <CardContent className="p-3 md:p-4 pt-0 md:pt-0 flex-1 flex flex-col justify-end">
-        <div className="text-lg md:text-2xl font-black font-headline tracking-tighter text-primary truncate">{value}</div>
+        <div className="text-base md:text-2xl font-black font-headline tracking-tighter text-primary truncate">{value}</div>
         {subtitle && (
           <div className="text-[8px] md:text-[10px] text-muted-foreground mt-0.5 font-bold uppercase tracking-tight truncate">
             {subtitle}

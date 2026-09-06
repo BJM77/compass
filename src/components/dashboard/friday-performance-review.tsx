@@ -2086,9 +2086,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">Active Opportunities Count</span>
                   <Badge className="bg-purple-600 text-white font-black text-sm px-3 py-1">{currentWeekData.opportunities.length}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden">
+                <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekData.opportunities.length > 0 ? (
-                    <Table>
+                    <Table className="min-w-[600px]">
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Opportunity / Pipeline</TableHead>
@@ -2131,9 +2131,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Total Pipeline Value</span>
                   <Badge className="bg-amber-600 text-white font-black text-base px-4 py-1">{formatEAV(currentWeekData.revenue.pipeline)}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden">
+                <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekData.opportunities.length > 0 ? (
-                    <Table>
+                    <Table className="min-w-[600px]">
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Deal / Account</TableHead>
@@ -2167,9 +2167,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">Canvassed Field Leads</span>
                   <Badge className="bg-indigo-600 text-white font-black text-sm px-3 py-1">{currentWeekCanvassLeadsCount}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden">
+                <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekCanvassLeads.length > 0 ? (
-                    <Table>
+                    <Table className="min-w-[600px]">
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Company Name</TableHead>
@@ -2211,9 +2211,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-teal-900 uppercase tracking-wide">Leads Submitted to Salesforce</span>
                   <Badge className="bg-teal-600 text-white font-black text-sm px-3 py-1">{currentWeekSalesforceLeadsCount}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden">
+                <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekSalesforceLeads.length > 0 ? (
-                    <Table>
+                    <Table className="min-w-[600px]">
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Company Name</TableHead>

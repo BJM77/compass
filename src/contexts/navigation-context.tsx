@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, Suspense } from 'react';
+import React, { createContext, useContext, useState, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useResponsive } from '@/hooks/use-responsive';
 
 export type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
@@ -20,6 +21,7 @@ function NavigationContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { isMobile } = useResponsive();
   const [currentView, setCurrentView] = useState<DashboardView>('DASHBOARD');
   const [viewParams, setViewParams] = useState<any>(null);
 
@@ -33,23 +35,26 @@ function NavigationContent({ children }: { children: React.ReactNode }) {
     }
   }, [searchParams]);
 
-  const navigateTo = (view: DashboardView, params?: any) => {
+  const navigateTo = useCallback((view: DashboardView, params?: any) => {
     setCurrentView(view);
     setViewParams(params || null);
     
-    // Do not alter the URL if we are actively in the mobile view route.
-    // The mobile dashboard manages its own views internally via the switch-view event
-    if (pathname === '/dashboard/mobile') {
+    // If on mobile, use the mobile navigation
+    if (isMobile || pathname === '/dashboard/mobile') {
+      // Dispatch mobile navigation event
+      window.dispatchEvent(new CustomEvent('switch-view', {
+        detail: { view, params }
+      }));
       return;
     }
     
-    // Sync to URL query param
+    // Desktop navigation via URL
     if (view === 'DASHBOARD') {
       router.push('/dashboard');
     } else {
       router.push(`/dashboard?view=${view}`);
     }
-  };
+  }, [isMobile, pathname, router]);
 
   // Intercept legacy switch-view custom events to ensure backward compatibility
   useEffect(() => {

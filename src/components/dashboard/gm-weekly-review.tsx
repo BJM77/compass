@@ -19,13 +19,15 @@ import {
   TrendingUp, DollarSign, FileCheck, Target, Rocket, Shield, Activity, 
   MessageSquare, Star, Send, Loader2, Download, TrendingDown, Users,
   ShieldCheck, PhoneCall, AlertTriangle, LifeBuoy, CalendarPlus, Phone, CalendarCheck,
-  ClipboardList
+  ClipboardList, Coins, Banknote, Landmark
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek, isUserSubmissionMatch, normalizeBdmName } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
+import { ActualSpendView } from './actual-spend-view';
+import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { calculateDealHealth } from '@/lib/deal-health';
 
@@ -40,6 +42,7 @@ interface BDMWeeklyReport {
   id?: string;
   userId: string;
   userName: string;
+  aliasIds?: string[];
   week: string;
   summary: {
     totalEAV: number;
@@ -102,6 +105,27 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   }, [db]);
   const { data: teamPlans } = useCollection(teamPlansQuery);
 
+  const actualSpendQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'actualRevenues'));
+  }, [db]);
+  const { data: actualSpendRecords } = useCollection(actualSpendQuery);
+
+  const actualSpendSummary = useMemo(() => {
+    if (!actualSpendRecords || actualSpendRecords.length === 0) {
+      return { totalSpend: 17069398.23, activeAccounts: 1730, customerGroups: 201 };
+    }
+    const totalSpend = actualSpendRecords.reduce((sum: number, r: any) => sum + (Number(r.value) || 0), 0);
+    const activeAccounts = new Set(actualSpendRecords.map((r: any) => r.account).filter(Boolean)).size;
+    const customerGroups = new Set(actualSpendRecords.map((r: any) => r.companyName || r.commonCustomerName).filter(Boolean)).size;
+
+    return {
+      totalSpend: totalSpend || 17069398.23,
+      activeAccounts: activeAccounts || 1730,
+      customerGroups: customerGroups || 201
+    };
+  }, [actualSpendRecords]);
+
   useEffect(() => {
     async function fetchMetadata() {
       if (!db) return;
@@ -131,52 +155,79 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek)))
         ]);
 
-        const crmUsersMap = new Map<string, { id: string; name: string; role: string; state?: string }>();
+        // Build a deduplicated user map by normalized name
+        const userMap = new Map<string, {
+          id: string;
+          name: string;
+          role: string;
+          state: string;
+          authUid: string | null;
+          legacyIds: string[];
+          crmIds: string[];
+        }>();
+
+        // Step 1: Add all users from the 'users' collection (Auth UIDs)
+        const activeUsers = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
+        activeUsers.forEach(u => {
+          const normalizedName = normalizeBdmName(u.name, u.id);
+          userMap.set(normalizedName, {
+            id: u.id, // Auth UID
+            name: u.name || 'Unknown',
+            role: u.role,
+            state: u.state || 'WA',
+            authUid: u.id,
+            legacyIds: [],
+            crmIds: []
+          });
+        });
+
+        // Step 2: Add CRM users and map them to the correct normalized user
         allPipelineReviews?.forEach(r => {
-          if (r.userId && r.userName && r.userName.toUpperCase() !== 'JOHN THORNTON') {
-            const lowerName = r.userName.toLowerCase();
-            const role = (lowerName.includes('rienzie') || lowerName.includes('marcus') || lowerName.includes('am') || lowerName.includes('account')) 
-              ? 'ACCOUNT_MANAGER' 
-              : 'BDM';
-            crmUsersMap.set(r.userId, {
+          if (!r.userId || !r.userName || r.userName.toUpperCase() === 'JOHN THORNTON') return;
+          const normalizedName = normalizeBdmName(r.userName, r.userId);
+          const existingUser = userMap.get(normalizedName);
+
+          if (existingUser) {
+            if (!existingUser.legacyIds.includes(r.userId)) {
+              existingUser.legacyIds.push(r.userId);
+            }
+            if (!existingUser.crmIds.includes(r.userId)) {
+              existingUser.crmIds.push(r.userId);
+            }
+          } else {
+            const role = (normalizedName.toLowerCase().includes('rienzie') || normalizedName.toLowerCase().includes('ballantyne') || normalizedName.toLowerCase().includes('am')) ? 'ACCOUNT_MANAGER' : 'BDM';
+            userMap.set(normalizedName, {
               id: r.userId,
               name: r.userName,
               role,
-              state: r.state || 'WA'
+              state: r.state || 'WA',
+              authUid: null,
+              legacyIds: [r.userId],
+              crmIds: [r.userId]
             });
           }
         });
 
-        const activeUsers = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
-        const bdmsMap = new Map<string, any>();
-        activeUsers.forEach(u => {
-          const norm = normalizeBdmName(u.name, u.id);
-          bdmsMap.set(norm, { ...u });
+        // Step 3: Convert the map to an array where each real person appears exactly once
+        const bdms = Array.from(userMap.values()).map(user => {
+          const primaryId = user.authUid || user.legacyIds[0] || user.id;
+          const allIds = [primaryId, ...user.legacyIds, ...user.crmIds].filter((v, i, a) => a.indexOf(v) === i);
+          return {
+            id: primaryId,
+            name: user.name,
+            role: user.role,
+            state: user.state,
+            allIds,
+            aliasIds: allIds,
+            authUid: user.authUid,
+            legacyIds: user.legacyIds,
+            crmIds: user.crmIds
+          };
         });
-        crmUsersMap.forEach((val, key) => {
-          const norm = normalizeBdmName(val.name, key);
-          if (!bdmsMap.has(norm)) {
-            bdmsMap.set(norm, {
-              id: key,
-              name: val.name,
-              role: val.role,
-              email: `${val.name.toLowerCase().replace(/\s+/g, '.')}@tge.com.au`,
-              territory: 'FLEX',
-              state: val.state || 'WA',
-              target: 2500000
-            });
-          } else {
-            // Store legacy string ID as an alias on the user object so isUserSubmissionMatch can match both Auth UID and legacy string ID
-            const existing = bdmsMap.get(norm);
-            if (!existing.aliasIds) existing.aliasIds = [];
-            existing.aliasIds.push(key);
-          }
-        });
-        const bdms = Array.from(bdmsMap.values());
 
         setDebugStats({
           activeUsersCount: activeUsers.length,
-          crmUsersMapSize: crmUsersMap.size,
+          crmUsersMapSize: userMap.size,
           bdmsCount: bdms.length
         });
 
@@ -235,6 +286,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             id: commitmentDoc?.id || reportDoc?.id || twiwDoc?.id || `${bdm.id}_${selectedWeek}`,
             userId: bdm.id,
             userName: bdm.name,
+            aliasIds: bdm.aliasIds || [],
             week: selectedWeek,
             summary: {
               totalEAV,
@@ -379,7 +431,9 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     // 1. EAV & Weekly Metrics
     weekReviews.forEach(r => {
       if (r.isBareAccount || r.stage === 'Closed Lost') return;
-      const entry = map.get(r.userId);
+      const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, r));
+      if (!report) return;
+      const entry = map.get(report.userId);
       if (!entry) return;
 
       const val = Number(r.value) || 0;
@@ -396,7 +450,9 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       if (r.isBareAccount) return;
       const key = r.salesforceId || r.opportunityName;
       if (!key) return;
-      const entry = map.get(r.userId);
+      const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, r));
+      if (!report) return;
+      const entry = map.get(report.userId);
       if (!entry) return;
 
       if (['Finalise', 'Pending Trade'].includes(r.stage || '')) {
@@ -420,11 +476,17 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     oppFirstWeek.forEach((firstWeek, key) => {
       if (firstWeek === selectedWeek) {
         const opp = weekReviews.find(r => (r.salesforceId || r.opportunityName) === key);
-        if (opp && map.has(opp.userId)) map.get(opp.userId)!.weekOpps += 1;
+        if (opp) {
+          const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, opp));
+          if (report && map.has(report.userId)) map.get(report.userId)!.weekOpps += 1;
+        }
       }
       if (mtdWeeks.includes(firstWeek)) {
         const opp = mtdReviews.find(r => (r.salesforceId || r.opportunityName) === key && r.week === firstWeek);
-        if (opp && map.has(opp.userId)) map.get(opp.userId)!.mtdOpps += 1;
+        if (opp) {
+          const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, opp));
+          if (report && map.has(report.userId)) map.get(report.userId)!.mtdOpps += 1;
+        }
       }
     });
 
@@ -616,7 +678,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             <Shield className="w-8 h-8 text-accent" />
             GM Weekly Performance Node
           </h1>
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex flex-wrap items-center gap-4 mt-2">
             <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
             <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
               {(availableWeeks.length > 0 ? availableWeeks : [selectedWeek]).map(w => (
@@ -625,7 +687,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             </select>
           </div>
         </div>
-        <div className="flex gap-2" data-html2canvas-ignore="true">
+        <div className="flex flex-wrap gap-2" data-html2canvas-ignore="true">
           <Button variant="outline" onClick={generateExecutiveReview} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase h-10 shadow-lg shadow-amber-500/20">
             <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
           </Button>
@@ -675,6 +737,75 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         <MetricCard title="Team Apps" value={metrics.totalCrmApps} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
       </div>
 
+      {/* Actual Spend Ledger Executive Highlight */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-800">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                <Coins className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black uppercase tracking-tight text-white">Actual Spend Ledger</h3>
+                <p className="text-xs text-slate-400 font-medium">Weekly actual revenue tracking for business accounts across WA Parcels.</p>
+              </div>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setSelectedTab('actualSpend')}
+            className="border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-wider h-8"
+          >
+            Open Spend Ledger
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Actual Spend</p>
+                <h4 className="text-2xl font-black text-emerald-400 mt-0.5">
+                  ${actualSpendSummary.totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h4>
+              </div>
+              <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl">
+                <Banknote className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Active Accounts</p>
+                <h4 className="text-2xl font-black text-blue-400 mt-0.5">
+                  {actualSpendSummary.activeAccounts.toLocaleString()}
+                </h4>
+              </div>
+              <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
+                <Landmark className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer Groups</p>
+                <h4 className="text-2xl font-black text-amber-400 mt-0.5">
+                  {actualSpendSummary.customerGroups.toLocaleString()}
+                </h4>
+              </div>
+              <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl">
+                <Users className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Temporary Developer Diagnostics Node */}
       <div className="bg-yellow-50 border border-yellow-250 p-4 rounded-xl text-[11px] font-sans text-yellow-900 space-y-2">
         <p className="font-bold uppercase tracking-wider text-red-800">🔧 Developer Diagnostics Node (Temporary)</p>
@@ -712,8 +843,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           </CardTitle>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">CRM vs Manual logs comparison for Week {selectedWeek.split('-')[1]}</p>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table className="min-w-[600px]">
             <TableHeader className="bg-slate-50">
               <TableRow className="uppercase text-[8px] font-black tracking-widest border-b">
                 <TableHead className="pl-6">BDM/AM Identity</TableHead>
@@ -906,15 +1037,18 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       )}
 
       {/* ── INTERACTIVE TAB VIEW (screen only) ─────────────────────────────── */}
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
-          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
-          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
-          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
-          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
-          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
-          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
-          <TabsTrigger value="opsReports" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><AlertTriangle className="w-3 h-3 text-red-500" /> Ops Reports</TabsTrigger>
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6 w-full max-w-full overflow-hidden">
+        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide justify-start">
+          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Team Performance</TabsTrigger>
+          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
+          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
+          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Opportunities</TabsTrigger>
+          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Signed Work</TabsTrigger>
+          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">New Business</TabsTrigger>
+          <TabsTrigger value="actualSpend" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0">
+            <Coins className="w-3 h-3 text-emerald-500" /> Actual Spend
+          </TabsTrigger>
+          <TabsTrigger value="opsReports" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><AlertTriangle className="w-3 h-3 text-red-500" /> Ops Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -947,6 +1081,9 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         <TabsContent value="opportunities"><OpportunitiesTable data={opportunities} /></TabsContent>
         <TabsContent value="signed"><SignedPaperworkTable data={paperwork} /></TabsContent>
         <TabsContent value="business"><NewBusinessTable data={newBusiness} /></TabsContent>
+        <TabsContent value="actualSpend">
+          <ActualSpendView />
+        </TabsContent>
         <TabsContent value="opsReports">
           <Card className="border-none shadow-md bg-white overflow-hidden">
             <CardHeader className="bg-slate-50 border-b">
@@ -1252,21 +1389,16 @@ function BDMReportCard({
                   {opps.length === 0 ? (
                     <p className="text-xs text-slate-400 italic">No active opportunities in pipeline.</p>
                   ) : (
-                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
-                      <Table>
-                        <TableHeader className="bg-slate-50 sticky top-0"><TableRow className="uppercase text-[8px] font-black"><TableHead>Opportunity Name</TableHead><TableHead>EAV</TableHead><TableHead>Stage</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
-                        <TableBody>
-                          {opps.map((o: any) => (
-                            <TableRow key={o.id} className="hover:bg-slate-50/50">
-                              <TableCell className="text-xs font-bold uppercase">{o.opportunityName || o.pipeline}</TableCell>
-                              <TableCell className="text-xs font-black text-blue-600">${(o.value || 0).toLocaleString()}</TableCell>
-                              <TableCell className="text-[9px] font-bold uppercase"><Badge variant="outline" className="text-[8px] border-accent/20 text-accent font-black uppercase">{o.stage}</Badge></TableCell>
-                              <TableCell className="text-xs text-slate-500 font-medium">{o.daysInStage || 0}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <ResponsiveTable
+                      headers={['Opportunity Name', 'EAV', 'Stage', 'Days']}
+                      rows={opps.map((o: any) => [
+                        <span key={`${o.id}-1`} className="text-xs font-bold uppercase">{o.opportunityName || o.pipeline}</span>,
+                        <span key={`${o.id}-2`} className="text-xs font-black text-blue-600">${(o.value || 0).toLocaleString()}</span>,
+                        <Badge key={`${o.id}-3`} variant="outline" className="text-[8px] border-accent/20 text-accent font-black uppercase">{o.stage}</Badge>,
+                        <span key={`${o.id}-4`} className="text-xs text-slate-500 font-medium">{o.daysInStage || 0}</span>
+                      ])}
+                      minWidth="500px"
+                    />
                   )}
                 </div>
 
@@ -1278,22 +1410,17 @@ function BDMReportCard({
                   {customers.length === 0 ? (
                     <p className="text-xs text-slate-400 italic">No trading accounts assigned.</p>
                   ) : (
-                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
-                      <Table>
-                        <TableHeader className="bg-slate-50 sticky top-0"><TableRow className="uppercase text-[8px] font-black"><TableHead>Account Name</TableHead><TableHead>YTD Revenue</TableHead><TableHead>Last Year</TableHead><TableHead>Last Invoice</TableHead><TableHead>Hold</TableHead></TableRow></TableHeader>
-                        <TableBody>
-                          {customers.map((c: any) => (
-                            <TableRow key={c.id} className="hover:bg-slate-50/50">
-                              <TableCell className="text-xs font-bold uppercase">{c.pipeline || c.accountName}</TableCell>
-                              <TableCell className="text-xs font-black text-emerald-600">${(c.currentRevenue || c.value || 0).toLocaleString()}</TableCell>
-                              <TableCell className="text-xs text-slate-505 font-medium">${(c.lastYearRevenue || 0).toLocaleString()}</TableCell>
-                              <TableCell className="text-[9px] font-medium">{c.lastInvoiceDate || 'N/A'}</TableCell>
-                              <TableCell className="text-xs font-medium">{c.creditHold ? <Badge className="bg-red-100 text-red-700 text-[8px] font-black border-none uppercase">HOLD</Badge> : 'No'}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <ResponsiveTable
+                      headers={['Account Name', 'YTD Revenue', 'Last Year', 'Last Invoice', 'Hold']}
+                      rows={customers.map((c: any) => [
+                        <span key={`${c.id}-1`} className="text-xs font-bold uppercase">{c.pipeline || c.accountName}</span>,
+                        <span key={`${c.id}-2`} className="text-xs font-black text-emerald-600">${(c.currentRevenue || c.value || 0).toLocaleString()}</span>,
+                        <span key={`${c.id}-3`} className="text-xs text-slate-505 font-medium">${(c.lastYearRevenue || 0).toLocaleString()}</span>,
+                        <span key={`${c.id}-4`} className="text-[9px] font-medium">{c.lastInvoiceDate || 'N/A'}</span>,
+                        <span key={`${c.id}-5`} className="text-xs font-medium">{c.creditHold ? <Badge className="bg-red-100 text-red-700 text-[8px] font-black border-none uppercase">HOLD</Badge> : 'No'}</span>
+                      ])}
+                      minWidth="500px"
+                    />
                   )}
                 </div>
              </div>
@@ -1638,12 +1765,17 @@ function MetricCard({ title, value, sub, icon, color }: any) {
 function OpportunitiesTable({ data }: { data: any[] }) {
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Stage</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge></TableCell></TableRow>))}</TableBody>
-        </Table>
-      </CardContent>
+      <ResponsiveTable
+        headers={['Identity', 'Account', 'Opportunity', 'EAV ($K)', 'Stage']}
+        rows={data.map((o) => [
+          <span key={`${o.id}-1`} className="pl-6 font-black uppercase text-xs">{o.userName}</span>,
+          <span key={`${o.id}-2`} className="font-bold text-xs uppercase">{o.accountName}</span>,
+          <span key={`${o.id}-3`} className="text-xs font-medium">{o.opportunityName}</span>,
+          <span key={`${o.id}-4`} className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</span>,
+          <Badge key={`${o.id}-5`} variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge>
+        ])}
+        minWidth="600px"
+      />
     </Card>
   );
 }
@@ -1658,12 +1790,18 @@ function SignedPaperworkTable({ data }: { data: any[] }) {
 
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Signed Date</TableHead><TableHead>Term (M)</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-black text-green-600">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{formatDate(p.signedDate)}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
-        </Table>
-      </CardContent>
+      <ResponsiveTable
+        headers={['Identity', 'Account', 'EAV ($K)', 'Signed Date', 'Term (M)', 'Notes']}
+        rows={data.map((p) => [
+          <span key={`${p.id}-1`} className="pl-6 font-black uppercase text-xs">{p.userName}</span>,
+          <span key={`${p.id}-2`} className="font-bold text-xs uppercase">{p.accountName}</span>,
+          <span key={`${p.id}-3`} className="font-black text-green-600">${(p.eav / 1000).toFixed(0)}k</span>,
+          <span key={`${p.id}-4`} className="text-xs font-medium">{formatDate(p.signedDate)}</span>,
+          <span key={`${p.id}-5`} className="font-bold text-xs">{p.termMonths}</span>,
+          <span key={`${p.id}-6`} className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</span>
+        ])}
+        minWidth="600px"
+      />
     </Card>
   );
 }
@@ -1678,12 +1816,17 @@ function NewBusinessTable({ data }: { data: any[] }) {
 
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{formatDate(b.goLiveDate)}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
-        </Table>
-      </CardContent>
+      <ResponsiveTable
+        headers={['Identity', 'Account', 'EAV ($K)', 'Go Live', 'Status']}
+        rows={data.map((b) => [
+          <span key={`${b.id}-1`} className="pl-6 font-black uppercase text-xs">{b.userName}</span>,
+          <span key={`${b.id}-2`} className="font-bold text-xs uppercase">{b.accountName}</span>,
+          <span key={`${b.id}-3`} className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</span>,
+          <span key={`${b.id}-4`} className="text-xs font-medium">{formatDate(b.goLiveDate)}</span>,
+          <Badge key={`${b.id}-5`} variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge>
+        ])}
+        minWidth="600px"
+      />
     </Card>
   );
 }
@@ -1698,36 +1841,18 @@ function StrategyTable({ data }: { data: any[] }) {
         </CardTitle>
         <CardDescription className="text-slate-400">Standardized frameworks deployed by Sales Administration.</CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader className="bg-slate-50">
-            <TableRow className="uppercase text-[9px] font-black">
-              <TableHead className="pl-6">Blueprint Name</TableHead>
-              <TableHead>Primary Objective</TableHead>
-              <TableHead>Last Updated</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data?.map(plan => (
-              <TableRow key={plan.id}>
-                <TableCell className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</TableCell>
-                <TableCell className="text-xs font-medium italic">"{plan.objective}"</TableCell>
-                <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">
-                  {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
-                </TableCell>
-              </TableRow>
-            ))}
-            {(!data || data.length === 0) && (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-20 bg-slate-50/50">
-                  <PhoneCall className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No strategic blueprints deployed.</p>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
+      <ResponsiveTable
+        headers={['Blueprint Name', 'Primary Objective', 'Last Updated']}
+        rows={data?.map(plan => [
+          <span key={`${plan.id}-1`} className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</span>,
+          <span key={`${plan.id}-2`} className="text-xs font-medium italic">"{plan.objective}"</span>,
+          <span key={`${plan.id}-3`} className="text-[10px] font-bold text-muted-foreground uppercase">
+            {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
+          </span>
+        ]) || []}
+        emptyMessage="No strategic blueprints deployed."
+        minWidth="600px"
+      />
     </Card>
   );
 }

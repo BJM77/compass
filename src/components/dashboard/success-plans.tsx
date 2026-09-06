@@ -734,8 +734,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Measures Ledger */}
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Measures & Benchmarks</h3>
-                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                      <Table>
+                    <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+                      <Table className="min-w-[600px]">
                         <TableHeader className="bg-slate-50">
                           <TableRow>
                             <TableHead className="text-[10px] font-black uppercase text-slate-900">Measure</TableHead>
@@ -791,8 +791,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Strategies */}
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Committed Strategies</h3>
-                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                      <Table>
+                    <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+                      <Table className="min-w-[600px]">
                         <TableHeader className="bg-slate-50">
                           <TableRow>
                             <TableHead className="text-[10px] font-black uppercase text-slate-900">Strategy</TableHead>
@@ -823,8 +823,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Required commitments */}
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Required Commitments from Manager</h3>
-                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                      <Table>
+                    <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+                      <Table className="min-w-[600px]">
                         <TableHeader className="bg-slate-50">
                           <TableRow>
                             <TableHead className="text-[10px] font-black uppercase text-slate-900">Commitment</TableHead>
@@ -971,8 +971,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 </Button>
               </div>
               
-              <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                <Table>
+              <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+                <Table className="min-w-[600px]">
                   <TableHeader className="bg-slate-50">
                     <TableRow>
                       <TableHead className="text-[10px] font-black uppercase text-slate-900">Measure</TableHead>
@@ -1148,8 +1148,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     <Plus className="w-3.5 h-3.5" /> Add Strategy
                   </Button>
                 </div>
-                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                  <Table>
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+                  <Table className="min-w-[600px]">
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="text-[10px] font-black uppercase text-slate-900">Your Strategy</TableHead>
@@ -1223,8 +1223,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     <Plus className="w-3.5 h-3.5" /> Add Measure
                   </Button>
                 </div>
-                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                  <Table>
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+                  <Table className="min-w-[600px]">
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="text-[10px] font-black uppercase text-slate-900">Measures</TableHead>
@@ -1298,8 +1298,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     <Plus className="w-3.5 h-3.5" /> Add Commitment
                   </Button>
                 </div>
-                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                  <Table>
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+                  <Table className="min-w-[600px]">
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="text-[10px] font-black uppercase text-slate-900">Commitments</TableHead>

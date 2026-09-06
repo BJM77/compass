@@ -63,7 +63,7 @@ export function AMBDManagement() {
   // Filter and de-duplicate targeted users (AMs and BDMs)
   const targetUsers = useMemo(() => {
     if (!allUsers) return [];
-    const list = allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
+    const list = allUsers.filter(u => (u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM') && u.role !== 'GUEST');
     
     const map = new Map<string, any>();
     list.forEach(u => {

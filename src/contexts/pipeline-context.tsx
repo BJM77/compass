@@ -4,7 +4,7 @@ import React, { createContext, useContext } from 'react';
 import { useAuth } from './auth-context';
 import { useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, isUserSubmissionMatch } from '@/lib/utils';
 import { PipelineReview, WeeklyProgress } from '@/types/crm';
 
 interface PipelineContextType {
@@ -105,7 +105,10 @@ export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [pipelineReviews]);
 
   const getLatestDealsForUser = React.useCallback((userId: string) => {
-    return allPipelineReviews.filter(r => r.userId === userId);
+    return allPipelineReviews.filter(r => {
+      if (r.userId === userId) return true;
+      return isUserSubmissionMatch({ id: userId }, { userId: r.userId, userName: r.userName, id: r.id });
+    });
   }, [allPipelineReviews]);
 
   const weeklyProgresses = React.useMemo(() => {

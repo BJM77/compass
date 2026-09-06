@@ -15,6 +15,7 @@ import { Checkbox as UICheckbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { deduplicateUsers } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -407,7 +408,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                         <SelectValue placeholder="Select User" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users?.map((u: any) => (
+                        {deduplicateUsers(users || []).map((u: any) => (
                           <SelectItem key={u.id} value={u.id}>{u.name || u.email || 'Unknown User'}</SelectItem>
                         ))}
                       </SelectContent>

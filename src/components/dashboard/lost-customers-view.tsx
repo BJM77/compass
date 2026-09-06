@@ -45,7 +45,8 @@ export function LostCustomersView() {
             <p className="text-sm font-medium text-muted-foreground">No lost opportunities recorded.</p>
           </div>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+            <Table className="min-w-[600px]">
             <TableHeader>
               <TableRow className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground">
                 <TableHead>Opportunity / Business</TableHead>
@@ -73,6 +74,7 @@ export function LostCustomersView() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

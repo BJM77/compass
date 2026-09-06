@@ -1,0 +1,151 @@
+src/components/dashboard/leader-dashboard.tsx-411-          <div className="flex-1 overflow-y-auto p-0">
+src/components/dashboard/leader-dashboard.tsx-412-            <div className="overflow-x-auto">
+src/components/dashboard/leader-dashboard.tsx:413:              <Table>
+--
+src/components/dashboard/leader-dashboard.tsx-467-          <div className="flex-1 overflow-y-auto p-0">
+src/components/dashboard/leader-dashboard.tsx-468-            <div className="overflow-x-auto">
+src/components/dashboard/leader-dashboard.tsx:469:              <Table>
+--
+src/components/dashboard/friday-performance-review.tsx-2089-                <div className="border rounded-2xl overflow-hidden">
+src/components/dashboard/friday-performance-review.tsx-2090-                  {currentWeekData.opportunities.length > 0 ? (
+src/components/dashboard/friday-performance-review.tsx:2091:                    <Table>
+--
+src/components/dashboard/friday-performance-review.tsx-2134-                <div className="border rounded-2xl overflow-hidden">
+src/components/dashboard/friday-performance-review.tsx-2135-                  {currentWeekData.opportunities.length > 0 ? (
+src/components/dashboard/friday-performance-review.tsx:2136:                    <Table>
+--
+src/components/dashboard/friday-performance-review.tsx-2170-                <div className="border rounded-2xl overflow-hidden">
+src/components/dashboard/friday-performance-review.tsx-2171-                  {currentWeekCanvassLeads.length > 0 ? (
+src/components/dashboard/friday-performance-review.tsx:2172:                    <Table>
+--
+src/components/dashboard/friday-performance-review.tsx-2214-                <div className="border rounded-2xl overflow-hidden">
+src/components/dashboard/friday-performance-review.tsx-2215-                  {currentWeekSalesforceLeads.length > 0 ? (
+src/components/dashboard/friday-performance-review.tsx:2216:                    <Table>
+--
+src/components/dashboard/test/test-gm-weekly-review.tsx-1003-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+src/components/dashboard/test/test-gm-weekly-review.tsx-1004-      <CardContent className="p-0">
+src/components/dashboard/test/test-gm-weekly-review.tsx:1005:        <Table>
+--
+src/components/dashboard/test/test-gm-weekly-review.tsx-1016-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+src/components/dashboard/test/test-gm-weekly-review.tsx-1017-      <CardContent className="p-0">
+src/components/dashboard/test/test-gm-weekly-review.tsx:1018:        <Table>
+--
+src/components/dashboard/test/test-gm-weekly-review.tsx-1029-    <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
+src/components/dashboard/test/test-gm-weekly-review.tsx-1030-      <CardContent className="p-0">
+src/components/dashboard/test/test-gm-weekly-review.tsx:1031:        <Table>
+--
+src/components/dashboard/test/test-gm-weekly-review.tsx-1049-      </CardHeader>
+src/components/dashboard/test/test-gm-weekly-review.tsx-1050-      <CardContent className="p-0">
+src/components/dashboard/test/test-gm-weekly-review.tsx:1051:        <Table>
+--
+src/components/dashboard/success-plans.tsx-736-                    <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Measures & Benchmarks</h3>
+src/components/dashboard/success-plans.tsx-737-                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+src/components/dashboard/success-plans.tsx:738:                      <Table>
+--
+src/components/dashboard/success-plans.tsx-793-                    <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Committed Strategies</h3>
+src/components/dashboard/success-plans.tsx-794-                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+src/components/dashboard/success-plans.tsx:795:                      <Table>
+--
+src/components/dashboard/success-plans.tsx-825-                    <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Required Commitments from Manager</h3>
+src/components/dashboard/success-plans.tsx-826-                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+src/components/dashboard/success-plans.tsx:827:                      <Table>
+--
+src/components/dashboard/success-plans.tsx-973-              
+src/components/dashboard/success-plans.tsx-974-              <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+src/components/dashboard/success-plans.tsx:975:                <Table>
+--
+src/components/dashboard/success-plans.tsx-1150-                </div>
+src/components/dashboard/success-plans.tsx-1151-                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+src/components/dashboard/success-plans.tsx:1152:                  <Table>
+--
+src/components/dashboard/success-plans.tsx-1225-                </div>
+src/components/dashboard/success-plans.tsx-1226-                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+src/components/dashboard/success-plans.tsx:1227:                  <Table>
+--
+src/components/dashboard/success-plans.tsx-1300-                </div>
+src/components/dashboard/success-plans.tsx-1301-                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+src/components/dashboard/success-plans.tsx:1302:                  <Table>
+--
+src/components/dashboard/lost-customers-view.tsx-46-          </div>
+src/components/dashboard/lost-customers-view.tsx-47-        ) : (
+src/components/dashboard/lost-customers-view.tsx:48:          <Table>
+--
+src/components/dashboard/plan-metrics.tsx-186-        <CardContent className="p-0">
+src/components/dashboard/plan-metrics.tsx-187-          <div className="overflow-x-auto">
+src/components/dashboard/plan-metrics.tsx:188:            <Table>
+--
+src/components/dashboard/plan-metrics.tsx-271-            <CardContent className="p-0">
+src/components/dashboard/plan-metrics.tsx-272-               <div className="overflow-x-auto">
+src/components/dashboard/plan-metrics.tsx:273:                 <Table>
+--
+src/components/dashboard/plan-metrics.tsx-314-            <CardContent className="p-0">
+src/components/dashboard/plan-metrics.tsx-315-               <div className="overflow-x-auto">
+src/components/dashboard/plan-metrics.tsx:316:                 <Table>
+--
+src/components/dashboard/crm-importer.tsx-1146-                <ScrollArea className="w-full">
+src/components/dashboard/crm-importer.tsx-1147-                  <div className="max-h-[250px] overflow-auto">
+src/components/dashboard/crm-importer.tsx:1148:                    <Table>
+--
+src/components/dashboard/crm-importer.tsx-1428-          </CardHeader>
+src/components/dashboard/crm-importer.tsx-1429-          <ScrollArea className="h-[500px]">
+src/components/dashboard/crm-importer.tsx:1430:            <Table>
+--
+src/components/dashboard/crm-importer.tsx-1492-          </CardHeader>
+src/components/dashboard/crm-importer.tsx-1493-          <ScrollArea className="h-[300px]">
+src/components/dashboard/crm-importer.tsx:1494:            <Table>
+--
+src/components/dashboard/crm-importer.tsx-1537-          </CardHeader>
+src/components/dashboard/crm-importer.tsx-1538-          <ScrollArea className="h-[300px]">
+src/components/dashboard/crm-importer.tsx:1539:            <Table>
+--
+src/components/dashboard/duplicate-manager.tsx-108-              </div>
+src/components/dashboard/duplicate-manager.tsx-109-              <ScrollArea className="h-[500px] border rounded-2xl bg-white shadow-inner">
+src/components/dashboard/duplicate-manager.tsx:110:                <Table>
+--
+src/components/dashboard/data-explorer.tsx-730-
+src/components/dashboard/data-explorer.tsx-731-            <div className="overflow-x-auto">
+src/components/dashboard/data-explorer.tsx:732:              <Table>
+--
+src/components/dashboard/data-explorer.tsx-842-
+src/components/dashboard/data-explorer.tsx-843-            <div className="overflow-x-auto">
+src/components/dashboard/data-explorer.tsx:844:              <Table>
+--
+src/components/dashboard/data-explorer.tsx-951-
+src/components/dashboard/data-explorer.tsx-952-            <div className="overflow-x-auto">
+src/components/dashboard/data-explorer.tsx:953:              <Table>
+--
+src/components/dashboard/gm-weekly-review.tsx-1390-                  ) : (
+src/components/dashboard/gm-weekly-review.tsx-1391-                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
+src/components/dashboard/gm-weekly-review.tsx:1392:                      <Table>
+--
+src/components/dashboard/gm-weekly-review.tsx-1416-                  ) : (
+src/components/dashboard/gm-weekly-review.tsx-1417-                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
+src/components/dashboard/gm-weekly-review.tsx:1418:                      <Table>
+--
+src/components/dashboard/gm-weekly-review.tsx-1776-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+src/components/dashboard/gm-weekly-review.tsx-1777-      <CardContent className="p-0">
+src/components/dashboard/gm-weekly-review.tsx:1778:        <Table>
+--
+src/components/dashboard/gm-weekly-review.tsx-1796-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+src/components/dashboard/gm-weekly-review.tsx-1797-      <CardContent className="p-0">
+src/components/dashboard/gm-weekly-review.tsx:1798:        <Table>
+--
+src/components/dashboard/gm-weekly-review.tsx-1816-    <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
+src/components/dashboard/gm-weekly-review.tsx-1817-      <CardContent className="p-0">
+src/components/dashboard/gm-weekly-review.tsx:1818:        <Table>
+--
+src/components/dashboard/gm-weekly-review.tsx-1836-      </CardHeader>
+src/components/dashboard/gm-weekly-review.tsx-1837-      <CardContent className="p-0">
+src/components/dashboard/gm-weekly-review.tsx:1838:        <Table>
+--
+src/components/dashboard/admin-call-planning.tsx-210-        <CardContent className="p-0">
+src/components/dashboard/admin-call-planning.tsx-211-          <div className="overflow-x-auto">
+src/components/dashboard/admin-call-planning.tsx:212:            <Table>
+--
+src/components/dashboard/actual-spend-view.tsx-266-          <ScrollArea className="h-[600px] w-full">
+src/components/dashboard/actual-spend-view.tsx-267-            <div className="overflow-x-auto max-w-full">
+src/components/dashboard/actual-spend-view.tsx:268:              <Table>
+--
+src/components/dashboard/fact-finding-hub.tsx-331-          ) : viewMode === 'list' ? (
+src/components/dashboard/fact-finding-hub.tsx-332-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+src/components/dashboard/fact-finding-hub.tsx:333:              <Table>

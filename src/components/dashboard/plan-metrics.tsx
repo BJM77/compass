@@ -18,7 +18,10 @@ export function PlanMetrics() {
   // Fetch users to display names instead of IDs
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: allUsers } = useCollection(usersQuery);
-  const getUserName = (id: string) => allUsers?.find(u => u.id === id)?.name || id.substring(0, 8);
+  const getUserName = (id: string) => {
+    const user = activeUsers.find(u => isUserSubmissionMatch(u, { userId: id }));
+    return user ? user.name : (allUsers?.find(u => u.id === id)?.name || id.substring(0, 8));
+  };
 
   const callPlansQuery = useMemoFirebase(() => {
     if (!db) return null;

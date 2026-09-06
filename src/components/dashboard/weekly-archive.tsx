@@ -15,7 +15,7 @@ import {
   Loader2, AlertTriangle, LifeBuoy, Briefcase, Users, Clock, Mail
 } from 'lucide-react';
 import { format, startOfWeek, subWeeks, addDays } from 'date-fns';
-import { getCurrentWeek, getWeekForDate, cn, getNextWeekKey, isUserSubmissionMatch } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, cn, getNextWeekKey, isUserSubmissionMatch, normalizeBdmName } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 // ─── Generate last N weeks as selectable options ──────────────────────────────
@@ -425,10 +425,18 @@ export function WeeklyArchive() {
           ? allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER')
           : allUsers.filter(u => u.id === user?.uid);
 
-        // Deduplicate targetUsers by name to prevent doubling up all data if duplicate records exist
-        const uniqueTargetUsers = Array.from(
-          new Map(targetUsers.map(u => [(u.name || u.id).trim().toLowerCase(), u])).values()
-        );
+        const userMap = new Map<string, any>();
+        targetUsers.forEach(u => {
+          const norm = normalizeBdmName(u.name, u.id);
+          if (!userMap.has(norm)) {
+            userMap.set(norm, { ...u });
+          } else {
+            const existing = userMap.get(norm);
+            if (!existing.aliasIds) existing.aliasIds = [];
+            existing.aliasIds.push(u.id);
+          }
+        });
+        const uniqueTargetUsers = Array.from(userMap.values());
 
         const nextWeek = getNextWeekKey(selectedWeek);
 
@@ -446,9 +454,9 @@ export function WeeklyArchive() {
         ]);
 
         const results: ArchivedWeek[] = uniqueTargetUsers.map(u => {
-          const commitment = commitmentsSnap.docs.find(d => isUserSubmissionMatch({ id: u.id, name: u.name }, { id: d.id, ...d.data() }))?.data();
-          const twtw = twtwSnap.docs.find(d => isUserSubmissionMatch({ id: u.id, name: u.name }, { id: d.id, ...d.data() }))?.data();
-          const progress = progressSnap.docs.find(d => isUserSubmissionMatch({ id: u.id, name: u.name }, { id: d.id, ...d.data() }))?.data();
+          const commitment = commitmentsSnap.docs.find(d => isUserSubmissionMatch(u, { id: d.id, ...d.data() }))?.data();
+          const twtw = twtwSnap.docs.find(d => isUserSubmissionMatch(u, { id: d.id, ...d.data() }))?.data();
+          const progress = progressSnap.docs.find(d => isUserSubmissionMatch(u, { id: d.id, ...d.data() }))?.data();
 
           const crmCalls = progress?.crmCalls !== undefined ? progress.crmCalls : 0;
           const crmApps = progress?.crmApps !== undefined ? progress.crmApps : 0;

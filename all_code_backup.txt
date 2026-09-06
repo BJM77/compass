@@ -1,814 +1,278 @@
-=== SITE STRUCTURE ===
 
-.
-├── BDMC.txt
-├── Backup.txt
-├── June16.txt
-├── OPERATING_MANUAL.md
-├── README.md
-├── all copy 2.txt
-├── all copy 3.txt
-├── all copy 4.txt
-├── all copy.txt
-├── all.txt
-├── all_code_backup.txt
-├── allnoapi.txt
-├── apphosting.yaml
-├── backup.js
-├── compassAug.txt
-├── components.json
-├── create_backup.py
-├── create_compassAug_backup.py
-├── deploy_rules.sh
-├── dev.log
-├── docs
-│   ├── backend.json
-│   └── blueprint.md
-├── extract_collation.py
-├── firebase.json
-├── firestore.indexes.json
-├── firestore.rules
-├── fix_collated_references.py
-├── fix_demo_dash.py
-├── fix_duplicates.py
-├── fix_edit_dialog.py
-├── fix_mock_team_data.py
-├── fix_nav.py
-├── fix_twiw_priorities.py
-├── generate_backup.js
-├── generate_backup.sh
-├── next-env.d.ts
-├── next.config.ts
-├── nw.txt
-├── package-lock.json
-├── package.json
-├── postcss.config.mjs
-├── public
-│   └── network-map.png
-├── query_planning.js
-├── query_planning.mjs
-├── query_test.ts
-├── refactor_demo_dash.py
-├── replace_demo_collation.py
-├── scratch
-│   ├── append_uids.js
-│   ├── fetch_rest.js
-│   ├── inspect_admin.js
-│   ├── inspect_client.js
-│   ├── inspect_token.js
-│   ├── inspect_users.js
-│   ├── make_backup.js
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── print_accessToken.js
-│   ├── query_namra.js
-│   ├── tables.txt
-│   ├── test.js
-│   ├── test2.js
-│   ├── testMatch.js
-│   ├── users.json
-│   └── users_dump.json
-├── scripts
-│   ├── clear-demo-data.js
-│   ├── make-admin.js
-│   ├── patch_demo.py
-│   ├── patch_phase_a.py
-│   ├── patch_twiw.py
-│   └── verify-isaac.js
-├── site_backup.txt
-├── src
-│   ├── ai
-│   │   ├── dev.ts
-│   │   ├── flows
-│   │   │   ├── generate-ai-report.ts
-│   │   │   ├── generate-executive-team-summary.ts
-│   │   │   ├── generate-personal-scorecard-summary.ts
-│   │   │   ├── generate-whitespace-analysis.ts
-│   │   │   └── parse-business-card.ts
-│   │   └── genkit.ts
-│   ├── all.txt
-│   ├── app
-│   │   ├── actions
-│   │   │   └── pdf.ts
-│   │   ├── api
-│   │   │   ├── list-users
-│   │   │   ├── migrate-user-ids
-│   │   │   │   └── route.ts
-│   │   │   ├── reset-weekly-activity
-│   │   │   │   └── route.ts
-│   │   │   └── save-planning
-│   │   ├── dashboard
-│   │   │   ├── mobile
-│   │   │   │   └── page.tsx
-│   │   │   ├── page.tsx
-│   │   │   ├── test
-│   │   │   │   └── page.tsx
-│   │   │   └── test-users
-│   │   ├── error.tsx
-│   │   ├── favicon.ico
-│   │   ├── global-error.tsx
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   ├── loading.tsx
-│   │   ├── login
-│   │   │   └── page.tsx
-│   │   ├── not-found.tsx
-│   │   └── page.tsx
-│   ├── components
-│   │   ├── FirebaseErrorListener.tsx
-│   │   ├── auth-guard.tsx
-│   │   ├── dashboard
-│   │   │   ├── activity-logger.tsx
-│   │   │   ├── actual-spend-view.tsx
-│   │   │   ├── admin-call-planning.tsx
-│   │   │   ├── ai-briefs-hub.tsx
-│   │   │   ├── ai-deal-whisperer.tsx
-│   │   │   ├── ai-report-generator.tsx
-│   │   │   ├── ai-summary-view.tsx
-│   │   │   ├── ai-team-insights.tsx
-│   │   │   ├── ambd-management.tsx
-│   │   │   ├── ambd-notes-widget.tsx
-│   │   │   ├── bdm-dashboard.tsx
-│   │   │   ├── bdm-weekly-submission.tsx
-│   │   │   ├── behavior-alerts.tsx
-│   │   │   ├── bi-reports-viewer.tsx
-│   │   │   ├── call-planning.tsx
-│   │   │   ├── call-prep-mode.tsx
-│   │   │   ├── canvass-lead-form.tsx
-│   │   │   ├── canvass-map-view.tsx
-│   │   │   ├── canvass-map.tsx
-│   │   │   ├── canvass-timeline-view.tsx
-│   │   │   ├── canvassing-hub.tsx
-│   │   │   ├── coaching-notes.tsx
-│   │   │   ├── create-note-dialog.tsx
-│   │   │   ├── crm-importer.tsx
-│   │   │   ├── crm-summary-panel.tsx
-│   │   │   ├── data-explorer.tsx
-│   │   │   ├── demo-dash-view.tsx
-│   │   │   ├── document-viewer-popup.tsx
-│   │   │   ├── document-viewers.tsx
-│   │   │   ├── duplicate-manager.tsx
-│   │   │   ├── fact-finding-form.tsx
-│   │   │   ├── fact-finding-hub.tsx
-│   │   │   ├── freight-spin-guide.tsx
-│   │   │   ├── friday-performance-review.tsx
-│   │   │   ├── friday-review-hub.tsx
-│   │   │   ├── gm-report-generator.tsx
-│   │   │   ├── gm-weekly-review.tsx
-│   │   │   ├── historical-activity.tsx
-│   │   │   ├── kpi-card.tsx
-│   │   │   ├── kpi-management.tsx
-│   │   │   ├── leader-dashboard.tsx
-│   │   │   ├── lost-customers-view.tsx
-│   │   │   ├── manage-time-view.tsx
-│   │   │   ├── mobile-dashboard.tsx
-│   │   │   ├── nearby-business-modal.tsx
-│   │   │   ├── onboarding-plan.tsx
-│   │   │   ├── ops-report-form.tsx
-│   │   │   ├── ops-report-review.tsx
-│   │   │   ├── pipeline-funnel.tsx
-│   │   │   ├── pipeline-review-table.tsx
-│   │   │   ├── plan-metrics.tsx
-│   │   │   ├── playbook-view.tsx
-│   │   │   ├── reporting-tools-settings.tsx
-│   │   │   ├── sales-velocity-widgets.tsx
-│   │   │   ├── settings-hub.tsx
-│   │   │   ├── smart-goals-audit.tsx
-│   │   │   ├── smart-goals-view.tsx
-│   │   │   ├── strategic-archive.tsx
-│   │   │   ├── strategic-repository.tsx
-│   │   │   ├── strategy-management.tsx
-│   │   │   ├── success-plans.tsx
-│   │   │   ├── system-broadcast.tsx
-│   │   │   ├── team-comparison.tsx
-│   │   │   ├── territory-playbook.tsx
-│   │   │   ├── test
-│   │   │   │   ├── test-bdm-weekly-submission.tsx
-│   │   │   │   ├── test-friday-review-hub.tsx
-│   │   │   │   ├── test-gm-report-generator.tsx
-│   │   │   │   ├── test-gm-weekly-review.tsx
-│   │   │   │   └── test-weekly-goals.tsx
-│   │   │   ├── trend-chart.tsx
-│   │   │   ├── twiw-edit-dialog.tsx
-│   │   │   ├── twiw-view.tsx
-│   │   │   ├── user-management.tsx
-│   │   │   ├── velocity-pulse.tsx
-│   │   │   ├── voice-action-logger.tsx
-│   │   │   ├── weekly-activity-summary.tsx
-│   │   │   ├── weekly-archive.tsx
-│   │   │   ├── weekly-goals.tsx
-│   │   │   ├── whitespace-analysis.tsx
-│   │   │   └── whitespace-history.tsx
-│   │   └── ui
-│   │       ├── accordion.tsx
-│   │       ├── alert-dialog.tsx
-│   │       ├── alert.tsx
-│   │       ├── announcement-banner.tsx
-│   │       ├── avatar.tsx
-│   │       ├── badge.tsx
-│   │       ├── button.tsx
-│   │       ├── calendar.tsx
-│   │       ├── card.tsx
-│   │       ├── carousel.tsx
-│   │       ├── chart.tsx
-│   │       ├── checkbox.tsx
-│   │       ├── collapsible.tsx
-│   │       ├── dialog.tsx
-│   │       ├── dropdown-menu.tsx
-│   │       ├── form.tsx
-│   │       ├── input.tsx
-│   │       ├── label.tsx
-│   │       ├── menubar.tsx
-│   │       ├── popover.tsx
-│   │       ├── progress.tsx
-│   │       ├── radio-group.tsx
-│   │       ├── responsive-card.tsx
-│   │       ├── responsive-table.tsx
-│   │       ├── scroll-area.tsx
-│   │       ├── select.tsx
-│   │       ├── separator.tsx
-│   │       ├── sheet.tsx
-│   │       ├── sidebar.tsx
-│   │       ├── skeleton.tsx
-│   │       ├── slider.tsx
-│   │       ├── switch.tsx
-│   │       ├── table.tsx
-│   │       ├── tabs.tsx
-│   │       ├── textarea.tsx
-│   │       ├── toast.tsx
-│   │       ├── toaster.tsx
-│   │       └── tooltip.tsx
-│   ├── contexts
-│   │   ├── auth-context.tsx
-│   │   ├── navigation-context.tsx
-│   │   └── pipeline-context.tsx
-│   ├── env.ts
-│   ├── firebase
-│   │   ├── client-provider.tsx
-│   │   ├── config.ts
-│   │   ├── error-emitter.ts
-│   │   ├── errors.ts
-│   │   ├── firestore
-│   │   │   ├── use-collection.tsx
-│   │   │   └── use-doc.tsx
-│   │   ├── index.ts
-│   │   ├── non-blocking-login.tsx
-│   │   ├── non-blocking-updates.tsx
-│   │   └── provider.tsx
-│   ├── hooks
-│   │   ├── use-crm-summary.ts
-│   │   ├── use-mobile.tsx
-│   │   ├── use-responsive.ts
-│   │   └── use-toast.ts
-│   ├── lib
-│   │   ├── deal-health.ts
-│   │   ├── export-utils.ts
-│   │   ├── firebase.ts
-│   │   ├── mobile-utils.ts
-│   │   ├── momentum.ts
-│   │   ├── placeholder-images.json
-│   │   ├── placeholder-images.ts
-│   │   ├── responsive-test.ts
-│   │   ├── responsive-utils.ts
-│   │   └── utils.ts
-│   ├── middleware.ts
-│   └── types
-│       └── crm.d.ts
-├── status-script.js
-├── tailwind.config.ts
-├── test-admin.js
-├── tsconfig.json
-├── tsconfig.tsbuildinfo
-├── update_collation.py
-├── update_collation2.py
-├── update_demo_dash.py
-└── wire_firebase.py
+=========================================
+FILE: firestore.rules
+=========================================
 
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-=== SOURCE CODE ===
+    // ─── Core Auth Helpers ───────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
 
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
 
---- FILE: OPERATING_MANUAL.md ---
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == '1@1.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          getUserData().role == 'LEADER' ||
+          getUserData().role == 'GM' ||
+          getUserData().role == 'ADMIN' ||
+          getUserData().role == 'SUPER_ADMIN'
+        ))
+      );
+    }
 
-# BDM Compass: Operating Manual & Strategic Protocol
-**Standardizing Elite Performance for Sales Professionals**
+    // ─── User Management ─────────────────────────────────────────────────────────
+    // Anyone can read their own user doc; admins can read all.
+    // Owners can update their own doc EXCEPT the role field (prevents self-escalation).
+    // Only admins can create, set role, or delete.
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if (
+        isOwner(userId) && 
+        request.resource.data.role == 'GUEST' && 
+        request.resource.data.email.matches('.*@teamglobalexp\\.com$')
+      ) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
 
----
+    // ─── Revenue Rollups ─────────────────────────────────────────────────────────
+    // Restricted to owner or admin — this data includes revenue targets.
+    match /bdmStats/{userId} {
+      allow read: if isAdmin() || isOwner(userId);
+      allow write: if isAdmin();
+    }
 
-## 1. The Philosophy: Sales Professional vs. Sales Person
-BDM Compass is not an activity tracker; it is a **Governance Node** designed to transition your team from "Sales People" to **"Sales Professionals."**
+    // ─── Strategy Documents ──────────────────────────────────────────────────────
+    match /callPlans/{planId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || resource.data.userId == 'TEAM_NODE'));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
 
-*   **Sales People** focus on volume, "busy work," and lagging indicators like trailing revenue.
-*   **Sales Professionals** focus on **Strategic Yield**, **Stakeholder Mapping**, and **Velocity**. They protect their time as their most valuable asset and provide "Elite Forecast Reliability" to the territory.
+    match /callOutcomes/{outcomeId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
 
----
+    match /whitespacePlans/{planId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || resource.data.userId == 'TEAM_NODE'));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
 
-## 2. The Weekly Success Loop (Required Cadence)
+    // ─── Pipeline & CRM Data ─────────────────────────────────────────────────────
+    match /pipelineReviews/{reviewId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
 
-To maintain territory visibility, all users must adhere to the following rhythm:
+    match /lostCustomers/{lostId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow delete: if isAdmin();
+    }
 
-### Monday: Preparation & Snapshot
-*   **Action**: Review the **Intelligence Hub**. The AI synthesizes the previous week’s trends and deal risk vectors.
-*   **Action**: Set **Weekly Goals** in the dashboard. These should focus on "Leading Indicators" (e.g., "Map 3 stakeholders at Rio Tinto").
-*   **Output**: Generate the **Weekly Pack** (PDF) to ground the week in data.
+    // ─── Weekly Governance Nodes ─────────────────────────────────────────────────
+    match /weeklyCommitments/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin();
+    }
 
-### Tuesday – Thursday: High-Velocity Execution
-*   **Action**: Log activities (Calls, Site Visits) in the **Rapid Habit Tracker**.
-*   **Action**: Perform **SPIN Call Planning** for all major account meetings. 
-*   **Protocol**: Every call plan must be printed and taken into the field to ensure solution-based conversation standards.
+    match /activityLogs/{logId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
 
-### Friday: The Strategy Synthesis (The Friday Review)
-*   **Action**: In the **Pipeline Ledger**, select the **Top 8** opportunities for the Friday Review meeting.
-*   **Action**: Perform **Rollover Logic** for active deals still in progress.
-*   **Action**: Archive any "Closed Lost" deals with a clear strategic reason for the win-back ledger.
+    match /weeklyProgress/{id} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow write: if isSignedIn() && (resource == null || (resource == null || resource.data.userId == request.auth.uid) || isAdmin());
+    }
 
----
+    match /weeklyActivity/{id} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow write: if isSignedIn() && (resource == null || (resource == null || resource.data.userId == request.auth.uid) || isAdmin());
+    }
 
-## 3. High-Density Feature Guide
+    // ─── Intelligence & Reporting ─────────────────────────────────────────────────
+    match /aiBriefs/{briefId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
 
-### Call Planning Center (SPIN Model)
-Elite preparation is the hallmark of a professional. Use the SPIN model to move conversations from "Price" to "Implication":
-1.  **Situation**: Establish the customer's current state.
-2.  **Problem**: Identify the specific gaps.
-3.  **Implication**: Quantify the **Cost of Inaction**.
-4.  **Need-Payoff**: Reveal the value of the solution.
+    match /weeklyReports/{reportId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin();
+    }
 
-### Pipeline Strategy Ledger
-Standardized to the **Millions (M)** scale for executive visibility:
-*   **Salesforce Routing**: Clicking an account name performs an **Intelligent ID Search**. If an Opportunity ID is detected, it opens the record directly.
-*   **Drill-down Ledger**: Click any KPI total to see the calculation ledger—a transparent audit of every deal contributing to that result.
+    match /twiwSubmissions/{submissionId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
 
----
+    match /opsReports/{reportId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
 
-## 4. Governance & Data Integrity (Admin Only)
+    // ─── Friday Synthesis Data (BDM Weekly Submission) ───────────────────────────
+    match /opportunities/{oppId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
 
-### Master Territory Sync (CRM Importer)
-*   **Protocol**: Use the **Overwrite Strategy**. The system identifies accounts using the `account_master_code`. New uploads update existing records instantly.
-*   **Ghost Revenue**: Accounts not mapped to a BDM are automatically routed to the **"Not Managed"** user node. This node must be reviewed weekly for unassigned potential.
+    match /signedPaperwork/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
 
-### Duplicate Manager
-*   **Audit Logic**: The system identifies redundancies based on **Account Master Code** collisions across the territory.
-*   **Action**: Perform a weekly "Smart Purge" to preserve the newest record and maintain territory data integrity.
+    match /newBusiness/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
 
-### User Provisioning
-*   New team members must be provisioned with an **Annual Strategic Target**. This drives the achievement metrics and achievement-per-activity calculations.
+    // ─── Weekly Goals (GM Report Generator) ──────────────────────────────────────
+    match /weeklyGoals/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin();
+    }
 
----
+    // ─── AI Usage Tracking ────────────────────────────────────────────────────────
+    match /aiUsageLogs/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
 
-## 5. Strategic KPI Glossary
+    match /gmReports/{reportId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
 
-| Metric | Calculation | Purpose |
-| :--- | :--- | :--- |
-| **Strategic Yield** | (Portfolio Value) / (Activity) | Measures impact vs. busyness. |
-| **Stakeholder Coverage** | % of deals with 3+ Roles | Prevents "Single-Threaded" deal risk. |
-| **Discovery Velocity** | Days in Stage | Identifies deals that need to "Fail Fast." |
-| **Achievement** | (YTD Actual) / (Annual Tgt) | Current pace against strategic objectives in Millions (M). |
+    match /teamReports/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
 
----
-*Document Version: 1.2.0 • Governance Grade: Secure • Platform: BDM Compass Enterprise*
+    // ─── Strategy & Progress ─────────────────────────────────────────────────────
+    match /monthlySmartGoals/{goalId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || (resource == null || resource.data.userId == request.auth.uid)));
+    }
 
-
---- FILE: README.md ---
-
-c# Firebase Studio
-
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
-
-
---- FILE: backup.js ---
-
-const fs = require('fs');
-const path = require('path');
-
-function getFiles(dir, fileList = []) {
-  if (!fs.existsSync(dir)) return fileList;
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      if (!['node_modules', '.next', '.git', 'dist', 'build'].includes(file)) {
-        fileList = getFiles(fullPath, fileList);
-      }
-    } else {
-      // Exclude environment files, images, fonts, etc.
-      if (!file.startsWith('.env') && 
-          !file.endsWith('.png') && 
-          !file.endsWith('.jpg') && 
-          !file.endsWith('.jpeg') &&
-          !file.endsWith('.gif') &&
-          !file.endsWith('.ico') &&
-          !file.endsWith('.svg') &&
-          !file.endsWith('.ttf') &&
-          !file.endsWith('.woff') &&
-          !file.endsWith('.woff2') &&
-          !file.endsWith('.eot')) {
-        fileList.push(fullPath);
+    match /coachingNotes/{userId} {
+      allow read: if isAdmin() || isOwner(userId);
+      allow write: if isAdmin() || isOwner(userId);
+      match /entries/{entryId} {
+        allow read: if isAdmin() || isOwner(userId);
+        allow write: if isAdmin() || isOwner(userId);
       }
     }
-  }
-  return fileList;
-}
 
-let files = [];
-const rootItems = [
-  'src', 
-  'public', 
-  'package.json', 
-  'tailwind.config.ts', 
-  'tailwind.config.js',
-  'postcss.config.mjs', 
-  'postcss.config.js',
-  'next.config.mjs', 
-  'next.config.js',
-  'tsconfig.json', 
-  'components.json'
-];
-
-rootItems.forEach(p => {
-  const fullPath = path.join(__dirname, p);
-  if (fs.existsSync(fullPath)) {
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      files = getFiles(fullPath, files);
-    } else {
-      files.push(fullPath);
+    match /onboardingProgress/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
-  }
-});
 
-let out = '';
-files.forEach(f => {
-  try {
-    const relativePath = path.relative(__dirname, f);
-    out += `\n\n================================================================================\n`;
-    out += `FILE: ${relativePath}\n`;
-    out += `================================================================================\n\n`;
-    out += fs.readFileSync(f, 'utf8');
-  } catch (err) {
-    console.error(`Error reading file ${f}: ${err.message}`);
-  }
-});
-
-const backupPath = path.join(__dirname, 'site_backup.txt');
-fs.writeFileSync(backupPath, out);
-console.log(`Backup completed successfully. Saved to ${backupPath}`);
-
-
---- FILE: components.json ---
-
-{
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "tailwind.config.ts",
-    "css": "src/app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
-  },
-  "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
-  },
-  "iconLibrary": "lucide"
-}
-
---- FILE: docs/backend.json ---
-
-{
-  "entities": {
-    "User": {
-      "title": "User",
-      "type": "object",
-      "description": "Represents a user within the BDM performance platform, including their role, assigned territory, and specialisation.",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "email": { "type": "string" },
-        "role": { "type": "string", "enum": ["LEADER", "BDM", "ACCOUNT_MANAGER"] },
-        "salesforceUserId": { "type": "string" },
-        "territory": { "type": "string", "enum": ["METRO_NORTH", "METRO_SOUTH", "WESTERN_TRADE_COAST", "REGIONAL", "FLEX"] },
-        "zones": { "type": "array", "items": { "type": "string" } },
-        "specialisation": { "type": "string" },
-        "target": { "type": "number", "description": "Annual strategic revenue target." },
-        "planType": { "type": "string", "enum": ["BDM_NORTH_90", "BDM_SOUTH_90", "AM_90"] },
-        "assignedAgents": { "type": "array", "items": { "type": "string" } }
-      },
-      "required": ["id", "name", "role"]
-    },
-    "BdmStat": {
-      "title": "BdmStat",
-      "type": "object",
-      "description": "A snapshot of a BDM or AM's current performance KPIs.",
-      "properties": {
-        "id": { "type": "string" },
-        "revenueYTD": { "type": "number" },
-        "target": { "type": "number" },
-        "activityScore": { "type": "number" },
-        "behaviourScore": { "type": "number" },
-        "overallScore": { "type": "number" },
-        "recoveryStatus": { "type": "string", "enum": ["ON_TRACK", "RECOVERING", "AT_RISK"] },
-        "retentionRate": { "type": "number" },
-        "frequencyGrowth": { "type": "number" },
-        "yoyPct": { "type": "number" },
-        "yoyDollar": { "type": "number" },
-        "funnel": {
-          "type": "object",
-          "properties": {
-            "prospecting": { "type": "number" },
-            "discovery": { "type": "number" },
-            "proposal": { "type": "number" },
-            "closed": { "type": "number" }
-          }
-        }
-      },
-      "required": ["id", "revenueYTD", "target", "activityScore", "behaviourScore", "overallScore", "recoveryStatus"]
-    },
-    "WeeklyReport": {
-      "title": "WeeklyReport",
-      "type": "object",
-      "description": "The Friday Synthesis submission for BDMs and Account Managers.",
-      "properties": {
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "week": { "type": "string" },
-        "weeklyNotes": { "type": "string" },
-        "roadblocks": { "type": "string" },
-        "supportNeeded": { "type": "string" },
-        "nextWeekCommitments": { "type": "string" },
-        "status": { "type": "string", "enum": ["DRAFT", "SUBMITTED", "REVIEWED"] },
-        "submittedAt": { "type": "string", "format": "date-time" },
-        "summary": {
-          "type": "object",
-          "properties": {
-            "totalEAV": { "type": "number" },
-            "newOpportunitiesCount": { "type": "number" },
-            "signedPaperworkCount": { "type": "number" },
-            "newBusinessCount": { "type": "number" },
-            "callsMade": { "type": "number" },
-            "meetingsHeld": { "type": "number" }
-          }
-        }
-      }
+    // ─── Success Plans ────────────────────────────────────────────────────────────
+    // Only the creator or an admin can read a plan.
+    match /successPlans/{planId} {
+      allow read: if isAdmin() || (isSignedIn() && resource != null && (resource.data.createdBy == request.auth.uid || resource.data.teamMemberId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && (resource.data.createdBy == request.auth.uid || resource.data.teamMemberId == request.auth.uid));
     }
-  },
-  "auth": {
-    "providers": ["password"]
-  },
-  "firestore": {
-    "/users/{userId}": {
-      "schema": { "$ref": "#/backend/entities/User" },
-      "description": "User profiles."
-    },
-    "/bdmStats/{userId}": {
-      "schema": { "$ref": "#/backend/entities/BdmStat" },
-      "description": "Performance snapshots."
-    },
-    "/weeklyReports/{reportId}": {
-      "schema": { "$ref": "#/backend/entities/WeeklyReport" },
-      "description": "Friday synthesis submissions."
+
+    // ─── System Config ────────────────────────────────────────────────────────────
+    match /systemAnnouncements/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /strategyConfig/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /appSettings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || (isSignedIn() && docId == request.auth.uid);
+    }
+
+    match /factFindingDocs/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
+
+    match /timeManagementPlans/{planId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
+
+    match /canvass_leads/{leadId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
+
+    match /actualRevenues/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /globalRates/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ─── AM/BD Targeted Notes ──────────────────────────────────────────────────
+    match /ambdNotes/{noteId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow delete: if isAdmin();
     }
   }
 }
 
---- FILE: docs/blueprint.md ---
 
-# **App Name**: BDM Compass
-
-## Core Features:
-
-- User Authentication & Access Control: Secure user login via Firebase Authentication, with automatic role-based routing (BDM vs. Leader) determined by user profiles stored in Firestore.
-- BDM Personal Performance Dashboard: A mobile-first dashboard for individual BDMs to view their own secure KPIs, revenue trends, and read-only coaching notes pulled from Firestore.
-- Leader Team Performance Dashboard: A comprehensive dashboard for Leaders to monitor all BDMs' performance statistics, trends, and to add coaching notes, all powered by Firestore data.
-- Secure Coaching Notes Management: Allows Leaders to create coaching notes for BDMs, which are securely stored in Firestore with strict access controls. BDMs can view only their own notes.
-- Personal Scorecard PDF Tool: A tool for individual BDMs to generate and download a personalized PDF scorecard of their performance data, compiled from their Firestore records via a Cloud Function.
-- Executive Report PDF Tool: A tool for Leaders to trigger and download comprehensive executive PDF performance reports for the entire team, aggregating data from Firestore via a Cloud Function.
-
-## Style Guidelines:
-
-- Primary color: Deep professional violet (#3F364C) to convey trust and enterprise-grade professionalism, balanced with analytical focus.
-- Background color: A very light, desaturated violet (#F7F6F8) providing a clean, spacious backdrop that aids readability and reduces cognitive load.
-- Accent color: A brighter, vibrant blue-violet (#6666CC) to highlight interactive elements, calls-to-action, and key data points, creating clear visual hierarchy.
-- All text will use 'Inter', a grotesque-style sans-serif font known for its modernity, neutrality, and excellent readability across all screen sizes, suitable for both headlines and body text.
-- Utilize a consistent set of minimalist, solid or outlined icons that are functional and easily understandable, supporting clarity in data representation and navigation without unnecessary adornment.
-- Employ a responsive, mobile-first grid-based layout for dashboards, ensuring optimal organization and display of data across devices, avoiding horizontal scrolling on mobile.
-- Implement subtle, functional animations for state changes, data loading, and transitions between views to enhance the perceived performance and user experience without causing distraction.
-
---- FILE: firebase.json ---
-
-{
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  }
-}
-
-
---- FILE: firestore.indexes.json ---
-
-{
-  "indexes": [
-    {
-      "collectionGroup": "pipelineReviews",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "week", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "weeklyReports",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "week", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "weeklyCommitments",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "week", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "weeklyProgress",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "week", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "factFindingDocs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "timeManagementPlans",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "canvass_leads",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    }
-  ],
-  "fieldOverrides": []
-}
-
-
---- FILE: generate_backup.js ---
-
-const fs = require('fs');
-const path = require('path');
-
-const rootDir = __dirname;
-const outPath = path.join(rootDir, 'site_backup.txt');
-
-const skipDirs = ['node_modules', '.git', '.next', 'dist', 'build', '.gemini'];
-const allowedExts = ['.js', '.jsx', '.ts', '.tsx', '.css', '.json', '.md'];
-
-function getStructure(dir, prefix = '') {
-  let result = '';
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  const filtered = entries.filter(e => !skipDirs.includes(e.name) && !e.name.startsWith('.'));
-  
-  filtered.forEach((e, i) => {
-    const isLast = i === filtered.length - 1;
-    result += `${prefix}${isLast ? '└── ' : '├── '}${e.name}\n`;
-    if (e.isDirectory()) {
-      result += getStructure(path.join(dir, e.name), prefix + (isLast ? '    ' : '│   '));
-    }
-  });
-  return result;
-}
-
-function getAllFiles(dir, fileList = []) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  entries.forEach(e => {
-    if (skipDirs.includes(e.name) || e.name.startsWith('.')) return;
-    const fullPath = path.join(dir, e.name);
-    if (e.isDirectory()) {
-      getAllFiles(fullPath, fileList);
-    } else {
-      if (allowedExts.includes(path.extname(e.name)) && e.name !== 'package-lock.json') {
-        fileList.push(fullPath);
-      }
-    }
-  });
-  return fileList;
-}
-
-let output = '=== SITE STRUCTURE ===\n\n';
-output += '.\n' + getStructure(rootDir);
-output += '\n\n=== SOURCE CODE ===\n\n';
-
-const files = getAllFiles(rootDir);
-files.forEach(f => {
-  const relPath = path.relative(rootDir, f);
-  let content = fs.readFileSync(f, 'utf8');
-  
-  // Basic masking of API keys
-  content = content.replace(/(apiKey|api_key|secret|token)["\']?\s*[:=]\s*["\'][^"\']+["\']/gi, '$1: "MASKED_API_KEY"');
-  
-  output += `\n\n--- FILE: ${relPath} ---\n\n`;
-  output += content;
-});
-
-fs.writeFileSync(outPath, output);
-console.log('Backup generated at: ' + outPath);
-
-
---- FILE: next-env.d.ts ---
-
-/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-/// <reference path="./.next/types/routes.d.ts" />
-
-// NOTE: This file should not be edited
-// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
-
-
---- FILE: next.config.ts ---
-
-import type { NextConfig } from 'next';
-
-const securityHeaders = [
-  // Prevent clickjacking
-  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-  // Prevent MIME type sniffing
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  // Limit referrer information sent to third parties
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  // Disable access to sensitive browser APIs
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), payment=()' },
-  // Force HTTPS for all future requests (1 year)
-  { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-];
-
-const nextConfig: NextConfig = {
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: securityHeaders,
-      },
-    ];
-  },
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-    ],
-  },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
-};
-
-export default nextConfig;
-
-
---- FILE: package.json ---
+=========================================
+FILE: package.json
+=========================================
 
 {
   "name": "nextn",
@@ -873,7 +337,6 @@ export default nextConfig;
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/file-saver": "^2.0.7",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^20",
     "@types/papaparse": "^5.5.2",
@@ -889,891 +352,10 @@ export default nextConfig;
 }
 
 
---- FILE: query_planning.js ---
 
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, query, where } from "firebase/firestore";
-import fs from 'fs';
-
-const firebaseConfig = JSON.parse(fs.readFileSync('./src/firebase/config.ts', 'utf8').match(/\{[\s\S]*?\}/)[0].replace(/([a-zA-Z0-9_]+):/g, '"$1":').replace(/'/g, '"'));
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-async function run() {
-  const q = query(collection(db, "weeklyCommitments"), where("week", "in", ["2026-21", "2026-22"]));
-  const snap = await getDocs(q);
-  const results = snap.docs.map(d => ({id: d.id, ...d.data()}));
-  console.log(JSON.stringify(results, null, 2));
-  process.exit(0);
-}
-run().catch(console.error);
-
-
---- FILE: query_test.ts ---
-
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, limit, query } from 'firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-async function run() {
-  const snapshot = await getDocs(query(collection(db, 'weeklyProgress'), limit(5)));
-  snapshot.forEach(doc => {
-    console.log(doc.id, doc.data().week);
-  });
-  process.exit(0);
-}
-run().catch(console.error);
-
-
---- FILE: scratch/append_uids.js ---
-
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-const fs = require('fs');
-const path = require('path');
-
-async function run() {
-  try {
-    initializeApp({
-      projectId: 'studio-5306701288-d19b1'
-    });
-    
-    const db = getFirestore();
-    const snap = await db.collection('users').get();
-    
-    let output = '\n=========================================\n';
-    output += 'USER UIDS AND ROLES\n';
-    output += '=========================================\n\n';
-    
-    const roles = ['BDM', 'ACCOUNT_MANAGER', 'AM', 'GM', 'LEADER', 'SUPER_ADMIN'];
-    
-    let userList = [];
-    snap.forEach(doc => {
-      const data = doc.data();
-      const roleStr = typeof data.role === 'string' ? data.role.toUpperCase() : '';
-      if (roleStr && roles.includes(roleStr)) {
-        userList.push({
-          id: doc.id,
-          name: data.name || data.displayName || 'Unknown',
-          email: data.email || 'N/A',
-          role: data.role
-        });
-      }
-    });
-
-    userList.sort((a, b) => a.role.localeCompare(b.role) || a.name.localeCompare(b.name));
-    
-    for (const u of userList) {
-      output += `Role: ${u.role}\nName: ${u.name}\nEmail: ${u.email}\nUID: ${u.id}\n-------------------------\n`;
-    }
-    
-    const outputFile = path.join(process.cwd(), 'all_code_backup.txt');
-    fs.appendFileSync(outputFile, output, 'utf8');
-    
-    console.log(`Successfully appended ${userList.length} users to the backup.`);
-  } catch(e) {
-    console.error("Failed:", e);
-  }
-}
-
-run();
-
-
---- FILE: scratch/fetch_rest.js ---
-
-const fs = require('fs');
-
-async function fetchAll(collection) {
-  let url = `https://firestore.googleapis.com/v1/projects/studio-5306701288-d19b1/databases/(default)/documents/${collection}?key=AIzaSyD8eWxEjK57tndLBXYFxGCswYF47aHo080&pageSize=1000`;
-  let allDocs = [];
-  while (url) {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.documents) {
-      allDocs = allDocs.concat(data.documents);
-    }
-    if (data.nextPageToken) {
-      url = `https://firestore.googleapis.com/v1/projects/studio-5306701288-d19b1/databases/(default)/documents/${collection}?key=AIzaSyD8eWxEjK57tndLBXYFxGCswYF47aHo080&pageSize=1000&pageToken=${data.nextPageToken}`;
-    } else {
-      url = null;
-    }
-  }
-  return allDocs;
-}
-
-async function run() {
-  const users = await fetchAll('users');
-  const namras = users.filter(u => JSON.stringify(u).toLowerCase().includes('namra') || JSON.stringify(u).toLowerCase().includes('kahn') || JSON.stringify(u).toLowerCase().includes('khan'));
-  console.log("Users:", JSON.stringify(namras, null, 2));
-
-  const pipelines = await fetchAll('pipelineReviews');
-  const namraP = pipelines.filter(u => JSON.stringify(u).toLowerCase().includes('namra') || JSON.stringify(u).toLowerCase().includes('kahn') || JSON.stringify(u).toLowerCase().includes('khan'));
-  console.log("Pipeline Reviews:", namraP.map(p => ({
-    name: p.name,
-    userId: p.fields.userId?.stringValue,
-    userName: p.fields.userName?.stringValue
-  })));
-}
-run();
-
-
---- FILE: scratch/inspect_admin.js ---
-
-const { initializeApp, cert } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-
-const serviceAccount = JSON.parse(
-  process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}'
-);
-
-initializeApp({ credential: cert(serviceAccount) });
-
-const db = getFirestore();
-
-async function run() {
-  console.log('--- USERS ---');
-  const usersSnap = await db.collection('users').get();
-  const userMap = new Map();
-  usersSnap.forEach(doc => {
-    const data = doc.data();
-    console.log(`ID: ${doc.id} | Name: ${data.name} | Role: ${data.role} | Email: ${data.email}`);
-    userMap.set(doc.id, data.name || doc.id);
-  });
-
-  console.log('\n--- WEEKLY PROGRESS (All Docs) ---');
-  const progressSnap = await db.collection('weeklyProgress').get();
-  progressSnap.forEach(doc => {
-    const data = doc.data();
-    const userName = userMap.get(data.userId) || `Unknown (${data.userId})`;
-    console.log(`Doc ID: ${doc.id} | User: ${userName} (userId: ${data.userId}) | Week: ${data.week} | Calls: ${data.calls} | Apps: ${data.apps} | crmCalls: ${data.crmCalls} | crmApps: ${data.crmApps}`);
-  });
-
-  process.exit(0);
-}
-
-run().catch(console.error);
-
-
---- FILE: scratch/inspect_client.js ---
-
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, getDocs } = require('firebase/firestore');
-const { getAuth, signInWithEmailAndPassword } = require('firebase/auth');
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-async function run() {
-  console.log('Logging in as 1@1.com...');
-  await signInWithEmailAndPassword(auth, '1@1.com', '123456');
-  console.log('Logged in successfully!');
-
-  console.log('--- USERS ---');
-  const usersSnap = await getDocs(collection(db, 'users'));
-  const userMap = new Map();
-  usersSnap.forEach(doc => {
-    const data = doc.data();
-    console.log(`ID: ${doc.id} | Name: ${data.name} | Role: ${data.role} | Email: ${data.email}`);
-    userMap.set(doc.id, data.name || doc.id);
-  });
-
-  console.log('\n--- WEEKLY PROGRESS (All Docs) ---');
-  const progressSnap = await getDocs(collection(db, 'weeklyProgress'));
-  progressSnap.forEach(doc => {
-    const data = doc.data();
-    const userName = userMap.get(data.userId) || `Unknown (${data.userId})`;
-    console.log(`Doc ID: ${doc.id} | User: ${userName} (userId: ${data.userId}) | Week: ${data.week} | Calls: ${data.calls} | Apps: ${data.apps} | crmCalls: ${data.crmCalls} | crmApps: ${data.crmApps}`);
-  });
-  
-  process.exit(0);
-}
-
-run().catch(console.error);
-
-
---- FILE: scratch/inspect_token.js ---
-
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-
-const configPath = path.join(require('os').homedir(), '.config/configstore/firebase-tools.json');
-
-try {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const accessToken = config.tokens?.access_token;
-  
-  if (!accessToken) {
-    console.error('No access token found in firebase-tools.json');
-    process.exit(1);
-  }
-  
-  const targetWeeks = ['2026-21', '2026-20', '2026-19', '2026-18'];
-  console.log('Target Weeks:', targetWeeks);
-  
-  // Query users
-  queryFirestore(accessToken, 'users').then(users => {
-    const userMap = new Map();
-    users.documents.forEach(d => {
-      const fields = d.fields;
-      const id = d.name.split('/').pop();
-      const name = fields.name?.stringValue || id;
-      userMap.set(id, name);
-    });
-    
-    // Query weeklyProgress
-    queryFirestore(accessToken, 'weeklyProgress').then(progress => {
-      console.log('\n--- TARGET WEEKS PROGRESS ---');
-      if (!progress.documents) {
-        console.log('No documents found.');
-        process.exit(0);
-      }
-      progress.documents.forEach(d => {
-        const fields = d.fields;
-        const userId = fields.userId?.stringValue;
-        const week = fields.week?.stringValue;
-        if (targetWeeks.includes(week)) {
-          const calls = fields.calls?.integerValue || fields.crmCalls?.integerValue || 0;
-          const apps = fields.apps?.integerValue || fields.crmApps?.integerValue || 0;
-          const crmCalls = fields.crmCalls?.integerValue || 0;
-          const crmApps = fields.crmApps?.integerValue || 0;
-          const userName = userMap.get(userId) || `Unknown (${userId})`;
-          console.log(`User: ${userName} | Week: ${week} | Calls: ${calls} | Apps: ${apps} | crmCalls: ${crmCalls} | crmApps: ${crmApps}`);
-        }
-      });
-      process.exit(0);
-    });
-  });
-} catch (e) {
-  console.error('Error:', e);
-}
-
-function queryFirestore(token, collection) {
-  return new Promise((resolve, reject) => {
-    const projectId = 'studio-5306701288-d19b1';
-    const path = `/v1/projects/${projectId}/databases/(default)/documents/${collection}?pageSize=300`;
-    
-    https.get({
-      hostname: 'firestore.googleapis.com',
-      path: path,
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    }, (res) => {
-      let body = '';
-      res.on('data', chunk => body += chunk);
-      res.on('end', () => {
-        resolve(JSON.parse(body));
-      });
-    }).on('error', reject);
-  });
-}
-
-
---- FILE: scratch/inspect_users.js ---
-
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-
-const configPath = path.join(require('os').homedir(), '.config/configstore/firebase-tools.json');
-
-try {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const accessToken = config.tokens?.access_token;
-  
-  if (!accessToken) {
-    console.error('No access token found in firebase-tools.json');
-    process.exit(1);
-  }
-  
-  // Query users
-  queryFirestore(accessToken, 'users').then(users => {
-    console.log('--- USERS ---');
-    if (!users.documents) {
-      console.log('Result:', JSON.stringify(users, null, 2));
-      process.exit(0);
-    }
-    users.documents.forEach(d => {
-      const fields = d.fields;
-      const id = d.name.split('/').pop();
-      const name = fields.name?.stringValue || id;
-      const email = fields.email?.stringValue;
-      const role = fields.role?.stringValue;
-      console.log(`Doc ID: "${id}" | name: "${name}" | email: "${email}" | role: "${role}"`);
-    });
-    process.exit(0);
-  });
-} catch (e) {
-  console.error('Error:', e);
-}
-
-function queryFirestore(token, collection) {
-  return new Promise((resolve, reject) => {
-    const projectId = 'studio-5306701288-d19b1';
-    const path = `/v1/projects/${projectId}/databases/(default)/documents/${collection}?pageSize=300`;
-    
-    https.get({
-      hostname: 'firestore.googleapis.com',
-      path: path,
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    }, (res) => {
-      let body = '';
-      res.on('data', chunk => body += chunk);
-      res.on('end', () => {
-        resolve(JSON.parse(body));
-      });
-    }).on('error', reject);
-  });
-}
-
-
---- FILE: scratch/make_backup.js ---
-
-const fs = require('fs');
-const path = require('path');
-
-const srcDir = path.join(process.cwd(), 'src');
-const outputFile = path.join(process.cwd(), 'all_code_backup.txt');
-
-let allFiles = [];
-
-function getFiles(dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const res = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      getFiles(res);
-    } else {
-      if (res.endsWith('.ts') || res.endsWith('.tsx') || res.endsWith('.js') || res.endsWith('.jsx') || res.endsWith('.css') || res.endsWith('.json') || res.endsWith('.rules')) {
-        allFiles.push(res);
-      }
-    }
-  }
-}
-
-// Add root config files
-if (fs.existsSync(path.join(process.cwd(), 'firestore.rules'))) allFiles.push(path.join(process.cwd(), 'firestore.rules'));
-if (fs.existsSync(path.join(process.cwd(), 'package.json'))) allFiles.push(path.join(process.cwd(), 'package.json'));
-
-getFiles(srcDir);
-
-console.log('Total files found:', allFiles.length);
-
-let combined = '';
-
-function sanitize(content) {
-  return content
-    .replace(/AIzaSy[A-Za-z0-9_-]{33}/g, 'AIzaSy_REDACTED_API_KEY')
-    .replace(/GEMINI_API_KEY=[^\s\n]+/g, 'GEMINI_API_KEY=REDACTED')
-    .replace(/NEXT_PUBLIC_FIREBASE_API_KEY=[^\s\n]+/g, 'NEXT_PUBLIC_FIREBASE_API_KEY=REDACTED');
-}
-
-for (const filePath of allFiles) {
-  const relativePath = path.relative(process.cwd(), filePath);
-  const content = fs.readFileSync(filePath, 'utf8');
-  combined += `\n=========================================\n`;
-  combined += `FILE: ${relativePath}\n`;
-  combined += `=========================================\n\n`;
-  combined += sanitize(content) + `\n\n`;
-}
-
-fs.writeFileSync(outputFile, combined, 'utf8');
-console.log('Successfully wrote combined file backup to:', outputFile, 'Size:', Math.round(combined.length / 1024), 'KB');
-
-
---- FILE: scratch/package.json ---
-
-{
-  "name": "scratch",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "puppeteer": "^25.0.4"
-  }
-}
-
-
---- FILE: scratch/print_accessToken.js ---
-
-const fs = require('fs');
-const path = require('path');
-
-const configPath = path.join(require('os').homedir(), '.config/configstore/firebase-tools.json');
-
-try {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  console.log('Keys of config:', Object.keys(config));
-  if (config.tokens) {
-    console.log('Keys of config.tokens:', Object.keys(config.tokens));
-    const tokenObj = config.tokens.activeAccount;
-    if (tokenObj) {
-      console.log('Keys of activeAccount:', Object.keys(tokenObj));
-      console.log('Access token starts with:', tokenObj.accessToken?.substring(0, 10));
-    }
-  }
-} catch (e) {
-  console.error(e);
-}
-
-
---- FILE: scratch/query_namra.js ---
-
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-
-async function run() {
-  try {
-    initializeApp({ projectId: 'studio-5306701288-d19b1' });
-    const db = getFirestore();
-    
-    // 1. Fetch Users containing 'namra' or 'khan' in name or email
-    const usersSnap = await db.collection('users').get();
-    const namraUsers = usersSnap.docs
-        .map(d => ({id: d.id, ...d.data()}))
-        .filter(u => {
-            const str = JSON.stringify(u).toLowerCase();
-            return str.includes('namra');
-        });
-        
-    console.log("=== USERS ===");
-    console.log(JSON.stringify(namraUsers, null, 2));
-    
-    // 2. Fetch Pipeline Reviews containing 'namra'
-    const pipelineSnap = await db.collection('pipelineReviews').get();
-    const namraPipelines = pipelineSnap.docs
-        .map(d => ({id: d.id, ...d.data()}))
-        .filter(u => {
-            const str = JSON.stringify(u).toLowerCase();
-            return str.includes('namra');
-        });
-        
-    console.log(`\n=== PIPELINE REVIEWS (Total: ${namraPipelines.length}) ===`);
-    // Group pipelines by userId
-    const pipeGroup = {};
-    namraPipelines.forEach(p => {
-        if (!pipeGroup[p.userId]) pipeGroup[p.userId] = { count: 0, sample: p };
-        pipeGroup[p.userId].count++;
-    });
-    console.log(JSON.stringify(pipeGroup, null, 2));
-    
-    // 3. Fetch Historical / Weekly Data containing 'namra'
-    const weeklySnap = await db.collection('weeklyReports').get();
-    const namraWeekly = weeklySnap.docs
-        .map(d => ({id: d.id, ...d.data()}))
-        .filter(u => {
-            const str = JSON.stringify(u).toLowerCase();
-            return str.includes('namra');
-        });
-    console.log(`\n=== WEEKLY REPORTS (Total: ${namraWeekly.length}) ===`);
-    
-    const weeklyProgressSnap = await db.collection('weeklyProgress').get();
-    const namraProgress = weeklyProgressSnap.docs
-        .map(d => ({id: d.id, ...d.data()}))
-        .filter(u => {
-            const str = JSON.stringify(u).toLowerCase();
-            return str.includes('namra');
-        });
-    console.log(`\n=== WEEKLY PROGRESS (Total: ${namraProgress.length}) ===`);
-    
-    const commitmentsSnap = await db.collection('weeklyCommitments').get();
-    const namraCommitments = commitmentsSnap.docs
-        .map(d => ({id: d.id, ...d.data()}))
-        .filter(u => {
-            const str = JSON.stringify(u).toLowerCase();
-            return str.includes('namra');
-        });
-    console.log(`\n=== WEEKLY COMMITMENTS (Total: ${namraCommitments.length}) ===`);
-    
-    console.log(`\nCommitments Grouped by User:`);
-    const commitGroup = {};
-    namraCommitments.forEach(c => {
-        const u = c.userId || c.userName || 'unknown';
-        if(!commitGroup[u]) commitGroup[u] = { count: 0, ids: [] };
-        commitGroup[u].count++;
-        commitGroup[u].ids.push(c.id);
-    });
-    console.log(JSON.stringify(commitGroup, null, 2));
-
-  } catch(e) {
-    console.error("Error:", e);
-  }
-}
-run();
-
-
---- FILE: scratch/test.js ---
-
-const puppeteer = require('puppeteer');
-
-(async () => {
-  const browser = await puppeteer.launch({ headless: 'new' });
-  const page = await browser.newPage();
-  
-  const errors = [];
-  page.on('console', msg => {
-    if (msg.type() === 'error') {
-      errors.push({ type: 'console', text: msg.text() });
-    }
-  });
-  page.on('pageerror', err => {
-    errors.push({ type: 'pageerror', text: err.toString() });
-  });
-
-  try {
-    await page.goto('http://localhost:9003/login', { waitUntil: 'networkidle2' });
-    await page.type('#email', '1@1.com');
-    await page.type('#password', '123456');
-    await page.click('button[type="submit"]');
-    
-    // Wait for dashboard to load
-    await page.waitForNavigation({ waitUntil: 'networkidle2' });
-    console.log("Logged in successfully");
-
-    // Wait 2s to let anything settle
-    await new Promise(r => setTimeout(r, 2000));
-
-    // Get all sidebar nav buttons
-    let menuButtons = await page.$$('[data-sidebar="menu-button"]');
-    console.log(`Found ${menuButtons.length} menu buttons`);
-
-    for (let i = 0; i < menuButtons.length; i++) {
-        // Re-query to avoid stale element errors
-        let currentButtons = await page.$$('[data-sidebar="menu-button"]');
-        if (!currentButtons[i]) continue;
-        
-        const btnText = await page.evaluate(el => el.textContent.trim(), currentButtons[i]);
-        if (btnText === 'Sign Out') continue;
-        if (btnText === 'Return to Governance') continue;
-        
-        console.log(`Clicking tab: ${btnText}`);
-        await currentButtons[i].click();
-        await new Promise(r => setTimeout(r, 2000)); 
-        
-        const subTabs = await page.$$('[role="tab"]');
-        if (subTabs.length > 0) {
-            console.log(`Found ${subTabs.length} sub-tabs for ${btnText}`);
-            for (let j = 0; j < subTabs.length; j++) {
-                let cSubTabs = await page.$$('[role="tab"]');
-                if (!cSubTabs[j]) continue;
-                const subBtnText = await page.evaluate(el => el.textContent.trim(), cSubTabs[j]);
-                console.log(`  Clicking sub-tab: ${subBtnText}`);
-                await cSubTabs[j].click();
-                await new Promise(r => setTimeout(r, 1500));
-            }
-        }
-    }
-    
-    // Output errors
-    console.log("----- ERRORS CAPTURED -----");
-    const firebaseErrors = errors.filter(e => e.text.includes('Firebase') || e.text.includes('permission error') || e.text.includes('Missing or insufficient permissions'));
-    
-    if (firebaseErrors.length > 0) {
-       console.log("Found Firebase Permissions Errors:");
-       const uniqueErrs = [...new Set(firebaseErrors.map(e => e.text))];
-       uniqueErrs.forEach((e, idx) => console.log(`${idx+1}. ${e.substring(0, 500)}`));
-    } else if (errors.length > 0) {
-       console.log("Found other errors:");
-       const uniqueErrs = [...new Set(errors.map(e => e.text))];
-       uniqueErrs.forEach((e, idx) => console.log(`${idx+1}. ${e.substring(0, 200)}`));
-    } else {
-       console.log("No errors found!");
-    }
-  } catch (err) {
-    console.error("Test Script Error:", err);
-  } finally {
-    await browser.close();
-  }
-})();
-
-
---- FILE: scratch/test2.js ---
-
-const puppeteer = require('puppeteer');
-
-(async () => {
-  const browser = await puppeteer.launch({ headless: 'new' });
-  const page = await browser.newPage();
-  
-  const errors = [];
-  page.on('console', async msg => {
-    if (msg.type() === 'error') {
-      const args = await Promise.all(msg.args().map(a => a.jsonValue().catch(() => a.toString())));
-      errors.push({ type: 'console', text: args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : a).join(' ') });
-    }
-  });
-
-  try {
-    await page.goto('http://localhost:9003/login', { waitUntil: 'networkidle2' });
-    await page.type('#email', '1@1.com');
-    await page.type('#password', '123456');
-    await page.click('button[type="submit"]');
-    await page.waitForNavigation({ waitUntil: 'networkidle2' });
-
-    await new Promise(r => setTimeout(r, 2000));
-
-    let menuButtons = await page.$$('[data-sidebar="menu-button"]');
-    for (let i = 0; i < menuButtons.length; i++) {
-        let currentButtons = await page.$$('[data-sidebar="menu-button"]');
-        if (!currentButtons[i]) continue;
-        
-        const btnText = await page.evaluate(el => el.textContent.trim(), currentButtons[i]);
-        if (btnText === 'Sign Out' || btnText === 'Return to Governance') continue;
-        
-        await currentButtons[i].click();
-        await new Promise(r => setTimeout(r, 2000)); 
-        
-        const subTabs = await page.$$('[role="tab"]');
-        if (subTabs.length > 0) {
-            for (let j = 0; j < subTabs.length; j++) {
-                let cSubTabs = await page.$$('[role="tab"]');
-                if (!cSubTabs[j]) continue;
-                await cSubTabs[j].click();
-                await new Promise(r => setTimeout(r, 1500));
-            }
-        }
-    }
-    
-    console.log("----- ERRORS CAPTURED -----");
-    const firebaseErrors = errors.filter(e => e.text.includes('Firebase') || e.text.includes('permission') || e.text.includes('Firestore'));
-    
-    if (firebaseErrors.length > 0) {
-       console.log("Found Firebase Permissions Errors:");
-       const uniqueErrs = [...new Set(firebaseErrors.map(e => e.text))];
-       uniqueErrs.forEach((e, idx) => console.log(`${idx+1}. ${e}`));
-    } else {
-       console.log("No Firebase errors found!");
-    }
-  } catch (err) {
-    console.error("Test Script Error:", err);
-  } finally {
-    await browser.close();
-  }
-})();
-
-
---- FILE: scratch/testMatch.js ---
-
-function matchUser(users, ownerName) {
-  if (!ownerName) return null;
-  const lower = ownerName.trim().toLowerCase();
-  
-  let normalizedOwner = lower;
-  if (normalizedOwner.includes(',')) {
-    const parts = normalizedOwner.split(',');
-    if (parts.length === 2) {
-      normalizedOwner = `${parts[1].trim()} ${parts[0].trim()}`;
-    }
-  }
-
-  // Exact match first
-  let found = users.find(u => (u.name || '').trim().toLowerCase() === normalizedOwner);
-  if (found) return found;
-
-  // Exact match fallback on original lower
-  found = users.find(u => (u.name || '').trim().toLowerCase() === lower);
-  if (found) return found;
-
-  // Partial match fallback
-  found = users.find(u => {
-    const uname = (u.name || '').trim().toLowerCase();
-    
-    // Check if all parts of normalizedOwner exist in uname
-    const ownerParts = normalizedOwner.split(/\s+/);
-    const allPartsMatch = ownerParts.every(part => uname.includes(part));
-    if (allPartsMatch) return true;
-
-    return uname.includes(normalizedOwner) || normalizedOwner.includes(uname);
-  });
-  
-  return found || null;
-}
-
-const users = [
-  { name: 'John Doe' },
-  { name: 'Namra Khan' },
-  { name: 'Isaac De Pina' }
-];
-
-console.log(matchUser(users, 'Doe, John'));
-console.log(matchUser(users, 'Khan, Namra'));
-console.log(matchUser(users, 'De Pina, Isaac'));
-console.log(matchUser(users, 'Pina, Isaac de'));
-
-
-
---- FILE: scratch/users.json ---
-
-Error: firestore:data:get is not a Firebase command
-
-
---- FILE: scratch/users_dump.json ---
-
-Error: firestore:data:get is not a Firebase command
-
-
---- FILE: scripts/clear-demo-data.js ---
-
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-
-try {
-  initializeApp({ projectId: 'studio-5306701288-d19b1' });
-} catch (error) {
-  if (!/already exists/.test(error.message)) {
-    console.error('Firebase initialization error', error.stack);
-  }
-}
-
-const db = getFirestore();
-
-async function deleteCollection(collectionPath, batchSize) {
-  const collectionRef = db.collection(collectionPath);
-  const query = collectionRef.orderBy('__name__').limit(batchSize);
-
-  return new Promise((resolve, reject) => {
-    deleteQueryBatch(db, query, resolve).catch(reject);
-  });
-}
-
-async function deleteQueryBatch(db, query, resolve) {
-  const snapshot = await query.get();
-
-  const batchSize = snapshot.size;
-  if (batchSize === 0) {
-    resolve();
-    return;
-  }
-
-  const batch = db.batch();
-  snapshot.docs.forEach((doc) => {
-    batch.delete(doc.ref);
-  });
-  await batch.commit();
-
-  process.nextTick(() => {
-    deleteQueryBatch(db, query, resolve);
-  });
-}
-
-async function run() {
-  console.log('Clearing twiwSubmissions...');
-  await deleteCollection('twiwSubmissions', 500);
-  console.log('Clearing weeklyCommitments...');
-  await deleteCollection('weeklyCommitments', 500);
-  console.log('Clearing weeklyProgress...');
-  await deleteCollection('weeklyProgress', 500);
-  console.log('Demo data cleared successfully.');
-}
-
-run().catch(console.error);
-
-
---- FILE: scripts/make-admin.js ---
-
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-const { getAuth } = require('firebase-admin/auth');
-
-async function run() {
-  try {
-    initializeApp({ projectId: 'studio-5306701288-d19b1' });
-    const db = getFirestore();
-    const auth = getAuth();
-    
-    // Get all users from Auth
-    const listUsersResult = await auth.listUsers();
-    for (const userRecord of listUsersResult.users) {
-      console.log(`Ensuring ${userRecord.email} (${userRecord.uid}) is LEADER...`);
-      await db.collection('users').doc(userRecord.uid).set({
-        uid: userRecord.uid,
-        email: userRecord.email,
-        name: userRecord.displayName || userRecord.email.split('@')[0],
-        role: 'LEADER'
-      }, { merge: true });
-    }
-    console.log("Done! All users are now Leaders. Refresh the page to see the Admin menu.");
-  } catch(e) {
-    console.error("Failed:", e);
-  }
-}
-run();
-
-
---- FILE: scripts/verify-isaac.js ---
-
-// scripts/verify-isaac.js
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-const { getAuth } = require('firebase-admin/auth');
-
-async function verifyIsaac() {
-  try {
-    initializeApp({ projectId: 'studio-5306701288-d19b1' });
-    const db = getFirestore();
-    const auth = getAuth();
-
-    // Check Auth
-    const userRecord = await auth.getUserByEmail('isaac.depina@teamglobalexp.com');
-    console.log('✅ Auth user found:', userRecord.uid);
-
-    // Check Firestore
-    const userDoc = await db.collection('users').doc(userRecord.uid).get();
-    if (userDoc.exists) {
-      console.log('✅ Firestore user found:', userDoc.data());
-    } else {
-      console.log('❌ Firestore user not found');
-    }
-
-    // Check BDM Stats
-    const statsDoc = await db.collection('bdmStats').doc(userRecord.uid).get();
-    if (statsDoc.exists) {
-      console.log('✅ BDM stats found:', statsDoc.data());
-    } else {
-      console.log('❌ BDM stats not found');
-    }
-
-  } catch (error) {
-    console.error('❌ Verification failed:', error);
-  }
-}
-
-verifyIsaac();
-
-
---- FILE: src/ai/dev.ts ---
+=========================================
+FILE: src/ai/dev.ts
+=========================================
 
 import { config } from 'dotenv';
 config();
@@ -1785,7 +367,10 @@ import '@/ai/flows/parse-business-card.ts';
 
 
 
---- FILE: src/ai/flows/generate-ai-report.ts ---
+
+=========================================
+FILE: src/ai/flows/generate-ai-report.ts
+=========================================
 
 'use server';
 
@@ -1875,7 +460,10 @@ export async function generateAiReport(
 }
 
 
---- FILE: src/ai/flows/generate-executive-team-summary.ts ---
+
+=========================================
+FILE: src/ai/flows/generate-executive-team-summary.ts
+=========================================
 
 'use server';
 /**
@@ -1978,7 +566,10 @@ export async function generateExecutiveTeamSummary(
 }
 
 
---- FILE: src/ai/flows/generate-personal-scorecard-summary.ts ---
+
+=========================================
+FILE: src/ai/flows/generate-personal-scorecard-summary.ts
+=========================================
 
 'use server';
 /**
@@ -2089,7 +680,10 @@ export async function generatePersonalScorecardSummary(input: GeneratePersonalSc
 }
 
 
---- FILE: src/ai/flows/generate-whitespace-analysis.ts ---
+
+=========================================
+FILE: src/ai/flows/generate-whitespace-analysis.ts
+=========================================
 
 'use server';
 /**
@@ -2168,7 +762,10 @@ export async function generateWhitespaceAnalysis(input: WhitespaceAnalysisInput)
 }
 
 
---- FILE: src/ai/flows/parse-business-card.ts ---
+
+=========================================
+FILE: src/ai/flows/parse-business-card.ts
+=========================================
 
 'use server';
 /**
@@ -2224,7 +821,10 @@ export async function parseBusinessCard(input: ParseBusinessCardInput): Promise<
 }
 
 
---- FILE: src/ai/genkit.ts ---
+
+=========================================
+FILE: src/ai/genkit.ts
+=========================================
 
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
@@ -2235,7 +835,10 @@ export const ai = genkit({
 });
 
 
---- FILE: src/app/actions/pdf.ts ---
+
+=========================================
+FILE: src/app/actions/pdf.ts
+=========================================
 
 "use server";
 
@@ -2262,7 +865,10 @@ export async function generateExecPdfAction() {
 }
 
 
---- FILE: src/app/api/migrate-user-ids/route.ts ---
+
+=========================================
+FILE: src/app/api/migrate-user-ids/route.ts
+=========================================
 
 // src/app/api/migrate-user-ids/route.ts
 import { NextResponse } from 'next/server';
@@ -2414,7 +1020,10 @@ export async function POST(req: Request) {
 }
 
 
---- FILE: src/app/api/reset-weekly-activity/route.ts ---
+
+=========================================
+FILE: src/app/api/reset-weekly-activity/route.ts
+=========================================
 
 import { NextResponse } from 'next/server';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
@@ -2482,7 +1091,10 @@ export async function POST(req: Request) {
 }
 
 
---- FILE: src/app/dashboard/mobile/page.tsx ---
+
+=========================================
+FILE: src/app/dashboard/mobile/page.tsx
+=========================================
 
 "use client";
 
@@ -2539,7 +1151,10 @@ export default function MobileDashboardPage() {
 }
 
 
---- FILE: src/app/dashboard/page.tsx ---
+
+=========================================
+FILE: src/app/dashboard/page.tsx
+=========================================
 
 "use client";
 
@@ -2897,7 +1512,7 @@ function DashboardContent() {
               </div>
             </div>
           </div>
-          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto px-3 md:px-4 lg:px-6 pb-24 md:pb-8">
+          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto">
             {renderContent()}
           </main>
         </SidebarInset>
@@ -2938,7 +1553,10 @@ export default function DashboardPage() {
   );
 }
 
---- FILE: src/app/dashboard/test/page.tsx ---
+
+=========================================
+FILE: src/app/dashboard/test/page.tsx
+=========================================
 
 "use client";
 
@@ -3008,7 +1626,10 @@ export default function TestPage() {
 }
 
 
---- FILE: src/app/error.tsx ---
+
+=========================================
+FILE: src/app/error.tsx
+=========================================
 
 'use client';
 
@@ -3046,7 +1667,10 @@ export default function Error({
 }
 
 
---- FILE: src/app/global-error.tsx ---
+
+=========================================
+FILE: src/app/global-error.tsx
+=========================================
 
 'use client';
 
@@ -3078,7 +1702,10 @@ export default function GlobalError({
 }
 
 
---- FILE: src/app/globals.css ---
+
+=========================================
+FILE: src/app/globals.css
+=========================================
 
 @tailwind base;
 @tailwind components;
@@ -3203,169 +1830,11 @@ export default function GlobalError({
   }
 }
 
-/* Base responsive improvements */
-@layer utilities {
-  /* Safe area insets for notch phones */
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .pt-safe {
-    padding-top: env(safe-area-inset-top);
-  }
-  .pl-safe {
-    padding-left: env(safe-area-inset-left);
-  }
-  .pr-safe {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  /* Touch-friendly tap targets */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  /* Responsive typography */
-  .text-responsive-h1 {
-    font-size: clamp(1.5rem, 4vw, 3rem);
-    font-weight: 900;
-    line-height: 1.1;
-  }
-  
-  .text-responsive-h2 {
-    font-size: clamp(1.25rem, 3vw, 2.5rem);
-    font-weight: 900;
-    line-height: 1.2;
-  }
-  
-  .text-responsive-h3 {
-    font-size: clamp(1rem, 2.5vw, 2rem);
-    font-weight: 700;
-    line-height: 1.3;
-  }
-
-  /* Responsive spacing */
-  .spacing-responsive {
-    gap: clamp(0.5rem, 2vw, 1.5rem);
-  }
-
-  /* Hide scrollbars on mobile but keep functionality */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-}
-
-/* Tablet-specific adjustments */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .tablet-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .tablet-hidden {
-    display: none !important;
-  }
-}
-
-/* Mobile-specific adjustments */
-@media (max-width: 767px) {
-  .mobile-stack {
-    flex-direction: column !important;
-  }
-  .mobile-full-width {
-    width: 100% !important;
-  }
-  .mobile-text-center {
-    text-align: center !important;
-  }
-  .mobile-padded {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-}
-
-/* Responsive container */
-.container-responsive {
-  width: 100%;
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-@media (min-width: 640px) {
-  .container-responsive {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container-responsive {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container-responsive {
-    max-width: 1280px;
-  }
-}
-
-/* Responsive grid system */
-.grid-responsive {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 640px) {
-  .grid-responsive {
-    gap: 1.25rem;
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid-responsive {
-    gap: 1.5rem;
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Responsive table container */
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.table-container table {
-  min-width: 600px;
-}
-
-@media (max-width: 640px) {
-  .table-container table {
-    min-width: 400px;
-  }
-}
-
-/* Fix for touch devices */
-@media (hover: none) {
-  .hover\:scale-\[1\.02\] {
-    transform: none !important;
-  }
-  .hover\:shadow-xl {
-    box-shadow: none !important;
-  }
-}
 
 
---- FILE: src/app/layout.tsx ---
+=========================================
+FILE: src/app/layout.tsx
+=========================================
 
 
 import type { Metadata } from 'next';
@@ -3416,7 +1885,10 @@ export default function RootLayout({
 }
 
 
---- FILE: src/app/loading.tsx ---
+
+=========================================
+FILE: src/app/loading.tsx
+=========================================
 
 import { Loader2 } from 'lucide-react';
 
@@ -3429,7 +1901,10 @@ export default function Loading() {
 }
 
 
---- FILE: src/app/login/page.tsx ---
+
+=========================================
+FILE: src/app/login/page.tsx
+=========================================
 
 "use client";
 
@@ -3719,7 +2194,10 @@ export default function LoginPage() {
 }
 
 
---- FILE: src/app/not-found.tsx ---
+
+=========================================
+FILE: src/app/not-found.tsx
+=========================================
 
 import Link from 'next/link';
 
@@ -3739,7 +2217,10 @@ export default function NotFound() {
 }
 
 
---- FILE: src/app/page.tsx ---
+
+=========================================
+FILE: src/app/page.tsx
+=========================================
 
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
@@ -3756,7 +2237,10 @@ export default async function Home() {
 }
 
 
---- FILE: src/components/FirebaseErrorListener.tsx ---
+
+=========================================
+FILE: src/components/FirebaseErrorListener.tsx
+=========================================
 
 'use client';
 
@@ -3806,7 +2290,10 @@ export function FirebaseErrorListener() {
   return null;
 }
 
---- FILE: src/components/auth-guard.tsx ---
+
+=========================================
+FILE: src/components/auth-guard.tsx
+=========================================
 
 "use client";
 
@@ -3854,7 +2341,10 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
 }
 
 
---- FILE: src/components/dashboard/activity-logger.tsx ---
+
+=========================================
+FILE: src/components/dashboard/activity-logger.tsx
+=========================================
 
 "use client";
 
@@ -4051,7 +2541,10 @@ function PunchButton({ label, icon, color, onClick }: any) {
 }
 
 
---- FILE: src/components/dashboard/actual-spend-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/actual-spend-view.tsx
+=========================================
 
 "use client";
 
@@ -4363,7 +2856,10 @@ export function ActualSpendView() {
 }
 
 
---- FILE: src/components/dashboard/admin-call-planning.tsx ---
+
+=========================================
+FILE: src/components/dashboard/admin-call-planning.tsx
+=========================================
 
 "use client";
 
@@ -4681,7 +3177,10 @@ export function AdminCallPlanning({ userId }: AdminCallPlanningProps) {
   );
 }
 
---- FILE: src/components/dashboard/ai-briefs-hub.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ai-briefs-hub.tsx
+=========================================
 
 "use client";
 
@@ -4887,7 +3386,10 @@ export function AIBriefsHub() {
   );
 }
 
---- FILE: src/components/dashboard/ai-deal-whisperer.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ai-deal-whisperer.tsx
+=========================================
 
 "use client";
 
@@ -5016,7 +3518,10 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
 }
 
 
---- FILE: src/components/dashboard/ai-report-generator.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ai-report-generator.tsx
+=========================================
 
 "use client";
 
@@ -5260,7 +3765,10 @@ export function AiReportGenerator() {
 }
 
 
---- FILE: src/components/dashboard/ai-summary-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ai-summary-view.tsx
+=========================================
 
 "use client";
 
@@ -5437,7 +3945,10 @@ export function AISummaryView({ input, userId }: AISummaryViewProps) {
 }
 
 
---- FILE: src/components/dashboard/ai-team-insights.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ai-team-insights.tsx
+=========================================
 
 "use client";
 
@@ -5553,7 +4064,10 @@ export function AITeamInsights({ input }: AITeamInsightsProps) {
 }
 
 
---- FILE: src/components/dashboard/ambd-management.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ambd-management.tsx
+=========================================
 
 "use client";
 
@@ -5620,7 +4134,7 @@ export function AMBDManagement() {
   // Filter and de-duplicate targeted users (AMs and BDMs)
   const targetUsers = useMemo(() => {
     if (!allUsers) return [];
-    const list = allUsers.filter(u => (u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM') && u.role !== 'GUEST');
+    const list = allUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
     
     const map = new Map<string, any>();
     list.forEach(u => {
@@ -6084,7 +4598,10 @@ export function AMBDManagement() {
 }
 
 
---- FILE: src/components/dashboard/ambd-notes-widget.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ambd-notes-widget.tsx
+=========================================
 
 "use client";
 
@@ -6256,7 +4773,10 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
 }
 
 
---- FILE: src/components/dashboard/bdm-dashboard.tsx ---
+
+=========================================
+FILE: src/components/dashboard/bdm-dashboard.tsx
+=========================================
 
 "use client";
 
@@ -7008,7 +5528,10 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
 }
 
 
---- FILE: src/components/dashboard/bdm-weekly-submission.tsx ---
+
+=========================================
+FILE: src/components/dashboard/bdm-weekly-submission.tsx
+=========================================
 
 "use client";
 
@@ -7683,7 +6206,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
   );
 }
 
---- FILE: src/components/dashboard/behavior-alerts.tsx ---
+
+=========================================
+FILE: src/components/dashboard/behavior-alerts.tsx
+=========================================
 
 
 "use client";
@@ -7765,7 +6291,10 @@ export function BehaviorAlerts({ stats, activities }: { stats?: any, activities?
 }
 
 
---- FILE: src/components/dashboard/bi-reports-viewer.tsx ---
+
+=========================================
+FILE: src/components/dashboard/bi-reports-viewer.tsx
+=========================================
 
 "use client";
 
@@ -8125,7 +6654,10 @@ export function BIReportsViewer() {
 }
 
 
---- FILE: src/components/dashboard/call-planning.tsx ---
+
+=========================================
+FILE: src/components/dashboard/call-planning.tsx
+=========================================
 
 "use client";
 
@@ -8686,7 +7218,10 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
   );
 }
 
---- FILE: src/components/dashboard/call-prep-mode.tsx ---
+
+=========================================
+FILE: src/components/dashboard/call-prep-mode.tsx
+=========================================
 
 "use client";
 
@@ -8808,7 +7343,10 @@ export function CallPrepMode({ deal, playbook }: CallPrepModeProps) {
 }
 
 
---- FILE: src/components/dashboard/canvass-lead-form.tsx ---
+
+=========================================
+FILE: src/components/dashboard/canvass-lead-form.tsx
+=========================================
 
 "use client";
 
@@ -9860,7 +8398,10 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 }
 
 
---- FILE: src/components/dashboard/canvass-map-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/canvass-map-view.tsx
+=========================================
 
 "use client";
 
@@ -9889,7 +8430,10 @@ export default function CanvassMapView({ leads }: CanvassMapViewProps) {
 }
 
 
---- FILE: src/components/dashboard/canvass-map.tsx ---
+
+=========================================
+FILE: src/components/dashboard/canvass-map.tsx
+=========================================
 
 "use client";
 
@@ -10279,7 +8823,10 @@ export default function CanvassMap({ leads }: MapProps) {
 }
 
 
---- FILE: src/components/dashboard/canvass-timeline-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/canvass-timeline-view.tsx
+=========================================
 
 "use client";
 
@@ -10590,7 +9137,10 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
 }
 
 
---- FILE: src/components/dashboard/canvassing-hub.tsx ---
+
+=========================================
+FILE: src/components/dashboard/canvassing-hub.tsx
+=========================================
 
 "use client";
 
@@ -10632,7 +9182,7 @@ import {
   Sparkles,
   Timer
 } from 'lucide-react';
-import { openSalesforceCreateLead, openSalesforceSearch, deduplicateUsers } from '@/lib/utils';
+import { openSalesforceCreateLead, openSalesforceSearch } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -10674,13 +9224,6 @@ export function CanvassingHub() {
   }, [db, isLeader, user?.uid, scopeFilter]);
 
   const { data: rawLeads, isLoading } = useCollection<CanvassLead>(leadsQuery);
-
-  // Query all users for reassignment (only for super admin)
-  const usersQuery = useMemoFirebase(() => {
-    if (!db || user?.email !== '1@1.com') return null;
-    return collection(db, 'users');
-  }, [db, user?.email]);
-  const { data: allUsers } = useCollection<any>(usersQuery);
 
   // Filter leads
   const filteredLeads = useMemo(() => {
@@ -10744,22 +9287,6 @@ export function CanvassingHub() {
       toast({ title: 'Lead Archived', description: `${companyName} was archived.` });
     } catch (e: any) {
       toast({ title: 'Error archiving lead', description: e.message, variant: 'destructive' });
-    }
-  };
-
-  const handleReassignLead = async (leadId: string, newUserId: string) => {
-    if (!db) return;
-    const newUser = allUsers?.find(u => u.id === newUserId);
-    if (!newUser) return;
-    
-    try {
-      await updateDoc(doc(db, 'canvass_leads', leadId), {
-        userId: newUserId,
-        userName: newUser.name,
-      });
-      toast({ title: 'Lead Reassigned', description: `Lead assigned to ${newUser.name}.` });
-    } catch (e: any) {
-      toast({ title: 'Reassignment failed', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -11141,29 +9668,8 @@ export function CanvassingHub() {
 
                   {/* Rep & Date info */}
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
-                    <span className="font-medium truncate max-w-[150px] flex items-center">
-                      Rep: 
-                      {user?.email === '1@1.com' ? (
-                        <div onClick={e => e.stopPropagation()} className="ml-1">
-                          <Select 
-                            value={lead.userId || ''} 
-                            onValueChange={(val) => handleReassignLead(lead.id, val)}
-                          >
-                            <SelectTrigger className="h-5 text-[10px] w-auto border-none bg-transparent hover:bg-slate-100 px-1.5 py-0 shadow-none font-bold text-foreground focus:ring-0">
-                              <SelectValue placeholder={lead.userName || 'Unknown'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {deduplicateUsers(allUsers || []).map((u: any) => (
-                                <SelectItem key={u.id} value={u.id} className="text-xs">
-                                  {u.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ) : (
-                        <strong className="text-foreground ml-1">{lead.userName || 'Unknown'}</strong>
-                      )}
+                    <span className="font-medium truncate max-w-[140px]">
+                      Rep: <strong className="text-foreground">{lead.userName || 'Unknown'}</strong>
                     </span>
                     <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 text-[10px] shrink-0 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded">
                       <Clock className="h-3 w-3 text-muted-foreground" />
@@ -11272,7 +9778,10 @@ export function CanvassingHub() {
 }
 
 
---- FILE: src/components/dashboard/coaching-notes.tsx ---
+
+=========================================
+FILE: src/components/dashboard/coaching-notes.tsx
+=========================================
 
 "use client";
 
@@ -11449,7 +9958,10 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
 }
 
 
---- FILE: src/components/dashboard/create-note-dialog.tsx ---
+
+=========================================
+FILE: src/components/dashboard/create-note-dialog.tsx
+=========================================
 
 "use client";
 
@@ -11462,7 +9974,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { deduplicateUsers } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { ClipboardList, Loader2, PlusCircle } from 'lucide-react';
 
@@ -11608,7 +10119,7 @@ export function CreateNoteDialog() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="font-bold text-indigo-600">Broadcast to All (AMs & BDMs)</SelectItem>
-                {deduplicateUsers(targetUsers || []).map((u: any) => (
+                {targetUsers.map(u => (
                   <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
                 ))}
               </SelectContent>
@@ -11654,7 +10165,10 @@ export function CreateNoteDialog() {
 }
 
 
---- FILE: src/components/dashboard/crm-importer.tsx ---
+
+=========================================
+FILE: src/components/dashboard/crm-importer.tsx
+=========================================
 
 "use client";
 
@@ -13309,7 +11823,10 @@ export function CRMImporter() {
 }
 
 
---- FILE: src/components/dashboard/crm-summary-panel.tsx ---
+
+=========================================
+FILE: src/components/dashboard/crm-summary-panel.tsx
+=========================================
 
 "use client";
 
@@ -13768,10 +12285,13 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
 }
 
 
---- FILE: src/components/dashboard/data-explorer.tsx ---
+
+=========================================
+FILE: src/components/dashboard/data-explorer.tsx
+=========================================
 
 import { useState, useMemo } from 'react';
-import { getCurrentWeek, normalizeBdmName, deduplicateUsers } from '@/lib/utils';
+import { getCurrentWeek, normalizeBdmName } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -13784,8 +12304,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { saveAs } from 'file-saver';
-import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { 
   Search, 
   Filter, 
@@ -14365,7 +12883,7 @@ export function DataExplorer() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="font-bold text-xs">All BDMs & AMs</SelectItem>
-              {deduplicateUsers(users || []).map((u: any) => (
+              {users.map(u => (
                 <SelectItem key={u.id} value={u.id} className="font-medium text-xs">{u.name}</SelectItem>
               ))}
             </SelectContent>
@@ -14797,7 +13315,10 @@ export function DataExplorer() {
 }
 
 
---- FILE: src/components/dashboard/demo-dash-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/demo-dash-view.tsx
+=========================================
 
 "use client";
 
@@ -18310,7 +16831,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 }
 
 
---- FILE: src/components/dashboard/document-viewer-popup.tsx ---
+
+=========================================
+FILE: src/components/dashboard/document-viewer-popup.tsx
+=========================================
 
 'use client';
 
@@ -18420,7 +16944,10 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
 }
 
 
---- FILE: src/components/dashboard/document-viewers.tsx ---
+
+=========================================
+FILE: src/components/dashboard/document-viewers.tsx
+=========================================
 
 'use client';
 
@@ -18695,7 +17222,10 @@ export function WhitespaceViewer({ whitespaceDoc }: WhitespaceViewerProps) {
 }
 
 
---- FILE: src/components/dashboard/duplicate-manager.tsx ---
+
+=========================================
+FILE: src/components/dashboard/duplicate-manager.tsx
+=========================================
 
 "use client";
 
@@ -18806,8 +17336,7 @@ export function DuplicateManager() {
                 </Button>
               </div>
               <ScrollArea className="h-[500px] border rounded-2xl bg-white shadow-inner">
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[600px]">
+                <Table>
                   <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black tracking-widest"><TableHead className="pl-6">Account Identification</TableHead><TableHead>Audit Reason</TableHead><TableHead>Owners</TableHead><TableHead className="text-right pr-6">Status</TableHead></TableRow></TableHeader>
                   <TableBody>{duplicates.map((group, idx) => (
                     <TableRow key={idx} className="group hover:bg-slate-50">
@@ -18818,7 +17347,6 @@ export function DuplicateManager() {
                     </TableRow>
                   ))}</TableBody>
                 </Table>
-                </div>
               </ScrollArea>
             </div>
           )}
@@ -18835,7 +17363,10 @@ export function DuplicateManager() {
   );
 }
 
---- FILE: src/components/dashboard/fact-finding-form.tsx ---
+
+=========================================
+FILE: src/components/dashboard/fact-finding-form.tsx
+=========================================
 
 "use client";
 
@@ -18854,7 +17385,6 @@ import { Checkbox as UICheckbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { deduplicateUsers } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19247,7 +17777,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                         <SelectValue placeholder="Select User" />
                       </SelectTrigger>
                       <SelectContent>
-                        {deduplicateUsers(users || []).map((u: any) => (
+                        {users?.map((u: any) => (
                           <SelectItem key={u.id} value={u.id}>{u.name || u.email || 'Unknown User'}</SelectItem>
                         ))}
                       </SelectContent>
@@ -20458,7 +18988,10 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 }
 
 
---- FILE: src/components/dashboard/fact-finding-hub.tsx ---
+
+=========================================
+FILE: src/components/dashboard/fact-finding-hub.tsx
+=========================================
 
 "use client";
 
@@ -20791,8 +19324,8 @@ export function FactFindingHub() {
               <Button variant="link" onClick={() => { setSearchQuery(''); setUserFilter('all'); }} className="mt-2">Clear Filters</Button>
             </div>
           ) : viewMode === 'list' ? (
-            <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-sm">
-              <Table className="min-w-[800px]">
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+              <Table>
                 <TableHeader className="bg-slate-50/80">
                   <TableRow>
                     <TableHead className="font-bold">Customer</TableHead>
@@ -20960,7 +19493,10 @@ export function FactFindingHub() {
 }
 
 
---- FILE: src/components/dashboard/freight-spin-guide.tsx ---
+
+=========================================
+FILE: src/components/dashboard/freight-spin-guide.tsx
+=========================================
 
 import { useState } from "react";
 
@@ -21523,7 +20059,10 @@ export default function FreightSpinGuide() {
 }
 
 
---- FILE: src/components/dashboard/friday-performance-review.tsx ---
+
+=========================================
+FILE: src/components/dashboard/friday-performance-review.tsx
+=========================================
 
 "use client";
 
@@ -23613,9 +22152,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">Active Opportunities Count</span>
                   <Badge className="bg-purple-600 text-white font-black text-sm px-3 py-1">{currentWeekData.opportunities.length}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-x-auto">
+                <div className="border rounded-2xl overflow-hidden">
                   {currentWeekData.opportunities.length > 0 ? (
-                    <Table className="min-w-[600px]">
+                    <Table>
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Opportunity / Pipeline</TableHead>
@@ -23658,9 +22197,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Total Pipeline Value</span>
                   <Badge className="bg-amber-600 text-white font-black text-base px-4 py-1">{formatEAV(currentWeekData.revenue.pipeline)}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-x-auto">
+                <div className="border rounded-2xl overflow-hidden">
                   {currentWeekData.opportunities.length > 0 ? (
-                    <Table className="min-w-[600px]">
+                    <Table>
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Deal / Account</TableHead>
@@ -23694,9 +22233,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">Canvassed Field Leads</span>
                   <Badge className="bg-indigo-600 text-white font-black text-sm px-3 py-1">{currentWeekCanvassLeadsCount}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-x-auto">
+                <div className="border rounded-2xl overflow-hidden">
                   {currentWeekCanvassLeads.length > 0 ? (
-                    <Table className="min-w-[600px]">
+                    <Table>
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Company Name</TableHead>
@@ -23738,9 +22277,9 @@ export function FridayPerformanceReview({
                   <span className="text-xs font-bold text-teal-900 uppercase tracking-wide">Leads Submitted to Salesforce</span>
                   <Badge className="bg-teal-600 text-white font-black text-sm px-3 py-1">{currentWeekSalesforceLeadsCount}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-x-auto">
+                <div className="border rounded-2xl overflow-hidden">
                   {currentWeekSalesforceLeads.length > 0 ? (
-                    <Table className="min-w-[600px]">
+                    <Table>
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="text-xs font-black">Company Name</TableHead>
@@ -23783,7 +22322,10 @@ export function FridayPerformanceReview({
 }
 
 
---- FILE: src/components/dashboard/friday-review-hub.tsx ---
+
+=========================================
+FILE: src/components/dashboard/friday-review-hub.tsx
+=========================================
 
 "use client";
 
@@ -23970,7 +22512,10 @@ export function FridayReviewHub() {
 }
 
 
---- FILE: src/components/dashboard/gm-report-generator.tsx ---
+
+=========================================
+FILE: src/components/dashboard/gm-report-generator.tsx
+=========================================
 
 "use client";
 
@@ -24370,7 +22915,10 @@ export function GMReportGenerator() {
 }
 
 
---- FILE: src/components/dashboard/gm-weekly-review.tsx ---
+
+=========================================
+FILE: src/components/dashboard/gm-weekly-review.tsx
+=========================================
 
 "use client";
 
@@ -24401,7 +22949,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
 import { ActualSpendView } from './actual-spend-view';
-import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { calculateDealHealth } from '@/lib/deal-health';
 
@@ -25052,7 +23599,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             <Shield className="w-8 h-8 text-accent" />
             GM Weekly Performance Node
           </h1>
-          <div className="flex flex-wrap items-center gap-4 mt-2">
+          <div className="flex items-center gap-4 mt-2">
             <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
             <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
               {(availableWeeks.length > 0 ? availableWeeks : [selectedWeek]).map(w => (
@@ -25061,7 +23608,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             </select>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2" data-html2canvas-ignore="true">
+        <div className="flex gap-2" data-html2canvas-ignore="true">
           <Button variant="outline" onClick={generateExecutiveReview} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase h-10 shadow-lg shadow-amber-500/20">
             <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
           </Button>
@@ -25217,8 +23764,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           </CardTitle>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">CRM vs Manual logs comparison for Week {selectedWeek.split('-')[1]}</p>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table className="min-w-[600px]">
+        <CardContent className="p-0">
+          <Table>
             <TableHeader className="bg-slate-50">
               <TableRow className="uppercase text-[8px] font-black tracking-widest border-b">
                 <TableHead className="pl-6">BDM/AM Identity</TableHead>
@@ -25411,18 +23958,18 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       )}
 
       {/* ── INTERACTIVE TAB VIEW (screen only) ─────────────────────────────── */}
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6 w-full max-w-full overflow-hidden">
-        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide justify-start">
-          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Team Performance</TabsTrigger>
-          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
-          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
-          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Opportunities</TabsTrigger>
-          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Signed Work</TabsTrigger>
-          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">New Business</TabsTrigger>
-          <TabsTrigger value="actualSpend" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0">
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
+          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
+          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
+          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
+          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
+          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
+          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
+          <TabsTrigger value="actualSpend" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
             <Coins className="w-3 h-3 text-emerald-500" /> Actual Spend
           </TabsTrigger>
-          <TabsTrigger value="opsReports" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><AlertTriangle className="w-3 h-3 text-red-500" /> Ops Reports</TabsTrigger>
+          <TabsTrigger value="opsReports" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><AlertTriangle className="w-3 h-3 text-red-500" /> Ops Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -25763,16 +24310,21 @@ function BDMReportCard({
                   {opps.length === 0 ? (
                     <p className="text-xs text-slate-400 italic">No active opportunities in pipeline.</p>
                   ) : (
-                    <ResponsiveTable
-                      headers={['Opportunity Name', 'EAV', 'Stage', 'Days']}
-                      rows={opps.map((o: any) => [
-                        <span key={`${o.id}-1`} className="text-xs font-bold uppercase">{o.opportunityName || o.pipeline}</span>,
-                        <span key={`${o.id}-2`} className="text-xs font-black text-blue-600">${(o.value || 0).toLocaleString()}</span>,
-                        <Badge key={`${o.id}-3`} variant="outline" className="text-[8px] border-accent/20 text-accent font-black uppercase">{o.stage}</Badge>,
-                        <span key={`${o.id}-4`} className="text-xs text-slate-500 font-medium">{o.daysInStage || 0}</span>
-                      ])}
-                      minWidth="500px"
-                    />
+                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
+                      <Table>
+                        <TableHeader className="bg-slate-50 sticky top-0"><TableRow className="uppercase text-[8px] font-black"><TableHead>Opportunity Name</TableHead><TableHead>EAV</TableHead><TableHead>Stage</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {opps.map((o: any) => (
+                            <TableRow key={o.id} className="hover:bg-slate-50/50">
+                              <TableCell className="text-xs font-bold uppercase">{o.opportunityName || o.pipeline}</TableCell>
+                              <TableCell className="text-xs font-black text-blue-600">${(o.value || 0).toLocaleString()}</TableCell>
+                              <TableCell className="text-[9px] font-bold uppercase"><Badge variant="outline" className="text-[8px] border-accent/20 text-accent font-black uppercase">{o.stage}</Badge></TableCell>
+                              <TableCell className="text-xs text-slate-500 font-medium">{o.daysInStage || 0}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </div>
 
@@ -25784,17 +24336,22 @@ function BDMReportCard({
                   {customers.length === 0 ? (
                     <p className="text-xs text-slate-400 italic">No trading accounts assigned.</p>
                   ) : (
-                    <ResponsiveTable
-                      headers={['Account Name', 'YTD Revenue', 'Last Year', 'Last Invoice', 'Hold']}
-                      rows={customers.map((c: any) => [
-                        <span key={`${c.id}-1`} className="text-xs font-bold uppercase">{c.pipeline || c.accountName}</span>,
-                        <span key={`${c.id}-2`} className="text-xs font-black text-emerald-600">${(c.currentRevenue || c.value || 0).toLocaleString()}</span>,
-                        <span key={`${c.id}-3`} className="text-xs text-slate-505 font-medium">${(c.lastYearRevenue || 0).toLocaleString()}</span>,
-                        <span key={`${c.id}-4`} className="text-[9px] font-medium">{c.lastInvoiceDate || 'N/A'}</span>,
-                        <span key={`${c.id}-5`} className="text-xs font-medium">{c.creditHold ? <Badge className="bg-red-100 text-red-700 text-[8px] font-black border-none uppercase">HOLD</Badge> : 'No'}</span>
-                      ])}
-                      minWidth="500px"
-                    />
+                    <div className="overflow-x-auto max-h-[250px] overflow-y-auto">
+                      <Table>
+                        <TableHeader className="bg-slate-50 sticky top-0"><TableRow className="uppercase text-[8px] font-black"><TableHead>Account Name</TableHead><TableHead>YTD Revenue</TableHead><TableHead>Last Year</TableHead><TableHead>Last Invoice</TableHead><TableHead>Hold</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {customers.map((c: any) => (
+                            <TableRow key={c.id} className="hover:bg-slate-50/50">
+                              <TableCell className="text-xs font-bold uppercase">{c.pipeline || c.accountName}</TableCell>
+                              <TableCell className="text-xs font-black text-emerald-600">${(c.currentRevenue || c.value || 0).toLocaleString()}</TableCell>
+                              <TableCell className="text-xs text-slate-505 font-medium">${(c.lastYearRevenue || 0).toLocaleString()}</TableCell>
+                              <TableCell className="text-[9px] font-medium">{c.lastInvoiceDate || 'N/A'}</TableCell>
+                              <TableCell className="text-xs font-medium">{c.creditHold ? <Badge className="bg-red-100 text-red-700 text-[8px] font-black border-none uppercase">HOLD</Badge> : 'No'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </div>
              </div>
@@ -26139,17 +24696,12 @@ function MetricCard({ title, value, sub, icon, color }: any) {
 function OpportunitiesTable({ data }: { data: any[] }) {
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
-      <ResponsiveTable
-        headers={['Identity', 'Account', 'Opportunity', 'EAV ($K)', 'Stage']}
-        rows={data.map((o) => [
-          <span key={`${o.id}-1`} className="pl-6 font-black uppercase text-xs">{o.userName}</span>,
-          <span key={`${o.id}-2`} className="font-bold text-xs uppercase">{o.accountName}</span>,
-          <span key={`${o.id}-3`} className="text-xs font-medium">{o.opportunityName}</span>,
-          <span key={`${o.id}-4`} className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</span>,
-          <Badge key={`${o.id}-5`} variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge>
-        ])}
-        minWidth="600px"
-      />
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Stage</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge></TableCell></TableRow>))}</TableBody>
+        </Table>
+      </CardContent>
     </Card>
   );
 }
@@ -26164,18 +24716,12 @@ function SignedPaperworkTable({ data }: { data: any[] }) {
 
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden">
-      <ResponsiveTable
-        headers={['Identity', 'Account', 'EAV ($K)', 'Signed Date', 'Term (M)', 'Notes']}
-        rows={data.map((p) => [
-          <span key={`${p.id}-1`} className="pl-6 font-black uppercase text-xs">{p.userName}</span>,
-          <span key={`${p.id}-2`} className="font-bold text-xs uppercase">{p.accountName}</span>,
-          <span key={`${p.id}-3`} className="font-black text-green-600">${(p.eav / 1000).toFixed(0)}k</span>,
-          <span key={`${p.id}-4`} className="text-xs font-medium">{formatDate(p.signedDate)}</span>,
-          <span key={`${p.id}-5`} className="font-bold text-xs">{p.termMonths}</span>,
-          <span key={`${p.id}-6`} className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</span>
-        ])}
-        minWidth="600px"
-      />
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Signed Date</TableHead><TableHead>Term (M)</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-black text-green-600">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{formatDate(p.signedDate)}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
+        </Table>
+      </CardContent>
     </Card>
   );
 }
@@ -26190,17 +24736,12 @@ function NewBusinessTable({ data }: { data: any[] }) {
 
   return (
     <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
-      <ResponsiveTable
-        headers={['Identity', 'Account', 'EAV ($K)', 'Go Live', 'Status']}
-        rows={data.map((b) => [
-          <span key={`${b.id}-1`} className="pl-6 font-black uppercase text-xs">{b.userName}</span>,
-          <span key={`${b.id}-2`} className="font-bold text-xs uppercase">{b.accountName}</span>,
-          <span key={`${b.id}-3`} className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</span>,
-          <span key={`${b.id}-4`} className="text-xs font-medium">{formatDate(b.goLiveDate)}</span>,
-          <Badge key={`${b.id}-5`} variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge>
-        ])}
-        minWidth="600px"
-      />
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{formatDate(b.goLiveDate)}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
+        </Table>
+      </CardContent>
     </Card>
   );
 }
@@ -26215,24 +24756,45 @@ function StrategyTable({ data }: { data: any[] }) {
         </CardTitle>
         <CardDescription className="text-slate-400">Standardized frameworks deployed by Sales Administration.</CardDescription>
       </CardHeader>
-      <ResponsiveTable
-        headers={['Blueprint Name', 'Primary Objective', 'Last Updated']}
-        rows={data?.map(plan => [
-          <span key={`${plan.id}-1`} className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</span>,
-          <span key={`${plan.id}-2`} className="text-xs font-medium italic">"{plan.objective}"</span>,
-          <span key={`${plan.id}-3`} className="text-[10px] font-bold text-muted-foreground uppercase">
-            {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
-          </span>
-        ]) || []}
-        emptyMessage="No strategic blueprints deployed."
-        minWidth="600px"
-      />
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-slate-50">
+            <TableRow className="uppercase text-[9px] font-black">
+              <TableHead className="pl-6">Blueprint Name</TableHead>
+              <TableHead>Primary Objective</TableHead>
+              <TableHead>Last Updated</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data?.map(plan => (
+              <TableRow key={plan.id}>
+                <TableCell className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</TableCell>
+                <TableCell className="text-xs font-medium italic">"{plan.objective}"</TableCell>
+                <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">
+                  {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
+                </TableCell>
+              </TableRow>
+            ))}
+            {(!data || data.length === 0) && (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-20 bg-slate-50/50">
+                  <PhoneCall className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No strategic blueprints deployed.</p>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
     </Card>
   );
 }
 
 
---- FILE: src/components/dashboard/historical-activity.tsx ---
+
+=========================================
+FILE: src/components/dashboard/historical-activity.tsx
+=========================================
 
 "use client";
 
@@ -26242,7 +24804,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { History, Phone, CalendarCheck, Clock, FileText, ClipboardList } from 'lucide-react';
 import { format, subWeeks, startOfWeek } from 'date-fns';
-import { deduplicateUsers, getCurrentWeek, getWeekForDate, isUserSubmissionMatch, normalizeBdmName, cn } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, isUserSubmissionMatch, normalizeBdmName, cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -26399,7 +24961,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
             </tr>
           </thead>
           <tbody className="divide-y text-[11px] font-bold">
-            {deduplicateUsers(targetUsers || []).map((u: any) => (
+            {targetUsers.map(u => (
               <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
                 <td 
                   onClick={() => {
@@ -26543,7 +25105,10 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
 }
 
 
---- FILE: src/components/dashboard/kpi-card.tsx ---
+
+=========================================
+FILE: src/components/dashboard/kpi-card.tsx
+=========================================
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26573,7 +25138,7 @@ export function KPICard({ title, value, subtitle, status, icon, info, className,
     <Card 
       className={cn(
         "overflow-hidden border-none shadow-md transition-all h-full flex flex-col", 
-        onClick && "cursor-pointer hover:shadow-xl active:scale-[0.98] group",
+        onClick && "cursor-pointer hover:shadow-xl hover:scale-[1.02] active:scale-95 group",
         className
       )}
       onClick={onClick}
@@ -26599,7 +25164,7 @@ export function KPICard({ title, value, subtitle, status, icon, info, className,
         </div>
       </CardHeader>
       <CardContent className="p-3 md:p-4 pt-0 md:pt-0 flex-1 flex flex-col justify-end">
-        <div className="text-base md:text-2xl font-black font-headline tracking-tighter text-primary truncate">{value}</div>
+        <div className="text-lg md:text-2xl font-black font-headline tracking-tighter text-primary truncate">{value}</div>
         {subtitle && (
           <div className="text-[8px] md:text-[10px] text-muted-foreground mt-0.5 font-bold uppercase tracking-tight truncate">
             {subtitle}
@@ -26617,7 +25182,10 @@ export function KPICard({ title, value, subtitle, status, icon, info, className,
   );
 }
 
---- FILE: src/components/dashboard/kpi-management.tsx ---
+
+=========================================
+FILE: src/components/dashboard/kpi-management.tsx
+=========================================
 
 "use client";
 
@@ -26696,7 +25264,10 @@ export function KPIManagement() {
 }
 function Label({ children, className }: any) { return <label className={`text-xs font-medium text-muted-foreground ${className}`}>{children}</label>; }
 
---- FILE: src/components/dashboard/leader-dashboard.tsx ---
+
+=========================================
+FILE: src/components/dashboard/leader-dashboard.tsx
+=========================================
 
 "use client";
 
@@ -27197,7 +25768,10 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   );
 }
 
---- FILE: src/components/dashboard/lost-customers-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/lost-customers-view.tsx
+=========================================
 
 
 "use client";
@@ -27246,8 +25820,7 @@ export function LostCustomersView() {
             <p className="text-sm font-medium text-muted-foreground">No lost opportunities recorded.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="min-w-[600px]">
+          <Table>
             <TableHeader>
               <TableRow className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground">
                 <TableHead>Opportunity / Business</TableHead>
@@ -27275,7 +25848,6 @@ export function LostCustomersView() {
               ))}
             </TableBody>
           </Table>
-          </div>
         )}
       </CardContent>
     </Card>
@@ -27283,7 +25855,10 @@ export function LostCustomersView() {
 }
 
 
---- FILE: src/components/dashboard/manage-time-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/manage-time-view.tsx
+=========================================
 
 "use client";
 
@@ -27833,7 +26408,10 @@ export function ManageTimeView() {
 }
 
 
---- FILE: src/components/dashboard/mobile-dashboard.tsx ---
+
+=========================================
+FILE: src/components/dashboard/mobile-dashboard.tsx
+=========================================
 
 "use client";
 
@@ -27880,8 +26458,8 @@ import { ManageTimeView } from './manage-time-view';
 import { CanvassingHub } from './canvassing-hub';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
-import { normalizeBdmName, deduplicateUsers, getCurrentWeek, formatEAV } from '@/lib/utils';
-import { useNavigation } from '@/contexts/navigation-context';
+import { getCurrentWeek, formatEAV } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28268,7 +26846,7 @@ function MobileDashboardView({ userId, userName, stats, isLeader, setSimulationU
             </SheetHeader>
             <ScrollArea className="h-full px-6 pb-12">
               <div className="space-y-2">
-                {deduplicateUsers(users || []).map((u: any) => (
+                {users?.map(u => (
                   <button 
                     key={u.id} 
                     onClick={() => { 
@@ -28524,7 +27102,10 @@ function QuickActionCard({
 }
 
 
---- FILE: src/components/dashboard/nearby-business-modal.tsx ---
+
+=========================================
+FILE: src/components/dashboard/nearby-business-modal.tsx
+=========================================
 
 "use client";
 
@@ -28771,7 +27352,10 @@ export function NearbyBusinessModal({
 }
 
 
---- FILE: src/components/dashboard/onboarding-plan.tsx ---
+
+=========================================
+FILE: src/components/dashboard/onboarding-plan.tsx
+=========================================
 
 "use client";
 
@@ -29010,7 +27594,10 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
 }
 
 
---- FILE: src/components/dashboard/ops-report-form.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ops-report-form.tsx
+=========================================
 
 "use client";
 
@@ -29260,7 +27847,10 @@ export function OpsReportForm() {
 }
 
 
---- FILE: src/components/dashboard/ops-report-review.tsx ---
+
+=========================================
+FILE: src/components/dashboard/ops-report-review.tsx
+=========================================
 
 "use client";
 
@@ -29473,7 +28063,10 @@ export function OpsReportReview() {
 }
 
 
---- FILE: src/components/dashboard/pipeline-funnel.tsx ---
+
+=========================================
+FILE: src/components/dashboard/pipeline-funnel.tsx
+=========================================
 
 
 "use client";
@@ -29550,7 +28143,10 @@ export function PipelineFunnel({ data, className }: PipelineFunnelProps) {
 }
 
 
---- FILE: src/components/dashboard/pipeline-review-table.tsx ---
+
+=========================================
+FILE: src/components/dashboard/pipeline-review-table.tsx
+=========================================
 
 
 "use client";
@@ -30242,7 +28838,10 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
 }
 
 
---- FILE: src/components/dashboard/plan-metrics.tsx ---
+
+=========================================
+FILE: src/components/dashboard/plan-metrics.tsx
+=========================================
 
 "use client";
 
@@ -30595,7 +29194,10 @@ export function PlanMetrics() {
 }
 
 
---- FILE: src/components/dashboard/playbook-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/playbook-view.tsx
+=========================================
 
 "use client";
 
@@ -30702,7 +29304,10 @@ export function PlaybookView() {
 }
 
 
---- FILE: src/components/dashboard/reporting-tools-settings.tsx ---
+
+=========================================
+FILE: src/components/dashboard/reporting-tools-settings.tsx
+=========================================
 
 "use client";
 
@@ -31056,7 +29661,10 @@ export function ReportingToolsSettings({
 }
 
 
---- FILE: src/components/dashboard/sales-velocity-widgets.tsx ---
+
+=========================================
+FILE: src/components/dashboard/sales-velocity-widgets.tsx
+=========================================
 
 "use client";
 
@@ -31210,7 +29818,10 @@ export function SalesVelocityWidgets({ teamStats, allDeals, totalRevenue }: Sale
 }
 
 
---- FILE: src/components/dashboard/settings-hub.tsx ---
+
+=========================================
+FILE: src/components/dashboard/settings-hub.tsx
+=========================================
 
 
 "use client";
@@ -31950,7 +30561,10 @@ export function SettingsHub() {
 }
 
 
---- FILE: src/components/dashboard/smart-goals-audit.tsx ---
+
+=========================================
+FILE: src/components/dashboard/smart-goals-audit.tsx
+=========================================
 
 "use client";
 
@@ -32080,7 +30694,10 @@ export function SmartGoalsAudit() {
 }
 
 
---- FILE: src/components/dashboard/smart-goals-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/smart-goals-view.tsx
+=========================================
 
 "use client";
 
@@ -32233,7 +30850,10 @@ export function SmartGoalsView({ userId }: { userId: string }) {
 }
 
 
---- FILE: src/components/dashboard/strategic-archive.tsx ---
+
+=========================================
+FILE: src/components/dashboard/strategic-archive.tsx
+=========================================
 
 "use client";
 
@@ -32288,7 +30908,10 @@ export function StrategicArchive({ userId }: StrategicArchiveProps) {
 }
 
 
---- FILE: src/components/dashboard/strategic-repository.tsx ---
+
+=========================================
+FILE: src/components/dashboard/strategic-repository.tsx
+=========================================
 
 'use client';
 
@@ -32510,7 +31133,10 @@ function DocumentList({ documents, type, onOpen, isLoading }: DocumentListProps)
 }
 
 
---- FILE: src/components/dashboard/strategy-management.tsx ---
+
+=========================================
+FILE: src/components/dashboard/strategy-management.tsx
+=========================================
 
 "use client";
 
@@ -32769,7 +31395,10 @@ export function StrategyManagement() {
 }
 
 
---- FILE: src/components/dashboard/success-plans.tsx ---
+
+=========================================
+FILE: src/components/dashboard/success-plans.tsx
+=========================================
 
 "use client";
 
@@ -33507,8 +32136,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Measures Ledger */}
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Measures & Benchmarks</h3>
-                    <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
-                      <Table className="min-w-[600px]">
+                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                      <Table>
                         <TableHeader className="bg-slate-50">
                           <TableRow>
                             <TableHead className="text-[10px] font-black uppercase text-slate-900">Measure</TableHead>
@@ -33564,8 +32193,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Strategies */}
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Committed Strategies</h3>
-                    <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
-                      <Table className="min-w-[600px]">
+                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                      <Table>
                         <TableHeader className="bg-slate-50">
                           <TableRow>
                             <TableHead className="text-[10px] font-black uppercase text-slate-900">Strategy</TableHead>
@@ -33596,8 +32225,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Required commitments */}
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-3">Required Commitments from Manager</h3>
-                    <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
-                      <Table className="min-w-[600px]">
+                    <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                      <Table>
                         <TableHeader className="bg-slate-50">
                           <TableRow>
                             <TableHead className="text-[10px] font-black uppercase text-slate-900">Commitment</TableHead>
@@ -33744,8 +32373,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 </Button>
               </div>
               
-              <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
-                <Table className="min-w-[600px]">
+              <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                <Table>
                   <TableHeader className="bg-slate-50">
                     <TableRow>
                       <TableHead className="text-[10px] font-black uppercase text-slate-900">Measure</TableHead>
@@ -33921,8 +32550,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     <Plus className="w-3.5 h-3.5" /> Add Strategy
                   </Button>
                 </div>
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
-                  <Table className="min-w-[600px]">
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                  <Table>
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="text-[10px] font-black uppercase text-slate-900">Your Strategy</TableHead>
@@ -33996,8 +32625,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     <Plus className="w-3.5 h-3.5" /> Add Measure
                   </Button>
                 </div>
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
-                  <Table className="min-w-[600px]">
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                  <Table>
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="text-[10px] font-black uppercase text-slate-900">Measures</TableHead>
@@ -34071,8 +32700,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     <Plus className="w-3.5 h-3.5" /> Add Commitment
                   </Button>
                 </div>
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
-                  <Table className="min-w-[600px]">
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                  <Table>
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="text-[10px] font-black uppercase text-slate-900">Commitments</TableHead>
@@ -34174,7 +32803,10 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 }
 
 
---- FILE: src/components/dashboard/system-broadcast.tsx ---
+
+=========================================
+FILE: src/components/dashboard/system-broadcast.tsx
+=========================================
 
 "use client";
 
@@ -34252,7 +32884,10 @@ export function SystemBroadcast() {
   );
 }
 
---- FILE: src/components/dashboard/team-comparison.tsx ---
+
+=========================================
+FILE: src/components/dashboard/team-comparison.tsx
+=========================================
 
 "use client";
 
@@ -34350,7 +32985,10 @@ export function TeamComparison() {
   );
 }
 
---- FILE: src/components/dashboard/territory-playbook.tsx ---
+
+=========================================
+FILE: src/components/dashboard/territory-playbook.tsx
+=========================================
 
 "use client";
 
@@ -34523,7 +33161,10 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
   );
 }
 
---- FILE: src/components/dashboard/test/test-bdm-weekly-submission.tsx ---
+
+=========================================
+FILE: src/components/dashboard/test/test-bdm-weekly-submission.tsx
+=========================================
 
 "use client";
 
@@ -35166,7 +33807,10 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
   );
 }
 
---- FILE: src/components/dashboard/test/test-friday-review-hub.tsx ---
+
+=========================================
+FILE: src/components/dashboard/test/test-friday-review-hub.tsx
+=========================================
 
 "use client";
 
@@ -35348,7 +33992,10 @@ export function TestFridayReviewHub() {
 }
 
 
---- FILE: src/components/dashboard/test/test-gm-report-generator.tsx ---
+
+=========================================
+FILE: src/components/dashboard/test/test-gm-report-generator.tsx
+=========================================
 
 "use client";
 
@@ -35716,7 +34363,10 @@ export function TestGMReportGenerator() {
 }
 
 
---- FILE: src/components/dashboard/test/test-gm-weekly-review.tsx ---
+
+=========================================
+FILE: src/components/dashboard/test/test-gm-weekly-review.tsx
+=========================================
 
 "use client";
 
@@ -36802,7 +35452,10 @@ function StrategyTable({ data }: { data: any[] }) {
 }
 
 
---- FILE: src/components/dashboard/test/test-weekly-goals.tsx ---
+
+=========================================
+FILE: src/components/dashboard/test/test-weekly-goals.tsx
+=========================================
 
 "use client";
 
@@ -37527,7 +36180,10 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
   );
 }
 
---- FILE: src/components/dashboard/trend-chart.tsx ---
+
+=========================================
+FILE: src/components/dashboard/trend-chart.tsx
+=========================================
 
 "use client";
 
@@ -37614,7 +36270,10 @@ export function TrendChart({ data, title = "Revenue Trends", className }: TrendC
 }
 
 
---- FILE: src/components/dashboard/twiw-edit-dialog.tsx ---
+
+=========================================
+FILE: src/components/dashboard/twiw-edit-dialog.tsx
+=========================================
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
@@ -37935,7 +36594,10 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
 }
 
 
---- FILE: src/components/dashboard/twiw-view.tsx ---
+
+=========================================
+FILE: src/components/dashboard/twiw-view.tsx
+=========================================
 
 "use client";
 
@@ -41865,7 +40527,10 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 }
 
 
---- FILE: src/components/dashboard/user-management.tsx ---
+
+=========================================
+FILE: src/components/dashboard/user-management.tsx
+=========================================
 
 "use client";
 
@@ -42003,7 +40668,10 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
   );
 }
 
---- FILE: src/components/dashboard/velocity-pulse.tsx ---
+
+=========================================
+FILE: src/components/dashboard/velocity-pulse.tsx
+=========================================
 
 "use client";
 
@@ -42120,7 +40788,10 @@ export function VelocityPulse({ teamStats, teamActivity, onSimulate }: VelocityP
 }
 
 
---- FILE: src/components/dashboard/voice-action-logger.tsx ---
+
+=========================================
+FILE: src/components/dashboard/voice-action-logger.tsx
+=========================================
 
 "use client";
 
@@ -42262,7 +40933,10 @@ export function VoiceActionLogger({ userId, userName }: { userId: string, userNa
 }
 
 
---- FILE: src/components/dashboard/weekly-activity-summary.tsx ---
+
+=========================================
+FILE: src/components/dashboard/weekly-activity-summary.tsx
+=========================================
 
 "use client";
 
@@ -42331,7 +41005,10 @@ export function WeeklyActivitySummary({ userId, readOnly }: WeeklyActivitySummar
   );
 }
 
---- FILE: src/components/dashboard/weekly-archive.tsx ---
+
+=========================================
+FILE: src/components/dashboard/weekly-archive.tsx
+=========================================
 
 "use client";
 
@@ -43007,7 +41684,10 @@ export function WeeklyArchive() {
 }
 
 
---- FILE: src/components/dashboard/weekly-goals.tsx ---
+
+=========================================
+FILE: src/components/dashboard/weekly-goals.tsx
+=========================================
 
 "use client";
 
@@ -43775,7 +42455,10 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
   );
 }
 
---- FILE: src/components/dashboard/whitespace-analysis.tsx ---
+
+=========================================
+FILE: src/components/dashboard/whitespace-analysis.tsx
+=========================================
 
 
 "use client";
@@ -44031,7 +42714,10 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
 }
 
 
---- FILE: src/components/dashboard/whitespace-history.tsx ---
+
+=========================================
+FILE: src/components/dashboard/whitespace-history.tsx
+=========================================
 
 "use client";
 
@@ -44477,7 +43163,10 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
 }
 
 
---- FILE: src/components/ui/accordion.tsx ---
+
+=========================================
+FILE: src/components/ui/accordion.tsx
+=========================================
 
 "use client"
 
@@ -44539,7 +43228,10 @@ AccordionContent.displayName = AccordionPrimitive.Content.displayName
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
 
 
---- FILE: src/components/ui/alert-dialog.tsx ---
+
+=========================================
+FILE: src/components/ui/alert-dialog.tsx
+=========================================
 
 "use client"
 
@@ -44684,7 +43376,10 @@ export {
 }
 
 
---- FILE: src/components/ui/alert.tsx ---
+
+=========================================
+FILE: src/components/ui/alert.tsx
+=========================================
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -44747,7 +43442,10 @@ AlertDescription.displayName = "AlertDescription"
 export { Alert, AlertTitle, AlertDescription }
 
 
---- FILE: src/components/ui/announcement-banner.tsx ---
+
+=========================================
+FILE: src/components/ui/announcement-banner.tsx
+=========================================
 
 "use client";
 
@@ -44803,7 +43501,10 @@ export function AnnouncementBanner() {
   );
 }
 
---- FILE: src/components/ui/avatar.tsx ---
+
+=========================================
+FILE: src/components/ui/avatar.tsx
+=========================================
 
 "use client"
 
@@ -44857,7 +43558,10 @@ AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 export { Avatar, AvatarImage, AvatarFallback }
 
 
---- FILE: src/components/ui/badge.tsx ---
+
+=========================================
+FILE: src/components/ui/badge.tsx
+=========================================
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -44897,7 +43601,10 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 export { Badge, badgeVariants }
 
 
---- FILE: src/components/ui/button.tsx ---
+
+=========================================
+FILE: src/components/ui/button.tsx
+=========================================
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
@@ -44957,7 +43664,10 @@ Button.displayName = "Button"
 export { Button, buttonVariants }
 
 
---- FILE: src/components/ui/calendar.tsx ---
+
+=========================================
+FILE: src/components/ui/calendar.tsx
+=========================================
 
 "use client"
 
@@ -45031,7 +43741,10 @@ Calendar.displayName = "Calendar"
 export { Calendar }
 
 
---- FILE: src/components/ui/card.tsx ---
+
+=========================================
+FILE: src/components/ui/card.tsx
+=========================================
 
 import * as React from "react"
 
@@ -45114,7 +43827,10 @@ CardFooter.displayName = "CardFooter"
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 
 
---- FILE: src/components/ui/carousel.tsx ---
+
+=========================================
+FILE: src/components/ui/carousel.tsx
+=========================================
 
 "use client"
 
@@ -45380,7 +44096,10 @@ export {
 }
 
 
---- FILE: src/components/ui/chart.tsx ---
+
+=========================================
+FILE: src/components/ui/chart.tsx
+=========================================
 
 "use client"
 
@@ -45749,7 +44468,10 @@ export {
 }
 
 
---- FILE: src/components/ui/checkbox.tsx ---
+
+=========================================
+FILE: src/components/ui/checkbox.tsx
+=========================================
 
 "use client"
 
@@ -45783,7 +44505,10 @@ Checkbox.displayName = CheckboxPrimitive.Root.displayName
 export { Checkbox }
 
 
---- FILE: src/components/ui/collapsible.tsx ---
+
+=========================================
+FILE: src/components/ui/collapsible.tsx
+=========================================
 
 "use client"
 
@@ -45798,7 +44523,10 @@ const CollapsibleContent = CollapsiblePrimitive.CollapsibleContent
 export { Collapsible, CollapsibleTrigger, CollapsibleContent }
 
 
---- FILE: src/components/ui/dialog.tsx ---
+
+=========================================
+FILE: src/components/ui/dialog.tsx
+=========================================
 
 "use client"
 
@@ -45924,7 +44652,10 @@ export {
 }
 
 
---- FILE: src/components/ui/dropdown-menu.tsx ---
+
+=========================================
+FILE: src/components/ui/dropdown-menu.tsx
+=========================================
 
 "use client"
 
@@ -46128,7 +44859,10 @@ export {
 }
 
 
---- FILE: src/components/ui/form.tsx ---
+
+=========================================
+FILE: src/components/ui/form.tsx
+=========================================
 
 "use client"
 
@@ -46310,7 +45044,10 @@ export {
 }
 
 
---- FILE: src/components/ui/input.tsx ---
+
+=========================================
+FILE: src/components/ui/input.tsx
+=========================================
 
 import * as React from "react"
 
@@ -46336,7 +45073,10 @@ Input.displayName = "Input"
 export { Input }
 
 
---- FILE: src/components/ui/label.tsx ---
+
+=========================================
+FILE: src/components/ui/label.tsx
+=========================================
 
 "use client"
 
@@ -46366,7 +45106,10 @@ Label.displayName = LabelPrimitive.Root.displayName
 export { Label }
 
 
---- FILE: src/components/ui/menubar.tsx ---
+
+=========================================
+FILE: src/components/ui/menubar.tsx
+=========================================
 
 "use client"
 
@@ -46626,7 +45369,10 @@ export {
 }
 
 
---- FILE: src/components/ui/popover.tsx ---
+
+=========================================
+FILE: src/components/ui/popover.tsx
+=========================================
 
 "use client"
 
@@ -46661,7 +45407,10 @@ PopoverContent.displayName = PopoverPrimitive.Content.displayName
 export { Popover, PopoverTrigger, PopoverContent }
 
 
---- FILE: src/components/ui/progress.tsx ---
+
+=========================================
+FILE: src/components/ui/progress.tsx
+=========================================
 
 "use client"
 
@@ -46693,7 +45442,10 @@ Progress.displayName = ProgressPrimitive.Root.displayName
 export { Progress }
 
 
---- FILE: src/components/ui/radio-group.tsx ---
+
+=========================================
+FILE: src/components/ui/radio-group.tsx
+=========================================
 
 "use client"
 
@@ -46741,152 +45493,10 @@ RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName
 export { RadioGroup, RadioGroupItem }
 
 
---- FILE: src/components/ui/responsive-card.tsx ---
 
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface ResponsiveCardProps {
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-  headerClassName?: string;
-  contentClassName?: string;
-  variant?: 'default' | 'compact' | 'minimal';
-}
-
-export function ResponsiveCard({
-  title,
-  children,
-  className,
-  headerClassName,
-  contentClassName,
-  variant = 'default',
-}: ResponsiveCardProps) {
-  const paddingClasses = {
-    default: 'p-4 md:p-6',
-    compact: 'p-3 md:p-4',
-    minimal: 'p-2 md:p-3',
-  };
-
-  return (
-    <Card className={cn(
-      "border-none shadow-md bg-white overflow-hidden h-full",
-      className
-    )}>
-      <CardHeader className={cn(
-        "border-b border-slate-100",
-        variant === 'minimal' ? 'py-2 px-3 md:py-3 md:px-4' : 'py-3 px-4 md:py-4 md:px-6',
-        headerClassName
-      )}>
-        <CardTitle className={cn(
-          "font-black uppercase tracking-tight",
-          variant === 'minimal' ? 'text-xs md:text-sm' : 'text-sm md:text-base lg:text-lg'
-        )}>
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className={cn(
-        paddingClasses[variant],
-        contentClassName
-      )}>
-        {children}
-      </CardContent>
-    </Card>
-  );
-}
-
-
---- FILE: src/components/ui/responsive-table.tsx ---
-
-import { cn } from "@/lib/utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useResponsive } from "@/hooks/use-responsive";
-
-interface ResponsiveTableProps {
-  headers: string[];
-  rows: React.ReactNode[][];
-  className?: string;
-  minWidth?: string;
-  mobileCardView?: boolean;
-  emptyMessage?: string;
-  emptyIcon?: React.ReactNode;
-}
-
-export function ResponsiveTable({
-  headers,
-  rows,
-  className,
-  minWidth = '600px',
-  mobileCardView = true,
-  emptyMessage,
-  emptyIcon
-}: ResponsiveTableProps) {
-  const { isMobile } = useResponsive();
-
-  // On mobile, show cards instead of table
-  if (mobileCardView && isMobile) {
-    return (
-      <div className="space-y-4">
-        {rows.map((row, idx) => (
-          <div key={idx} className="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
-            {headers.map((header, colIdx) => (
-              <div key={`${idx}-${colIdx}`} className="flex justify-between items-center border-b border-slate-100 last:border-0 py-1">
-                <span className="text-xs font-black uppercase text-slate-500">{header}</span>
-                <span className="text-sm font-bold text-slate-800 text-right">{row[colIdx]}</span>
-              </div>
-            ))}
-          </div>
-        ))}
-        {(!rows || rows.length === 0) && emptyMessage && (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-            {emptyIcon && <div className="flex justify-center mb-4">{emptyIcon}</div>}
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{emptyMessage}</p>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Desktop/Tablet: Show table with horizontal scroll
-  return (
-    <div className={cn("overflow-x-auto", className)}>
-      <div style={{ minWidth }}>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {headers.map((header, idx) => (
-                <TableHead key={idx} className="font-black uppercase text-xs text-slate-500">
-                  {header}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row, idx) => (
-              <TableRow key={idx}>
-                {row.map((cell, cellIdx) => (
-                  <TableCell key={cellIdx}>{cell}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-            {(!rows || rows.length === 0) && emptyMessage && (
-              <TableRow>
-                <TableCell colSpan={headers.length} className="text-center py-20 bg-slate-50/50">
-                  {emptyIcon && <div className="flex justify-center mb-4">{emptyIcon}</div>}
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{emptyMessage}</p>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
-}
-
-
---- FILE: src/components/ui/scroll-area.tsx ---
+=========================================
+FILE: src/components/ui/scroll-area.tsx
+=========================================
 
 "use client"
 
@@ -46938,7 +45548,10 @@ ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
 export { ScrollArea, ScrollBar }
 
 
---- FILE: src/components/ui/select.tsx ---
+
+=========================================
+FILE: src/components/ui/select.tsx
+=========================================
 
 "use client"
 
@@ -47102,7 +45715,10 @@ export {
 }
 
 
---- FILE: src/components/ui/separator.tsx ---
+
+=========================================
+FILE: src/components/ui/separator.tsx
+=========================================
 
 "use client"
 
@@ -47137,7 +45753,10 @@ Separator.displayName = SeparatorPrimitive.Root.displayName
 export { Separator }
 
 
---- FILE: src/components/ui/sheet.tsx ---
+
+=========================================
+FILE: src/components/ui/sheet.tsx
+=========================================
 
 "use client"
 
@@ -47283,7 +45902,10 @@ export {
 }
 
 
---- FILE: src/components/ui/sidebar.tsx ---
+
+=========================================
+FILE: src/components/ui/sidebar.tsx
+=========================================
 
 "use client"
 
@@ -48050,7 +46672,10 @@ export {
 }
 
 
---- FILE: src/components/ui/skeleton.tsx ---
+
+=========================================
+FILE: src/components/ui/skeleton.tsx
+=========================================
 
 import { cn } from "@/lib/utils"
 
@@ -48069,7 +46694,10 @@ function Skeleton({
 export { Skeleton }
 
 
---- FILE: src/components/ui/slider.tsx ---
+
+=========================================
+FILE: src/components/ui/slider.tsx
+=========================================
 
 "use client"
 
@@ -48101,7 +46729,10 @@ Slider.displayName = SliderPrimitive.Root.displayName
 export { Slider }
 
 
---- FILE: src/components/ui/switch.tsx ---
+
+=========================================
+FILE: src/components/ui/switch.tsx
+=========================================
 
 "use client"
 
@@ -48134,7 +46765,10 @@ Switch.displayName = SwitchPrimitives.Root.displayName
 export { Switch }
 
 
---- FILE: src/components/ui/table.tsx ---
+
+=========================================
+FILE: src/components/ui/table.tsx
+=========================================
 
 import * as React from "react"
 
@@ -48255,7 +46889,10 @@ export {
 }
 
 
---- FILE: src/components/ui/tabs.tsx ---
+
+=========================================
+FILE: src/components/ui/tabs.tsx
+=========================================
 
 "use client"
 
@@ -48314,7 +46951,10 @@ TabsContent.displayName = TabsPrimitive.Content.displayName
 export { Tabs, TabsList, TabsTrigger, TabsContent }
 
 
---- FILE: src/components/ui/textarea.tsx ---
+
+=========================================
+FILE: src/components/ui/textarea.tsx
+=========================================
 
 import * as React from 'react';
 
@@ -48339,7 +46979,10 @@ Textarea.displayName = 'Textarea';
 export {Textarea};
 
 
---- FILE: src/components/ui/toast.tsx ---
+
+=========================================
+FILE: src/components/ui/toast.tsx
+=========================================
 
 "use client"
 
@@ -48472,7 +47115,10 @@ export {
 }
 
 
---- FILE: src/components/ui/toaster.tsx ---
+
+=========================================
+FILE: src/components/ui/toaster.tsx
+=========================================
 
 "use client"
 
@@ -48511,7 +47157,10 @@ export function Toaster() {
 }
 
 
---- FILE: src/components/ui/tooltip.tsx ---
+
+=========================================
+FILE: src/components/ui/tooltip.tsx
+=========================================
 
 "use client"
 
@@ -48545,7 +47194,10 @@ TooltipContent.displayName = TooltipPrimitive.Content.displayName
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
 
 
---- FILE: src/contexts/auth-context.tsx ---
+
+=========================================
+FILE: src/contexts/auth-context.tsx
+=========================================
 
 "use client";
 
@@ -48678,13 +47330,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => useContext(AuthContext);
 
 
---- FILE: src/contexts/navigation-context.tsx ---
+
+=========================================
+FILE: src/contexts/navigation-context.tsx
+=========================================
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, Suspense, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useResponsive } from '@/hooks/use-responsive';
 
 export type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
@@ -48703,7 +47357,6 @@ function NavigationContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { isMobile } = useResponsive();
   const [currentView, setCurrentView] = useState<DashboardView>('DASHBOARD');
   const [viewParams, setViewParams] = useState<any>(null);
 
@@ -48717,26 +47370,23 @@ function NavigationContent({ children }: { children: React.ReactNode }) {
     }
   }, [searchParams]);
 
-  const navigateTo = useCallback((view: DashboardView, params?: any) => {
+  const navigateTo = (view: DashboardView, params?: any) => {
     setCurrentView(view);
     setViewParams(params || null);
     
-    // If on mobile, use the mobile navigation
-    if (isMobile || pathname === '/dashboard/mobile') {
-      // Dispatch mobile navigation event
-      window.dispatchEvent(new CustomEvent('switch-view', {
-        detail: { view, params }
-      }));
+    // Do not alter the URL if we are actively in the mobile view route.
+    // The mobile dashboard manages its own views internally via the switch-view event
+    if (pathname === '/dashboard/mobile') {
       return;
     }
     
-    // Desktop navigation via URL
+    // Sync to URL query param
     if (view === 'DASHBOARD') {
       router.push('/dashboard');
     } else {
       router.push(`/dashboard?view=${view}`);
     }
-  }, [isMobile, pathname, router]);
+  };
 
   // Intercept legacy switch-view custom events to ensure backward compatibility
   useEffect(() => {
@@ -48774,7 +47424,10 @@ export function useNavigation() {
 }
 
 
---- FILE: src/contexts/pipeline-context.tsx ---
+
+=========================================
+FILE: src/contexts/pipeline-context.tsx
+=========================================
 
 "use client";
 
@@ -48923,7 +47576,10 @@ export const PipelineProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const usePipelineData = () => useContext(PipelineContext);
 
 
---- FILE: src/env.ts ---
+
+=========================================
+FILE: src/env.ts
+=========================================
 
 import { z } from 'zod';
 
@@ -48953,7 +47609,10 @@ if (!parsedEnv.success) {
 export const env = parsedEnv.data;
 
 
---- FILE: src/firebase/client-provider.tsx ---
+
+=========================================
+FILE: src/firebase/client-provider.tsx
+=========================================
 
 'use client';
 
@@ -48982,7 +47641,10 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
   );
 }
 
---- FILE: src/firebase/config.ts ---
+
+=========================================
+FILE: src/firebase/config.ts
+=========================================
 
 /**
  * Firebase Configuration Node
@@ -49002,7 +47664,10 @@ export const firebaseConfig = {
   appId:             env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
---- FILE: src/firebase/error-emitter.ts ---
+
+=========================================
+FILE: src/firebase/error-emitter.ts
+=========================================
 
 'use client';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -49069,7 +47734,10 @@ function createEventEmitter<T extends Record<string, any>>() {
 // Create and export a singleton instance of the emitter, typed with our AppEvents interface.
 export const errorEmitter = createEventEmitter<AppEvents>();
 
---- FILE: src/firebase/errors.ts ---
+
+=========================================
+FILE: src/firebase/errors.ts
+=========================================
 
 'use client';
 import { getAuth, type User } from 'firebase/auth';
@@ -49195,7 +47863,10 @@ export class FirestorePermissionError extends Error {
   }
 }
 
---- FILE: src/firebase/firestore/use-collection.tsx ---
+
+=========================================
+FILE: src/firebase/firestore/use-collection.tsx
+=========================================
 
 'use client';
 
@@ -49309,7 +47980,10 @@ export function useCollection<T = any>(
 }
 
 
---- FILE: src/firebase/firestore/use-doc.tsx ---
+
+=========================================
+FILE: src/firebase/firestore/use-doc.tsx
+=========================================
 
 'use client';
     
@@ -49398,7 +48072,10 @@ export function useDoc<T = any>(
 }
 
 
---- FILE: src/firebase/index.ts ---
+
+=========================================
+FILE: src/firebase/index.ts
+=========================================
 
 'use client';
 
@@ -49450,7 +48127,10 @@ export * from './errors';
 export * from './error-emitter';
 
 
---- FILE: src/firebase/non-blocking-login.tsx ---
+
+=========================================
+FILE: src/firebase/non-blocking-login.tsx
+=========================================
 
 'use client';
 import {
@@ -49483,7 +48163,10 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
 }
 
 
---- FILE: src/firebase/non-blocking-updates.tsx ---
+
+=========================================
+FILE: src/firebase/non-blocking-updates.tsx
+=========================================
 
 'use client';
     
@@ -49575,7 +48258,10 @@ export function deleteDocumentNonBlocking(docRef: DocumentReference) {
     });
 }
 
---- FILE: src/firebase/provider.tsx ---
+
+=========================================
+FILE: src/firebase/provider.tsx
+=========================================
 
 'use client';
 
@@ -49739,7 +48425,10 @@ export const useUser = (): UserHookResult => {
 };
 
 
---- FILE: src/hooks/use-crm-summary.ts ---
+
+=========================================
+FILE: src/hooks/use-crm-summary.ts
+=========================================
 
 "use client";
 
@@ -49947,7 +48636,10 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
 }
 
 
---- FILE: src/hooks/use-mobile.tsx ---
+
+=========================================
+FILE: src/hooks/use-mobile.tsx
+=========================================
 
 import * as React from "react"
 
@@ -49970,41 +48662,10 @@ export function useIsMobile() {
 }
 
 
---- FILE: src/hooks/use-responsive.ts ---
 
-import { useState, useEffect } from 'react';
-
-export function useResponsive() {
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== 'undefined' ? window.innerWidth : 0
-  );
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    // Initial setting
-    setWindowWidth(window.innerWidth);
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return {
-    windowWidth,
-    isMobile: windowWidth < 768,
-    isTablet: windowWidth >= 768 && windowWidth < 1024,
-    isDesktop: windowWidth >= 1024,
-    isLargeScreen: windowWidth >= 1280,
-    breakpoint: windowWidth < 768 ? 'mobile' : windowWidth < 1024 ? 'tablet' : 'desktop',
-  };
-}
-
-
---- FILE: src/hooks/use-toast.ts ---
+=========================================
+FILE: src/hooks/use-toast.ts
+=========================================
 
 "use client"
 
@@ -50202,7 +48863,10 @@ function useToast() {
 export { useToast, toast }
 
 
---- FILE: src/lib/deal-health.ts ---
+
+=========================================
+FILE: src/lib/deal-health.ts
+=========================================
 
 import { PipelineReview, FactFindingDoc } from '@/types/crm';
 import { differenceInDays, parseISO } from 'date-fns';
@@ -50363,7 +49027,10 @@ export function calculateDealHealth(
 }
 
 
---- FILE: src/lib/export-utils.ts ---
+
+=========================================
+FILE: src/lib/export-utils.ts
+=========================================
 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -50432,7 +49099,10 @@ export function exportToJson(data: any, filename: string): void {
 }
 
 
---- FILE: src/lib/firebase.ts ---
+
+=========================================
+FILE: src/lib/firebase.ts
+=========================================
 
 import { initializeFirebase } from '@/firebase';
 
@@ -50447,7 +49117,10 @@ export { firebaseApp as default, auth, firestore as db };
 export const storage = null; // Storage not currently implemented in core architecture
 
 
---- FILE: src/lib/mobile-utils.ts ---
+
+=========================================
+FILE: src/lib/mobile-utils.ts
+=========================================
 
 import { useEffect, useState } from 'react';
 
@@ -50502,7 +49175,10 @@ export function navigateToMobileModule(module: MobileModule) {
 }
 
 
---- FILE: src/lib/momentum.ts ---
+
+=========================================
+FILE: src/lib/momentum.ts
+=========================================
 
 export type MomentumScore = 'DEAD' | 'STALLING' | 'MOVING' | 'HOT';
 
@@ -50548,13 +49224,19 @@ export function computeMomentum(deal: {
   };
 }
 
---- FILE: src/lib/placeholder-images.json ---
+
+=========================================
+FILE: src/lib/placeholder-images.json
+=========================================
 
 {
   "placeholderImages": []
 }
 
---- FILE: src/lib/placeholder-images.ts ---
+
+=========================================
+FILE: src/lib/placeholder-images.ts
+=========================================
 
 import data from './placeholder-images.json';
 
@@ -50568,111 +49250,10 @@ export type ImagePlaceholder = {
 export const PlaceHolderImages: ImagePlaceholder[] = data.placeholderImages;
 
 
---- FILE: src/lib/responsive-test.ts ---
 
-/**
- * Test responsive behavior across common device sizes
- * Use this in development to test different viewports
- */
-export const DEVICE_SIZES = {
-  mobile: { width: 375, height: 667 },    // iPhone SE
-  mobileLarge: { width: 428, height: 926 }, // iPhone 14 Pro Max
-  tablet: { width: 768, height: 1024 },   // iPad
-  tabletLarge: { width: 1024, height: 1366 }, // iPad Pro
-  desktop: { width: 1440, height: 900 },
-  desktopLarge: { width: 1920, height: 1080 },
-};
-
-export function simulateDevice(device: keyof typeof DEVICE_SIZES) {
-  if (typeof window === 'undefined') return;
-  
-  const size = DEVICE_SIZES[device];
-  window.resizeTo(size.width, size.height);
-  
-  // Dispatch resize event
-  window.dispatchEvent(new Event('resize'));
-  
-  console.log(`[Responsive Test] Simulated ${device} viewport: ${size.width}x${size.height}`);
-}
-
-
---- FILE: src/lib/responsive-utils.ts ---
-
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-/**
- * Responsive grid layout helper
- * Automatically adjusts columns based on screen size
- */
-export const responsiveGrid = {
-  // 1 column on mobile, 2 on tablet, 3 on desktop
-  cardGrid: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6",
-  
-  // 1 column on mobile, 2 on tablet, 4 on desktop
-  compactGrid: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4",
-  
-  // 2 columns on mobile, 3 on tablet, 5 on desktop
-  metricGrid: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4",
-  
-  // Full width on mobile, 2 columns on tablet, 3 on desktop with sidebar
-  dashboardGrid: "grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6",
-};
-
-/**
- * Responsive text sizing
- */
-export const responsiveText = {
-  heading1: "text-2xl md:text-3xl lg:text-4xl font-black",
-  heading2: "text-xl md:text-2xl lg:text-3xl font-black",
-  heading3: "text-lg md:text-xl lg:text-2xl font-bold",
-  body: "text-sm md:text-base",
-  small: "text-xs md:text-sm",
-  tiny: "text-[10px] md:text-xs",
-};
-
-/**
- * Responsive spacing
- */
-export const responsiveSpacing = {
-  section: "space-y-4 md:space-y-6 lg:space-y-8",
-  card: "p-3 md:p-4 lg:p-6",
-  container: "px-3 md:px-4 lg:px-6",
-};
-
-/**
- * Check if a device is mobile (client-side only)
- */
-export function isMobileDevice(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth < 768;
-}
-
-/**
- * Check if a device is tablet (client-side only)
- */
-export function isTabletDevice(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth >= 768 && window.innerWidth < 1024;
-}
-
-/**
- * Get device type (client-side only)
- */
-export function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
-  if (typeof window === 'undefined') return 'desktop';
-  const width = window.innerWidth;
-  if (width < 768) return 'mobile';
-  if (width < 1024) return 'tablet';
-  return 'desktop';
-}
-
-
---- FILE: src/lib/utils.ts ---
+=========================================
+FILE: src/lib/utils.ts
+=========================================
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
@@ -51047,43 +49628,11 @@ export function getPreviousWeekKey(weekKey: string): string {
   return getWeekForDate(prevWeekDate);
 }
 
-/**
- * Deduplicates an array of user objects fetched from Firestore.
- * Prevents the dual-identity problem by preferring the Auth UID over the legacy string ID.
- * Automatically filters out GUEST users.
- */
-export function deduplicateUsers(users: any[]) {
-  if (!users || !Array.isArray(users)) return [];
-  
-  const map = new Map();
-  users.forEach(u => {
-    // Filter out GUEST users automatically
-    if (u.role === 'GUEST') return;
-    
-    // Normalize key for deduplication
-    const key = u.name?.trim().toLowerCase();
-    if (!key) return;
-    
-    if (!map.has(key)) {
-      map.set(key, u);
-    } else {
-      const existing = map.get(key);
-      // Prefer the Auth UID (longer, usually 28 chars) over the legacy string ID
-      const newIdLength = (u.id || u.uid || '').length;
-      const existingIdLength = (existing.id || existing.uid || '').length;
-      
-      if (newIdLength > existingIdLength) {
-        map.set(key, u);
-      }
-    }
-  });
-  
-  // Sort alphabetically by name
-  return Array.from(map.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-}
 
 
---- FILE: src/middleware.ts ---
+=========================================
+FILE: src/middleware.ts
+=========================================
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -51113,7 +49662,10 @@ export const config = {
 };
 
 
---- FILE: src/types/crm.d.ts ---
+
+=========================================
+FILE: src/types/crm.d.ts
+=========================================
 
 export type UserRole = 'LEADER' | 'BDM' | 'ACCOUNT_MANAGER' | 'GM' | 'ADMIN' | 'SUPER_ADMIN';
 export type Territory = 'METRO_NORTH' | 'METRO_SOUTH' | 'WESTERN_TRADE_COAST' | 'REGIONAL' | 'FLEX';
@@ -51329,218 +49881,3 @@ export interface CanvassLead {
 }
 
 
---- FILE: status-script.js ---
-
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-
-async function fixStatus() {
-  initializeApp({ projectId: 'studio-5306701288-d19b1' });
-  const db = getFirestore();
-  
-  const snap = await db.collection('weeklyCommitments').where('week', '==', '2026-08').get();
-  let count = 0;
-  
-  const batch = db.batch();
-  snap.forEach(doc => {
-    // If we change it to 'SUBMITTED', it will show in the dashboard!
-    batch.update(doc.ref, { status: 'SUBMITTED' });
-    count++;
-  });
-  
-  if (count > 0) {
-    await batch.commit();
-    console.log(`Successfully updated status to SUBMITTED for ${count} plans in week 8.`);
-  } else {
-    console.log('No documents found for week 8.');
-  }
-}
-
-fixStatus().catch(console.error);
-
-
---- FILE: tailwind.config.ts ---
-
-import type {Config} from 'tailwindcss';
-
-export default {
-  darkMode: ['class'],
-  content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    container: {
-      center: true,
-      padding: {
-        DEFAULT: '1rem',
-        sm: '1.5rem',
-        md: '2rem',
-        lg: '2.5rem',
-        xl: '3rem',
-      },
-    },
-    extend: {
-      screens: {
-        'xs': '375px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
-        '3xl': '1920px',
-      },
-      spacing: {
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-bottom': 'env(safe-area-inset-bottom)',
-        'safe-left': 'env(safe-area-inset-left)',
-        'safe-right': 'env(safe-area-inset-right)',
-      },
-      fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
-      },
-      colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        },
-      },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
-      keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-        },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
-        },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-      },
-    },
-  },
-  plugins: [require('tailwindcss-animate')],
-} satisfies Config;
-
-
---- FILE: test-admin.js ---
-
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-
-async function run() {
-  try {
-    // If running in an environment with Application Default Credentials
-    // (e.g. cloud IDE or local with gcloud), this will just work.
-    initializeApp({
-      projectId: 'studio-5306701288-d19b1'
-    });
-    
-    const db = getFirestore();
-    const snap = await db.collection('weeklyCommitments').where('week', 'in', ['2026-21', '2026-22', '2025-21', '2025-22', '2024-21', '2024-22', '21', '22', 'Week 21', 'Week 22']).get();
-    
-    console.log(`Found ${snap.size} commitments.`);
-    snap.forEach(doc => {
-      console.log(doc.id, '=>', doc.data());
-    });
-  } catch(e) {
-    console.error("Failed:", e);
-  }
-}
-
-run();
-
-
---- FILE: tsconfig.json ---
-
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}

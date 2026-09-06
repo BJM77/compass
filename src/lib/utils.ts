@@ -47,39 +47,66 @@ export function normalizeBdmName(name?: string, id?: string): string {
   return str;
 }
 
-/**
- * Flexible matching for user submissions to handle alias user IDs (e.g. namra, namra_khan, Namra Khan, UIDs).
- */
 export function isUserSubmissionMatch(
-  user: { id?: string; name?: string; aliasIds?: string[] },
-  sub: { userId?: string; userName?: string; salespersonName?: string; id?: string }
+  user: { 
+    id?: string; 
+    name?: string; 
+    aliasIds?: string[];
+    allIds?: string[];
+    authUid?: string | null;
+    legacyIds?: string[];
+  },
+  sub: { 
+    userId?: string; 
+    userName?: string; 
+    salespersonName?: string; 
+    id?: string 
+  }
 ): boolean {
   if (!user || !sub) return false;
 
-  const uid = (user.id || '').trim();
-  const uname = (user.name || '').trim();
+  const userUid = (user.id || '').trim();
   const subUid = (sub.userId || '').trim();
-  const subUName = (sub.userName || sub.salespersonName || '').trim();
   const subDocId = (sub.id || '').trim();
 
-  // 1. Direct ID match or alias ID match
-  if (uid && subUid && uid === subUid) return true;
-  if (uid && subDocId && subDocId.startsWith(`${uid}_`)) return true;
-  if (user.aliasIds && user.aliasIds.length > 0) {
-    if (user.aliasIds.some(alias => alias === subUid || subDocId.startsWith(`${alias}_`))) return true;
-  }
-
-  // 2. Normalized BDM Name match
-  const normUser = normalizeBdmName(uname, uid).toLowerCase();
-  const normSubUser = normalizeBdmName(subUName, subUid).toLowerCase();
-  if (normUser && normSubUser && normUser === normSubUser && normUser !== 'unassigned') {
+  // 1. Strict Primary Key Match (Auth UID)
+  if (userUid && subUid && userUid === subUid) {
     return true;
   }
 
-  // 3. Special Namra alias fallback
-  const isNamraUser = normUser.includes('namra') || uid.toLowerCase().includes('namra') || uname.toLowerCase().includes('namra');
-  const isNamraSub = normSubUser.includes('namra') || subUid.toLowerCase().includes('namra') || subUName.toLowerCase().includes('namra') || subDocId.toLowerCase().includes('namra');
+  // 2. Document ID prefix match (e.g. ${userId}_${week})
+  if (userUid && subDocId && subDocId.startsWith(`${userUid}_`)) {
+    return true;
+  }
 
+  // 3. Match against allIds / aliasIds array
+  const idPool = user.allIds || user.aliasIds || [];
+  if (idPool.length > 0) {
+    if (subUid && idPool.includes(subUid)) {
+      return true;
+    }
+    if (subDocId && idPool.some(alias => subDocId.startsWith(`${alias}_`))) {
+      return true;
+    }
+  }
+
+  // 4. Normalized Name Fallback (For display & legacy fallback contexts)
+  const userNorm = normalizeBdmName(user.name, userUid).toLowerCase();
+  const subNorm = normalizeBdmName(sub.userName || sub.salespersonName, subUid).toLowerCase();
+  if (userNorm && subNorm && userNorm === subNorm && userNorm !== 'unassigned') {
+    return true;
+  }
+
+  // 5. Case-Insensitive Name Match for Legacy IDs
+  const userLegacyId = (user.id || '').toLowerCase();
+  const subLegacyId = (sub.userId || '').toLowerCase();
+  if (userLegacyId && subLegacyId && userLegacyId === subLegacyId) {
+    return true;
+  }
+
+  // 6. Namra specific identity matching safety net
+  const isNamraUser = userNorm.includes('namra') || userUid.toLowerCase().includes('namra');
+  const isNamraSub = subNorm.includes('namra') || subUid.toLowerCase().includes('namra') || subDocId.toLowerCase().includes('namra');
   if (isNamraUser && isNamraSub) return true;
 
   return false;
@@ -342,4 +369,39 @@ export function getPreviousWeekKey(weekKey: string): string {
 
   const prevWeekDate = new Date(searchDate.getTime() - 7 * 24 * 60 * 60 * 1000);
   return getWeekForDate(prevWeekDate);
+}
+
+/**
+ * Deduplicates an array of user objects fetched from Firestore.
+ * Prevents the dual-identity problem by preferring the Auth UID over the legacy string ID.
+ * Automatically filters out GUEST users.
+ */
+export function deduplicateUsers(users: any[]) {
+  if (!users || !Array.isArray(users)) return [];
+  
+  const map = new Map();
+  users.forEach(u => {
+    // Filter out GUEST users automatically
+    if (u.role === 'GUEST') return;
+    
+    // Normalize key for deduplication
+    const key = u.name?.trim().toLowerCase();
+    if (!key) return;
+    
+    if (!map.has(key)) {
+      map.set(key, u);
+    } else {
+      const existing = map.get(key);
+      // Prefer the Auth UID (longer, usually 28 chars) over the legacy string ID
+      const newIdLength = (u.id || u.uid || '').length;
+      const existingIdLength = (existing.id || existing.uid || '').length;
+      
+      if (newIdLength > existingIdLength) {
+        map.set(key, u);
+      }
+    }
+  });
+  
+  // Sort alphabetically by name
+  return Array.from(map.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 }

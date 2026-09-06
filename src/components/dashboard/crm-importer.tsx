@@ -119,6 +119,7 @@ function matchUser(users: any[], ownerName: string): any | null {
 
     return uname.includes(normalizedOwner) || normalizedOwner.includes(uname) || uname.includes(lower) || lower.includes(uname);
   });
+  
   return found || null;
 }
 

@@ -107,7 +107,8 @@ export function DuplicateManager() {
                 </Button>
               </div>
               <ScrollArea className="h-[500px] border rounded-2xl bg-white shadow-inner">
-                <Table>
+                <div className="overflow-x-auto">
+                  <Table className="min-w-[600px]">
                   <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black tracking-widest"><TableHead className="pl-6">Account Identification</TableHead><TableHead>Audit Reason</TableHead><TableHead>Owners</TableHead><TableHead className="text-right pr-6">Status</TableHead></TableRow></TableHeader>
                   <TableBody>{duplicates.map((group, idx) => (
                     <TableRow key={idx} className="group hover:bg-slate-50">
@@ -118,6 +119,7 @@ export function DuplicateManager() {
                     </TableRow>
                   ))}</TableBody>
                 </Table>
+                </div>
               </ScrollArea>
             </div>
           )}

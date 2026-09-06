@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { getCurrentWeek, normalizeBdmName } from '@/lib/utils';
+import { getCurrentWeek, normalizeBdmName, deduplicateUsers } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { saveAs } from 'file-saver';
+import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { 
   Search, 
   Filter, 
@@ -591,7 +593,7 @@ export function DataExplorer() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="font-bold text-xs">All BDMs & AMs</SelectItem>
-              {users.map(u => (
+              {deduplicateUsers(users || []).map((u: any) => (
                 <SelectItem key={u.id} value={u.id} className="font-medium text-xs">{u.name}</SelectItem>
               ))}
             </SelectContent>

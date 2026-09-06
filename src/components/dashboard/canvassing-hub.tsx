@@ -38,7 +38,7 @@ import {
   Sparkles,
   Timer
 } from 'lucide-react';
-import { openSalesforceCreateLead, openSalesforceSearch } from '@/lib/utils';
+import { openSalesforceCreateLead, openSalesforceSearch, deduplicateUsers } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -80,6 +80,13 @@ export function CanvassingHub() {
   }, [db, isLeader, user?.uid, scopeFilter]);
 
   const { data: rawLeads, isLoading } = useCollection<CanvassLead>(leadsQuery);
+
+  // Query all users for reassignment (only for super admin)
+  const usersQuery = useMemoFirebase(() => {
+    if (!db || user?.email !== '1@1.com') return null;
+    return collection(db, 'users');
+  }, [db, user?.email]);
+  const { data: allUsers } = useCollection<any>(usersQuery);
 
   // Filter leads
   const filteredLeads = useMemo(() => {
@@ -143,6 +150,22 @@ export function CanvassingHub() {
       toast({ title: 'Lead Archived', description: `${companyName} was archived.` });
     } catch (e: any) {
       toast({ title: 'Error archiving lead', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const handleReassignLead = async (leadId: string, newUserId: string) => {
+    if (!db) return;
+    const newUser = allUsers?.find(u => u.id === newUserId);
+    if (!newUser) return;
+    
+    try {
+      await updateDoc(doc(db, 'canvass_leads', leadId), {
+        userId: newUserId,
+        userName: newUser.name,
+      });
+      toast({ title: 'Lead Reassigned', description: `Lead assigned to ${newUser.name}.` });
+    } catch (e: any) {
+      toast({ title: 'Reassignment failed', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -524,8 +547,29 @@ export function CanvassingHub() {
 
                   {/* Rep & Date info */}
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
-                    <span className="font-medium truncate max-w-[140px]">
-                      Rep: <strong className="text-foreground">{lead.userName || 'Unknown'}</strong>
+                    <span className="font-medium truncate max-w-[150px] flex items-center">
+                      Rep: 
+                      {user?.email === '1@1.com' ? (
+                        <div onClick={e => e.stopPropagation()} className="ml-1">
+                          <Select 
+                            value={lead.userId || ''} 
+                            onValueChange={(val) => handleReassignLead(lead.id, val)}
+                          >
+                            <SelectTrigger className="h-5 text-[10px] w-auto border-none bg-transparent hover:bg-slate-100 px-1.5 py-0 shadow-none font-bold text-foreground focus:ring-0">
+                              <SelectValue placeholder={lead.userName || 'Unknown'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {deduplicateUsers(allUsers || []).map((u: any) => (
+                                <SelectItem key={u.id} value={u.id} className="text-xs">
+                                  {u.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <strong className="text-foreground ml-1">{lead.userName || 'Unknown'}</strong>
+                      )}
                     </span>
                     <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 text-[10px] shrink-0 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded">
                       <Clock className="h-3 w-3 text-muted-foreground" />

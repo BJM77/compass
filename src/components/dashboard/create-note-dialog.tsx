@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { deduplicateUsers } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { ClipboardList, Loader2, PlusCircle } from 'lucide-react';
 
@@ -154,7 +155,7 @@ export function CreateNoteDialog() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="font-bold text-indigo-600">Broadcast to All (AMs & BDMs)</SelectItem>
-                {targetUsers.map(u => (
+                {deduplicateUsers(targetUsers || []).map((u: any) => (
                   <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
                 ))}
               </SelectContent>

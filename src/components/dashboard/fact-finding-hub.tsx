@@ -329,8 +329,8 @@ export function FactFindingHub() {
               <Button variant="link" onClick={() => { setSearchQuery(''); setUserFilter('all'); }} className="mt-2">Clear Filters</Button>
             </div>
           ) : viewMode === 'list' ? (
-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-              <Table>
+            <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-sm">
+              <Table className="min-w-[800px]">
                 <TableHeader className="bg-slate-50/80">
                   <TableRow>
                     <TableHead className="font-bold">Customer</TableHead>

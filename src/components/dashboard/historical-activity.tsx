@@ -6,7 +6,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { History, Phone, CalendarCheck, Clock, FileText, ClipboardList } from 'lucide-react';
 import { format, subWeeks, startOfWeek } from 'date-fns';
-import { getCurrentWeek, getWeekForDate, isUserSubmissionMatch, cn } from '@/lib/utils';
+import { deduplicateUsers, getCurrentWeek, getWeekForDate, isUserSubmissionMatch, normalizeBdmName, cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -137,15 +137,13 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
     // De-duplicate by lowercased name. If duplicates exist, prefer the one with a real Auth UID (28-character alphanumeric) over string IDs like 'rienzie_delilkan'
     const targetUsersMap = new Map<string, any>();
     targetUsersRaw.forEach(u => {
-      const key = (u.name || u.id).trim().toLowerCase();
-      const existing = targetUsersMap.get(key);
-      if (!existing) {
-        targetUsersMap.set(key, u);
+      const norm = normalizeBdmName(u.name, u.id);
+      if (!targetUsersMap.has(norm)) {
+        targetUsersMap.set(norm, { ...u });
       } else {
-        const isRealUid = (id: string) => id.length === 28 && !id.includes('_');
-        if (isRealUid(u.id) && !isRealUid(existing.id)) {
-          targetUsersMap.set(key, u);
-        }
+        const existing = targetUsersMap.get(norm);
+        if (!existing.aliasIds) existing.aliasIds = [];
+        existing.aliasIds.push(u.id);
       }
     });
     const targetUsers = Array.from(targetUsersMap.values());
@@ -165,7 +163,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
             </tr>
           </thead>
           <tbody className="divide-y text-[11px] font-bold">
-            {targetUsers.map(u => (
+            {deduplicateUsers(targetUsers || []).map((u: any) => (
               <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
                 <td 
                   onClick={() => {
@@ -178,7 +176,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   {u.name}
                 </td>
                 {pastWeeks.map((week, idx) => {
-                  const dataEntries = progressData?.filter(d => d.week === week && isUserSubmissionMatch({ id: u.id, name: u.name }, d)) || [];
+                  const dataEntries = progressData?.filter(d => d.week === week && isUserSubmissionMatch(u, d)) || [];
                   const crmCalls = dataEntries.reduce((sum, d) => sum + Number(d.crmCalls || 0), 0);
                   const crmApps = dataEntries.reduce((sum, d) => sum + Number(d.crmApps || 0), 0);
                   const calls = dataEntries.reduce((sum, d) => sum + Number(d.calls || 0), 0);

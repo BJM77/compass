@@ -43,8 +43,8 @@ import { ManageTimeView } from './manage-time-view';
 import { CanvassingHub } from './canvassing-hub';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
-import { getCurrentWeek, formatEAV } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { normalizeBdmName, deduplicateUsers, getCurrentWeek, formatEAV } from '@/lib/utils';
+import { useNavigation } from '@/contexts/navigation-context';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -431,7 +431,7 @@ function MobileDashboardView({ userId, userName, stats, isLeader, setSimulationU
             </SheetHeader>
             <ScrollArea className="h-full px-6 pb-12">
               <div className="space-y-2">
-                {users?.map(u => (
+                {deduplicateUsers(users || []).map((u: any) => (
                   <button 
                     key={u.id} 
                     onClick={() => { 
