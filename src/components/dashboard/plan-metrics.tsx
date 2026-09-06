@@ -12,7 +12,7 @@ import { getCurrentWeek, normalizeBdmName, isUserSubmissionMatch } from '@/lib/u
 
 export function PlanMetrics() {
   const db = useFirestore();
-  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 0 }), []);
+  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
   const currentWeek = useMemo(() => getCurrentWeek(), []);
   
   // Fetch users to display names instead of IDs

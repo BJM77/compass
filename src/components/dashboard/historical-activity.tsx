@@ -26,7 +26,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
     const weeks = [];
     const now = new Date();
     for (let i = 0; i < 4; i++) {
-      const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 0 }); // Sunday
+      const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 }); // Monday
       weeks.push(getWeekForDate(weekStart));
     }
     return weeks; // e.g. ['2026-22', '2026-21', '2026-20', '2026-19']

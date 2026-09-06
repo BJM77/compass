@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import Papa from 'papaparse';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, serverTimestamp, getDocs, query, where, updateDoc, getDoc, setDoc } from 'firebase/firestore';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate } from '@/lib/utils';
 import { differenceInCalendarWeeks, isBefore } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -173,23 +173,6 @@ function parseAustralianDate(dateStr: string): Date | null {
   return null;
 }
 
-function getWeekForDate(date: Date): string {
-  let currentYear = date.getFullYear();
-  let firstSundayOfApril = new Date(currentYear, 3, 1);
-  while (firstSundayOfApril.getDay() !== 0) {
-    firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
-  }
-  if (isBefore(date, firstSundayOfApril)) {
-    currentYear -= 1;
-    firstSundayOfApril = new Date(currentYear, 3, 1);
-    while (firstSundayOfApril.getDay() !== 0) {
-      firstSundayOfApril.setDate(firstSundayOfApril.getDate() + 1);
-    }
-  }
-  const weekNumber = differenceInCalendarWeeks(date, firstSundayOfApril, { weekStartsOn: 0 }) + 1;
-  const paddedWeek = weekNumber.toString().padStart(2, '0');
-  return `${currentYear}-${paddedWeek}`;
-}
 
 function classifyActivity(row: any): 'CALL' | 'APP' {
   const activityType = getField(row, 'Activity Type', 'activity type').trim().toLowerCase();

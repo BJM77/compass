@@ -23,8 +23,8 @@ function generateWeekOptions(count: number) {
   const options: { value: string; label: string; range: string }[] = [];
   const now = new Date();
   for (let i = 0; i < count; i++) {
-    const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 0 }); // Sunday
-    const weekEnd = addDays(weekStart, 6); // Saturday
+    const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 }); // Monday
+    const weekEnd = addDays(weekStart, 6); // Sunday
     const weekKey = getWeekForDate(weekStart);
     options.push({
       value: weekKey,
