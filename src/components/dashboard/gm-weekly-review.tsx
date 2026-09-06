@@ -22,7 +22,7 @@ import {
   ClipboardList, Coins, Banknote, Landmark
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek, isUserSubmissionMatch, normalizeBdmName } from '@/lib/utils';
+import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek, isUserSubmissionMatch, normalizeBdmName, deduplicateUsers } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
@@ -106,9 +106,9 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
   const { data: teamPlans } = useCollection(teamPlansQuery);
 
   const actualSpendQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || selectedTab !== 'actualSpend') return null;
     return query(collection(db, 'actualRevenues'));
-  }, [db]);
+  }, [db, selectedTab]);
   const { data: actualSpendRecords } = useCollection(actualSpendQuery);
 
   const actualSpendSummary = useMemo(() => {
@@ -138,13 +138,15 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     fetchMetadata();
   }, [db]);
 
+  const [rawSnaps, setRawSnaps] = useState<any>(null);
+
   useEffect(() => {
     async function fetchReports() {
-      if (!db || !users) return;
+      if (!db) return;
       setIsLoading(true);
       try {
         const nextWeek = getNextWeekKey(selectedWeek);
-        const [reportsSnap, commitmentsSnap, progressSnap, whitespaceSnap, callPlansSnap, opsSnap, factFindingsSnap, twiwSnap] = await Promise.all([
+        const snaps = await Promise.all([
           getDocs(query(collection(db, 'weeklyReports'), where('week', '==', selectedWeek))),
           getDocs(query(collection(db, 'weeklyCommitments'), where('week', '==', nextWeek))),
           getDocs(query(collection(db, 'weeklyProgress'), where('week', '==', selectedWeek))),
@@ -154,6 +156,33 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           getDocs(collection(db, 'factFindingDocs')),
           getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek)))
         ]);
+        
+        setRawSnaps({
+          reportsSnap: snaps[0],
+          commitmentsSnap: snaps[1],
+          progressSnap: snaps[2],
+          whitespaceSnap: snaps[3],
+          callPlansSnap: snaps[4],
+          opsSnap: snaps[5],
+          factFindingsSnap: snaps[6],
+          twiwSnap: snaps[7]
+        });
+        
+      } catch (err: any) {
+        console.error(err);
+        setFetchError(err?.message || String(err));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchReports();
+  }, [db, selectedWeek]);
+
+  // Derive all reporting metrics dynamically in a useMemo so it doesn't refetch on pipeline changes
+  useEffect(() => {
+    if (!rawSnaps || !users) return;
+    
+    const { reportsSnap, commitmentsSnap, progressSnap, whitespaceSnap, callPlansSnap, opsSnap, factFindingsSnap, twiwSnap } = rawSnaps;
 
         // Build a deduplicated user map by normalized name
         const userMap = new Map<string, {
@@ -167,8 +196,8 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         }>();
 
         // Step 1: Add all users from the 'users' collection (Auth UIDs)
-        const activeUsers = users.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
-        activeUsers.forEach(u => {
+        const activeUsers = deduplicateUsers(users).filter((u: any) => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER');
+        activeUsers.forEach((u: any) => {
           const normalizedName = normalizeBdmName(u.name, u.id);
           userMap.set(normalizedName, {
             id: u.id, // Auth UID
@@ -240,12 +269,12 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           : (allPipelineReviews || []);
         
         const reports = bdms.map(bdm => {
-          const reportDocs = reportsSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const twiwDocs = twiwSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const commitmentDocs = commitmentsSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const progressDocs = progressSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const userWS = whitespaceSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
-          const userCP = callPlansSnap.docs.filter(d => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
+          const reportDocs: any[] = reportsSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const twiwDocs: any[] = twiwSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const commitmentDocs: any[] = commitmentsSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const progressDocs: any[] = progressSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
+          const userWS = whitespaceSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
+          const userCP = callPlansSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
           
           const reportDoc = reportDocs[0];
           
@@ -353,19 +382,11 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         setOpportunities(mappedOpps);
         setPaperwork(mappedPaperwork);
         setNewBusiness(mappedNewBusiness);
-        setOpsReports(opsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter((r: any) => r.status === 'ESCALATED'));
-        setAllFactFindings(factFindingsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setAllCallPlans(callPlansSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setAllWhitespacePlans(whitespaceSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (err: any) {
-        console.error(err);
-        setFetchError(err?.message || String(err));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchReports();
-  }, [db, users, selectedWeek, allPipelineReviews]);
+        setOpsReports(opsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })).filter((r: any) => r.status === 'ESCALATED'));
+        setAllFactFindings(factFindingsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
+        setAllCallPlans(callPlansSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
+        setAllWhitespacePlans(whitespaceSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
+  }, [rawSnaps, users, selectedWeek, allPipelineReviews]);
 
   const saveGMFeedback = async (userId: string, feedback: string) => {
 

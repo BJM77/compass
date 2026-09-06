@@ -367,6 +367,31 @@ export function getPreviousWeekKey(weekKey: string): string {
 }
 
 /**
+ * Resolves the financial week key that was exactly N weeks prior to the given weekKey.
+ */
+export function getNWeeksAgoKey(weekKey: string, n: number): string {
+  const [yearStr, weekStr] = weekKey.split('-');
+  const year = parseInt(yearStr, 10);
+  const weekNum = parseInt(weekStr, 10);
+
+  if (isNaN(year) || isNaN(weekNum)) {
+    return getWeekForDate(new Date(Date.now() - n * 7 * 24 * 60 * 60 * 1000));
+  }
+
+  let searchDate = new Date(year, 3, 1);
+  for (let i = -10; i < 370; i++) {
+    const d = new Date(year, 3, 1 + i);
+    if (getWeekForDate(d) === weekKey) {
+      searchDate = d;
+      break;
+    }
+  }
+
+  const targetDate = new Date(searchDate.getTime() - n * 7 * 24 * 60 * 60 * 1000);
+  return getWeekForDate(targetDate);
+}
+
+/**
  * Deduplicates an array of user objects fetched from Firestore.
  * Prevents the dual-identity problem by preferring the Auth UID over the legacy string ID.
  * Automatically filters out GUEST users.

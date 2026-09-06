@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { collection, query, where } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
+import { normalizeBdmName, isUserSubmissionMatch, getCurrentWeek, getNWeeksAgoKey } from '@/lib/utils';
 
 // ─── Active stages that qualify as an "Opportunity" row ──────────────────────
 const ACTIVE_STAGES = new Set([
@@ -135,7 +135,9 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
   const allQuery = useMemoFirebase(() => {
     if (!db) return null;
     if (isLeader) {
-      return query(collection(db, 'pipelineReviews'));
+      const currentWeek = getCurrentWeek();
+      const cutoffWeek = getNWeeksAgoKey(currentWeek, 12);
+      return query(collection(db, 'pipelineReviews'), where('week', '>=', cutoffWeek));
     } else if (myUserId) {
       return query(collection(db, 'pipelineReviews'), where('userId', '==', myUserId));
     }
