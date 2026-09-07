@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 // ─── Firebase Admin initialisation ───────────────────────────────────────────
 // Requires FIREBASE_SERVICE_ACCOUNT_JSON env var with the full service account JSON
@@ -34,7 +35,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'week param required (yyyy-ww)' }, { status: 400 });
     }
 
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized. Missing Bearer token.' }, { status: 401 });
+    }
+
     const db = getAdminDb();
+    
+    let callerUid;
+    try {
+      const idToken = authHeader.split('Bearer ')[1];
+      const decodedToken = await getAuth().verifyIdToken(idToken);
+      callerUid = decodedToken.uid;
+      
+      const userDoc = await db.collection('users').doc(callerUid).get();
+      const userData = userDoc.data();
+      if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'LEADER' && userData.role !== 'GM')) {
+        return NextResponse.json({ error: 'Forbidden. Admin privileges required.' }, { status: 403 });
+      }
+    } catch (authError) {
+      console.error('Auth verification failed:', authError);
+      return NextResponse.json({ error: 'Unauthorized. Invalid token.' }, { status: 401 });
+    }
+
+    await db.collection('auditLogs').add({
+      action: 'RESET_WEEKLY_ACTIVITY',
+      invokedBy: callerUid,
+      invokedAt: new Date(),
+      params: { week }
+    });
+
     const snap = await db
       .collection('weeklyProgress')
       .where('week', '==', week)

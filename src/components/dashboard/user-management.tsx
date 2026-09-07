@@ -13,6 +13,8 @@ import { UserPlus, Save, Loader2, ShieldCheck, Trash2, Edit3, DollarSign, Mail, 
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 interface UserManagementProps {
   onSimulate?: (userId: string) => void;
 }
@@ -67,9 +69,9 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {isGM && (
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-5 lg:sticky lg:top-4">
           <Card className="border-none shadow-xl">
             <CardHeader className="bg-primary/5"><CardTitle className="text-xl font-bold flex items-center gap-2"><UserPlus className="w-5 h-5" /> Provisioning</CardTitle></CardHeader>
             <CardContent className="pt-6">
@@ -96,36 +98,38 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
           <CardHeader className="border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><ShieldCheck className="text-green-600" /> Registry</CardTitle></CardHeader>
           <CardContent className="p-0">
             {isLoading ? <div className="py-20 text-center"><Loader2 className="animate-spin mx-auto" /></div> : (
-              <div className="divide-y">{users?.filter(u => Number(u.target) > 0).map(u => (
-                <div key={u.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
-                    <div>
-                      <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-[9px] uppercase ml-2">{u.role}</Badge></div>
-                      <div className="text-[10px] text-muted-foreground font-black uppercase mt-1"><Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} ({u.state || 'WA'}) • Target: ${(Number(u.target) || 0).toLocaleString()}</div>
+              <ScrollArea className="h-[680px]">
+                <div className="divide-y">{users?.filter(u => Number(u.target) > 0).map(u => (
+                  <div key={u.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
+                      <div>
+                        <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-[9px] uppercase ml-2">{u.role}</Badge></div>
+                        <div className="text-[10px] text-muted-foreground font-black uppercase mt-1"><Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} ({u.state || 'WA'}) • Target: ${(Number(u.target) || 0).toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {onSimulate && u.role !== 'LEADER' && (
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="text-accent hover:bg-accent/10" 
+                          onClick={() => onSimulate(u.id)}
+                          title="Simulate User View"
+                        >
+                          <UserCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {isGM && (
+                        <>
+                          <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} title="Edit User"><Edit3 className="w-4 h-4" /></Button>
+                          <Button size="icon" variant="ghost" className="text-red-400" onClick={() => handleRemove(u)} title="Remove User"><Trash2 className="w-4 h-4" /></Button>
+                        </>
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    {onSimulate && u.role !== 'LEADER' && (
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-accent hover:bg-accent/10" 
-                        onClick={() => onSimulate(u.id)}
-                        title="Simulate User View"
-                      >
-                        <UserCircle className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {isGM && (
-                      <>
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} title="Edit User"><Edit3 className="w-4 h-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-red-400" onClick={() => handleRemove(u)} title="Remove User"><Trash2 className="w-4 h-4" /></Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}</div>
+                ))}</div>
+              </ScrollArea>
             )}
           </CardContent>
         </Card>

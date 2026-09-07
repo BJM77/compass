@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/auth-context';
 import { SmartGoalsView } from './smart-goals-view';
 import { getCurrentWeek } from '@/lib/utils';
+import { useTeamUsers } from '@/hooks/use-team-users';
 
 export function SmartGoalsAudit() {
   const db = useFirestore();
@@ -18,14 +19,8 @@ export function SmartGoalsAudit() {
   const [selectedBdmId, setSelectedBdmId] = useState<string | null>(null);
   const currentWeek = getCurrentWeek();
 
-  // 1. Fetch All Users for the selector
-  const usersQuery = useMemoFirebase(() => {
-    if (!db || !isLeader) return null;
-    return collection(db, 'users');
-  }, [db, isLeader]);
-  const { data: allUsers, isLoading: isUsersLoading } = useCollection(usersQuery);
-
-  const teamMembers = allUsers?.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM') || [];
+  // Unified site-wide deduplicated team members list
+  const { teamUsers: teamMembers, isLoading: isUsersLoading } = useTeamUsers();
   const activeBdmId = selectedBdmId || teamMembers[0]?.id || '';
   const selectedUser = teamMembers.find(u => u.id === activeBdmId);
 
@@ -95,7 +90,7 @@ export function SmartGoalsAudit() {
                      </div>
                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex-1">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Achievement</p>
-                        <p className="text-xs font-bold">${(selectedUser.target / 1000000).toFixed(2)}M Strategic Plan</p>
+                        <p className="text-xs font-bold">${((selectedUser.target || 1000000) / 1000000).toFixed(2)}M Strategic Plan</p>
                      </div>
                   </div>
                </CardContent>

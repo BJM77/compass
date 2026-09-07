@@ -3,38 +3,44 @@
 import { useState, useEffect } from 'react';
 import { AuthGuard } from '@/components/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
-import { BDMDashboard } from '@/components/dashboard/bdm-dashboard';
-import { LeaderDashboard } from '@/components/dashboard/leader-dashboard';
-import { UserManagement } from '@/components/dashboard/user-management';
-import { GMWeeklyReview } from '@/components/dashboard/gm-weekly-review';
-import { StrategyManagement } from '@/components/dashboard/strategy-management';
-import { AIBriefsHub } from '@/components/dashboard/ai-briefs-hub';
-import { FridayReviewHub } from '@/components/dashboard/friday-review-hub';
-import { CallPlanning } from '@/components/dashboard/call-planning';
-import { AdminCallPlanning } from '@/components/dashboard/admin-call-planning';
-import { SettingsHub } from '@/components/dashboard/settings-hub';
-import { WhitespaceAnalysis } from '@/components/dashboard/whitespace-analysis';
-import { WhitespaceHistory } from '@/components/dashboard/whitespace-history';
-import { StrategicArchive } from '@/components/dashboard/strategic-archive';
-import { SmartGoalsAudit } from '@/components/dashboard/smart-goals-audit';
-import { WeeklyArchive } from '@/components/dashboard/weekly-archive';
-import { BIReportsViewer } from '@/components/dashboard/bi-reports-viewer';
-import { DataExplorer } from '@/components/dashboard/data-explorer';
-import { FactFindingHub } from '@/components/dashboard/fact-finding-hub';
-import { OpsReportForm } from '@/components/dashboard/ops-report-form';
-import { OpsReportReview } from '@/components/dashboard/ops-report-review';
-import { TWIWView } from '@/components/dashboard/twiw-view';
-import { DemoDashView } from '@/components/dashboard/demo-dash-view';
-import { SystemBroadcast } from '@/components/dashboard/system-broadcast';
-import { FridayPerformanceReview } from '@/components/dashboard/friday-performance-review';
-import { PlaybookView } from '@/components/dashboard/playbook-view';
-import { ActualSpendView } from '@/components/dashboard/actual-spend-view';
-import { StrategicRepository } from '@/components/dashboard/strategic-repository';
-import { SuccessPlansView } from '@/components/dashboard/success-plans';
-import { ManageTimeView } from '@/components/dashboard/manage-time-view';
-import { AMBDManagement } from '@/components/dashboard/ambd-management';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { ViewSkeleton } from '@/components/ui/view-skeleton';
+
+const BDMDashboard = dynamic(() => import('@/components/dashboard/bdm-dashboard').then(m => m.BDMDashboard), { loading: () => <ViewSkeleton /> });
+const LeaderDashboard = dynamic(() => import('@/components/dashboard/leader-dashboard').then(m => m.LeaderDashboard), { loading: () => <ViewSkeleton /> });
+const UserManagement = dynamic(() => import('@/components/dashboard/user-management').then(m => m.UserManagement), { loading: () => <ViewSkeleton /> });
+const GMWeeklyReview = dynamic(() => import('@/components/dashboard/gm-weekly-review').then(m => m.GMWeeklyReview), { loading: () => <ViewSkeleton /> });
+const StrategyManagement = dynamic(() => import('@/components/dashboard/strategy-management').then(m => m.StrategyManagement), { loading: () => <ViewSkeleton /> });
+const AIBriefsHub = dynamic(() => import('@/components/dashboard/ai-briefs-hub').then(m => m.AIBriefsHub), { loading: () => <ViewSkeleton /> });
+const FridayReviewHub = dynamic(() => import('@/components/dashboard/friday-review-hub').then(m => m.FridayReviewHub), { loading: () => <ViewSkeleton /> });
+const CallPlanning = dynamic(() => import('@/components/dashboard/call-planning').then(m => m.CallPlanning), { loading: () => <ViewSkeleton /> });
+const AdminCallPlanning = dynamic(() => import('@/components/dashboard/admin-call-planning').then(m => m.AdminCallPlanning), { loading: () => <ViewSkeleton /> });
+const SettingsHub = dynamic(() => import('@/components/dashboard/settings-hub').then(m => m.SettingsHub), { loading: () => <ViewSkeleton /> });
+const WhitespaceAnalysis = dynamic(() => import('@/components/dashboard/whitespace-analysis').then(m => m.WhitespaceAnalysis), { loading: () => <ViewSkeleton /> });
+const WhitespaceHistory = dynamic(() => import('@/components/dashboard/whitespace-history').then(m => m.WhitespaceHistory), { loading: () => <ViewSkeleton /> });
+const StrategicArchive = dynamic(() => import('@/components/dashboard/strategic-archive').then(m => m.StrategicArchive), { loading: () => <ViewSkeleton /> });
+const SmartGoalsAudit = dynamic(() => import('@/components/dashboard/smart-goals-audit').then(m => m.SmartGoalsAudit), { loading: () => <ViewSkeleton /> });
+const WeeklyArchive = dynamic(() => import('@/components/dashboard/weekly-archive').then(m => m.WeeklyArchive), { loading: () => <ViewSkeleton /> });
+const BIReportsViewer = dynamic(() => import('@/components/dashboard/bi-reports-viewer').then(m => m.BIReportsViewer), { loading: () => <ViewSkeleton /> });
+const DataExplorer = dynamic(() => import('@/components/dashboard/data-explorer').then(m => m.DataExplorer), { loading: () => <ViewSkeleton /> });
+const FactFindingHub = dynamic(() => import('@/components/dashboard/fact-finding-hub').then(m => m.FactFindingHub), { loading: () => <ViewSkeleton /> });
+const OpsReportForm = dynamic(() => import('@/components/dashboard/ops-report-form').then(m => m.OpsReportForm), { loading: () => <ViewSkeleton /> });
+const OpsReviewLedger = dynamic(() => import('@/components/dashboard/ops-report-review').then(m => m.OpsReportReview), { loading: () => <ViewSkeleton /> }); // renamed internally for matching
+const TWIWView = dynamic(() => import('@/components/dashboard/twiw-view').then(m => m.TWIWView), { loading: () => <ViewSkeleton /> });
+const DemoDashView = dynamic(() => import('@/components/dashboard/demo-dash-view').then(m => m.DemoDashView), { loading: () => <ViewSkeleton /> });
+const SystemBroadcast = dynamic(() => import('@/components/dashboard/system-broadcast').then(m => m.SystemBroadcast), { loading: () => <ViewSkeleton /> });
+const FridayPerformanceReview = dynamic(() => import('@/components/dashboard/friday-performance-review').then(m => m.FridayPerformanceReview), { loading: () => <ViewSkeleton /> });
+const PlaybookView = dynamic(() => import('@/components/dashboard/playbook-view').then(m => m.PlaybookView), { loading: () => <ViewSkeleton /> });
+const ActualSpendView = dynamic(() => import('@/components/dashboard/actual-spend-view').then(m => m.ActualSpendView), { loading: () => <ViewSkeleton /> });
+const StrategicRepository = dynamic(() => import('@/components/dashboard/strategic-repository').then(m => m.StrategicRepository), { loading: () => <ViewSkeleton /> });
+const SuccessPlansView = dynamic(() => import('@/components/dashboard/success-plans').then(m => m.SuccessPlansView), { loading: () => <ViewSkeleton /> });
+const ManageTimeView = dynamic(() => import('@/components/dashboard/manage-time-view').then(m => m.ManageTimeView), { loading: () => <ViewSkeleton /> });
+const AMBDManagement = dynamic(() => import('@/components/dashboard/ambd-management').then(m => m.AMBDManagement), { loading: () => <ViewSkeleton /> });
+const CanvassingHub = dynamic(() => import('@/components/dashboard/canvassing-hub').then(m => m.CanvassingHub), { loading: () => <ViewSkeleton /> });
+const DataHealthDashboard = dynamic(() => import('@/components/dashboard/data-health-dashboard').then(m => m.DataHealthDashboard), { loading: () => <ViewSkeleton /> });
 import { CreateNoteDialog } from '@/components/dashboard/create-note-dialog';
-import { CanvassingHub } from '@/components/dashboard/canvassing-hub';
 import { DeveloperDiagnostics } from '@/components/dev/developer-diagnostics';
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarHeader,
@@ -46,7 +52,7 @@ import {
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
   Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone, Navigation
 } from 'lucide-react';
-import { CRMImporter } from '@/components/dashboard/crm-importer';
+const CRMImporter = dynamic(() => import('@/components/dashboard/crm-importer').then(m => m.CRMImporter), { loading: () => <ViewSkeleton /> });
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -57,43 +63,8 @@ import { format } from 'date-fns';
 import { getCurrentWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 import { NavigationProvider, useNavigation } from '@/contexts/navigation-context';
-
-type DashboardView =
-  | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
-  | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' | 'MANAGE_TIME' | 'CANVASSING';
-
-const NAV_ITEMS = [
-  // Core Pages (Main Menu)
-  { view: 'DASHBOARD' as DashboardView,         label: 'Dashboard',         icon: LayoutDashboard,  adminOnly: false, group: 'main' },
-  { view: 'CANVASSING' as DashboardView,        label: 'Canvassing',        icon: Navigation,       adminOnly: false, group: 'main' },
-  { view: 'MANAGE_TIME' as DashboardView,       label: 'Manage Time',       icon: Clock,            adminOnly: false, group: 'main' },
-  { view: 'TWIW' as DashboardView,              label: 'TWTW',              icon: CalendarCheck,    adminOnly: false, group: 'main' },
-  { view: 'FRIDAY_FW' as DashboardView,         label: 'Friday FW',         icon: Send,             adminOnly: false, group: 'main' },
-  { view: 'FACT_FINDING' as DashboardView,      label: 'Fact Finding',      icon: FileSearch,       adminOnly: false, group: 'main' },
-  { view: 'WHITE_SPACE' as DashboardView,       label: 'White Space',       icon: LayoutGrid,       adminOnly: false, group: 'main' },
-  { view: 'CALL_PLANNING' as DashboardView,     label: 'Call Plans',        icon: PhoneCall,        adminOnly: false, group: 'main' },
-  { view: 'SUCCESS_PLANS' as DashboardView,     label: 'Success Plans',     icon: ClipboardList,    adminOnly: false, group: 'main' },
-  { view: 'STRATEGIC_ARCHIVE' as DashboardView, label: 'Strategic Archive', icon: Archive,          adminOnly: false, group: 'main' },
-  { view: 'PLAYBOOK' as DashboardView,          label: 'Playbooks',         icon: BookOpen,         adminOnly: false, group: 'main' },
-  { view: 'ACTUAL_SPEND' as DashboardView,      label: 'Actual Spend',      icon: Coins,            adminOnly: false, group: 'main' },
-  { view: 'OPS_REPORT' as DashboardView,        label: 'Ops Report',        icon: AlertCircle,      adminOnly: false, group: 'main' },
-  
-  // Admin Menu / Submenu Items
-  { view: 'AM_BD' as DashboardView,             label: 'AM/BD Notes Admin', icon: ClipboardList,    adminOnly: true,  group: 'admin' },
-  { view: 'ARCHIVE' as DashboardView,           label: 'Weekly Snapshot',   icon: Archive,          adminOnly: false, group: 'admin' },
-  { view: 'OPS_REVIEW' as DashboardView,        label: 'Ops Review Ledger', icon: Shield,           adminOnly: true,  group: 'admin' },
-  { view: 'DATA_EXPLORER' as DashboardView,     label: 'Data Explorer',     icon: Database,         adminOnly: true,  group: 'admin' },
-  { view: 'SETTINGS' as DashboardView,          label: 'Settings',          icon: Settings,         adminOnly: false, group: 'admin' },
-  { view: 'TEAM_GOALS' as DashboardView,        label: 'Team Goals',        icon: Star,             adminOnly: true,  group: 'admin' },
-  { view: 'BRIEFS' as DashboardView,            label: 'Briefs',            icon: Sparkles,         adminOnly: true,  group: 'admin' },
-  { view: 'STRATEGY' as DashboardView,          label: 'Strategy',          icon: Map,              adminOnly: true,  group: 'admin' },
-  { view: 'TEAM' as DashboardView,              label: 'Team',              icon: Users,            adminOnly: true,  group: 'admin' },
-  { view: 'GM_REVIEW' as DashboardView,         label: 'GM Command Hub',    icon: Shield,           adminOnly: true,  group: 'admin' },
-  { view: 'UPLOAD' as DashboardView,            label: 'CRM Import',        icon: Upload,           adminOnly: true,  group: 'admin' },
-  { view: 'BROADCAST' as DashboardView,         label: 'Broadcast Admin',   icon: Megaphone,        adminOnly: true,  group: 'admin' },
-  { view: 'STRATEGIC_REPOSITORY' as DashboardView, label: 'Strategic Repo', icon: Sparkles,         adminOnly: true,  group: 'admin' },
-];
+import { getNavigationForUser, DashboardView } from '@/lib/navigation';
+import { MobileDashboard } from '@/components/dashboard/mobile-dashboard';
 
 function DashboardContent() {
   const { profile, isLeader, user, loading: isAuthLoading } = useAuth();
@@ -146,7 +117,7 @@ function DashboardContent() {
     if (activeView === 'DATA_EXPLORER' && isLeader) return <div className="w-full p-4 md:p-8"><DataExplorer /></div>;
     if (activeView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
     if (activeView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
-    if (activeView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReportReview /></div>;
+    if (activeView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReviewLedger /></div>;
     if (activeView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
     if (activeView === 'FRIDAY_FW') return <div className="w-full p-4 md:p-8"><FridayPerformanceReview userId={activeUserId || ''} userName={profile?.name || ''} userRole={profile?.role || 'BDM'} userState={profile?.state || 'WA'} selectedWeek={getCurrentWeek()} /></div>;
     if (activeView === 'DEMO_DASH') return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
@@ -156,6 +127,7 @@ function DashboardContent() {
     if (activeView === 'MANAGE_TIME') return <div className="w-full p-4 md:p-8"><ManageTimeView /></div>;
     if (activeView === 'CANVASSING') return <div className="w-full p-4 md:p-8"><CanvassingHub /></div>;
     if (activeView === 'AM_BD' && isLeader) return <div className="w-full p-4 md:p-8"><AMBDManagement /></div>;
+    if (activeView === 'DATA_HEALTH' && isLeader) return <div className="w-full p-4 md:p-8"><DataHealthDashboard /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
@@ -184,43 +156,26 @@ function DashboardContent() {
                       </button>
                     </SidebarMenuItem>
                   )}
-                  {NAV_ITEMS.filter(item => {
-                    if (profile?.role === 'GUEST') {
-                      const guestAllowedViews = ['DEMO_DASH', 'OPS_REPORT', 'WHITE_SPACE'];
-                      return guestAllowedViews.includes(item.view);
-                    }
-                    return item.group === 'main' && (item.adminOnly ? isLeader : true);
-                  }).map(nav => (
-                    <SidebarMenuItem key={nav.view}>
-                      <SidebarMenuButton isActive={activeView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
-                        <nav.icon className="w-4 h-4" />
-                        <span>{nav.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                  {getNavigationForUser(profile?.role as any, isLeader).map((group, groupIdx) => (
+                    <div key={group.id} className={groupIdx > 0 ? "mt-4" : ""}>
+                      {groupIdx > 0 && (
+                        <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">
+                          {group.label}
+                        </SidebarGroupLabel>
+                      )}
+                      {group.items.map(nav => (
+                        <SidebarMenuItem key={nav.view}>
+                          <SidebarMenuButton isActive={activeView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
+                            <nav.icon className="w-4 h-4" />
+                            <span>{nav.label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </div>
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-
-            {profile?.role !== 'GUEST' && NAV_ITEMS.some(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)) && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mt-4 mb-1">
-                  Admin Menu
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu className="px-2 space-y-1">
-                    {NAV_ITEMS.filter(item => item.group === 'admin' && (item.adminOnly ? isLeader : true)).map(nav => (
-                      <SidebarMenuItem key={nav.view}>
-                        <SidebarMenuButton isActive={currentView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
-                          <nav.icon className="w-4 h-4" />
-                          <span>{nav.label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
           </SidebarContent>
           <SidebarFooter className="p-4 border-t">
             <SidebarMenu>
@@ -356,7 +311,11 @@ function DashboardContent() {
             </div>
           </div>
           <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto px-3 md:px-4 lg:px-6 pb-24 md:pb-8">
-            {renderContent()}
+            <ErrorBoundary>
+              <Suspense fallback={<ViewSkeleton />}>
+                {renderContent()}
+              </Suspense>
+            </ErrorBoundary>
           </main>
           <DeveloperDiagnostics />
         </SidebarInset>
@@ -369,17 +328,9 @@ export default function DashboardPage() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   const isMobile = useIsMobile();
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  useEffect(() => {
-    if (!loading && isMobile === true && !isRedirecting) {
-      setIsRedirecting(true);
-      router.push('/dashboard/mobile');
-    }
-  }, [loading, isMobile, router, isRedirecting]);
-
-  // If on mobile or determining, don't render the desktop dashboard
-  if (isMobile === true || isMobile === undefined) {
+  // If loading or determining mobile status
+  if (loading || isMobile === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F6F8]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -387,11 +338,20 @@ export default function DashboardPage() {
     );
   }
 
-  // Desktop version - your existing code
+  // Handle unauthenticated user
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
+
   return (
     <PipelineProvider>
       <NavigationProvider>
-        <DashboardContent />
+        {isMobile ? (
+          <MobileDashboard userId={user.uid} userName={profile?.name || user.email || 'User'} />
+        ) : (
+          <DashboardContent />
+        )}
       </NavigationProvider>
     </PipelineProvider>
   );

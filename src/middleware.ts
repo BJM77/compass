@@ -7,6 +7,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Block sandbox in production
+  if (request.nextUrl.pathname.startsWith('/dashboard/test') && process.env.NODE_ENV === 'production') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
   // Protect the dashboard and root paths
   if (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname === '/') {
     const authCookie = request.cookies.get('auth_status');

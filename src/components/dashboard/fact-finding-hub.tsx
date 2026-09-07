@@ -445,7 +445,7 @@ export function FactFindingHub() {
               </Table>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {filteredAndSortedDocs.map(doc => (
                 <Card key={doc.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden relative bg-white border-slate-200" onClick={() => handleSelectDoc(doc)}>
                   <div className={`absolute top-0 left-0 h-full z-0 transition-all duration-1000 ease-out ${getStageConfig(doc.stage || 'New').fill} ${getStageConfig(doc.stage || 'New').color}`} />

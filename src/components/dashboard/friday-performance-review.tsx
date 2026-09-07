@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName, getWeekForDate, openSalesforceSearch } from '@/lib/utils';
+import { useTeamUsers } from '@/hooks/use-team-users';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,17 +89,8 @@ export function FridayPerformanceReview({
 
   const isSuperAdminOrLeader = isLeader || profile?.role === 'LEADER' || profile?.role === 'GM' || user?.email === '1@1.com';
 
-  // Fetch all users for Super Admin Representative Selector
-  const usersQuery = useMemoFirebase(() => {
-    if (!db || !isSuperAdminOrLeader) return null;
-    return collection(db, 'users');
-  }, [db, isSuperAdminOrLeader]);
-  const { data: rawUsers } = useCollection<any>(usersQuery);
-
-  const teamUsers = useMemo(() => {
-    if (!rawUsers) return [];
-    return rawUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
-  }, [rawUsers]);
+  // Unified site-wide deduplicated team members hook
+  const { teamUsers, isLoading: isUsersLoading } = useTeamUsers();
 
   // Selected Rep ID state for Super Admin switching
   const [selectedRepId, setSelectedRepId] = useState<string>(userId);

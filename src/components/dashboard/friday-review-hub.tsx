@@ -12,7 +12,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LostCustomersView } from './lost-customers-view';
-import { openSalesforceSearch, getCurrentWeek } from '@/lib/utils';
+import { openSalesforceSearch, getCurrentWeek, normalizeBdmName } from '@/lib/utils';
+import { useTeamUsers } from '@/hooks/use-team-users';
 
 export function FridayReviewHub() {
   const { profile, isLeader, user } = useAuth();
@@ -31,16 +32,7 @@ export function FridayReviewHub() {
 
   const { data: allSelectedReviews, isLoading: isReviewsLoading } = useCollection(reviewsQuery);
 
-  const usersQuery = useMemoFirebase(() => {
-    if (!db || !isLeader) return null;
-    return collection(db, 'users');
-  }, [db, isLeader]);
-  const { data: rawTeamUsers } = useCollection(usersQuery);
-
-  const teamUsers = useMemo(() => {
-    if (!rawTeamUsers) return [];
-    return rawTeamUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM');
-  }, [rawTeamUsers]);
+  const { teamUsers } = useTeamUsers();
 
   const activeBdmId = isLeader ? selectedBdmId || (teamUsers[0]?.id || '') : user?.uid;
   

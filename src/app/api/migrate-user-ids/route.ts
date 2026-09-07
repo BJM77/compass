@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 /**
  * Migration map connecting legacy string IDs to authoritative Firebase Auth UIDs.
@@ -52,7 +53,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized. Invalid or missing secret.' }, { status: 401 });
     }
 
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized. Missing Bearer token.' }, { status: 401 });
+    }
+    
     const db = getAdminDb();
+    
+    let callerUid;
+    try {
+      const idToken = authHeader.split('Bearer ')[1];
+      const decodedToken = await getAuth().verifyIdToken(idToken);
+      callerUid = decodedToken.uid;
+      
+      const userDoc = await db.collection('users').doc(callerUid).get();
+      const userData = userDoc.data();
+      if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'LEADER' && userData.role !== 'GM')) {
+        return NextResponse.json({ error: 'Forbidden. Admin privileges required.' }, { status: 403 });
+      }
+    } catch (authError) {
+      console.error('Auth verification failed:', authError);
+      return NextResponse.json({ error: 'Unauthorized. Invalid token.' }, { status: 401 });
+    }
+
+    await db.collection('auditLogs').add({
+      action: 'MIGRATE_USER_IDS',
+      invokedBy: callerUid,
+      invokedAt: new Date(),
+      params: { dryRun, customMappingsProvided: !!customMappings }
+    });
 
     const migrationMap = {
       ...USER_ID_MIGRATION_MAP,

@@ -148,6 +148,23 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ─── V1 Architectural Enhancements: Feature Flags & Telemetry ───────────────
+    match /appSettings/featureFlags {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /telemetryEvents/{eventId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+    }
+
+    match /telemetryAggregates/{viewKey} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+
     match /newBusiness/{docId} {
       allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
       allow create: if isSignedIn();
@@ -260,6 +277,12 @@ service cloud.firestore {
       allow create: if isAdmin();
       allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
       allow delete: if isAdmin();
+    }
+
+    // ─── Master Customer & Accounts Data ───────────────────────────────────────
+    match /customers/{customerId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
   }
 }
