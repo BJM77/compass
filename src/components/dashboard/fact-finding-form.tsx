@@ -369,7 +369,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 
   return (
     <ViewOnlyContext.Provider value={viewOnly}>
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 overflow-x-hidden max-w-full">
         <div className={printType === 'REVIEW' ? 'print:hidden' : ''}>
         {/* Header - Hidden on Print */}
         <div className="print:hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -381,8 +381,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
             <h2 className="text-xl font-black text-slate-800">
               {docId ? 'Edit Fact Finding' : 'New Fact Finding'}
             </h2>
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-medium text-slate-500">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-medium text-slate-500 break-words max-w-full">
                 {formData.companyName || 'Untitled Document'}
               </p>
               {docId && (
@@ -1484,8 +1484,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
           {/* Bottom Save Button */}
           {!viewOnly && (
             <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-              <p className="text-xs font-medium text-slate-500">Don't forget to save your changes before leaving this page.</p>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <p className="text-xs font-medium text-slate-500 text-center sm:text-left">Don't forget to save your changes before leaving this page.</p>
+              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 w-full sm:w-auto">
                 {docId && (
                   <Button type="button" variant="outline" onClick={() => {
                     window.dispatchEvent(new CustomEvent('switch-view', {
