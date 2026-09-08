@@ -40,27 +40,34 @@ export function ActualSpendView() {
 
   const { toast } = useToast();
 
-  const handleAssignStaff = async (companyName: string, staffUid: string) => {
-    if (!db) return;
-    const selectedUser = usersData?.find(u => (u.uid === staffUid || u.id === staffUid));
-    if (!selectedUser) return;
+  const handleAssignStaff = async (companyName: string, staffUidOrName: string) => {
+    if (!db || !staffUidOrName) return;
+    const selectedUser = usersData?.find(u => 
+      u.uid === staffUidOrName || 
+      (u as any).id === staffUidOrName || 
+      u.name === staffUidOrName ||
+      (u.name || '').toLowerCase() === staffUidOrName.toLowerCase()
+    );
 
     try {
       const cleanName = companyName.toLowerCase().replace(/\s*\(parcels\)\s*/, '').replace(/\s*\(freight\)\s*/, '').trim();
       const safeDocId = cleanName.replace(/\//g, '-');
 
+      const assignedToId = selectedUser?.uid || (selectedUser as any)?.id || staffUidOrName;
+      const assignedToName = selectedUser?.name || staffUidOrName;
+
       const data: AccountMapping = {
         id: cleanName,
         originalName: companyName,
-        assignedToId: selectedUser.uid || selectedUser.id || staffUid,
-        assignedToName: selectedUser.name || 'Unknown',
+        assignedToId: assignedToId,
+        assignedToName: assignedToName,
         updatedAt: serverTimestamp(),
       };
 
       await setDoc(doc(db, 'accountMappings', safeDocId), data, { merge: true });
       toast({
         title: "Staff Assigned",
-        description: `Successfully assigned ${companyName} to ${selectedUser.name}.`,
+        description: `Successfully assigned ${companyName} to ${assignedToName}.`,
       });
     } catch (e) {
       console.error(e);
