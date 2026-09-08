@@ -2,7 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,6 +37,46 @@ export function ActualSpendView() {
   const { data: usersData, isLoading: isUsersLoading } = useCollection<UserProfile>(usersQuery);
 
   const isLoading = isRecordsLoading || isMappingsLoading || isUsersLoading;
+
+  const { toast } = useToast();
+
+  const handleAssignStaff = async (companyName: string, staffUid: string) => {
+    if (!db) return;
+    const selectedUser = usersData?.find(u => u.uid === staffUid);
+    if (!selectedUser) return;
+
+    try {
+      const cleanName = companyName.toLowerCase().replace(/\s*\(parcels\)\s*/, '').replace(/\s*\(freight\)\s*/, '').trim();
+      const safeDocId = cleanName.replace(/\//g, '-');
+
+      const data: AccountMapping = {
+        id: cleanName,
+        originalName: companyName,
+        assignedToId: selectedUser.uid,
+        assignedToName: selectedUser.name,
+        updatedAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, 'accountMappings', safeDocId), data, { merge: true });
+      toast({
+        title: "Staff Assigned",
+        description: `Successfully assigned ${companyName} to ${selectedUser.name}.`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: "destructive",
+        title: "Assignment Failed",
+        description: "Could not save account mapping to database.",
+      });
+    }
+  };
+
+  const formattedUsers = useMemo(() => {
+    if (!usersData) return [];
+    return [...usersData].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  }, [usersData]);
+
 
   const { profile, isLeader } = useAuth();
   const { allPipelineReviews } = usePipelineData();
@@ -358,7 +400,39 @@ export function ActualSpendView() {
                       <div className="font-black text-primary">{r.companyName}</div>
                     </TableCell>
                     <TableCell>
-                      {r.assignedRep === 'Unassigned' ? (
+                      {isAdmin ? (
+                        <Select
+                          value={r.assignedRep === 'Unassigned' ? 'unassigned' : r.assignedRep}
+                          onValueChange={(val) => {
+                            if (val !== 'unassigned') {
+                              handleAssignStaff(r.companyName, val);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={`h-8 min-w-[150px] text-xs font-bold ${r.assignedRep === 'Unassigned' ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100/80' : 'border-slate-200 bg-white text-slate-800'}`}>
+                            <SelectValue placeholder="Assign Staff...">
+                              {r.assignedRep === 'Unassigned' ? (
+                                <span className="text-red-600 font-extrabold uppercase tracking-wider text-[11px]">Unassigned</span>
+                              ) : (
+                                <span>
+                                  {r.assignedRep}
+                                  {r.isManualMapped && <span className="ml-1 text-[10px] text-indigo-500 font-bold">(Aligned)</span>}
+                                </span>
+                              )}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent align="start" className="max-h-[260px]">
+                            <SelectItem value="unassigned" disabled className="text-xs text-slate-400 font-semibold">
+                              Unassigned
+                            </SelectItem>
+                            {formattedUsers.map((u) => (
+                              <SelectItem key={u.uid} value={u.uid} className="text-xs font-semibold">
+                                {u.name} {u.role ? `(${u.role})` : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : r.assignedRep === 'Unassigned' ? (
                         <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-red-50 text-red-600 border-red-200">
                           Unassigned
                         </Badge>
