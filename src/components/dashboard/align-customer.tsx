@@ -60,7 +60,7 @@ export function AlignCustomer() {
       map.set(acc.toLowerCase().trim(), repName);
     });
     pipelines.forEach(p => {
-      const u = users.find(u => u.uid === p.userId || u.id === p.userId);
+      const u = users.find(u => u.uid === p.userId || u.uid === p.userId);
       if (u) {
         if (p.accountMasterCode) map.set(p.accountMasterCode.toLowerCase().trim(), u.name);
         if (p.pipeline) map.set(p.pipeline.toLowerCase().trim(), u.name);
@@ -106,7 +106,7 @@ export function AlignCustomer() {
         assignedToName = baseAccountToUserMap.get(rawName) || baseAccountToUserMap.get(cleanName);
         if (assignedToName) {
           const u = users.find(x => x.name === assignedToName);
-          if (u) assignedToId = u.id || u.uid;
+          if (u) assignedToId = u.uid;
         }
       }
 
@@ -152,7 +152,7 @@ export function AlignCustomer() {
   const handleAssign = async (accountId: string, originalName: string, userId: string, existingTarget?: number) => {
     if (!db || userId === 'UNASSIGNED') return;
     
-    const user = users.find(u => u.id === userId || u.uid === userId);
+    const user = users.find(u => u.uid === userId || u.uid === userId);
     if (!user) return;
 
     try {
@@ -162,7 +162,7 @@ export function AlignCustomer() {
       const data: AccountMapping = {
         id: mappingId,
         originalName,
-        assignedToId: user.id || user.uid,
+        assignedToId: user.uid,
         assignedToName: user.name,
         updatedAt: serverTimestamp(),
       };
@@ -188,7 +188,7 @@ export function AlignCustomer() {
     
     setIsAdding(true);
     try {
-      const user = users.find(u => u.id === newCustRep || u.uid === newCustRep);
+      const user = users.find(u => u.uid === newCustRep || u.uid === newCustRep);
       if (!user) throw new Error("User not found");
 
       const companyName = newCustName.trim();
@@ -214,7 +214,7 @@ export function AlignCustomer() {
       const data: AccountMapping = {
         id: mappingId,
         originalName: companyName,
-        assignedToId: user.id || user.uid,
+        assignedToId: user.uid,
         assignedToName: user.name,
         updatedAt: serverTimestamp()
       };
@@ -243,7 +243,7 @@ export function AlignCustomer() {
   const handleExportCSV = () => {
     const headers = ['Account Name', 'Assigned Rep', 'Annual Target', 'Expected YTD (Wk ' + currentWeek + ')', 'Actual YTD', 'Variance'];
     const rows = filteredAccounts.map(acc => {
-      const expectedYtd = acc.annualTarget ? (acc.annualTarget / 52) * currentWeek : 0;
+      const expectedYtd = acc.annualTarget ? (acc.annualTarget / 52) * Number(currentWeek) : 0;
       const variance = acc.annualTarget ? acc.ytdRevenue - expectedYtd : 0;
       return [
         `"${acc.originalName.replace(/"/g, '""')}"`,
@@ -310,7 +310,7 @@ export function AlignCustomer() {
                   <SelectContent>
                     <SelectItem value="ALL">All Reps</SelectItem>
                     {validReps.map(u => (
-                      <SelectItem key={u.id || u.uid} value={u.id || u.uid}>{u.name}</SelectItem>
+                      <SelectItem key={u.uid} value={u.uid}>{u.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -354,7 +354,7 @@ export function AlignCustomer() {
                         </SelectTrigger>
                         <SelectContent>
                           {validReps.map(u => (
-                            <SelectItem key={u.id || u.uid} value={u.id || u.uid}>{u.name}</SelectItem>
+                            <SelectItem key={u.uid} value={u.uid}>{u.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -389,7 +389,7 @@ export function AlignCustomer() {
                     <div className="col-span-2 pl-4">Assigned Rep</div>
                   </div>
                   {filteredAccounts.map((acc, i) => {
-                    const expectedYtd = acc.annualTarget ? (acc.annualTarget / 52) * currentWeek : 0;
+                    const expectedYtd = acc.annualTarget ? (acc.annualTarget / 52) * Number(currentWeek) : 0;
                     const variance = acc.annualTarget ? acc.ytdRevenue - expectedYtd : 0;
                     
                     return (
@@ -427,7 +427,7 @@ export function AlignCustomer() {
                             <SelectContent>
                               <SelectItem value="UNASSIGNED" className="text-muted-foreground italic">Unassigned</SelectItem>
                               {validReps.map(u => (
-                                <SelectItem key={u.id || u.uid} value={u.id || u.uid}>
+                                <SelectItem key={u.uid} value={u.uid}>
                                   {u.name}
                                 </SelectItem>
                               ))}

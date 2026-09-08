@@ -4,10 +4,8 @@ import React, { createContext, useContext, useState, useEffect, Suspense, useCal
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useResponsive } from '@/hooks/use-responsive';
 
-export type DashboardView =
-  | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
-  | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
-  | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW';
+import type { DashboardView } from '@/lib/navigation';
+export type { DashboardView };
 
 interface NavigationContextType {
   currentView: DashboardView;

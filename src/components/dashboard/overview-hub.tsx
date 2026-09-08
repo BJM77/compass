@@ -30,6 +30,8 @@ import { TopCustomersByManager, ManagerCustomerData } from './overview/top-custo
 import { TopOpportunitiesByManager, ManagerOpportunityData } from './overview/top-opportunities-by-manager';
 import { QuarterlyPerformanceTable } from './overview/quarterly-performance-table';
 import { TargetAttainment, AttainmentData } from './overview/target-attainment';
+import { AtRiskCustomers, AtRiskCustomer } from './overview/at-risk-customers';
+
 
 export interface UnifiedOverviewUser {
   id: string;
@@ -265,7 +267,7 @@ export function OverviewHub() {
 
     actualSpend.forEach(s => {
       // Track latest upload date
-      const dateField = s.uploadedAt || s.createdAt;
+      const dateField = s.uploadedAt || (s as any).createdAt;
       if (dateField) {
         const d = dateField.toDate ? dateField.toDate() : new Date(dateField);
         if (!isNaN(d.getTime()) && d.getTime() > maxUploadTime) {

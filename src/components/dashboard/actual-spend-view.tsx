@@ -10,23 +10,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Search, Banknote, Calendar, Layers, Coins, Landmark } from 'lucide-react';
-import { ActualSpendRecord } from '@/types/crm';
+import { Search, Banknote, Calendar, Layers, Coins, Landmark, UserX } from 'lucide-react';
+import { ActualSpendRecord, AccountMapping, UserProfile } from '@/types/crm';
 import { useAuth } from '@/contexts/auth-context';
 import { usePipelineData } from '@/contexts/pipeline-context';
+import { HARDCODED_ACCOUNT_MAP } from "@/lib/account-mappings";
 
 export function ActualSpendView() {
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
   const [buFilter, setBuFilter] = useState('all');
   const [weekFilter, setWeekFilter] = useState('all');
+  const [assignmentFilter, setAssignmentFilter] = useState('all');
 
   const actualQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'actualRevenues'), orderBy('category', 'desc'));
   }, [db]);
+  const mappingsQuery = useMemoFirebase(() => db ? collection(db, 'accountMappings') : null, [db]);
+  const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
 
-  const { data: records, isLoading } = useCollection<ActualSpendRecord>(actualQuery);
+  const { data: records, isLoading: isRecordsLoading } = useCollection<ActualSpendRecord>(actualQuery);
+  const { data: mappingsData, isLoading: isMappingsLoading } = useCollection<AccountMapping>(mappingsQuery);
+  const { data: usersData, isLoading: isUsersLoading } = useCollection<UserProfile>(usersQuery);
+
+  const isLoading = isRecordsLoading || isMappingsLoading || isUsersLoading;
 
   const { profile, isLeader } = useAuth();
   const { allPipelineReviews } = usePipelineData();
@@ -53,43 +61,48 @@ export function ActualSpendView() {
     return Array.from(new Set(records.map(r => r.category).filter(Boolean))).sort((a, b) => b.localeCompare(a));
   }, [records]);
 
-  const filteredRecords = useMemo(() => {
-    if (!records) return [];
-    let result = [...records];
+  // 1. Build Base Mapping (Pipeline + Hardcoded)
+  const baseAccountToUserMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const users = usersData || [];
+    Object.entries(HARDCODED_ACCOUNT_MAP).forEach(([acc, repName]) => {
+      map.set(acc.toLowerCase().trim(), repName);
+    });
+    if (allPipelineReviews) {
+      allPipelineReviews.forEach(p => {
+        const u = users.find((u: any) => u.uid === p.userId || u.uid === p.userId);
+        if (u) {
+          if (p.accountMasterCode) map.set(p.accountMasterCode.toLowerCase().trim(), u.name);
+          if (p.pipeline) map.set(p.pipeline.toLowerCase().trim(), u.name);
+        }
+      });
+    }
+    return map;
+  }, [allPipelineReviews, usersData]);
 
+  // 2. Build DB Override Mapping
+  const dbMappingMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (mappingsData) {
+      mappingsData.forEach(m => map.set(m.id.toLowerCase().trim(), m.assignedToName));
+    }
+    return map;
+  }, [mappingsData]);
+
+  const groupedRecords = useMemo(() => {
+    if (!records || records.length === 0) return [];
+
+    let filtered = records;
     if (!isAdmin) {
-      result = result.filter(r => 
+      filtered = filtered.filter(r => 
         (r.account && userAccountIds.has(r.account)) || 
         (r.companyName && userAccountNames.has(r.companyName.toLowerCase()))
       );
     }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(r => 
-        (r.companyName || '').toLowerCase().includes(q) ||
-        (r.account || '').toLowerCase().includes(q) ||
-        (r.lineOfBusiness || '').toLowerCase().includes(q)
-      );
-    }
-
-    if (buFilter !== 'all') {
-      result = result.filter(r => r.businessUnit === buFilter);
-    }
-
-    if (weekFilter !== 'all') {
-      result = result.filter(r => r.category === weekFilter);
-    }
-
-    return result;
-  }, [records, searchQuery, buFilter, weekFilter, isAdmin, userAccountIds, userAccountNames]);
-
-  const groupedRecords = useMemo(() => {
-    if (filteredRecords.length === 0) return [];
-
-    // Step 1: Map common customer name to all their unique business units in this filtered dataset
+    // Step 1: Map common customer name to all their unique business units
     const buMap = new Map<string, Set<string>>();
-    filteredRecords.forEach(r => {
+    filtered.forEach(r => {
       const name = r.companyName || 'Unnamed';
       if (!buMap.has(name)) buMap.set(name, new Set());
       if (r.businessUnit) buMap.get(name)!.add(r.businessUnit);
@@ -104,10 +117,29 @@ export function ActualSpendView() {
       linesOfBusiness: Set<string>;
       value: number;
       categories: Set<string>;
+      assignedRep: string;
+      isManualMapped: boolean;
     }>();
 
-    filteredRecords.forEach(r => {
+    filtered.forEach(r => {
       const name = r.companyName || 'Unnamed';
+      const cleanName = name.toLowerCase().replace(/\s*\(parcels\)\s*/, '').replace(/\s*\(freight\)\s*/, '').trim();
+      const rawName = name.toLowerCase().trim();
+      
+      let assignedRep = 'Unassigned';
+      let isManualMapped = false;
+      if (dbMappingMap.has(rawName)) {
+        assignedRep = dbMappingMap.get(rawName)!;
+        isManualMapped = true;
+      } else if (dbMappingMap.has(cleanName)) {
+        assignedRep = dbMappingMap.get(cleanName)!;
+        isManualMapped = true;
+      } else if (baseAccountToUserMap.has(rawName)) {
+        assignedRep = baseAccountToUserMap.get(rawName)!;
+      } else if (baseAccountToUserMap.has(cleanName)) {
+        assignedRep = baseAccountToUserMap.get(cleanName)!;
+      }
+
       const hasMultipleBUs = (buMap.get(name)?.size || 0) > 1;
       // Group by BU if there are multiple BUs, otherwise just by customer name
       const groupKey = hasMultipleBUs ? `${name}::${r.businessUnit || 'Other'}` : name;
@@ -120,7 +152,9 @@ export function ActualSpendView() {
           accounts: new Set(),
           linesOfBusiness: new Set(),
           value: 0,
-          categories: new Set()
+          categories: new Set(),
+          assignedRep,
+          isManualMapped
         });
       }
 
@@ -131,20 +165,50 @@ export function ActualSpendView() {
       g.value += (Number(r.value) || 0);
     });
 
-    return Array.from(groups.values()).map((g, idx) => ({
+    let result = Array.from(groups.values()).map((g, idx) => ({
       id: `group_${idx}`,
       companyName: g.displayName,
       account: Array.from(g.accounts).join(', '),
       businessUnit: g.businessUnit,
       lineOfBusiness: Array.from(g.linesOfBusiness).join(', '),
       value: g.value,
-      category: Array.from(g.categories).join(', ')
+      category: Array.from(g.categories).join(', '),
+      assignedRep: g.assignedRep,
+      isManualMapped: g.isManualMapped
     })).sort((a, b) => b.value - a.value); // Sort by spend amount desc
-  }, [filteredRecords]);
+
+    // Apply UI Filters
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(r => 
+        (r.companyName || '').toLowerCase().includes(q) ||
+        (r.account || '').toLowerCase().includes(q) ||
+        (r.lineOfBusiness || '').toLowerCase().includes(q) ||
+        (r.assignedRep || '').toLowerCase().includes(q)
+      );
+    }
+    if (buFilter !== 'all') {
+      result = result.filter(r => r.businessUnit === buFilter);
+    }
+    if (weekFilter !== 'all') {
+      result = result.filter(r => r.category.includes(weekFilter));
+    }
+    if (assignmentFilter === 'ASSIGNED') {
+      result = result.filter(r => r.assignedRep !== 'Unassigned');
+    } else if (assignmentFilter === 'UNASSIGNED') {
+      result = result.filter(r => r.assignedRep === 'Unassigned');
+    }
+
+    return result;
+  }, [records, searchQuery, buFilter, weekFilter, assignmentFilter, isAdmin, userAccountIds, userAccountNames, baseAccountToUserMap, dbMappingMap]);
 
   const totalSpend = useMemo(() => {
-    return filteredRecords.reduce((sum, r) => sum + (Number(r.value) || 0), 0);
-  }, [filteredRecords]);
+    return groupedRecords.reduce((sum, r) => sum + (Number(r.value) || 0), 0);
+  }, [groupedRecords]);
+
+  const unassignedCount = useMemo(() => {
+    return groupedRecords.filter(r => r.assignedRep === 'Unassigned').length;
+  }, [groupedRecords]);
 
   const formatCategory = (categoryStr: string) => {
     if (!categoryStr) return '-';
@@ -173,23 +237,11 @@ export function ActualSpendView() {
         <Card className="border border-slate-200 bg-white">
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Actual Spend</p>
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Filtered Spend</p>
               <h3 className="text-3xl font-black text-slate-800">${totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 shrink-0">
               <Banknote className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-slate-200 bg-white">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Active Accounts</p>
-              <h3 className="text-3xl font-black text-slate-800">{new Set(filteredRecords.map(r => r.account)).size}</h3>
-            </div>
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 shrink-0">
-              <Landmark className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
@@ -205,6 +257,18 @@ export function ActualSpendView() {
             </div>
           </CardContent>
         </Card>
+
+        <Card className={`border ${unassignedCount > 0 ? 'border-red-200 bg-red-50/30' : 'border-slate-200 bg-white'}`}>
+          <CardContent className="p-6 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className={`text-[10px] font-black uppercase tracking-widest ${unassignedCount > 0 ? 'text-red-500' : 'text-slate-400'}`}>Unassigned Groups</p>
+              <h3 className={`text-3xl font-black ${unassignedCount > 0 ? 'text-red-600' : 'text-slate-800'}`}>{unassignedCount}</h3>
+            </div>
+            <div className={`p-3 rounded-2xl border shrink-0 ${unassignedCount > 0 ? 'bg-red-100 text-red-600 border-red-200' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+              <UserX className="w-6 h-6" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Control Filters */}
@@ -212,16 +276,27 @@ export function ActualSpendView() {
         <div className="relative flex-1 w-full md:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <Input 
-            placeholder="Search customer, account or LOB..." 
+            placeholder="Search customer, rep, or LOB..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-10 border-slate-200"
           />
         </div>
         
+        <Select value={assignmentFilter} onValueChange={setAssignmentFilter}>
+          <SelectTrigger className="w-full md:w-[160px] h-10 border-slate-200">
+            <SelectValue placeholder="All Assignments" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Assignments</SelectItem>
+            <SelectItem value="ASSIGNED">Assigned</SelectItem>
+            <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
+          </SelectContent>
+        </Select>
+
         <Select value={buFilter} onValueChange={setBuFilter}>
-          <SelectTrigger className="w-full md:w-[200px] h-10 border-slate-200">
-            <SelectValue placeholder="Filter by Business Unit" />
+          <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+            <SelectValue placeholder="All BU" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Business Units</SelectItem>
@@ -232,8 +307,8 @@ export function ActualSpendView() {
         </Select>
 
         <Select value={weekFilter} onValueChange={setWeekFilter}>
-          <SelectTrigger className="w-full md:w-[200px] h-10 border-slate-200">
-            <SelectValue placeholder="Filter by Week/Category" />
+          <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+            <SelectValue placeholder="All Weeks" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Weeks</SelectItem>
@@ -243,8 +318,8 @@ export function ActualSpendView() {
           </SelectContent>
         </Select>
 
-        {(searchQuery || buFilter !== 'all' || weekFilter !== 'all') && (
-          <Button variant="ghost" onClick={() => { setSearchQuery(''); setBuFilter('all'); setWeekFilter('all'); }} className="h-10 text-slate-500 font-bold">
+        {(searchQuery || buFilter !== 'all' || weekFilter !== 'all' || assignmentFilter !== 'all') && (
+          <Button variant="ghost" onClick={() => { setSearchQuery(''); setBuFilter('all'); setWeekFilter('all'); setAssignmentFilter('all'); }} className="h-10 text-slate-500 font-bold">
             Clear Filters
           </Button>
         )}
@@ -269,17 +344,31 @@ export function ActualSpendView() {
               <TableHeader className="bg-slate-50/80 sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="font-bold">Common Customer Name</TableHead>
+                  <TableHead className="font-bold">Assigned Rep</TableHead>
                   <TableHead className="font-bold">Account</TableHead>
                   <TableHead className="font-bold">Business Unit</TableHead>
-                  <TableHead className="font-bold">Line of Business</TableHead>
                   <TableHead className="font-bold text-right">Spend</TableHead>
                   <TableHead className="font-bold text-center">Category/Week</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {groupedRecords.map((r) => (
-                  <TableRow key={r.id} className="hover:bg-slate-50 transition-colors">
-                    <TableCell className="font-black text-primary">{r.companyName}</TableCell>
+                  <TableRow key={r.id} className={`transition-colors ${r.assignedRep === 'Unassigned' ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-slate-50'}`}>
+                    <TableCell>
+                      <div className="font-black text-primary">{r.companyName}</div>
+                    </TableCell>
+                    <TableCell>
+                      {r.assignedRep === 'Unassigned' ? (
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-red-50 text-red-600 border-red-200">
+                          Unassigned
+                        </Badge>
+                      ) : (
+                        <div className="font-semibold text-sm text-slate-700">
+                          {r.assignedRep}
+                          {r.isManualMapped && <span className="ml-1 text-[10px] text-indigo-500 font-bold">(Aligned)</span>}
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="text-xs font-semibold text-slate-600 max-w-[220px] truncate" title={r.account}>
                       {r.account}
                     </TableCell>
@@ -287,9 +376,6 @@ export function ActualSpendView() {
                       <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-slate-50 text-slate-700">
                         {r.businessUnit}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-500 font-semibold max-w-[180px] truncate" title={r.lineOfBusiness}>
-                      {r.lineOfBusiness}
                     </TableCell>
                     <TableCell className="font-black text-indigo-600 text-right">${r.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                     <TableCell className="text-center font-bold text-slate-500 text-xs">
