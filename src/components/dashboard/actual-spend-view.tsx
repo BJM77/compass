@@ -42,7 +42,7 @@ export function ActualSpendView() {
 
   const handleAssignStaff = async (companyName: string, staffUid: string) => {
     if (!db) return;
-    const selectedUser = usersData?.find(u => u.uid === staffUid);
+    const selectedUser = usersData?.find(u => (u.uid === staffUid || u.id === staffUid));
     if (!selectedUser) return;
 
     try {
@@ -52,8 +52,8 @@ export function ActualSpendView() {
       const data: AccountMapping = {
         id: cleanName,
         originalName: companyName,
-        assignedToId: selectedUser.uid,
-        assignedToName: selectedUser.name,
+        assignedToId: selectedUser.uid || selectedUser.id || staffUid,
+        assignedToName: selectedUser.name || 'Unknown',
         updatedAt: serverTimestamp(),
       };
 
@@ -437,11 +437,15 @@ export function ActualSpendView() {
                             <SelectItem value="unassigned" disabled className="text-xs text-slate-400 font-semibold">
                               Unassigned
                             </SelectItem>
-                            {formattedUsers.map((u) => (
-                              <SelectItem key={u.uid} value={u.uid} className="text-xs font-semibold">
-                                {u.name} {u.role ? `(${u.role})` : ''}
-                              </SelectItem>
-                            ))}
+                             {formattedUsers.map((u) => {
+                               const userIdentifier = u.uid || u.id || '';
+                               if (!userIdentifier) return null;
+                               return (
+                                 <SelectItem key={userIdentifier} value={userIdentifier} className="text-xs font-semibold">
+                                   {u.name} {u.role ? `(${u.role})` : ''}
+                                 </SelectItem>
+                               );
+                             })}
                           </SelectContent>
                         </Select>
                       ) : r.assignedRep === 'Unassigned' ? (
