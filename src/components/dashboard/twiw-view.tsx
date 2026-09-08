@@ -26,8 +26,7 @@ import {
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { DemoDashView } from './demo-dash-view';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+// jsPDF and html2canvas dynamically imported on export click
 
 
 interface KPIReview {
@@ -1822,6 +1821,12 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     document.body.appendChild(tempDiv);
 
     try {
+      const [{ jsPDF }, html2canvasModule] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas')
+      ]);
+      const html2canvas = html2canvasModule.default;
+
       const canvas = await html2canvas(tempDiv, {
         scale: 1.5,
         useCORS: true,

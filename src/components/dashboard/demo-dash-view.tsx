@@ -6,8 +6,7 @@ import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase
 import { collection, doc, setDoc, serverTimestamp, query, where, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { FridayPerformanceReview } from './friday-performance-review';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+// jsPDF and html2canvas dynamically imported on demand
 import { getCurrentWeek, formatEAV } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { format } from 'date-fns';

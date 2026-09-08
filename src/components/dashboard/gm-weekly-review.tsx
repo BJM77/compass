@@ -7,8 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend
 } from 'recharts';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+// html2canvas and jsPDF dynamically imported on export click
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -596,6 +595,12 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     setTimeout(async () => {
       try {
         toast({ title: "Generating PDF", description: "Compiling Multi-Page A4 Report..." });
+
+        const [{ jsPDF }, html2canvasModule] = await Promise.all([
+          import('jspdf'),
+          import('html2canvas')
+        ]);
+        const html2canvas = html2canvasModule.default;
 
         const baseCanvasOptions = (doc: Document) => {
           const style = doc.createElement('style');

@@ -177,7 +177,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
     );
   };
 
-  // AI Business Card Scanner Handler
+  // AI Business Card Scanner Handler (with client-side image compression)
   const handleScanBusinessCard = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -187,46 +187,63 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
     setScanningCard(true);
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        const photoDataUri = reader.result as string;
-        try {
-          const result = await parseBusinessCard({ photoDataUri });
-          if (result) {
-            if (result.companyName) setCompanyName(result.companyName);
-            if (result.firstName) setFirstName(result.firstName);
-            if (result.lastName) setLastName(result.lastName);
-            if (result.title) setTitle(result.title);
-            if (result.phone) setPhone(result.phone);
-            if (result.email) setEmail(result.email);
-            if (result.addressLine1) setAddressLine1(result.addressLine1);
-            if (result.suburb) setSuburb(result.suburb);
-            if (result.state) setState(result.state);
-            if (result.postcode) setPostcode(result.postcode);
-
-            toast({
-              title: 'Business Card Scanned! 📸',
-              description: `Extracted details for ${result.firstName || ''} ${result.lastName || result.companyName || 'Lead'}. Please verify fields.`,
-            });
+      // Compress photo before base64 payload conversion
+      const compressedDataUri = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          img.src = ev.target?.result as string;
+        };
+        img.onload = () => {
+          const maxDim = 1200;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
           }
-        } catch (err: any) {
-          toast({
-            title: 'Scan Failed',
-            description: err.message || 'Could not extract business card details.',
-            variant: 'destructive',
-          });
-        } finally {
-          setScanningCard(false);
-        }
-      };
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const result = await parseBusinessCard({ photoDataUri: compressedDataUri });
+      if (result) {
+        if (result.companyName) setCompanyName(result.companyName);
+        if (result.firstName) setFirstName(result.firstName);
+        if (result.lastName) setLastName(result.lastName);
+        if (result.title) setTitle(result.title);
+        if (result.phone) setPhone(result.phone);
+        if (result.email) setEmail(result.email);
+        if (result.addressLine1) setAddressLine1(result.addressLine1);
+        if (result.suburb) setSuburb(result.suburb);
+        if (result.state) setState(result.state);
+        if (result.postcode) setPostcode(result.postcode);
+
+        toast({
+          title: 'Business Card Scanned! 📸',
+          description: `Extracted details for ${result.firstName || ''} ${result.lastName || result.companyName || 'Lead'}. Please verify fields.`,
+        });
+      }
     } catch (err: any) {
-      setScanningCard(false);
       toast({
-        title: 'File Read Error',
-        description: 'Failed to process image file.',
+        title: 'Scan Failed',
+        description: err.message || 'Could not extract business card details.',
         variant: 'destructive',
       });
+    } finally {
+      setScanningCard(false);
     }
   };
 
