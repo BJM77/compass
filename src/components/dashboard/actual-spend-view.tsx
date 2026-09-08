@@ -74,7 +74,19 @@ export function ActualSpendView() {
 
   const formattedUsers = useMemo(() => {
     if (!usersData) return [];
-    return [...usersData].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    return usersData
+      .filter(u => {
+        const role = u.role as string;
+        const normLower = (u.name || '').toLowerCase();
+        return (
+          role === 'BDM' ||
+          role === 'ACCOUNT_MANAGER' ||
+          role === 'AM' ||
+          normLower.includes('rienzie') ||
+          normLower.includes('ballantyne')
+        );
+      })
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [usersData]);
 
 
