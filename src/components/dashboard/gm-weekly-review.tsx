@@ -273,13 +273,38 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
         // Only use deals for the selected week. If no deals were imported for this week, do NOT silently fall back to other weeks.
         const weekDeals = crmRecordsForSelectedWeek;
         
+        const parsedReports = reportsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+        const parsedTwiw = twiwSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+        const parsedCommitments = commitmentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+        const parsedProgress = progressSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+        const parsedWS = whitespaceSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+        const parsedCP = callPlansSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+
+        const groupDocsByBdm = (docs: any[], bdms: any[]) => {
+          const map = new Map<string, any[]>();
+          bdms.forEach(b => map.set(b.id, []));
+          docs.forEach(docData => {
+            const bdm = bdms.find(b => isUserSubmissionMatch(b, docData));
+            if (bdm) map.get(bdm.id)!.push(docData);
+          });
+          return map;
+        };
+
+        const reportDocsByBdm = groupDocsByBdm(parsedReports, bdms);
+        const twiwDocsByBdm = groupDocsByBdm(parsedTwiw, bdms);
+        const commitmentDocsByBdm = groupDocsByBdm(parsedCommitments, bdms);
+        const progressDocsByBdm = groupDocsByBdm(parsedProgress, bdms);
+        const wsDocsByBdm = groupDocsByBdm(parsedWS, bdms);
+        const cpDocsByBdm = groupDocsByBdm(parsedCP, bdms);
+        const weekDealsByBdm = groupDocsByBdm(weekDeals, bdms);
+
         const reports = bdms.map(bdm => {
-          const reportDocs: any[] = reportsSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const twiwDocs: any[] = twiwSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const commitmentDocs: any[] = commitmentsSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const progressDocs: any[] = progressSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() }));
-          const userWS = whitespaceSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
-          const userCP = callPlansSnap.docs.filter((d: any) => isUserSubmissionMatch(bdm, { id: d.id, ...d.data() })).length;
+          const reportDocs = reportDocsByBdm.get(bdm.id) || [];
+          const twiwDocs = twiwDocsByBdm.get(bdm.id) || [];
+          const commitmentDocs = commitmentDocsByBdm.get(bdm.id) || [];
+          const progressDocs = progressDocsByBdm.get(bdm.id) || [];
+          const userWS = (wsDocsByBdm.get(bdm.id) || []).length;
+          const userCP = (cpDocsByBdm.get(bdm.id) || []).length;
           
           const reportDoc = reportDocs[0];
           
@@ -304,7 +329,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             : commitData?.nextWeekCommitments || '';
 
           // Compute CRM statistics directly from the current week's pipeline reviews for this BDM
-          const bdmDeals = weekDeals.filter(r => isUserSubmissionMatch(bdm, r));
+          const bdmDeals = weekDealsByBdm.get(bdm.id) || [];
           const bdmOpps = bdmDeals.filter(d => !d.isBareAccount && d.stage !== 'Closed Won' && d.stage !== 'Closed Lost');
           const bdmSigned = bdmDeals.filter(d => ['Finalise', 'Pending Trade'].includes(d.stage || ''));
           const bdmWon = bdmDeals.filter(d => d.stage === 'Closed Won');

@@ -61,9 +61,8 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
   }, [db]);
   const { data: teamStats, isLoading: isStatsLoading } = useCollection(bdmStatsQuery);
 
-  const crmSummary = useCRMSummary(profile?.uid ?? null, true);
-
   const { pipelineReviews: allDeals, weeklyProgresses: teamActivity } = usePipelineData();
+  const crmSummary = useCRMSummary(profile?.uid ?? null, true, allDeals || []);
 
   const currentMonthWeeks = useMemo(() => getCurrentMonthWeeks(), []);
   const mtdActivityQuery = useMemoFirebase(() => {

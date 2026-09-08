@@ -327,7 +327,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     }, 0) ?? 0;
   }, [allDeals]);
 
-  const crmSummary = useCRMSummary(userId, false);
+  const crmSummary = useCRMSummary(userId, false, allDeals || []);
 
   const handleExportPdf = () => {
     if (!profile) return;

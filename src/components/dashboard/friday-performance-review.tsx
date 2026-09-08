@@ -112,7 +112,7 @@ export function FridayPerformanceReview({
 
   // ─── CRM Data (from existing hooks) ──────────────────────────────────────
   const { pipelineReviews: allDeals, weeklyProgresses: allActivity } = usePipelineData();
-  const crmSummary = useCRMSummary(activeUserId, isLeader);
+  const crmSummary = useCRMSummary(activeUserId, isLeader, allDeals || []);
 
   const callPlansQuery = useMemoFirebase(() => {
     if (!db || !activeUserId) return null;

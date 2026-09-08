@@ -1,8 +1,6 @@
 "use client";
 
 import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { normalizeBdmName, isUserSubmissionMatch, getCurrentWeek, getNWeeksAgoKey } from '@/lib/utils';
 
 // ─── Active stages that qualify as an "Opportunity" row ──────────────────────
@@ -120,33 +118,17 @@ function addSummaries(a: CRMUserSummary, b: CRMUserSummary): CRMUserSummary {
 /**
  * useCRMSummary
  *
- * Always fetches the full team dataset for the current week so that:
- * - Team totals are available to ALL roles (BDMs see the team total bar)
- * - Leaders/GMs get the per-individual breakdown in byUser
+ * Computes individual and team summaries from the provided CRM dataset.
  *
  * @param myUserId  The UID of the currently authenticated / simulated user.
  * @param isLeader  Whether the caller has leader-level access.
+ * @param allDeals  The pre-fetched pipeline reviews dataset.
  */
-export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTeamSummary {
-  const db = useFirestore();
-
-  // Fetch records based on role to respect Firestore security rules.
-  // Leaders fetch all records, BDMs fetch only their own.
-  const allQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    if (isLeader) {
-      const currentWeek = getCurrentWeek();
-      const cutoffWeek = getNWeeksAgoKey(currentWeek, 12);
-      return query(collection(db, 'pipelineReviews'), where('week', '>=', cutoffWeek));
-    } else if (myUserId) {
-      return query(collection(db, 'pipelineReviews'), where('userId', '==', myUserId));
-    }
-    return null;
-  }, [db, isLeader, myUserId]);
-
-  const { data: rawRecords, isLoading } = useCollection(allQuery);
-
+export function useCRMSummary(myUserId: string | null, isLeader: boolean, allDeals: any[] = []): CRMTeamSummary {
   return useMemo<CRMTeamSummary>(() => {
+    const rawRecords = allDeals;
+    const isLoading = false; // Managed by parent context
+    
     const allRecords = (rawRecords || []).filter(
       (r: any) => !r.userName || r.userName.toUpperCase() !== 'JOHN THORNTON'
     );
@@ -216,5 +198,5 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean): CRMTe
       myStats,
       isLoading,
     };
-  }, [rawRecords, myUserId, isLeader, isLoading]);
+  }, [allDeals, myUserId, isLeader]);
 }

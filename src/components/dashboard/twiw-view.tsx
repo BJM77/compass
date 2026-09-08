@@ -526,19 +526,17 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
   const handleAutoSuggestWins = async () => {
     if (!db || !userId) return;
     try {
-      // Sourced from signedPaperwork
-      const signedSnap = await getDocs(query(collection(db, 'signedPaperwork'), where('userId', '==', userId), where('week', '==', selectedWeek)));
-      const signedWins = signedSnap.docs.map(d => {
-        const data = d.data();
-        return {
-          id: d.id,
-          customer: data.accountName || 'Unknown Win',
-          value: Number(data.eav) || 0,
-          updateText: 'Signed contract win',
+      // Sourced from pipeline deals in Finalise or Pending Trade
+      const signedWins = allDeals
+        .filter(deal => ['Finalise', 'Pending Trade'].includes(deal.stage || ''))
+        .map(deal => ({
+          id: deal.id,
+          customer: deal.pipeline,
+          value: Number(deal.value) || 0,
+          updateText: `Signed paperwork - ${deal.stage}`,
           businessUnits: [],
           salespersonName: bdmName || 'Salesperson'
-        };
-      });
+        }));
 
       // Sourced from CRM opportunities marked Closed Won in current week
       const crmWins = allDeals

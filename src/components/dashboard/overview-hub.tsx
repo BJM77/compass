@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { PipelineReview, WeeklyProgress, ActualSpendRecord } from '@/types/crm';
+import { usePipelineData } from '@/contexts/pipeline-context';
 import { getQuarterFromActivity, FinancialQuarter, getCurrentFinancialProgress } from '@/lib/quarterly-utils';
 import { normalizeBdmName, isUserSubmissionMatch, formatCurrency, formatEAV } from '@/lib/utils';
 import { 
@@ -51,18 +52,16 @@ export function OverviewHub() {
 
   // Queries
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
-  const pipelineQuery = useMemoFirebase(() => db ? query(collection(db, 'pipelineReviews')) : null, [db]);
-  const progressQuery = useMemoFirebase(() => db ? query(collection(db, 'weeklyProgress'), orderBy('week', 'desc')) : null, [db]);
   const actualQuery = useMemoFirebase(() => db ? query(collection(db, 'actualRevenues'), orderBy('category', 'desc')) : null, [db]);
   const mappingsQuery = useMemoFirebase(() => db ? query(collection(db, 'accountMappings')) : null, [db]);
 
   const { data: rawUsers, isLoading: usersLoading } = useCollection<any>(usersQuery);
-  const { data: pipelines, isLoading: pipLoading } = useCollection<PipelineReview>(pipelineQuery);
-  const { data: progress, isLoading: progLoading } = useCollection<WeeklyProgress>(progressQuery);
   const { data: actualSpend, isLoading: spendLoading } = useCollection<ActualSpendRecord>(actualQuery);
   const { data: dbMappings, isLoading: mappingsLoading } = useCollection<any>(mappingsQuery);
+  
+  const { allPipelineReviews: pipelines, allWeeklyProgresses: progress, isLoading: pipLoading } = usePipelineData();
 
-  const isLoading = usersLoading || pipLoading || progLoading || spendLoading || mappingsLoading;
+  const isLoading = usersLoading || pipLoading || spendLoading || mappingsLoading;
 
   const { 
     topCompanyCustomers, 

@@ -65,7 +65,7 @@ export function MobileDashboard({ userId, userName }: MobileDashboardProps) {
   const currentWeek = getCurrentWeek();
   const { pipelineReviews, isLoading, activeUserId, simulationUid, setSimulationUid } = usePipelineData();
   const currentUserId = activeUserId || userId;
-  const crmSummary = useCRMSummary(currentUserId, isLeader);
+  const crmSummary = useCRMSummary(currentUserId, isLeader, pipelineReviews || []);
 
   // Listen for navigation events from other components
   useEffect(() => {
