@@ -425,3 +425,4 @@ export function deduplicateUsers(users: any[]) {
   // Sort alphabetically by name
   return Array.from(map.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 }
+export const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);

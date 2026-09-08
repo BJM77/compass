@@ -284,5 +284,10 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
+
+    match /accountMappings/{mappingId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
   }
 }

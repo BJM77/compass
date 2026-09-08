@@ -13,6 +13,7 @@ export interface UserProfile {
   assignedAgents?: string[];
   isMock?: boolean;
   target?: number;
+  manualYtdTarget?: number;
   email?: string;
 }
 
@@ -209,4 +210,13 @@ export interface CanvassLead {
   syncedAt?: any;
   createdAt?: any;
   updatedAt?: any;
+}
+
+export interface AccountMapping {
+  id: string; // The raw or clean account name acting as the unique identifier
+  originalName: string; // The display name
+  assignedToId: string; // The UID of the assigned rep
+  assignedToName: string;
+  annualTarget?: number; // The name of the assigned rep
+  updatedAt: any;
 }

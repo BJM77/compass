@@ -40,6 +40,8 @@ const ManageTimeView = dynamic(() => import('@/components/dashboard/manage-time-
 const AMBDManagement = dynamic(() => import('@/components/dashboard/ambd-management').then(m => m.AMBDManagement), { loading: () => <ViewSkeleton /> });
 const CanvassingHub = dynamic(() => import('@/components/dashboard/canvassing-hub').then(m => m.CanvassingHub), { loading: () => <ViewSkeleton /> });
 const DataHealthDashboard = dynamic(() => import('@/components/dashboard/data-health-dashboard').then(m => m.DataHealthDashboard), { loading: () => <ViewSkeleton /> });
+const OverviewHub = dynamic(() => import('@/components/dashboard/overview-hub').then(m => m.OverviewHub), { loading: () => <ViewSkeleton /> });
+const AlignCustomer = dynamic(() => import('@/components/dashboard/align-customer').then(m => m.AlignCustomer), { loading: () => <ViewSkeleton /> });
 import { CreateNoteDialog } from '@/components/dashboard/create-note-dialog';
 import { DeveloperDiagnostics } from '@/components/dev/developer-diagnostics';
 import {
@@ -49,7 +51,7 @@ import {
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
-  UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History,
+  UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History, Link as LinkIcon,
   Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone, Navigation
 } from 'lucide-react';
 const CRMImporter = dynamic(() => import('@/components/dashboard/crm-importer').then(m => m.CRMImporter), { loading: () => <ViewSkeleton /> });
@@ -113,6 +115,7 @@ function DashboardContent() {
     if (activeView === 'ARCHIVE') return <div className="w-full p-4 md:p-8"><WeeklyArchive /></div>;
     if (activeView === 'FACT_FINDING') return <div className="w-full p-4 md:p-8"><FactFindingHub /></div>;
     if (activeView === 'ACTUAL_SPEND') return <div className="w-full p-4 md:p-8"><ActualSpendView /></div>;
+    if (activeView === 'ALIGN_CUSTOMER') return <div className="w-full p-4 md:p-8"><AlignCustomer /></div>;
     if (activeView === 'PLAYBOOK') return <div className="w-full p-4 md:p-8"><PlaybookView /></div>;
     if (activeView === 'DATA_EXPLORER' && isLeader) return <div className="w-full p-4 md:p-8"><DataExplorer /></div>;
     if (activeView === 'SETTINGS') return <div className="w-full p-4 md:p-8"><SettingsHub /></div>;
@@ -128,6 +131,7 @@ function DashboardContent() {
     if (activeView === 'CANVASSING') return <div className="w-full p-4 md:p-8"><CanvassingHub /></div>;
     if (activeView === 'AM_BD' && isLeader) return <div className="w-full p-4 md:p-8"><AMBDManagement /></div>;
     if (activeView === 'DATA_HEALTH' && isLeader) return <div className="w-full p-4 md:p-8"><DataHealthDashboard /></div>;
+    if (activeView === 'OVERVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OverviewHub /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
