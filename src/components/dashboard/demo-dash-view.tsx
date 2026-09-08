@@ -1499,6 +1499,12 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
     document.body.appendChild(tempDiv);
 
     try {
+      const [{ jsPDF }, html2canvasModule] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas')
+      ]);
+      const html2canvas = html2canvasModule.default;
+
       const canvas = await html2canvas(tempDiv, {
         scale: 1.5,
         useCORS: true,
