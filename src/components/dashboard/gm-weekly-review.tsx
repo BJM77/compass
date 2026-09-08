@@ -7,6 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend
 } from 'recharts';
+import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipProvider as UITooltipProvider, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 // html2canvas and jsPDF dynamically imported on export click
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -819,12 +820,12 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <MetricCard title="Pipeline EAV" value={`$${(metrics.totalEAV / 1000000).toFixed(1)}M`} sub="Target Achievement" icon={<DollarSign className="w-4 h-4" />} color="blue" />
-        <MetricCard title="Total Opps" value={metrics.totalOpps} sub="Active Pipeline" icon={<Target className="w-4 h-4" />} color="green" />
-        <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-4 h-4" />} color="purple" />
-        <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-4 h-4" />} color="orange" />
-        <MetricCard title="Team Calls" value={metrics.totalCrmCalls} icon={<Phone className="w-4 h-4" />} color="blue" />
-        <MetricCard title="Team Apps" value={metrics.totalCrmApps} icon={<CalendarCheck className="w-4 h-4" />} color="green" />
+        <MetricCard title="Pipeline EAV" value={`$${(metrics.totalEAV / 1000000).toFixed(1)}M`} sub="Target Achievement" icon={<DollarSign className="w-4 h-4" />} color="blue" explanation="Estimated Annual Value of all active opportunities in the CRM pipeline (excluding Closed Lost and Bare Accounts)." />
+        <MetricCard title="Total Opps" value={metrics.totalOpps} sub="Active Pipeline" icon={<Target className="w-4 h-4" />} color="green" explanation="Total number of active opportunities currently in the CRM pipeline." />
+        <MetricCard title="Signed Paperwork" value={metrics.totalSigned} sub="Governance Win" icon={<FileCheck className="w-4 h-4" />} color="purple" explanation="Number of deals that have reached 'Finalise' or 'Pending Trade' stages in the CRM." />
+        <MetricCard title="New Biz Started" value={metrics.totalNewBiz} sub="Live Freight" icon={<Rocket className="w-4 h-4" />} color="orange" explanation="Number of new accounts that have reached 'Closed Won' and started trading." />
+        <MetricCard title="Team Calls" value={metrics.totalCrmCalls} icon={<Phone className="w-4 h-4" />} color="blue" explanation="Total client calls logged directly into the CRM system by the team for this week." />
+        <MetricCard title="Team Apps" value={metrics.totalCrmApps} icon={<CalendarCheck className="w-4 h-4" />} color="green" explanation="Total appointments logged directly into the CRM system by the team for this week." />
       </div>
 
       {/* Actual Spend Ledger Executive Highlight */}
@@ -852,47 +853,74 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Actual Spend</p>
-                <h4 className="text-2xl font-black text-emerald-400 mt-0.5">
-                  ${actualSpendSummary.totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h4>
-              </div>
-              <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl">
-                <Banknote className="w-5 h-5" />
-              </div>
-            </div>
-          </div>
+          <UITooltipProvider delayDuration={200}>
+            <UITooltip>
+              <UITooltipTrigger asChild>
+                <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 cursor-help transition-colors hover:bg-slate-800/80">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Actual Spend</p>
+                      <h4 className="text-2xl font-black text-emerald-400 mt-0.5">
+                        ${actualSpendSummary.totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </h4>
+                    </div>
+                    <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl">
+                      <Banknote className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              </UITooltipTrigger>
+              <UITooltipContent side="bottom" className="max-w-[280px] bg-slate-900 border-slate-700 text-slate-200 shadow-xl z-50">
+                <p className="text-xs font-medium leading-relaxed">The aggregate sum of all actual revenue/spend logged across all accounts in the ledger for this period.</p>
+              </UITooltipContent>
+            </UITooltip>
+          </UITooltipProvider>
 
-          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Active Accounts</p>
-                <h4 className="text-2xl font-black text-blue-400 mt-0.5">
-                  {actualSpendSummary.activeAccounts.toLocaleString()}
-                </h4>
-              </div>
-              <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
-                <Landmark className="w-5 h-5" />
-              </div>
-            </div>
-          </div>
+          <UITooltipProvider delayDuration={200}>
+            <UITooltip>
+              <UITooltipTrigger asChild>
+                <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 cursor-help transition-colors hover:bg-slate-800/80">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Active Accounts</p>
+                      <h4 className="text-2xl font-black text-blue-400 mt-0.5">
+                        {actualSpendSummary.activeAccounts.toLocaleString()}
+                      </h4>
+                    </div>
+                    <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
+                      <Landmark className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              </UITooltipTrigger>
+              <UITooltipContent side="bottom" className="max-w-[280px] bg-slate-900 border-slate-700 text-slate-200 shadow-xl z-50">
+                <p className="text-xs font-medium leading-relaxed">The distinct number of unique active accounts currently trading and spending in the ledger.</p>
+              </UITooltipContent>
+            </UITooltip>
+          </UITooltipProvider>
 
-          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer Groups</p>
-                <h4 className="text-2xl font-black text-amber-400 mt-0.5">
-                  {actualSpendSummary.customerGroups.toLocaleString()}
-                </h4>
-              </div>
-              <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl">
-                <Users className="w-5 h-5" />
-              </div>
-            </div>
-          </div>
+          <UITooltipProvider delayDuration={200}>
+            <UITooltip>
+              <UITooltipTrigger asChild>
+                <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 cursor-help transition-colors hover:bg-slate-800/80">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer Groups</p>
+                      <h4 className="text-2xl font-black text-amber-400 mt-0.5">
+                        {actualSpendSummary.customerGroups.toLocaleString()}
+                      </h4>
+                    </div>
+                    <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl">
+                      <Users className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              </UITooltipTrigger>
+              <UITooltipContent side="bottom" className="max-w-[280px] bg-slate-900 border-slate-700 text-slate-200 shadow-xl z-50">
+                <p className="text-xs font-medium leading-relaxed">The number of overarching customer companies or parent groups managing these trading accounts.</p>
+              </UITooltipContent>
+            </UITooltip>
+          </UITooltipProvider>
         </div>
       </div>
 
@@ -1801,26 +1829,42 @@ function BDMPdfPage({ report, pageNum, weekLabel, crmMetrics }: { report: BDMWee
   );
 }
 
-function MetricCard({ title, value, sub, icon, color }: any) {
+function MetricCard({ title, value, sub, icon, color, explanation }: any) {
   const gradients: any = {
     blue: 'from-blue-500 to-blue-700',
     green: 'from-emerald-500 to-emerald-700',
     purple: 'from-violet-500 to-violet-700',
     orange: 'from-orange-500 to-orange-700'
   };
-  return (
-    <Card className="border-none shadow-xl overflow-hidden group">
+  
+  const cardContent = (
+    <Card className="border-none shadow-xl overflow-hidden group h-full">
       <div className={cn("bg-gradient-to-br p-6 text-white h-full", gradients[color])}>
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{title}</p>
             <p className="text-3xl font-black tracking-tight">{value}</p>
-            <p className="text-[9px] font-bold uppercase opacity-70 mt-1">{sub}</p>
+            {sub && <p className="text-[9px] font-bold uppercase opacity-70 mt-1">{sub}</p>}
           </div>
           <div className="bg-white/20 p-3 rounded-2xl backdrop-blur group-hover:scale-110 transition-transform">{icon}</div>
         </div>
       </div>
     </Card>
+  );
+
+  if (!explanation) return cardContent;
+
+  return (
+    <UITooltipProvider delayDuration={200}>
+      <UITooltip>
+        <UITooltipTrigger asChild>
+          <div className="h-full cursor-help">{cardContent}</div>
+        </UITooltipTrigger>
+        <UITooltipContent side="bottom" className="max-w-[280px] bg-slate-900 border-slate-700 text-white shadow-xl shadow-slate-900/50 z-50">
+          <p className="text-xs font-medium leading-relaxed">{explanation}</p>
+        </UITooltipContent>
+      </UITooltip>
+    </UITooltipProvider>
   );
 }
 

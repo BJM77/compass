@@ -41,6 +41,9 @@ export function StrategicRepository() {
   }, [db, isLeader]);
   const { data: factFindingDocs, isLoading: ffLoading } = useCollection(factFindingQuery);
 
+  const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
+  const { data: users } = useCollection(usersQuery);
+
   const openDocument = (doc: any, type: 'whitespace' | 'callPlan' | 'factFinding') => {
     setSelectedDocument(doc);
     setDocType(type);
@@ -53,7 +56,16 @@ export function StrategicRepository() {
       const name = type === 'whitespace' ? doc.accountName :
                   type === 'callPlan' ? doc.accountName :
                   doc.companyName;
-      const owner = doc.userName || doc.userEmail || doc.userId || '';
+      
+      let owner = doc.userName || doc.userEmail;
+      if (!owner && doc.userId && users) {
+        const u = users.find((u: any) => u.id === doc.userId || u.uid === doc.userId);
+        if (u && u.name) {
+          owner = u.name;
+        }
+      }
+      owner = owner || doc.userId || '';
+
       const matchesSearch = (name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                             (owner || '').toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
@@ -106,6 +118,7 @@ export function StrategicRepository() {
             type="whitespace"
             onOpen={openDocument}
             isLoading={wsLoading}
+            users={users || []}
           />
         </TabsContent>
 
@@ -115,6 +128,7 @@ export function StrategicRepository() {
             type="callPlan"
             onOpen={openDocument}
             isLoading={cpLoading}
+            users={users || []}
           />
         </TabsContent>
 
@@ -124,6 +138,7 @@ export function StrategicRepository() {
             type="factFinding"
             onOpen={openDocument}
             isLoading={ffLoading}
+            users={users || []}
           />
         </TabsContent>
       </Tabs>
@@ -144,9 +159,10 @@ interface DocumentListProps {
   type: 'whitespace' | 'callPlan' | 'factFinding';
   onOpen: (doc: any, type: 'whitespace' | 'callPlan' | 'factFinding') => void;
   isLoading: boolean;
+  users?: any[];
 }
 
-function DocumentList({ documents, type, onOpen, isLoading }: DocumentListProps) {
+function DocumentList({ documents, type, onOpen, isLoading, users }: DocumentListProps) {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20 bg-white border rounded-2xl">
@@ -182,7 +198,15 @@ function DocumentList({ documents, type, onOpen, isLoading }: DocumentListProps)
                 const name = type === 'whitespace' ? doc.accountName :
                             type === 'callPlan' ? doc.accountName :
                             doc.companyName;
-                const owner = doc.userName || doc.userEmail || doc.userId || 'System';
+                            
+                let owner = doc.userName || doc.userEmail;
+                if (!owner && doc.userId && users) {
+                  const u = users.find((u: any) => u.id === doc.userId || u.uid === doc.userId);
+                  if (u && u.name) {
+                    owner = u.name;
+                  }
+                }
+                owner = owner || doc.userId || 'System';
                 const createdAt = doc.createdAt?.toDate ? doc.createdAt.toDate().toLocaleDateString() : 'N/A';
 
                 return (
