@@ -429,7 +429,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
           </div>
         </div>
         {!viewOnly && (
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto mt-4 sm:mt-0">
             {docId && isLeader && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
