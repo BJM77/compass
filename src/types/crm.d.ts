@@ -39,6 +39,12 @@ export interface PipelineReview {
   creditHold?: string;
   closedWonValue?: number;
   isBareAccount?: boolean;
+  lastSalesStageChangeDate?: string;
+  age?: number;
+  ytdRevenueThisFY?: number;
+  ytdRevenueLastFY?: number;
+  yoyPercentYTD?: number;
+  yoyDollarYTD?: number;
   daysInStage?: number;
   rolloverCount?: number;
   barriers?: string;

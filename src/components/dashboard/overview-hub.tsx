@@ -276,18 +276,21 @@ export function OverviewHub() {
       }
 
       const name = (s.companyName || s.account || 'Unnamed').trim();
-      const key = name.toLowerCase();
+      const rawName = name.toLowerCase().trim();
+      const cleanName = rawName.replace(/\s*\(parcels\)\s*/, '').replace(/\s*\(freight\)\s*/, '').trim();
       const val = Number(s.value) || 0;
 
-      let matchedUserName = accountToUserMap.get(key);
+      let matchedUserName = accountToUserMap.get(rawName) || accountToUserMap.get(cleanName);
       if (!matchedUserName && s.account) {
-        matchedUserName = accountToUserMap.get(s.account.toLowerCase().trim());
+        const rawAcc = s.account.toLowerCase().trim();
+        const cleanAcc = rawAcc.replace(/\s*\(parcels\)\s*/, '').replace(/\s*\(freight\)\s*/, '').trim();
+        matchedUserName = accountToUserMap.get(rawAcc) || accountToUserMap.get(cleanAcc);
       }
 
-      if (!spendMap.has(key)) {
-        spendMap.set(key, { companyName: name, value: 0, userName: matchedUserName });
+      if (!spendMap.has(rawName)) {
+        spendMap.set(rawName, { companyName: name, value: 0, userName: matchedUserName });
       }
-      spendMap.get(key)!.value += val;
+      spendMap.get(rawName)!.value += val;
 
       if (matchedUserName && userCustomersMap.has(matchedUserName)) {
         const custMap = userCustomersMap.get(matchedUserName)!;

@@ -27,12 +27,13 @@ import {
 // ─── Stage Classification ────────────────────────────────────────────────────
 const ACTIVE_STAGES = new Set(['develop', 'propose', 'negotiating', 'finalise', 'pending trade']);
 const CLOSED_WON_STAGES = new Set(['closed won']);
-// 'closed lost' → ignored entirely (not counted anywhere)
+const CLOSED_LOST_STAGES = new Set(['closed lost']);
 
-function classifyStage(stage: string): 'ACTIVE' | 'CLOSED_WON' | 'IGNORE' {
+function classifyStage(stage: string): 'ACTIVE' | 'CLOSED_WON' | 'CLOSED_LOST' | 'IGNORE' {
   const s = (stage || '').trim().toLowerCase();
   if (ACTIVE_STAGES.has(s)) return 'ACTIVE';
   if (CLOSED_WON_STAGES.has(s)) return 'CLOSED_WON';
+  if (CLOSED_LOST_STAGES.has(s)) return 'CLOSED_LOST';
   return 'IGNORE';
 }
 
@@ -212,6 +213,13 @@ interface ProcessedRecord {
   creditHold: boolean;
   closedWonValue: number;
   isBareAccount: boolean;
+  lastSalesStageChangeDate?: string;
+  age?: number;
+  ytdRevenueThisFY?: number;
+  ytdRevenueLastFY?: number;
+  yoyPercentYTD?: number;
+  yoyDollarYTD?: number;
+  week?: string;
 }
 
 interface ImportStats {
@@ -219,7 +227,7 @@ interface ImportStats {
   activeOpportunities: number;
   bareAccounts: number;
   closedWonCount: number;
-  closedLostIgnored: number;
+  closedLostCount: number;
   unmatchedOwners: string[];
   matchedBDMs: string[];
   totalActivityRows?: number;
@@ -256,6 +264,7 @@ const STAGE_COLORS: Record<string, string> = {
   'Finalise':          'bg-orange-100 text-orange-800',
   'Pending Trade':     'bg-amber-100 text-amber-800',
   'Closed Won':        'bg-emerald-100 text-emerald-800',
+  'Closed Lost':       'bg-rose-100 text-rose-800',
   'Existing Customer': 'bg-slate-100 text-slate-600',
 };
 
@@ -416,12 +425,12 @@ export function CRMImporter() {
       if (!db || !users) return;
       
       const KNOWN_BDMS = [
-        { id: 'jacqui_tibos', name: 'Jacqui Tibos', email: 'jacqui.tibos@teamglobalexpress.com', role: 'BDM', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
-        { id: 'joanne_ballantyne', name: 'Joanne Ballantyne', email: 'joanne.ballantyne@teamglobalexpress.com', role: 'BDM', territory: 'METRO_SOUTH', state: 'WA', target: 2500000 },
-        { id: 'joshua_mostratos', name: 'Joshua Mostratos', email: 'joshua.mostratos@teamglobalexpress.com', role: 'BDM', territory: 'REGIONAL', state: 'WA', target: 2500000 },
         { id: 'waHEXgLsIhVQTIvju6xiIef2gZg1', name: 'Namra Khan', email: 'namra.khan@teamglobalexpress.com', role: 'BDM', territory: 'WESTERN_TRADE_COAST', state: 'WA', target: 2500000 },
-        { id: 'rienzie_delilkan', name: 'Rienzie Delilkan', email: 'rienzie.delilkan@teamglobalexpress.com', role: 'BDM', territory: 'FLEX', state: 'WA', target: 2500000 },
         { id: 'isaac_depina', name: 'Isaac De Pina', email: 'isaac.depina@teamglobalexpress.com', role: 'BDM', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
+        { id: 'jacqui_tibos', name: 'Jacqui Tibos', email: 'jacqui.tibos@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
+        { id: 'joanne_ballantyne', name: 'Joanne Ballantyne', email: 'joanne.ballantyne@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'METRO_SOUTH', state: 'WA', target: 2500000 },
+        { id: 'joshua_mostratos', name: 'Joshua Mostratos', email: 'joshua.mostratos@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'REGIONAL', state: 'WA', target: 2500000 },
+        { id: 'rienzie_delilkan', name: 'Rienzie Delilkan', email: 'rienzie.delilkan@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'FLEX', state: 'WA', target: 2500000 },
       ];
 
       for (const bdm of KNOWN_BDMS) {
@@ -559,7 +568,7 @@ export function CRMImporter() {
       // Pre-calculate closed-won totals per customer
       const closedWonMap = new Map<string, number>();
       let closedWonCount = 0;
-      let closedLostIgnored = 0;
+      let closedLostCount = 0;
       const unmatchedOwners = new Set<string>();
       const matchedBDMSet = new Set<string>();
 
@@ -571,17 +580,19 @@ export function CRMImporter() {
           closedWonMap.set(cid, (closedWonMap.get(cid) || 0) + parseMoney(getField(row, 'Amount', 'amount')));
           closedWonCount++;
         }
-        if (cls === 'IGNORE') closedLostIgnored++;
+        if (cls === 'CLOSED_LOST') {
+          closedLostCount++;
+        }
       });
 
       const records: ProcessedRecord[] = [];
       const processedOpportunityCustomers = new Set<string>(); // track which customers got opp rows
 
-      // PASS 1: Active and Closed Won opportunity rows
+      // PASS 1: Active, Closed Won, and Closed Lost opportunity rows
       opportunityRows.forEach(row => {
         const stage = getField(row, 'Sales Stage', 'sales stage');
         const stageClass = classifyStage(stage);
-        if (stageClass !== 'ACTIVE' && stageClass !== 'CLOSED_WON') return;
+        if (stageClass !== 'ACTIVE' && stageClass !== 'CLOSED_WON' && stageClass !== 'CLOSED_LOST') return;
 
         const customerId   = getField(row, 'Customer ID', 'customer id');
         const opportunityId = getField(row, 'Opportunity ID', 'opportunity id');
@@ -597,6 +608,24 @@ export function CRMImporter() {
         const customer = customerMap.get(customerId);
         const closedWonValue = closedWonMap.get(customerId) || 0;
 
+        // Determine Week from Last Sales Stage Change Date (or Expected Trading Date fallback)
+        const lastStageChangeDateStr = getField(row, 'Last Sales Stage Change Date', 'last sales stage change date', 'Stage Change Date');
+        let assignedWeek = currentWeek;
+        if (stageClass === 'CLOSED_WON' || stageClass === 'CLOSED_LOST') {
+          const parsedChangeDate = parseAustralianDate(lastStageChangeDateStr);
+          if (parsedChangeDate) {
+            assignedWeek = getWeekForDate(parsedChangeDate);
+          }
+        }
+
+        const ytdRevenueThisFY = parseMoney(getField(row, 'YTD Revenue This FY', 'ytd revenue this fy')) || 
+                                 parseMoney(getField(customer || {}, 'YTD Revenue This FY', 'ytd revenue this fy', 'Actual YTD Revenue'));
+        const ytdRevenueLastFY = parseMoney(getField(row, 'YTD Revenue Last FY', 'ytd revenue last fy')) || 
+                                 parseMoney(getField(customer || {}, 'YTD Revenue Last FY', 'ytd revenue last fy'));
+        const yoyPercentYTD = parseMoney(getField(row, 'YoY % YTD', 'yoy % ytd'));
+        const yoyDollarYTD = parseMoney(getField(row, 'YoY $ YTD', 'yoy $ ytd'));
+        const age = parseMoney(getField(row, 'Age', 'age'));
+
         records.push({
           docId:            opportunityId || `opp_${crypto.randomUUID()}`,
           accountMasterCode: customerId,
@@ -610,13 +639,20 @@ export function CRMImporter() {
           businessUnit:     getField(row, 'Business Unit', 'business unit') || getField(customer || {}, 'Business Unit', 'business unit'),
           userId:           matchedUser.id,
           userName:         matchedUser.name,
-          currentRevenue:   parseMoney(getField(customer || {}, 'YTD Revenue This FY', 'ytd revenue this fy', 'Actual YTD Revenue')),
-          lastYearRevenue:  parseMoney(getField(customer || {}, 'YTD Revenue Last FY', 'ytd revenue last fy')),
+          currentRevenue:   ytdRevenueThisFY,
+          lastYearRevenue:  ytdRevenueLastFY,
           lastInvoiceDate:  getField(customer || {}, 'Last Invoice Date', 'last invoice date'),
           lastActivity:     getField(customer || {}, 'Last Activity', 'last activity'),
           creditHold:       getField(customer || {}, 'Credit Hold', 'credit hold').toLowerCase() === 'yes',
           closedWonValue,
           isBareAccount:    false,
+          lastSalesStageChangeDate: lastStageChangeDateStr,
+          age,
+          ytdRevenueThisFY,
+          ytdRevenueLastFY,
+          yoyPercentYTD,
+          yoyDollarYTD,
+          week:             assignedWeek,
         });
 
         processedOpportunityCustomers.add(`${customerId}_${matchedUser.id}`);
@@ -638,6 +674,8 @@ export function CRMImporter() {
         if (processedOpportunityCustomers.has(`${customerId}_${matchedUser.id}`)) return;
 
         const closedWonValue = closedWonMap.get(customerId) || 0;
+        const currentRevenue = parseMoney(getField(row, 'YTD Revenue This FY', 'ytd revenue this fy', 'Actual YTD Revenue'));
+        const lastYearRevenue = parseMoney(getField(row, 'YTD Revenue Last FY', 'ytd revenue last fy'));
 
         records.push({
           docId:            `cust_${customerId}`,
@@ -652,13 +690,16 @@ export function CRMImporter() {
           businessUnit:     getField(row, 'Business Unit', 'business unit'),
           userId:           matchedUser.id,
           userName:         matchedUser.name,
-          currentRevenue:   parseMoney(getField(row, 'YTD Revenue This FY', 'ytd revenue this fy', 'Actual YTD Revenue')),
-          lastYearRevenue:  parseMoney(getField(row, 'YTD Revenue Last FY', 'ytd revenue last fy')),
+          currentRevenue,
+          lastYearRevenue,
           lastInvoiceDate:  getField(row, 'Last Invoice Date', 'last invoice date'),
           lastActivity:     getField(row, 'Last Activity', 'last activity'),
           creditHold:       getField(row, 'Credit Hold', 'credit hold').toLowerCase() === 'yes',
           closedWonValue,
           isBareAccount:    true,
+          ytdRevenueThisFY: currentRevenue,
+          ytdRevenueLastFY: lastYearRevenue,
+          week:             currentWeek,
         });
       });
 
@@ -777,7 +818,7 @@ export function CRMImporter() {
         activeOpportunities: records.filter(r => !r.isBareAccount && r.stage !== 'Closed Won').length,
         bareAccounts:        records.filter(r => r.isBareAccount).length,
         closedWonCount,
-        closedLostIgnored,
+        closedLostCount,
         unmatchedOwners:     Array.from(unmatchedOwners),
         matchedBDMs:         Array.from(matchedBDMSet),
         totalActivityRows:   activityRows.length,
@@ -879,7 +920,13 @@ export function CRMImporter() {
               creditHold:        record.creditHold || false,
               closedWonValue:    record.closedWonValue || 0,
               isBareAccount:     record.isBareAccount || false,
-              week:              currentWeek,
+              lastSalesStageChangeDate: record.lastSalesStageChangeDate || '',
+              age:               record.age || 0,
+              ytdRevenueThisFY:  record.ytdRevenueThisFY || record.currentRevenue || 0,
+              ytdRevenueLastFY:  record.ytdRevenueLastFY || record.lastYearRevenue || 0,
+              yoyPercentYTD:     record.yoyPercentYTD || 0,
+              yoyDollarYTD:      record.yoyDollarYTD || 0,
+              week:              record.week || currentWeek,
               importedFromSF:    true,
               updatedAt:         serverTimestamp(),
             }, { merge: true });
@@ -995,7 +1042,7 @@ export function CRMImporter() {
           const chunk = previewActualSpendRecords.slice(i, i + BATCH_SIZE);
           
           chunk.forEach(record => {
-            const spendRef = doc(db, 'actualRevenues', record.id);
+            const spendRef = doc(db, 'actualSpend', record.id);
             batch.set(spendRef, {
               ...record,
               uploadedAt: serverTimestamp()
@@ -1237,10 +1284,10 @@ export function CRMImporter() {
                 </Badge>
               ))}
               <Badge className="bg-emerald-100 text-emerald-800 font-bold text-[9px] border-none">
-                ✓ Closed Won (New Biz Started)
+                ✓ Closed Won (Weekly attribution by Stage Change Date)
               </Badge>
-              <Badge className="bg-red-100 text-red-800 font-bold text-[9px] border-none">
-                ✕ Closed Lost (ignored)
+              <Badge className="bg-rose-100 text-rose-800 font-bold text-[9px] border-none">
+                ✓ Closed Lost (Weekly attribution by Stage Change Date)
               </Badge>
             </div>
           </div>
@@ -1255,7 +1302,7 @@ export function CRMImporter() {
             />
             <FileZone
               label="Opportunities Export"
-              hint="Opportunity ID · Customer ID · Sales Stage · Amount"
+              hint="Opportunity ID · Customer ID · Sales Stage · Amount · Stage Change Date"
               file={opportunitiesFile}
               onFile={f => handleFileChange(f, 'opportunities')}
             />
@@ -1314,7 +1361,7 @@ export function CRMImporter() {
             { label: 'Active Opps', value: stats.activeOpportunities, color: 'text-green-700 bg-green-50 border-green-100' },
             { label: 'Bare Accounts', value: stats.bareAccounts, color: 'text-blue-700 bg-blue-50 border-blue-100' },
             { label: 'Closed Won (New Biz)', value: stats.closedWonCount, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-            { label: 'Closed Lost (ignored)', value: stats.closedLostIgnored, color: 'text-red-700 bg-red-50 border-red-100' },
+            { label: 'Closed Lost', value: stats.closedLostCount, color: 'text-rose-700 bg-rose-50 border-rose-100' },
             { label: 'Total Pipeline Rows', value: previewRecords.length, color: 'text-primary bg-slate-50 border-slate-200' },
           ].map(s => (
             <div key={s.label} className={`rounded-2xl p-4 border ${s.color} text-center`}>
@@ -1414,7 +1461,7 @@ export function CRMImporter() {
         <Card className="border-none shadow-xl bg-white overflow-hidden">
           <CardHeader className="bg-slate-50 border-b py-4 px-6">
             <CardTitle className="text-sm font-black uppercase tracking-tight">
-              Preview — {previewRecords.length} Records for Week {currentWeek.split('-')[1]}
+              Preview — {previewRecords.length} Records
             </CardTitle>
           </CardHeader>
           <ScrollArea className="h-[500px]">
@@ -1427,7 +1474,8 @@ export function CRMImporter() {
                   <TableHead>Stage</TableHead>
                   <TableHead>Value</TableHead>
                   <TableHead>Won $</TableHead>
-                  <TableHead>Credit Hold</TableHead>
+                  <TableHead>Stage Date</TableHead>
+                  <TableHead>Week</TableHead>
                   <TableHead>Customer ID</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1458,9 +1506,12 @@ export function CRMImporter() {
                       ) : <span className="text-slate-300">—</span>}
                     </TableCell>
                     <TableCell>
-                      {r.creditHold ? (
-                        <Badge className="bg-red-100 text-red-700 text-[8px] font-black border-none">HOLD</Badge>
-                      ) : <span className="text-slate-300 text-[9px]">—</span>}
+                      <p className="text-[9px] text-slate-500">{r.lastSalesStageChangeDate || '—'}</p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[8px] font-mono font-bold bg-slate-50">
+                        Wk {r.week ? r.week.split('-')[1] : currentWeek.split('-')[1]}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <p className="text-[9px] font-mono text-slate-400">{r.accountMasterCode}</p>

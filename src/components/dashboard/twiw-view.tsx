@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
-import { getCurrentWeek, getNextWeekKey, formatEAV, cn, normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
+import { getCurrentWeek, getWeekForDate, getNextWeekKey, formatEAV, cn, normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
@@ -297,16 +297,6 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     return true;
   }, [wins, risks, majorUpdates, projectedWins, priorities, kpiReview, isRegisteredUser]);
 
-  // --- ISO Week Calculation Helper ---
-  const getWeekKey = (date: Date): string => {
-    const d = new Date(date.getTime());
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-    const yearStart = new Date(d.getFullYear(), 0, 1);
-    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return `${d.getFullYear()}-${String(weekNo).padStart(2, '0')}`;
-  };
-
   const isCreatedThisWeek = (createdAt: any) => {
     if (!createdAt) return false;
     let d: Date;
@@ -317,15 +307,15 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     } else {
       d = new Date(createdAt);
     }
-    return getWeekKey(d) === selectedWeek;
+    return getWeekForDate(d) === selectedWeek;
   };
 
   // --- CRM & Compliance Document Queries ---
-  // Call Plans Query
+  // Call Plans Query (queried by userId, filtered by week via isCreatedThisWeek)
   const cpQuery = useMemoFirebase(() => {
     if (!db || !userId) return null;
-    return query(collection(db, 'callPlans'), where('userId', '==', userId), where('week', '==', selectedWeek));
-  }, [db, userId, selectedWeek]);
+    return query(collection(db, 'callPlans'), where('userId', '==', userId));
+  }, [db, userId]);
   const { data: cpPlans } = useCollection(cpQuery);
 
   // Whitespace Plans Query
@@ -352,8 +342,8 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
   // Leader / GM compliance audit (fetch everyone's docs for this week)
   const allCallPlansQuery = useMemoFirebase(() => {
     if (!db || !isLeader) return null;
-    return query(collection(db, 'callPlans'), where('week', '==', selectedWeek));
-  }, [db, isLeader, selectedWeek]);
+    return collection(db, 'callPlans');
+  }, [db, isLeader]);
   const { data: allCallPlans } = useCollection(allCallPlansQuery);
 
   const allWhitespaceQuery = useMemoFirebase(() => {
@@ -373,6 +363,29 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     return collection(db, 'factFindingDocs');
   }, [db, isLeader]);
   const { data: allFactFindings } = useCollection(allFactFindingsQuery);
+
+  // Memoized Fact Finding Notes for the current user and selected week
+  const weeklyFFNotes = useMemo(() => {
+    if (!ffDocs) return [];
+    const notes: any[] = [];
+    for (const doc of ffDocs) {
+      if (doc.archivedNotes && Array.isArray(doc.archivedNotes)) {
+        for (const n of doc.archivedNotes) {
+          if (isCreatedThisWeek(n.createdAt)) {
+            notes.push({
+              companyName: doc.companyName || doc.customerName || 'Unknown Company',
+              ...n
+            });
+          }
+        }
+      }
+    }
+    return notes.sort((a, b) => {
+      const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      return timeB - timeA;
+    });
+  }, [ffDocs, selectedWeek]);
 
   // Sourced Team Profiles (for Collation)
   const usersQuery = useMemoFirebase(() => {
@@ -3211,48 +3224,23 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 {/* Fact Finding Notes */}
                 <div className="space-y-2 mt-4">
                   <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📝 Fact Finding Notes</h5>
-                  {(() => {
-                    const weeklyNotes: any[] = [];
-                    if (ffDocs) {
-                      for (const doc of ffDocs) {
-                        if (doc.archivedNotes && Array.isArray(doc.archivedNotes)) {
-                          for (const n of doc.archivedNotes) {
-                            if (isCreatedThisWeek(n.createdAt)) {
-                              weeklyNotes.push({
-                                companyName: doc.companyName || doc.customerName || 'Unknown Company',
-                                ...n
-                              });
-                            }
-                          }
-                        }
-                      }
-                      weeklyNotes.sort((a, b) => {
-                        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
-                        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
-                        return timeB - timeA;
-                      });
-                    }
-                    
-                    if (weeklyNotes.length > 0) {
-                      return (
-                        <div className="space-y-2">
-                          {weeklyNotes.map((n: any, idx: number) => {
-                            const dt = n.createdAt?.toDate ? n.createdAt.toDate() : (n.createdAt ? new Date(n.createdAt) : null);
-                            const updateDt = n.updatedAt?.toDate ? n.updatedAt.toDate() : (n.updatedAt ? new Date(n.updatedAt) : null);
-                            const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
-                            const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
-                            return (
-                              <div key={idx} className="bg-slate-50 border rounded-xl p-3 text-xs text-slate-700">
-                                <strong>{n.companyName}</strong>, <span className="text-[10px] text-slate-500">Created: {timeStr} | Edited: {updateStr}</span>: {n.note}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    } else {
-                      return <p className="text-xs font-black text-slate-400 bg-slate-50 border border-slate-100 rounded-xl p-3">No Notes Added This Week</p>;
-                    }
-                  })()}
+                  {weeklyFFNotes.length > 0 ? (
+                    <div className="space-y-2">
+                      {weeklyFFNotes.map((n: any, idx: number) => {
+                        const dt = n.createdAt?.toDate ? n.createdAt.toDate() : (n.createdAt ? new Date(n.createdAt) : null);
+                        const updateDt = n.updatedAt?.toDate ? n.updatedAt.toDate() : (n.updatedAt ? new Date(n.updatedAt) : null);
+                        const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
+                        return (
+                          <div key={idx} className="bg-slate-50 border rounded-xl p-3 text-xs text-slate-700">
+                            <strong>{n.companyName}</strong>, <span className="text-[10px] text-slate-500">Created: {timeStr} | Edited: {updateStr}</span>: {n.note}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs font-black text-slate-400 bg-slate-50 border border-slate-100 rounded-xl p-3">No Notes Added This Week</p>
+                  )}
                 </div>
 
                 {/* Ops Reports */}
@@ -3513,7 +3501,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                           </thead>
                           <tbody className="divide-y divide-slate-100 bg-white">
                             {subs.map((sub, idx) => {
-                              const subCP = allCallPlans?.filter((cp: any) => cp.userId === sub.userId) || [];
+                              const subCP = allCallPlans?.filter((cp: any) => cp.userId === sub.userId && isCreatedThisWeek(cp.createdAt)) || [];
                               const subWS = allWhitespacePlans?.filter((ws: any) => ws.userId === sub.userId && isCreatedThisWeek(ws.createdAt)) || [];
                               const subOps = allOpsReports?.filter((ops: any) => ops.userId === sub.userId) || [];
                               const subFF = allFactFindings?.filter((ff: any) => ff.userId === sub.userId && isCreatedThisWeek(ff.createdAt)) || [];

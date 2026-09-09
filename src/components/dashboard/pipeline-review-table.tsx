@@ -418,7 +418,16 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                           )}
                         </div>
                       </TableCell>
-                      <TableCell><Input className="text-xs font-bold h-9 bg-transparent border-transparent focus:border-primary/20" value={row.stage} onChange={e => handleUpdate(row.id, 'stage', e.target.value)} readOnly={readOnly} /></TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Input className="text-xs font-bold h-9 bg-transparent border-transparent focus:border-primary/20" value={row.stage} onChange={e => handleUpdate(row.id, 'stage', e.target.value)} readOnly={readOnly} />
+                          {row.lastSalesStageChangeDate && (
+                            <p className="text-[8px] font-bold text-slate-400 px-2 uppercase tracking-wide">
+                              Changed: {row.lastSalesStageChangeDate}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell><Textarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.barriers} onChange={e => handleUpdate(row.id, 'barriers', e.target.value)} readOnly={readOnly} /></TableCell>
                       <TableCell><Textarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.actionsForBen} onChange={e => handleUpdate(row.id, 'actionsForBen', e.target.value)} readOnly={readOnly} placeholder="Enter immediate next steps..." /></TableCell>
                       <TableCell className="text-center">

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { cn, openSalesforceSearch, normalizeBdmName } from '@/lib/utils';
 import { useIsMobile } from '@/lib/mobile-utils';
@@ -232,16 +233,24 @@ export function FactFindingHub() {
     }
   };
 
-  if (selectedDoc === 'new') {
-    return <FactFindingForm onBack={() => setSelectedDoc(null)} />;
-  }
-
-  if (selectedDoc !== null) {
-    return <FactFindingForm docId={selectedDoc.id} existingDoc={selectedDoc} onBack={() => setSelectedDoc(null)} />;
-  }
-
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <Dialog 
+        open={selectedDoc !== null} 
+        onOpenChange={(open) => {
+          if (!open) setSelectedDoc(null);
+        }}
+      >
+        <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 overflow-y-auto bg-slate-50 border-0 rounded-2xl sm:rounded-[32px] overflow-x-hidden">
+          {selectedDoc === 'new' && (
+            <FactFindingForm onBack={() => setSelectedDoc(null)} />
+          )}
+          {selectedDoc !== null && selectedDoc !== 'new' && (
+            <FactFindingForm docId={selectedDoc.id} existingDoc={selectedDoc} onBack={() => setSelectedDoc(null)} />
+          )}
+        </DialogContent>
+      </Dialog>
+      
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h2 className="text-3xl font-black tracking-tight text-slate-800 flex items-center gap-3">
