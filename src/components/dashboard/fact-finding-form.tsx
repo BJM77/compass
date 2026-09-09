@@ -372,7 +372,7 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 overflow-x-hidden max-w-full">
         <div className={printType === 'REVIEW' ? 'print:hidden' : ''}>
         {/* Header - Hidden on Print */}
-        <div className="print:hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div className="print:hidden sticky top-0 z-40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
             <ArrowLeft className="w-5 h-5" />
