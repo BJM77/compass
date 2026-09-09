@@ -3133,15 +3133,20 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 {/* Call Plans */}
                 <div className="space-y-2">
                   <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
-                  {cpPlans && cpPlans.length > 0 ? (
+                  {cpPlans && cpPlans.filter((cp: any) => isCreatedThisWeek(cp.createdAt)).length > 0 ? (
                     <div className="space-y-2">
-                      {cpPlans.map((cp: any, idx: number) => {
+                      {cpPlans.filter((cp: any) => isCreatedThisWeek(cp.createdAt)).map((cp: any, idx: number) => {
                         const dt = cp.createdAt?.toDate ? cp.createdAt.toDate() : (cp.createdAt ? new Date(cp.createdAt) : null);
+                        const updateDt = cp.updatedAt?.toDate ? cp.updatedAt.toDate() : (cp.updatedAt ? new Date(cp.updatedAt) : null);
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
                         return (
                           <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
                             <span className="text-xs font-bold text-slate-700">{cp.accountName || cp.dealName || 'Unnamed Plan'}</span>
-                            <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                            <div className="flex flex-col items-end text-[10px] text-slate-400 font-medium">
+                              <span>Created: {timeStr}</span>
+                              <span>Edited: {updateStr}</span>
+                            </div>
                           </div>
                         );
                       })}
@@ -3158,11 +3163,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     <div className="space-y-2">
                       {wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).map((ws: any, idx: number) => {
                         const dt = ws.createdAt?.toDate ? ws.createdAt.toDate() : (ws.createdAt ? new Date(ws.createdAt) : null);
+                        const updateDt = ws.updatedAt?.toDate ? ws.updatedAt.toDate() : (ws.updatedAt ? new Date(ws.updatedAt) : null);
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
                         return (
                           <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
                             <span className="text-xs font-bold text-slate-700">{ws.accountName || 'Unnamed Diagnostic'}</span>
-                            <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                            <div className="flex flex-col items-end text-[10px] text-slate-400 font-medium">
+                              <span>Created: {timeStr}</span>
+                              <span>Edited: {updateStr}</span>
+                            </div>
                           </div>
                         );
                       })}
@@ -3179,11 +3189,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     <div className="space-y-2">
                       {ffDocs.filter((ff: any) => isCreatedThisWeek(ff.createdAt)).map((ff: any, idx: number) => {
                         const dt = ff.createdAt?.toDate ? ff.createdAt.toDate() : (ff.createdAt ? new Date(ff.createdAt) : null);
+                        const updateDt = ff.updatedAt?.toDate ? ff.updatedAt.toDate() : (ff.updatedAt ? new Date(ff.updatedAt) : null);
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                        const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
                         return (
                           <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
                             <span className="text-xs font-bold text-slate-700">{ff.companyName || ff.customerName || 'Unnamed Doc'}</span>
-                            <span className="text-[10px] text-slate-400 font-medium">Created: {timeStr}</span>
+                            <div className="flex flex-col items-end text-[10px] text-slate-400 font-medium">
+                              <span>Created: {timeStr}</span>
+                              <span>Edited: {updateStr}</span>
+                            </div>
                           </div>
                         );
                       })}
@@ -3191,6 +3206,53 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                   ) : (
                     <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Fact Finding Sessions Completed</p>
                   )}
+                </div>
+
+                {/* Fact Finding Notes */}
+                <div className="space-y-2 mt-4">
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📝 Fact Finding Notes</h5>
+                  {(() => {
+                    const weeklyNotes: any[] = [];
+                    if (ffDocs) {
+                      for (const doc of ffDocs) {
+                        if (doc.archivedNotes && Array.isArray(doc.archivedNotes)) {
+                          for (const n of doc.archivedNotes) {
+                            if (isCreatedThisWeek(n.createdAt)) {
+                              weeklyNotes.push({
+                                companyName: doc.companyName || doc.customerName || 'Unknown Company',
+                                ...n
+                              });
+                            }
+                          }
+                        }
+                      }
+                      weeklyNotes.sort((a, b) => {
+                        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
+                        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+                        return timeB - timeA;
+                      });
+                    }
+                    
+                    if (weeklyNotes.length > 0) {
+                      return (
+                        <div className="space-y-2">
+                          {weeklyNotes.map((n: any, idx: number) => {
+                            const dt = n.createdAt?.toDate ? n.createdAt.toDate() : (n.createdAt ? new Date(n.createdAt) : null);
+                            const updateDt = n.updatedAt?.toDate ? n.updatedAt.toDate() : (n.updatedAt ? new Date(n.updatedAt) : null);
+                            const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                            const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
+                            return (
+                              <div key={idx} className="bg-slate-50 border rounded-xl p-3 text-xs text-slate-700">
+                                <strong>{n.companyName}</strong>, <span className="text-[10px] text-slate-500">Created: {timeStr} | Edited: {updateStr}</span>: {n.note}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    } else {
+                      return <p className="text-xs font-black text-slate-400 bg-slate-50 border border-slate-100 rounded-xl p-3">No Notes Added This Week</p>;
+                    }
+                  })()}
                 </div>
 
                 {/* Ops Reports */}

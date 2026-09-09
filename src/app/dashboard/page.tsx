@@ -38,6 +38,7 @@ const StrategicRepository = dynamic(() => import('@/components/dashboard/strateg
 const SuccessPlansView = dynamic(() => import('@/components/dashboard/success-plans').then(m => m.SuccessPlansView), { loading: () => <ViewSkeleton /> });
 const ManageTimeView = dynamic(() => import('@/components/dashboard/manage-time-view').then(m => m.ManageTimeView), { loading: () => <ViewSkeleton /> });
 const AMBDManagement = dynamic(() => import('@/components/dashboard/ambd-management').then(m => m.AMBDManagement), { loading: () => <ViewSkeleton /> });
+const FFAdminHub = dynamic(() => import('@/components/dashboard/ff-admin-view').then(m => m.FFAdminHub), { loading: () => <ViewSkeleton /> });
 const CanvassingHub = dynamic(() => import('@/components/dashboard/canvassing-hub').then(m => m.CanvassingHub), { loading: () => <ViewSkeleton /> });
 const DataHealthDashboard = dynamic(() => import('@/components/dashboard/data-health-dashboard').then(m => m.DataHealthDashboard), { loading: () => <ViewSkeleton /> });
 const OverviewHub = dynamic(() => import('@/components/dashboard/overview-hub').then(m => m.OverviewHub), { loading: () => <ViewSkeleton /> });
@@ -130,6 +131,7 @@ function DashboardContent() {
     if (activeView === 'MANAGE_TIME') return <div className="w-full p-4 md:p-8"><ManageTimeView /></div>;
     if (activeView === 'CANVASSING') return <div className="w-full p-4 md:p-8"><CanvassingHub /></div>;
     if (activeView === 'AM_BD' && isLeader) return <div className="w-full p-4 md:p-8"><AMBDManagement /></div>;
+    if (activeView === 'FF_ADMIN' && isLeader) return <div className="w-full p-4 md:p-8"><FFAdminHub /></div>;
     if (activeView === 'DATA_HEALTH' && isLeader) return <div className="w-full p-4 md:p-8"><DataHealthDashboard /></div>;
     if (activeView === 'OVERVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OverviewHub /></div>;
     

@@ -6,7 +6,7 @@ export type DashboardView =
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' 
   | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' 
   | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' 
-  | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW' | 'ALIGN_CUSTOMER';
+  | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW' | 'ALIGN_CUSTOMER' | 'FF_ADMIN';
 
 export type UserRole = 'BDM' | 'ACCOUNT_MANAGER' | 'LEADER' | 'GM' | 'ADMIN' | 'GUEST';
 
@@ -70,6 +70,7 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     items: [
       { view: 'TEAM', label: 'Team', icon: Users, adminOnly: true },
       { view: 'GM_REVIEW', label: 'GM Command Hub', icon: Shield, adminOnly: true },
+      { view: 'FF_ADMIN', label: 'FF Admin', icon: FileSearch, adminOnly: true },
       { view: 'AM_BD', label: 'AM/BD Notes Admin', icon: ClipboardList, adminOnly: true },
       { view: 'TEAM_GOALS', label: 'Team Goals', icon: Star, adminOnly: true },
       { view: 'STRATEGY', label: 'Strategy', icon: Map, adminOnly: true },
