@@ -161,10 +161,10 @@ export function useCRMSummary(myUserId: string | null, isLeader: boolean, allDea
       group.rows.push(r);
     });
 
-    // Duplicate-name warning: specify where and how
+    // Duplicate-name handling
     byUserName.forEach((group, normName) => {
       if (group.allIds.size > 1) {
-        console.warn(`[identity-fragmentation] "${normName}" has ${group.allIds.size} distinct userIds:`, Array.from(group.allIds));
+        // Suppressed identity-fragmentation warning as it was cluttering the console in production
       }
     });
 
