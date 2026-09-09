@@ -185,7 +185,11 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
       return m.score === 'DEAD' || m.score === 'STALLING';
     }) || [];
 
-    const opportunityDeals = allDeals?.filter(d => !d.isBareAccount) || [];
+    const opportunityDeals = allDeals?.filter(d => {
+      if (d.isBareAccount) return false;
+      const st = (d.stage || '').toLowerCase().trim();
+      return st !== 'closed won' && st !== 'closed lost';
+    }) || [];
     const totalPipelineAmount = opportunityDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
 
     return {

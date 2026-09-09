@@ -438,33 +438,6 @@ export function CRMImporter() {
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
 
-  useEffect(() => {
-    async function seedMissingBDMs() {
-      if (!db || !users) return;
-      
-      const KNOWN_BDMS = [
-        { id: 'waHEXgLsIhVQTIvju6xiIef2gZg1', name: 'Namra Khan', email: 'namra.khan@teamglobalexpress.com', role: 'BDM', territory: 'WESTERN_TRADE_COAST', state: 'WA', target: 2500000 },
-      ];
-
-      for (const bdm of KNOWN_BDMS) {
-        const exists = users.some(u => u.id === bdm.id);
-        if (!exists) {
-          console.log(`Auto-seeding BDM: ${bdm.name}`);
-          await setDoc(doc(db, 'users', bdm.id), {
-            id: bdm.id,
-            name: bdm.name,
-            email: bdm.email,
-            role: bdm.role,
-            territory: bdm.territory,
-            state: bdm.state,
-            target: bdm.target,
-            createdAt: serverTimestamp()
-          });
-        }
-      }
-    }
-    seedMissingBDMs();
-  }, [db, users]);
 
   // ── Purge Data ───────────────────────────────────────────────────────────
   const handlePurge = async (scope: 'WEEK' | 'ALL' | 'OPPORTUNITIES_ALL' | 'OPPORTUNITIES_WEEK') => {

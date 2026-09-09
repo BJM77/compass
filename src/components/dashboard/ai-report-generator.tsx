@@ -61,12 +61,14 @@ export function AiReportGenerator() {
       }));
 
       // 2. Prepare Pipeline
-      const pipelineArray = teamPipeline.map(p => ({
-        bdmName: p.userName || 'Unknown BDM',
-        opportunityName: p.opportunityName || p.pipeline || 'Unnamed Opp',
-        stage: p.stage || 'Discovery',
-        value: Number(p.value) || 0
-      }));
+      const pipelineArray = teamPipeline
+        .filter(p => !p.isBareAccount && (p.stage || '').toLowerCase().trim() !== 'closed won' && (p.stage || '').toLowerCase().trim() !== 'closed lost')
+        .map(p => ({
+          bdmName: p.userName || 'Unknown BDM',
+          opportunityName: p.opportunityName || p.pipeline || 'Unnamed Opp',
+          stage: p.stage || 'Discovery',
+          value: Number(p.value) || 0
+        }));
 
       // 3. Prepare Playbooks
       const activePlaybooks = playbookConfig?.data || defaultPlaybooks;

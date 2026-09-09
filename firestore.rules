@@ -83,6 +83,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /crmActivities/{activityId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+    }
+
     // ─── Weekly Governance Nodes ─────────────────────────────────────────────────
     match /weeklyCommitments/{docId} {
       allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
