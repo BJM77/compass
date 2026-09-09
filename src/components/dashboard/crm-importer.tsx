@@ -55,6 +55,11 @@ function getField(row: any, ...candidates: string[]): string {
 
 function matchUser(users: any[], ownerName: string): any | null {
   if (!ownerName) return null;
+  
+  // Only use accounts that have a valid Firebase UID (typically 20+ chars, no underscores)
+  // Do not use name-based UIDs
+  const validUsers = users.filter(u => u.id && u.id.length >= 20 && !u.id.includes('_'));
+
   const lower = ownerName.trim().toLowerCase();
   
   let normalizedOwner = lower;
@@ -66,51 +71,51 @@ function matchUser(users: any[], ownerName: string): any | null {
   }
   
   // Exact match first
-  let found = users.find(u => (u.name || '').trim().toLowerCase() === normalizedOwner);
+  let found = validUsers.find(u => (u.name || '').trim().toLowerCase() === normalizedOwner);
   if (found) return found;
 
   // Fallback exact match on original
-  found = users.find(u => (u.name || '').trim().toLowerCase() === lower);
+  found = validUsers.find(u => (u.name || '').trim().toLowerCase() === lower);
   if (found) return found;
   
   // Isaac special handling
   if (lower.includes('isaac') && (lower.includes('depina') || lower.includes('de pina') || lower.includes('pina'))) {
-    found = users.find(u => (u.name || '').trim().toLowerCase().includes('isaac'));
+    found = validUsers.find(u => (u.name || '').trim().toLowerCase().includes('isaac'));
     if (found) return found;
   }
   
   // Joanne special handling
   if (lower.includes('joanne') || lower.includes('ballantyne')) {
-    found = users.find(u => (u.name || '').trim().toLowerCase().includes('joanne'));
+    found = validUsers.find(u => (u.name || '').trim().toLowerCase().includes('joanne'));
     if (found) return found;
   }
 
   // Jacqui special handling
   if (lower.includes('jacqui') || lower.includes('tibos')) {
-    found = users.find(u => (u.name || '').trim().toLowerCase().includes('jacqui'));
+    found = validUsers.find(u => (u.name || '').trim().toLowerCase().includes('jacqui'));
     if (found) return found;
   }
 
   // Joshua special handling
   if (lower.includes('joshua') || lower.includes('mostratos')) {
-    found = users.find(u => (u.name || '').trim().toLowerCase().includes('joshua'));
+    found = validUsers.find(u => (u.name || '').trim().toLowerCase().includes('joshua'));
     if (found) return found;
   }
 
   // Namra special handling
   if (lower.includes('namra') || lower.includes('khan')) {
-    found = users.find(u => (u.name || '').trim().toLowerCase().includes('namra'));
+    found = validUsers.find(u => (u.name || '').trim().toLowerCase().includes('namra'));
     if (found) return found;
   }
 
   // Rienzie special handling
   if (lower.includes('rienzie') || lower.includes('delilkan')) {
-    found = users.find(u => (u.name || '').trim().toLowerCase().includes('rienzie'));
+    found = validUsers.find(u => (u.name || '').trim().toLowerCase().includes('rienzie'));
     if (found) return found;
   }
   
   // Partial match fallback
-  found = users.find(u => {
+  found = validUsers.find(u => {
     const uname = (u.name || '').trim().toLowerCase();
     
     // Check if all parts of normalizedOwner exist in uname
@@ -245,6 +250,18 @@ interface ProcessedActivityRecord {
   week: string;
   calls: number;
   apps: number;
+}
+
+export interface ProcessedDetailedActivityRecord {
+  id: string;
+  userId: string;
+  userName: string;
+  week: string;
+  type: 'CALL' | 'APP';
+  date: string;
+  subject: string;
+  companyName: string;
+  createdAt: string;
 }
 
 interface ProcessedActualSpendRecord {
@@ -410,6 +427,7 @@ export function CRMImporter() {
   const [isImporting, setIsImporting] = useState(false);
   const [previewRecords, setPreviewRecords] = useState<ProcessedRecord[]>([]);
   const [previewActivityRecords, setPreviewActivityRecords] = useState<ProcessedActivityRecord[]>([]);
+  const [previewDetailedActivityRecords, setPreviewDetailedActivityRecords] = useState<ProcessedDetailedActivityRecord[]>([]);
   const [stats, setStats] = useState<ImportStats | null>(null);
   const [isPurging, setIsPurging] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -426,11 +444,6 @@ export function CRMImporter() {
       
       const KNOWN_BDMS = [
         { id: 'waHEXgLsIhVQTIvju6xiIef2gZg1', name: 'Namra Khan', email: 'namra.khan@teamglobalexpress.com', role: 'BDM', territory: 'WESTERN_TRADE_COAST', state: 'WA', target: 2500000 },
-        { id: 'isaac_depina', name: 'Isaac De Pina', email: 'isaac.depina@teamglobalexpress.com', role: 'BDM', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
-        { id: 'jacqui_tibos', name: 'Jacqui Tibos', email: 'jacqui.tibos@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'METRO_NORTH', state: 'WA', target: 2500000 },
-        { id: 'joanne_ballantyne', name: 'Joanne Ballantyne', email: 'joanne.ballantyne@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'METRO_SOUTH', state: 'WA', target: 2500000 },
-        { id: 'joshua_mostratos', name: 'Joshua Mostratos', email: 'joshua.mostratos@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'REGIONAL', state: 'WA', target: 2500000 },
-        { id: 'rienzie_delilkan', name: 'Rienzie Delilkan', email: 'rienzie.delilkan@teamglobalexpress.com', role: 'ACCOUNT_MANAGER', territory: 'FLEX', state: 'WA', target: 2500000 },
       ];
 
       for (const bdm of KNOWN_BDMS) {
@@ -454,16 +467,26 @@ export function CRMImporter() {
   }, [db, users]);
 
   // ── Purge Data ───────────────────────────────────────────────────────────
-  const handlePurge = async (scope: 'WEEK' | 'ALL') => {
+  const handlePurge = async (scope: 'WEEK' | 'ALL' | 'OPPORTUNITIES_ALL' | 'OPPORTUNITIES_WEEK') => {
     if (!db) return;
     setIsPurging(true);
     try {
       const colRef = collection(db, 'pipelineReviews');
-      const q = scope === 'WEEK' ? query(colRef, where('week', '==', currentWeek)) : colRef;
+      let q;
+      if (scope === 'WEEK') {
+        q = query(colRef, where('week', '==', currentWeek));
+      } else if (scope === 'OPPORTUNITIES_WEEK') {
+        q = query(colRef, where('week', '==', currentWeek), where('isBareAccount', '==', false));
+      } else if (scope === 'OPPORTUNITIES_ALL') {
+        q = query(colRef, where('isBareAccount', '==', false));
+      } else {
+        q = colRef;
+      }
+      
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        toast({ title: 'No Data to Purge', description: scope === 'WEEK' ? `No pipeline records found for week ${currentWeek}.` : 'Pipeline is already empty.' });
+        toast({ title: 'No Data to Purge', description: 'No matching pipeline records found.' });
         return;
       }
 
@@ -477,7 +500,7 @@ export function CRMImporter() {
         deletedCount += chunk.length;
       }
 
-      toast({ title: '✅ Data Purged', description: `Successfully deleted ${deletedCount} pipeline records (${scope === 'WEEK' ? `Week ${currentWeek}` : 'All History'}).` });
+      toast({ title: '✅ Data Purged', description: `Successfully deleted ${deletedCount} pipeline records.` });
     } catch (e: any) {
       console.error('Purge error:', e);
       toast({ variant: 'destructive', title: 'Purge Failed', description: e?.message });
@@ -538,6 +561,7 @@ export function CRMImporter() {
     setIsProcessing(true);
     setPreviewRecords([]);
     setPreviewActivityRecords([]);
+    setPreviewDetailedActivityRecords([]);
     setPreviewActualSpendRecords([]);
     setStats(null);
 
@@ -708,6 +732,7 @@ export function CRMImporter() {
       const unmatchedActivityOwners = new Set<string>();
       const matchedActivityBDMSet = new Set<string>();
       const processedActivityKeys = new Set<string>();
+      const detailedActRecords: ProcessedDetailedActivityRecord[] = [];
 
       activityRows.forEach(row => {
         // Deduplication check: ignore rows that share the same Company / Customer, Created By, Activity Type, Created Date, and Date
@@ -716,6 +741,7 @@ export function CRMImporter() {
         const activityTypeStr = getField(row, 'Activity Type', 'activity type');
         const createdDateStr = getField(row, 'Created Date', 'created date');
         const dateStr = getField(row, 'Date', 'date');
+        const subjectStr = getField(row, 'Subject', 'subject');
         
         const dedupKey = `${company}|${creator}|${activityTypeStr}|${createdDateStr}|${dateStr}`;
         if (processedActivityKeys.has(dedupKey)) {
@@ -762,6 +788,19 @@ export function CRMImporter() {
         } else if (type === 'APP') {
           counts.apps += 1;
         }
+
+        // Add to detailed records
+        detailedActRecords.push({
+          id: crypto.randomUUID(),
+          userId: matchedUser.id,
+          userName: matchedUser.name,
+          week,
+          type,
+          date: date.toISOString(),
+          subject: subjectStr,
+          companyName: company,
+          createdAt: new Date().toISOString()
+        });
       });
 
       const actRecords: ProcessedActivityRecord[] = [];
@@ -812,6 +851,7 @@ export function CRMImporter() {
 
       setPreviewRecords(records);
       setPreviewActivityRecords(actRecords);
+      setPreviewDetailedActivityRecords(detailedActRecords);
       setPreviewActualSpendRecords(actSpendRecords);
       setStats({
         totalRows:           customerRows.length + opportunityRows.length + activityRows.length,
@@ -990,6 +1030,25 @@ export function CRMImporter() {
              throw new Error(`Activity batch commit failed after writing ${committedActivityCount} records. Error: ${err.message}`);
           }
         }
+
+        // Handle Detailed Activity Batch
+        if (previewDetailedActivityRecords.length > 0) {
+          const BATCH_SIZE = 400;
+          for (let i = 0; i < previewDetailedActivityRecords.length; i += BATCH_SIZE) {
+            const batch = writeBatch(db);
+            const chunk = previewDetailedActivityRecords.slice(i, i + BATCH_SIZE);
+            
+            chunk.forEach(record => {
+              const docRef = doc(db, 'crmActivities', record.id);
+              batch.set(docRef, {
+                ...record,
+                uploadedAt: serverTimestamp()
+              });
+            });
+            await batch.commit();
+          }
+        }
+
 
         // Fetch and merge into existing weeklyReports summaries in bulk for unique weeks
         const uniqueWeeks = Array.from(new Set(previewActivityRecords.map(r => r.week)));
@@ -1259,8 +1318,14 @@ export function CRMImporter() {
                   <Button variant="outline" onClick={() => handlePurge('WEEK')} className="justify-start h-12 text-xs font-black uppercase text-slate-800 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all rounded-xl shadow-sm">
                     <Trash2 className="w-4 h-4 mr-2 text-red-500" /> Purge Current Week ({currentWeek}) Only
                   </Button>
+                  <Button variant="outline" onClick={() => handlePurge('OPPORTUNITIES_WEEK')} className="justify-start h-12 text-xs font-black uppercase text-slate-800 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all rounded-xl shadow-sm">
+                    <Trash2 className="w-4 h-4 mr-2 text-orange-500" /> Purge Opportunities (Current Week)
+                  </Button>
+                  <Button variant="outline" onClick={() => handlePurge('OPPORTUNITIES_ALL')} className="justify-start h-12 text-xs font-black uppercase text-slate-800 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all rounded-xl shadow-sm">
+                    <AlertTriangle className="w-4 h-4 mr-2 text-orange-600" /> Purge Opportunities (All Weeks)
+                  </Button>
                   <Button variant="outline" onClick={() => handlePurge('ALL')} className="justify-start h-12 text-xs font-black uppercase text-red-600 border-red-200 hover:bg-red-600 hover:text-white transition-all rounded-xl shadow-sm">
-                    <AlertTriangle className="w-4 h-4 mr-2" /> Purge Entire Pipeline History (All Weeks)
+                    <AlertTriangle className="w-4 h-4 mr-2" /> Purge Entire Pipeline History (All Data)
                   </Button>
                 </div>
                 <AlertDialogFooter>

@@ -80,6 +80,16 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
   }, [db, userId]);
   const { data: logsDataRaw } = useCollection(logsQuery);
 
+  // Fetch crmActivities
+  const crmActivitiesQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    if (userId) {
+      return query(collection(db, 'crmActivities'), where('userId', '==', userId));
+    }
+    return collection(db, 'crmActivities');
+  }, [db, userId]);
+  const { data: crmActivitiesRaw } = useCollection(crmActivitiesQuery);
+
   // Helper to check if a date matches the selected week
   const isDocInWeek = (docDate: any, targetWeek: string) => {
     if (!docDate) return false;
@@ -139,6 +149,20 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
       return matchUser && matchWeek;
     });
   }, [selectedCell, logsDataRaw, activeUserObj]);
+
+  const activeCrmActivities = useMemo(() => {
+    if (!selectedCell || !crmActivitiesRaw || !activeUserObj) return { calls: [], apps: [] };
+    const filtered = crmActivitiesRaw.filter(a => {
+      const matchUser = isUserSubmissionMatch(activeUserObj, a) || a.userId === selectedCell.userId;
+      const matchWeek = a.week === selectedCell.week || isDocInWeek(a.date, selectedCell.week);
+      return matchUser && matchWeek;
+    });
+
+    return {
+      calls: filtered.filter(a => a.type === 'CALL'),
+      apps: filtered.filter(a => a.type === 'APP')
+    };
+  }, [selectedCell, crmActivitiesRaw, activeUserObj]);
 
   const renderContent = () => {
     if (isLoading) return <div className="text-center p-4 text-xs font-bold text-slate-400 uppercase">Loading history...</div>;
@@ -328,6 +352,66 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   <ClipboardList className="w-3 h-3 text-emerald-500" /> Outcomes/Logs
                 </div>
                 <div className="text-lg font-black text-slate-800 mt-0.5">{activeOutcomes.length + activeLogs.length}</div>
+              </div>
+            </div>
+
+            {/* Imported CRM Calls */}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-blue-500" /> CRM Calls ({activeCrmActivities.calls.length})
+              </h4>
+              <div className="space-y-2">
+                {activeCrmActivities.calls.map((c) => {
+                  const dt = c.date ? new Date(c.date) : null;
+                  return (
+                    <div key={c.id} className="p-3 bg-slate-50 border rounded-xl flex flex-col gap-1.5 text-xs">
+                      <div className="flex justify-between items-start gap-4">
+                        <p className="font-black text-slate-800 uppercase">{c.companyName || 'Unknown Company'}</p>
+                        <Badge className="text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5 bg-blue-100 text-blue-700">
+                          CALL
+                        </Badge>
+                      </div>
+                      {c.subject && <p className="text-slate-600 font-medium">{c.subject}</p>}
+                      <div className="flex items-center gap-1 text-[8px] text-slate-400 font-bold uppercase mt-1">
+                        <Clock className="w-2.5 h-2.5" />
+                        {dt ? format(dt, 'PPP') : 'Unknown Date'}
+                      </div>
+                    </div>
+                  );
+                })}
+                {activeCrmActivities.calls.length === 0 && (
+                  <p className="text-[10px] font-bold text-slate-400 uppercase italic pl-1">No CRM calls imported for this week</p>
+                )}
+              </div>
+            </div>
+
+            {/* Imported CRM Apps */}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <CalendarCheck className="w-3.5 h-3.5 text-green-500" /> CRM Apps ({activeCrmActivities.apps.length})
+              </h4>
+              <div className="space-y-2">
+                {activeCrmActivities.apps.map((a) => {
+                  const dt = a.date ? new Date(a.date) : null;
+                  return (
+                    <div key={a.id} className="p-3 bg-slate-50 border rounded-xl flex flex-col gap-1.5 text-xs">
+                      <div className="flex justify-between items-start gap-4">
+                        <p className="font-black text-slate-800 uppercase">{a.companyName || 'Unknown Company'}</p>
+                        <Badge className="text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5 bg-green-100 text-green-700">
+                          APP/MEETING
+                        </Badge>
+                      </div>
+                      {a.subject && <p className="text-slate-600 font-medium">{a.subject}</p>}
+                      <div className="flex items-center gap-1 text-[8px] text-slate-400 font-bold uppercase mt-1">
+                        <Clock className="w-2.5 h-2.5" />
+                        {dt ? format(dt, 'PPP') : 'Unknown Date'}
+                      </div>
+                    </div>
+                  );
+                })}
+                {activeCrmActivities.apps.length === 0 && (
+                  <p className="text-[10px] font-bold text-slate-400 uppercase italic pl-1">No CRM apps imported for this week</p>
+                )}
               </div>
             </div>
 
