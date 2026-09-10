@@ -2197,45 +2197,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
   return (
     <div className="space-y-6 w-full max-w-[1400px] mx-auto pb-12">
-      <button 
-        onClick={async () => {
-          if (!db) return;
-          try {
-            const { getDocs, collection, updateDoc, doc } = await import('firebase/firestore');
-            const snap = await getDocs(collection(db, 'twiwSubmissions'));
-            const thresholdDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
-            let count = 0;
-            const promises: any[] = [];
-            snap.forEach((d) => {
-              const data = d.data();
-              let shouldUpdate = false;
-              const createdDate = data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : null);
-              const updatedDate = data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : null);
-              
-              if ((createdDate && createdDate > thresholdDate) || (updatedDate && updatedDate > thresholdDate)) {
-                shouldUpdate = true;
-              }
-              
-              if (shouldUpdate && data.week !== '2026-24') {
-                promises.push(updateDoc(doc(db, 'twiwSubmissions', d.id), {
-                  week: '2026-24',
-                  status: 'SUBMITTED',
-                  submitted: true,
-                  submittedAt: data.submittedAt || new Date()
-                }));
-                count++;
-              }
-            });
-            await Promise.all(promises);
-            alert(`Updated ${count} recent submissions to Week 24!`);
-          } catch(e: any) {
-            alert(e.message);
-          }
-        }}
-        className="fixed bottom-4 right-4 bg-red-600 text-white font-bold p-4 rounded-full shadow-2xl z-[9999] animate-bounce"
-      >
-        FIX TWTW WEEK 24
-      </button>
+
       {/* Header Bar */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div className="space-y-1">
