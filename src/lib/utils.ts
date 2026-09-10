@@ -226,23 +226,23 @@ export function openSalesforceCreateLead(lead: Parameters<typeof createSalesforc
 export function getWeekForDate(date: Date): string {
   let currentYear = date.getFullYear();
   
-  // Find first Monday of April for current year
-  let firstMondayOfApril = new Date(currentYear, 3, 1);
-  while (firstMondayOfApril.getDay() !== 1) { // 1 = Monday
-    firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+  // Find the Monday of the week containing April 1st for current year
+  let week1Start = new Date(currentYear, 3, 1);
+  while (week1Start.getDay() !== 1) { // 1 = Monday
+    week1Start.setDate(week1Start.getDate() - 1);
   }
   
-  // If we are before the first Monday of April this year, 
+  // If we are before the Monday of the week containing April 1st, 
   // we belong to the previous financial year.
-  if (isBefore(date, firstMondayOfApril)) {
+  if (isBefore(date, week1Start)) {
     currentYear -= 1;
-    firstMondayOfApril = new Date(currentYear, 3, 1);
-    while (firstMondayOfApril.getDay() !== 1) {
-      firstMondayOfApril.setDate(firstMondayOfApril.getDate() + 1);
+    week1Start = new Date(currentYear, 3, 1);
+    while (week1Start.getDay() !== 1) {
+      week1Start.setDate(week1Start.getDate() - 1);
     }
   }
   
-  const weekNumber = differenceInCalendarWeeks(date, firstMondayOfApril, { weekStartsOn: 1 }) + 1;
+  const weekNumber = differenceInCalendarWeeks(date, week1Start, { weekStartsOn: 1 }) + 1;
   const paddedWeek = weekNumber.toString().padStart(2, '0');
   return `${currentYear}-${paddedWeek}`;
 }
