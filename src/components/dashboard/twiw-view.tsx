@@ -3,7 +3,7 @@
 import {
   useState, useMemo, useEffect, useCallback } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, setDoc, serverTimestamp, getDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, writeBatch, doc, getDoc, getDocs, query, where, updateDoc, serverTimestamp, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -208,7 +208,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
   const [priorities, setPriorities] = useState<PriorityItem[]>([]);
   const [newPriority, setNewPriority] = useState('');
   const [newPrioritySalesperson, setNewPrioritySalesperson] = useState('');
-  const [activeTab, setActiveTab] = useState<'FORM' | 'COLLATION' | 'STANDOUTS'>(isLeader ? 'COLLATION' : 'FORM');
+  const [activeTab, setActiveTab] = useState<'FORM' | 'COLLATION' | 'STANDOUTS' | 'ALIGN'>(isLeader ? 'COLLATION' : 'FORM');
   const [showHiddenItems, setShowHiddenItems] = useState(false);
 
   const toggleItemState = async (subId: string, arrayField: 'wins'|'risks'|'majorUpdates'|'projectedWins'|'priorities', itemId: string, stateField: 'isHidden'|'isStarred') => {
@@ -412,6 +412,26 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       priorities: (sub.priorities || []).map((pr: any, idx: number) => ({ ...pr, id: pr.id || `priority-${idx}` }))
     }));
   }, [allSubmissions]);
+
+  // Recent Submissions Query (Last 3 Days) for ALIGN tab
+  const recentSubmissionsQuery = useMemoFirebase(() => {
+    if (!db || !isLeader) return null;
+    const thresholdDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    return query(collection(db, 'twiwSubmissions'), where('createdAt', '>=', Timestamp.fromDate(thresholdDate)));
+  }, [db, isLeader]);
+  const { data: recentSubmissions } = useCollection(recentSubmissionsQuery);
+
+  const mappedRecentSubmissions = useMemo(() => {
+    if (!recentSubmissions) return null;
+    return recentSubmissions.map(sub => ({
+      ...sub,
+      wins: (sub.wins || []).map((w: any, idx: number) => ({ ...w, id: w.id || `win-${idx}` })),
+      risks: (sub.risks || []).map((r: any, idx: number) => ({ ...r, id: r.id || `risk-${idx}` })),
+      majorUpdates: (sub.majorUpdates || []).map((m: any, idx: number) => ({ ...m, id: m.id || `update-${idx}` })),
+      projectedWins: (sub.projectedWins || []).map((p: any, idx: number) => ({ ...p, id: p.id || `projected-${idx}` })),
+      priorities: (sub.priorities || []).map((pr: any, idx: number) => ({ ...pr, id: pr.id || `priority-${idx}` }))
+    }));
+  }, [recentSubmissions]);
 
   // Monthly Submissions Query
   const monthlySubmissionsQuery = useMemoFirebase(() => {
@@ -2270,6 +2290,10 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             {renderKeyStandouts()}
           </TabsContent>
 
+          <TabsContent value="align">
+            {renderCollationHub(mappedRecentSubmissions || undefined, "Recent Alignments (Last 3 Days)", "All submissions created within the last 72 hours, regardless of assigned week.")}
+          </TabsContent>
+
           <TabsContent value="monthly-standouts">
             {renderMonthlyStandouts()}
           </TabsContent>
@@ -3397,8 +3421,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     );
   }
 
-  function renderCollationHub() {
-    const collatedSubmissionsCount = mappedSubmissions?.length || 0;
+  function renderCollationHub(overrideSubmissions?: any[], customTitle?: string, customSubtitle?: string) {
+    const targetSubmissions = overrideSubmissions || mappedSubmissions;
+    const collatedSubmissionsCount = targetSubmissions?.length || 0;
     const teamUsers = allUsers?.filter(u => {
       if (!isRealAuthUid(u.id)) return false;
       
@@ -3406,7 +3431,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       if (role === 'BDM' || role === 'ACCOUNT_MANAGER' || role === 'AM') return true;
       
       if (role === 'GUEST') {
-        const sub = mappedSubmissions?.find(s => isUserSubmissionMatch(u, s));
+        const sub = targetSubmissions?.find(s => isUserSubmissionMatch(u, s));
         const subStatus = sub ? (sub.status || (sub.submitted ? 'SUBMITTED' : 'DRAFT')) : 'NONE';
         return subStatus === 'SUBMITTED' || subStatus === 'DRAFT';
       }
@@ -3435,6 +3460,12 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       );
     };
 
+    const submissionsByState = (targetSubmissions || []).reduce((acc, sub) => {
+      if (!acc[sub.state]) acc[sub.state] = [];
+      acc[sub.state].push(sub);
+      return acc;
+    }, {} as Record<string, any[]>);
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column: Team status overview */}
@@ -3442,16 +3473,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-50/50 border-b py-4">
               <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800">
-                Team Submission Status
+                {customTitle || "Team Submission Status"}
               </CardTitle>
               <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Active BDM &amp; AM submissions for Week {selectedWeek.split('-')[1]}
+                {customSubtitle || `Active BDM & AM submissions for Week ${selectedWeek.split('-')[1]}`}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               <div className="divide-y divide-slate-100">
                 {teamUsers.map(u => {
-                  const sub = mappedSubmissions?.find(s => isUserSubmissionMatch(u, s));
+                  const sub = targetSubmissions?.find(s => isUserSubmissionMatch(u, s));
                   const subStatus = sub ? (sub.status || (sub.submitted ? 'SUBMITTED' : 'DRAFT')) : 'NONE';
                   return (
                     <div key={u.id} className="flex justify-between items-center py-3">
@@ -3532,7 +3563,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                      No submissions available to collate yet.
                    </div>
                 ) : (
-                  Object.entries(submissionsByState).map(([state, subs]) => (
+                  Object.entries(submissionsByState).map(([state, subsArray]) => {
+                    const subs = subsArray as any[];
+                    return (
                     <div key={state} className="space-y-4">
                       <h3 className="text-lg font-black uppercase text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
                         {state} Region <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-500 font-black">{subs.length} Reps</Badge>
@@ -3551,7 +3584,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 bg-white">
-                            {subs.map((sub, idx) => {
+                            {subs.map((sub: any, idx: number) => {
+                              const subWins = sub.wins || [];
+                              const subRisks = sub.risks || [];
                               const subCP = allCallPlans?.filter((cp: any) => cp.userId === sub.userId && isCreatedThisWeek(cp.createdAt)) || [];
                               const subWS = allWhitespacePlans?.filter((ws: any) => ws.userId === sub.userId && isCreatedThisWeek(ws.createdAt)) || [];
                               const subOps = allOpsReports?.filter((ops: any) => ops.userId === sub.userId) || [];
@@ -3699,7 +3734,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                         </table>
                       </div>
                     </div>
-                  ))
+                  )})
                 )}
               </div>
             </CardContent>
