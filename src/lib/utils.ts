@@ -391,15 +391,15 @@ export function getNWeeksAgoKey(weekKey: string, n: number): string {
   return getWeekForDate(targetDate);
 }
 
+// CRITICAL: Prefer real Firebase Auth UIDs (typically 20-30 chars, no spaces/underscores/emails)
+export const isRealAuthUid = (id: string) => 
+  id && typeof id === 'string' && id.length >= 20 && id.length <= 35 && !/[\s_@]/.test(id);
+
 export function deduplicateUsers(users: any[]) {
   if (!users || !Array.isArray(users)) return [];
   
   const byUid = new Map<string, any>();
   const seenNames = new Set<string>();
-  
-  // CRITICAL: Prefer real Firebase Auth UIDs (typically 20-30 chars, no spaces/underscores/emails)
-  const isRealAuthUid = (id: string) => 
-    id && typeof id === 'string' && id.length >= 20 && id.length <= 35 && !/[\s_@]/.test(id);
   
   // Sort so real UIDs come first
   const sorted = [...users].sort((a, b) => {
