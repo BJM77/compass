@@ -225,6 +225,8 @@ interface ProcessedRecord {
   yoyPercentYTD?: number;
   yoyDollarYTD?: number;
   week?: string;
+  createdDate?: string;
+  createdWeek?: string;
 }
 
 interface ImportStats {
@@ -655,6 +657,8 @@ export function CRMImporter() {
           yoyPercentYTD,
           yoyDollarYTD,
           week:             assignedWeek,
+          createdDate:      getField(row, 'Created Date', 'created date'),
+          createdWeek:      getField(row, 'Created Date', 'created date') ? getWeekForDate(parseAustralianDate(getField(row, 'Created Date', 'created date')) || new Date()) : undefined
         });
 
         processedOpportunityCustomers.add(`${customerId}_${matchedUser.id}`);
@@ -955,6 +959,8 @@ export function CRMImporter() {
               yoyPercentYTD:     record.yoyPercentYTD || 0,
               yoyDollarYTD:      record.yoyDollarYTD || 0,
               week:              record.week || currentWeek,
+              createdDate:       record.createdDate || null,
+              createdWeek:       record.createdWeek || null,
               importedFromSF:    true,
               updatedAt:         serverTimestamp(),
             }, { merge: true });

@@ -97,9 +97,14 @@ export function PlanMetrics() {
       const userFactFindings = factFindings?.filter(f => isUserSubmissionMatch(user, { id: f.id, ...f })) || [];
       const totalFactFindings = userFactFindings.length;
 
-      // 3. Opportunities Created: Count of pipelineReviews where week is currentWeek, not isBareAccount, stage is not Won/Lost
+      // 3. Opportunities Created: Count of pipelineReviews where createdWeek === currentWeek (or fallback to active pipeline if no createdDate)
       const userDeals = pipelineReviews?.filter(r => isUserSubmissionMatch(user, { id: r.id, ...r })) || [];
-      const oppsCreated = userDeals.filter(d => !d.isBareAccount && d.stage !== 'Closed Won' && d.stage !== 'Closed Lost').length;
+      const oppsCreated = userDeals.filter(d => {
+        if (d.isBareAccount) return false;
+        if (d.createdWeek) return d.createdWeek === currentWeek;
+        // Fallback for older imports before Created Date was available
+        return d.stage !== 'Closed Won' && d.stage !== 'Closed Lost';
+      }).length;
 
       // 4. Opportunities Closed Won
       const oppsWon = userDeals.filter(d => d.stage === 'Closed Won').length;

@@ -53,7 +53,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History, Link as LinkIcon,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone, Navigation
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone, Navigation, ChevronDown, ChevronRight
 } from 'lucide-react';
 const CRMImporter = dynamic(() => import('@/components/dashboard/crm-importer').then(m => m.CRMImporter), { loading: () => <ViewSkeleton /> });
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -83,6 +83,21 @@ function DashboardContent() {
   const usersQuery = useMemoFirebase(() => { if (!db || !isLeader) return null; return collection(db, 'users'); }, [db, isLeader]);
   const { data: allUsers } = useCollection(usersQuery);
   const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);
+  
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
+    field: true,
+    strategy: true,
+    reporting: true,
+    admin_leadership: true,
+    admin_system: true,
+  });
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
+  };
   
   const settingsRef = useMemoFirebase(() => (db && user) ? doc(db, 'appSettings', 'global') : null, [db, user]);
   const { data: settingsData } = useDoc(settingsRef);
@@ -162,14 +177,20 @@ function DashboardContent() {
                       </button>
                     </SidebarMenuItem>
                   )}
-                  {getNavigationForUser(profile?.role as any, isLeader).map((group, groupIdx) => (
+                  {getNavigationForUser(profile?.role as any, isLeader).map((group, groupIdx) => {
+                    const isCollapsed = collapsedGroups[group.id] || false;
+                    return (
                     <div key={group.id} className={groupIdx > 0 ? "mt-4" : ""}>
                       {groupIdx > 0 && (
-                        <SidebarGroupLabel className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">
+                        <SidebarGroupLabel 
+                          className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 cursor-pointer flex items-center gap-1 hover:text-slate-600 transition-colors"
+                          onClick={() => toggleGroup(group.id)}
+                        >
+                          {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                           {group.label}
                         </SidebarGroupLabel>
                       )}
-                      {group.items.map(nav => (
+                      {!isCollapsed && group.items.map(nav => (
                         <SidebarMenuItem key={nav.view}>
                           <SidebarMenuButton isActive={activeView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
                             <nav.icon className="w-4 h-4" />
@@ -178,7 +199,7 @@ function DashboardContent() {
                         </SidebarMenuItem>
                       ))}
                     </div>
-                  ))}
+                  )})}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
