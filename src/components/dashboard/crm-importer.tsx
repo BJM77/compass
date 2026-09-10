@@ -594,13 +594,18 @@ export function CRMImporter() {
         const customerId   = getField(row, 'Customer ID', 'customer id');
         const opportunityId = getField(row, 'Opportunity ID', 'opportunity id');
         const ownerName    = getField(row, 'Opportunity Owner', 'opportunity owner');
-        const matchedUser  = matchUser(users, ownerName);
+        let matchedUser  = matchUser(users, ownerName);
 
         if (!matchedUser) {
           if (ownerName) unmatchedOwners.add(ownerName);
-          return;
+          matchedUser = {
+            id: 'unassigned_crm_user',
+            name: ownerName ? `${ownerName} (Unassigned)` : 'Unassigned',
+            role: 'BDM'
+          };
+        } else {
+          matchedBDMSet.add(matchedUser.name);
         }
-        matchedBDMSet.add(matchedUser.name);
 
         const customer = customerMap.get(customerId);
         const closedWonValue = closedWonMap.get(customerId) || 0;
@@ -659,13 +664,18 @@ export function CRMImporter() {
       customerRows.forEach(row => {
         const customerId = getField(row, 'Customer ID', 'customer id');
         const ownerName  = getField(row, 'Account Owner', 'account owner');
-        const matchedUser = matchUser(users, ownerName);
+        let matchedUser = matchUser(users, ownerName);
 
         if (!matchedUser) {
           if (ownerName) unmatchedOwners.add(ownerName);
-          return;
+          matchedUser = {
+            id: 'unassigned_crm_user',
+            name: ownerName ? `${ownerName} (Unassigned)` : 'Unassigned',
+            role: 'BDM'
+          };
+        } else {
+          matchedBDMSet.add(matchedUser.name);
         }
-        matchedBDMSet.add(matchedUser.name);
 
         // Skip if this customer already has active opportunity rows for this user
         if (processedOpportunityCustomers.has(`${customerId}_${matchedUser.id}`)) return;
@@ -737,12 +747,17 @@ export function CRMImporter() {
         const assignedName = getField(row, 'Assigned', 'assigned', 'Created By: Full Name', 'Created By', 'Owner');
         if (!assignedName || !completedDateStr) return;
 
-        const matchedUser = matchUser(users, assignedName);
+        let matchedUser = matchUser(users, assignedName);
         if (!matchedUser) {
           unmatchedActivityOwners.add(assignedName);
-          return;
+          matchedUser = {
+            id: 'unassigned_crm_user',
+            name: assignedName ? `${assignedName} (Unassigned)` : 'Unassigned',
+            role: 'BDM'
+          };
+        } else {
+          matchedActivityBDMSet.add(matchedUser.name);
         }
-        matchedActivityBDMSet.add(matchedUser.name);
 
         const date = parseAustralianDate(completedDateStr);
         if (!date) return;

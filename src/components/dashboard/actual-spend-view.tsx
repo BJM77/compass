@@ -18,6 +18,18 @@ import { useAuth } from '@/contexts/auth-context';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { HARDCODED_ACCOUNT_MAP } from "@/lib/account-mappings";
 
+// Create a deterministic, Firestore-safe doc ID
+function makeSafeDocId(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s*\(parcels\)\s*/g, '')
+    .replace(/\s*\(freight\)\s*/g, '')
+    .replace(/[^a-z0-9]/g, '-') // Replace ALL non-alphanumerics with dash
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 export function ActualSpendView() {
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,8 +62,7 @@ export function ActualSpendView() {
     );
 
     try {
-      const cleanName = companyName.toLowerCase().replace(/\s*\(parcels\)\s*/, '').replace(/\s*\(freight\)\s*/, '').trim();
-      const safeDocId = cleanName.replace(/\//g, '-');
+      const cleanName = makeSafeDocId(companyName);
 
       const assignedToId = selectedUser?.uid || (selectedUser as any)?.id || staffUidOrName;
       const assignedToName = selectedUser?.name || staffUidOrName;
@@ -64,7 +75,7 @@ export function ActualSpendView() {
         updatedAt: serverTimestamp(),
       };
 
-      await setDoc(doc(db, 'accountMappings', safeDocId), data, { merge: true });
+      await setDoc(doc(db, 'accountMappings', cleanName), data, { merge: true });
       toast({
         title: "Staff Assigned",
         description: `Successfully assigned ${companyName} to ${assignedToName}.`,
@@ -145,7 +156,12 @@ export function ActualSpendView() {
   const dbMappingMap = useMemo(() => {
     const map = new Map<string, string>();
     if (mappingsData) {
-      mappingsData.forEach(m => map.set(m.id.toLowerCase().trim(), m.assignedToName));
+      mappingsData.forEach(m => {
+        map.set(m.id.toLowerCase().trim(), m.assignedToName);
+        if (m.originalName) {
+          map.set(m.originalName.toLowerCase().trim(), m.assignedToName);
+        }
+      });
     }
     return map;
   }, [mappingsData]);

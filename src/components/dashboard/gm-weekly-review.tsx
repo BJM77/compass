@@ -227,17 +227,23 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
               existingUser.crmIds.push(r.userId);
             }
           } else {
-            // This user might not exist in the 'users' collection yet.
-            const role = (normalizedName.toLowerCase().includes('rienzie') || normalizedName.toLowerCase().includes('ballantyne') || normalizedName.toLowerCase().includes('am')) ? 'ACCOUNT_MANAGER' : 'BDM';
-            userMap.set(normalizedName, {
-              id: r.userId, // Use the CRM ID as the primary for now
-              name: r.userName,
-              role,
-              state: r.state || 'WA',
-              authUid: null, // No Auth UID yet
-              legacyIds: [r.userId],
-              crmIds: [r.userId]
-            });
+            // Map any unmatched pipeline reviews to the Unassigned bucket
+            const bucketKey = 'unassigned_bucket';
+            const existingBucket = userMap.get(bucketKey);
+            if (existingBucket) {
+              if (!existingBucket.legacyIds.includes(r.userId)) existingBucket.legacyIds.push(r.userId);
+              if (!existingBucket.crmIds.includes(r.userId)) existingBucket.crmIds.push(r.userId);
+            } else {
+              userMap.set(bucketKey, {
+                id: 'unassigned_crm_user',
+                name: 'Unassigned CRM Records',
+                role: 'BDM',
+                state: 'WA',
+                authUid: null,
+                legacyIds: [r.userId],
+                crmIds: [r.userId]
+              });
+            }
           }
         });
 

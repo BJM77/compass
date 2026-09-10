@@ -391,38 +391,48 @@ export function getNWeeksAgoKey(weekKey: string, n: number): string {
   return getWeekForDate(targetDate);
 }
 
-/**
- * Deduplicates an array of user objects fetched from Firestore.
- * Prevents the dual-identity problem by preferring the Auth UID over the legacy string ID.
- * Automatically filters out GUEST users.
- */
 export function deduplicateUsers(users: any[]) {
   if (!users || !Array.isArray(users)) return [];
   
-  const map = new Map();
-  users.forEach(u => {
-    // Filter out GUEST users automatically
-    if (u.role === 'GUEST') return;
-    
-    // Normalize key for deduplication
-    const key = u.name?.trim().toLowerCase();
-    if (!key) return;
-    
-    if (!map.has(key)) {
-      map.set(key, u);
-    } else {
-      const existing = map.get(key);
-      // Prefer the Auth UID (longer, usually 28 chars) over the legacy string ID
-      const newIdLength = (u.id || u.uid || '').length;
-      const existingIdLength = (existing.id || existing.uid || '').length;
-      
-      if (newIdLength > existingIdLength) {
-        map.set(key, u);
-      }
-    }
+  const byUid = new Map<string, any>();
+  const seenNames = new Set<string>();
+  
+  // CRITICAL: Prefer real Firebase Auth UIDs (typically 20-30 chars, no spaces/underscores/emails)
+  const isRealAuthUid = (id: string) => 
+    id && typeof id === 'string' && id.length >= 20 && id.length <= 35 && !/[\s_@]/.test(id);
+  
+  // Sort so real UIDs come first
+  const sorted = [...users].sort((a, b) => {
+    const aValid = isRealAuthUid(a.id || a.uid || '');
+    const bValid = isRealAuthUid(b.id || b.uid || '');
+    if (aValid && !bValid) return -1;
+    if (!aValid && bValid) return 1;
+    return 0;
   });
   
-  // Sort alphabetically by name
-  return Array.from(map.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  for (const u of sorted) {
+    // Skip guests for aggregated views (does not affect their ability to log in or use the app)
+    if ((u.role || '').toUpperCase() === 'GUEST') continue;
+    
+    const uid = u.id || u.uid;
+    if (!uid) continue;
+    
+    // Skip pseudo-users
+    if (!isRealAuthUid(uid)) {
+      const nameKey = (u.name || '').trim().toLowerCase();
+      if (nameKey && seenNames.has(nameKey)) continue;
+      // Also skip if it looks like a fabricated name ID (contains spaces)
+      if (/\s/.test(uid)) continue;
+    }
+    
+    const nameKey = (u.name || '').trim().toLowerCase();
+    if (nameKey) seenNames.add(nameKey);
+    
+    byUid.set(uid, u);
+  }
+  
+  return Array.from(byUid.values()).sort((a, b) => 
+    (a.name || '').localeCompare(b.name || '')
+  );
 }
 export const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);

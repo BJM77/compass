@@ -32,9 +32,10 @@ export function useTeamUsers(): { teamUsers: UnifiedTeamUser[]; isLoading: boole
 
   const teamUsers = useMemo(() => {
     if (!rawUsers) return [];
-    const filtered = rawUsers.filter(
-      (u: any) => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'AM'
-    );
+    const filtered = rawUsers.filter((u: any) => {
+      const role = (u.role || '').toUpperCase();
+      return (role === 'BDM' || role === 'ACCOUNT_MANAGER' || role === 'AM') && role !== 'GUEST';
+    });
 
     const userMap = new Map<string, UnifiedTeamUser>();
 
