@@ -2216,9 +2216,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 shouldUpdate = true;
               }
               
-              if (shouldUpdate && data.week !== '2026-W24') {
+              if (shouldUpdate && data.week !== '2026-24') {
                 promises.push(updateDoc(doc(db, 'twiwSubmissions', d.id), {
-                  week: '2026-W24',
+                  week: '2026-24',
                   status: 'SUBMITTED',
                   submitted: true,
                   submittedAt: data.submittedAt || new Date()
