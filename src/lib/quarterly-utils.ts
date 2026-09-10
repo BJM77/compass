@@ -151,9 +151,11 @@ export function getCurrentFinancialProgress(date: Date = new Date()): FinancialP
   // If month is April 2024, year = 2024, financialYear = 2025.
   // So it started April 2024. Therefore start date is `new Date(financialYear - 1, 3, 1)`
   
-  // Actually let's just use the current year/month logic to find April 1st
   const fyStartYear = month >= 3 ? year : year - 1;
   const fyStartDate = new Date(fyStartYear, 3, 1);
+  while (fyStartDate.getDay() !== 1) { // 1 = Monday
+    fyStartDate.setDate(fyStartDate.getDate() - 1);
+  }
   const diffTime = Math.max(0, date.getTime() - fyStartDate.getTime());
   const exactElapsedWeeks = diffTime / (1000 * 60 * 60 * 24 * 7);
   const completedWeeks = Math.floor(exactElapsedWeeks);
