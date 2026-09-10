@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star } from 'lucide-react';
+import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star, MessageSquare } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { cn, openSalesforceSearch, normalizeBdmName } from '@/lib/utils';
 import { useIsMobile } from '@/lib/mobile-utils';
@@ -242,6 +242,8 @@ export function FactFindingHub() {
         }}
       >
         <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 overflow-y-auto bg-slate-50 border-0 rounded-2xl sm:rounded-[32px] overflow-x-hidden">
+          <DialogTitle className="sr-only">Fact Finding Document</DialogTitle>
+          <DialogDescription className="sr-only">Create or manage a logistics discovery document.</DialogDescription>
           {selectedDoc === 'new' && (
             <FactFindingForm onBack={() => setSelectedDoc(null)} />
           )}
@@ -507,20 +509,31 @@ export function FactFindingHub() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="relative z-10 pt-4 space-y-3 bg-white/40 backdrop-blur-sm">
-                    <div className="flex items-start gap-2">
-                      <Package className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs font-bold text-slate-700 uppercase">Freight Type</p>
-                        <p className="text-sm text-slate-600 font-medium line-clamp-1">{doc.freightType || 'Not specified'}</p>
+                  <CardContent className="relative z-10 pt-4 bg-white/40 backdrop-blur-sm grid grid-cols-2 gap-4">
+                    <div className="space-y-3 min-w-0">
+                      <div className="flex items-start gap-2">
+                        <Package className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold text-slate-700 uppercase">Freight Type</p>
+                          <p className="text-xs text-slate-600 font-medium truncate">{doc.freightType || 'Not specified'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Building className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold text-slate-700 uppercase">Locations</p>
+                          <p className="text-xs text-slate-600 font-medium truncate">{doc.locations || 'Not specified'}</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <Building className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs font-bold text-slate-700 uppercase">Locations</p>
-                        <p className="text-sm text-slate-600 font-medium line-clamp-1">{doc.locations || 'Not specified'}</p>
-                      </div>
+                    <div className="bg-white/80 rounded-xl p-2 border border-slate-100/60 shadow-sm flex flex-col overflow-hidden relative">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-l-xl"></div>
+                      <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1 ml-1 flex items-center gap-1">
+                        <MessageSquare className="w-3 h-3" /> Latest Note
+                      </p>
+                      <p className="text-[10px] text-slate-600 font-medium leading-tight line-clamp-3 ml-1">
+                        {doc.currentNote?.trim() ? doc.currentNote : (doc.archivedNotes && doc.archivedNotes.length > 0 ? doc.archivedNotes[doc.archivedNotes.length - 1].note : 'No notes available.')}
+                      </p>
                     </div>
                   </CardContent>
                   <CardFooter className="relative z-10 bg-slate-50/50 border-t border-slate-100 py-3 flex justify-between items-center">
