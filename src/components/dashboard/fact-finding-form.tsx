@@ -102,11 +102,12 @@ const SelectTrigger = (props: any) => {
 
 const Textarea = (props: any) => {
   const viewOnly = useContext(ViewOnlyContext);
+  const val = props.value || '';
   return (
     <div className="w-full relative">
       <UITextarea {...props} disabled={viewOnly || props.disabled} className={`print:hidden ${props.className || ''}`} />
-      <div className="hidden print:block whitespace-pre-wrap break-words text-sm p-3 border border-slate-200 rounded-md min-h-[80px]">
-        {props.value || " "}
+      <div className="hidden print:block whitespace-pre-wrap break-words text-xs py-1.5 px-0 border-b border-slate-300 min-h-[20px] text-slate-900 font-medium">
+        {val ? val : <span className="text-slate-400 italic">None specified</span>}
       </div>
     </div>
   );
@@ -404,18 +405,26 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 
   const handleExportPDF = () => {
     setPrintType('FULL');
+    const cleanup = () => {
+      setPrintType(null);
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
     setTimeout(() => {
       window.print();
-      setPrintType(null);
-    }, 150);
+    }, 120);
   };
 
   const handleExportReview = () => {
     setPrintType('REVIEW');
+    const cleanup = () => {
+      setPrintType(null);
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
     setTimeout(() => {
       window.print();
-      setPrintType(null);
-    }, 150);
+    }, 120);
   };
 
   return (
@@ -564,14 +573,14 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
         {/* Main Form Content */}
         <div className="lg:col-span-12 space-y-6">
           
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
               <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
                 <Building className="w-5 h-5 text-primary print:text-slate-900" />
                 1. General Business Profile
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-6 print:px-0">
+            <CardContent className="p-6 space-y-6 print:px-0 print:py-3 print:space-y-4">
               <div className="space-y-2">
                 <Label className="font-bold text-slate-700">Company Name *</Label>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -605,16 +614,16 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                   </div>
                 </div>
                 {/* Stage Pipeline */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
-                  <div className="flex items-center space-x-2 sm:pr-4 sm:border-r border-slate-300">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-inner print:p-0 print:bg-transparent print:border-none print:mt-2">
+                  <div className="flex items-center space-x-2 sm:pr-4 sm:border-r border-slate-300 print:border-none">
                     <Checkbox 
                       id="currentCustomer"
                       checked={!!formData.currentCustomer}
                       onCheckedChange={(checked: boolean | 'indeterminate') => handleChange('currentCustomer', !!checked)}
                     />
-                    <Label htmlFor="currentCustomer" className="text-sm font-black text-indigo-700 cursor-pointer">Current Customer</Label>
+                    <Label htmlFor="currentCustomer" className="text-sm font-black text-indigo-700 cursor-pointer print:text-xs">Current Customer</Label>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 print:hidden">
                     {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
                       <button
                         key={s}
@@ -629,6 +638,9 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                         {s}
                       </button>
                     ))}
+                  </div>
+                  <div className="hidden print:block text-xs font-bold text-slate-800">
+                    Stage: <span className="font-black text-indigo-900">{formData.stage || 'Not specified'}</span>
                   </div>
                 </div>
               </div>
@@ -800,8 +812,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
           </Card>
 
 
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
                   <Package className="w-5 h-5 text-primary print:text-slate-900" />
@@ -1098,8 +1110,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
           </Card>
 
           {/* Clickable Carrier Services Grid (TGE WA Network) */}
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
               <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
                 <Truck className="w-5 h-5 text-primary print:text-slate-900" />
                 3. TGE Parcel Network Western Australia Services
@@ -1108,8 +1120,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 Click on the services that the client requires. Highlighted services will save to the document.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6 print:px-0">
-              <div className="border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-slate-50/20 p-4">
+            <CardContent className="p-6 space-y-6 print:px-0 print:py-2 print:space-y-3">
+              <div className="border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-slate-50/20 p-4 print:hidden">
                 
                 {/* Visual Header */}
                 <div className="bg-emerald-950 text-white py-3 px-4 text-center rounded-lg font-black text-lg mb-6 shadow-sm flex items-center justify-center gap-2 print:border print:border-slate-300 print:text-black print:bg-transparent">
@@ -1407,27 +1419,27 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 
               </div>
 
-              {/* Selected Services Print Version (Static List for PDF) */}
-              <div className="hidden print:block border-t border-slate-300 pt-4">
-                <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2">Required Carrier Services</h4>
+              {/* Selected Services Print Version (Clean Static List for PDF) */}
+              <div className="hidden print:block pt-1 space-y-3">
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-2">Required Carrier Services</h4>
                 {formData.selectedServices && formData.selectedServices.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     {formData.selectedServices.map(sid => {
                       const s = CARRIER_SERVICES.find(srv => srv.id === sid);
                       if (!s) return null;
                       const note = (formData.serviceNotes || {})[sid];
                       const adminNote = (formData.serviceAdminNotes || {})[sid];
                       return (
-                        <div key={sid} className="border border-slate-300 p-2 rounded text-xs">
-                          <div className="flex justify-between">
-                            <span className="font-bold">{s.name} ({s.speed})</span>
-                            <span className="text-slate-500 font-medium">{s.weight}</span>
+                        <div key={sid} className="border border-slate-300 p-2.5 rounded-lg text-xs bg-slate-50/30">
+                          <div className="flex justify-between items-start">
+                            <span className="font-black text-slate-900">{s.name} ({s.speed})</span>
+                            <span className="text-slate-600 font-bold text-[10px]">{s.weight}</span>
                           </div>
-                          {note && <p className="mt-1 text-slate-600 font-medium whitespace-pre-wrap">{note}</p>}
+                          {note && <p className="mt-1.5 text-slate-700 font-medium whitespace-pre-wrap text-[11px] leading-snug">{note}</p>}
                           {adminNote && (
                             <div className="mt-2 pt-1.5 border-t border-slate-200">
-                              <span className="text-[8px] font-black uppercase text-slate-500 block">Admin Information</span>
-                              <p className="text-slate-600 font-medium whitespace-pre-wrap">{adminNote}</p>
+                              <span className="text-[8px] font-black uppercase text-emerald-800 block">Admin Information</span>
+                              <p className="text-slate-700 font-medium whitespace-pre-wrap text-[10px] leading-snug">{adminNote}</p>
                             </div>
                           )}
                         </div>
@@ -1439,9 +1451,9 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                 )}
 
                 {formData.pricingInfo && (
-                  <div className="mt-4 border-t border-slate-300 pt-3">
-                    <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Pricing & Rate Agreement Info</h5>
-                    <p className="text-xs font-medium text-slate-800 whitespace-pre-wrap">{formData.pricingInfo}</p>
+                  <div className="mt-3 border-t border-slate-200 pt-2">
+                    <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-wider mb-1">Pricing & Rate Agreement Info</h5>
+                    <p className="text-xs font-medium text-slate-700 whitespace-pre-wrap">{formData.pricingInfo}</p>
                   </div>
                 )}
               </div>
@@ -1449,14 +1461,14 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
               <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-primary print:text-slate-900" />
                 4. Expectations & Pain Points
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-6 print:px-0">
+            <CardContent className="p-6 space-y-6 print:px-0 print:py-2 print:space-y-3">
               <div className="space-y-2">
                 <Label className="font-bold text-slate-700">What is your "Perfect World Situation"?</Label>
                 <Textarea value={formData.perfectWorld} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('perfectWorld', e.target.value)} className="print:border-none print:resize-none print:p-0 print:shadow-none" />
@@ -1476,13 +1488,13 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 
           {/* Down Trading Section - visible only if Current Customer */}
           {formData.currentCustomer && (
-            <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+            <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
+              <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
                 <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
                   5. Down Trading
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-6 print:px-0">
+              <CardContent className="p-6 space-y-6 print:px-0 print:py-2 print:space-y-3">
                 <div className="space-y-2">
                   <Label className="font-bold text-slate-700">Reason Down Trading (Notes)</Label>
                   <Textarea
@@ -1522,8 +1534,8 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
           )}
 
           {/* Archived Notes Section */}
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
+          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
               <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary print:text-slate-900" />
                 7. Archived Notes
@@ -1607,11 +1619,14 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 
       {/* Export Review Sheet (Strictly formatted to fit a single page on print) */}
       {printType === 'REVIEW' && (
-        <div className="hidden print:block print-fullscreen font-sans text-slate-800" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+        <div className="hidden print:block print-fullscreen font-sans text-slate-800">
           {/* Header */}
-          <div className="border-b border-slate-900 pb-2 mb-4">
-            <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">Fact Finding Export Review</h1>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Pre-Meeting Summary Sheet</p>
+          <div className="border-b-2 border-slate-900 pb-2 mb-4">
+            <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">Fact Finding Export Review</h1>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Pre-Meeting Summary Sheet</p>
+              <p className="text-xs font-bold text-slate-700">{new Date().toLocaleDateString()}</p>
+            </div>
           </div>
 
           {/* Two Main Columns Grid */}
@@ -1620,33 +1635,33 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
             {/* Left Column: Key Business Fields */}
             <div className="space-y-4">
               <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Company Name</Label>
-                <p className="text-sm font-black text-slate-900 uppercase">{formData.companyName || '-'}</p>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Company Name</Label>
+                <p className="text-base font-black text-slate-900 uppercase">{formData.companyName || '—'}</p>
               </div>
               
               <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Tell me about your business</Label>
-                <p className="text-[10px] font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.businessDetails || '-'}</p>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Tell me about your business</Label>
+                <p className="text-xs font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.businessDetails || '—'}</p>
               </div>
 
               <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Key Decision Maker</Label>
-                <p className="text-xs font-bold text-slate-800">{formData.keyDecisionMaker || '-'}</p>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Key Decision Maker</Label>
+                <p className="text-xs font-bold text-slate-800">{formData.keyDecisionMaker || '—'}</p>
               </div>
 
               <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Primary Pain Points</Label>
-                <p className="text-[10px] font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.painPoints || '-'}</p>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Primary Pain Points</Label>
+                <p className="text-xs font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{formData.painPoints || '—'}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Type of Freight</Label>
-                  <p className="text-xs font-bold text-slate-800">{formData.freightType || '-'}</p>
+                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">Type of Freight</Label>
+                  <p className="text-xs font-bold text-slate-800">{formData.freightType || '—'}</p>
                 </div>
                 <div>
-                  <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">EAV</Label>
-                  <p className="text-xs font-bold text-slate-800">{formData.weeklyAmount || '-'}</p>
+                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-0.5">EAV</Label>
+                  <p className="text-xs font-bold text-slate-800">{formData.weeklyAmount || '—'}</p>
                 </div>
               </div>
             </div>
@@ -1654,25 +1669,25 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
             {/* Right Column: Required Carrier Services */}
             <div className="border-l border-slate-200 pl-6 space-y-4">
               <div>
-                <Label className="text-[9px] font-black uppercase text-slate-500 tracking-wider block mb-2">Required Carrier Services</Label>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-2">Required Carrier Services</Label>
                 {formData.selectedServices && formData.selectedServices.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {formData.selectedServices.map(sid => {
                       const s = CARRIER_SERVICES.find(srv => srv.id === sid);
                       if (!s) return null;
                       const note = (formData.serviceNotes || {})[sid];
                       const adminNote = (formData.serviceAdminNotes || {})[sid];
                       return (
-                        <div key={sid} className="border border-slate-250 p-2.5 rounded-lg text-[10px] bg-slate-50/50">
-                          <div className="flex justify-between items-start mb-1">
+                        <div key={sid} className="border border-slate-300 p-2.5 rounded-lg text-xs bg-slate-50/50">
+                          <div className="flex justify-between items-start mb-0.5">
                             <span className="font-black text-slate-900">{s.name}</span>
-                            <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">{s.speed}</span>
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">{s.speed}</span>
                           </div>
-                          {note && <p className="text-slate-650 font-medium whitespace-pre-wrap leading-snug">{note}</p>}
+                          {note && <p className="text-slate-700 font-medium whitespace-pre-wrap text-[11px] leading-snug">{note}</p>}
                           {adminNote && (
-                            <div className="mt-2 pt-1.5 border-t border-slate-200">
-                              <span className="text-[7px] font-black uppercase text-emerald-700 tracking-wider block">Admin Info</span>
-                              <p className="text-slate-650 font-bold whitespace-pre-wrap leading-snug">{adminNote}</p>
+                            <div className="mt-1.5 pt-1 border-t border-slate-200">
+                              <span className="text-[8px] font-black uppercase text-emerald-800 tracking-wider block">Admin Info</span>
+                              <p className="text-slate-700 font-bold whitespace-pre-wrap text-[10px] leading-snug">{adminNote}</p>
                             </div>
                           )}
                         </div>
@@ -1680,13 +1695,13 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
                     })}
                   </div>
                 ) : (
-                  <p className="text-[10px] font-medium text-slate-450 italic">No carrier services selected</p>
+                  <p className="text-xs font-medium text-slate-400 italic">No carrier services selected</p>
                 )}
               </div>
             </div>
 
-            </div>
           </div>
+        </div>
         )}
 
         {/* White Space Form Dialog */}

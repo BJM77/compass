@@ -67,22 +67,32 @@
   animation: shimmer 3s infinite linear;
 }
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 12mm 12mm;
+  }
+
   /* Force page to auto height and show all overflow content */
-  html, body, #__next, [data-sidebar="wrapper"], [data-sidebar="content"], main, .flex-1, .grid {
+  html, body, #__next, [data-sidebar="wrapper"], [data-sidebar="content"], main, .flex-1 {
     height: auto !important;
     min-height: 0 !important;
     overflow: visible !important;
-    position: relative !important;
-    display: block !important;
+    position: static !important;
     width: 100% !important;
     max-width: 100% !important;
   }
 
-  /* Hide sidebar, header, and context bar completely */
+  /* Hide sidebar, header, navigation, and explicit print:hidden elements */
   [data-sidebar="sidebar"],
   header,
   .print\:hidden,
-  [data-html2canvas-ignore="true"] {
+  [data-html2canvas-ignore="true"],
+  [role="dialog"]:not(.print-include),
+  [data-radix-portal]:not(.print-include),
+  [data-radix-popper-content-wrapper],
+  [data-state="open"][data-overlay],
+  .toaster,
+  [data-sonner-toaster] {
     display: none !important;
   }
 
@@ -95,29 +105,38 @@
     scrollbar-width: none !important;
   }
 
-  /* Remove background colors that might print poorly */
+  /* Clean background */
   body, .bg-\[\#F7F6F8\], main {
     background: white !important;
     background-color: white !important;
+    color: #0f172a !important;
   }
 
-  /* Page break rules for forms */
-  .card, .border {
-    page-break-inside: avoid;
+  /* Avoid page breaks inside specific headers/blocks, allow natural card flow */
+  .print-break-inside-avoid,
+  .print\:break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
-  /* Fullscreen overlay for specific review sheets to prevent blank page flow issues */
+  .card {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  /* Clean print sheet layout without fixed positioning or viewport overflow */
   .print-fullscreen {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    min-height: 100vh !important;
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
     background: white !important;
-    z-index: 9999999 !important;
     margin: 0 !important;
-    padding: 1cm !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
 
