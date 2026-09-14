@@ -268,10 +268,15 @@ export function ManageTimeView() {
     if (!db) return;
     try {
       const usersSnap = await getDocs(collection(db, 'users'));
-      const usersList = usersSnap.docs.map(doc => ({
-        id: doc.id,
-        name: doc.data().displayName || doc.data().email || 'Unknown User'
-      }));
+      const usersList = usersSnap.docs
+        .filter(doc => {
+          const role = doc.data().role;
+          return role !== 'GUEST' && role !== 'guest';
+        })
+        .map(doc => ({
+          id: doc.id,
+          name: doc.data().displayName || doc.data().email || 'Unknown User'
+        }));
       setAdminUsers(usersList);
     } catch (error) {
       console.error("Error loading users", error);

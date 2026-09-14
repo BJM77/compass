@@ -52,11 +52,17 @@ export function printHtmlInNewWindow(options: {
   `;
 
   printWindow.document.open();
+  // Gather all stylesheets from the parent window
+  const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+    .map((el) => el.outerHTML)
+    .join('\n');
+
   printWindow.document.write(`<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
     <title>${escapeHtml(title)}</title>
+    ${styles}
     <style>${defaultCss}${css}</style>
   </head>
   <body>

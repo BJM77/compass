@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, getCurrentWeek, formatEAV, getNextWeekKey, getMonthWeeksForWeek, isUserSubmissionMatch, normalizeBdmName, deduplicateUsers } from '@/lib/utils';
+import { printHtmlInNewWindow } from '@/lib/print-utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { OnboardingPlan } from './onboarding-plan';
@@ -35,8 +36,8 @@ import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 export interface CrmMetrics {
   eav: number;
   weekOpps: number; mtdOpps: number;
-  weekSigned: number; mtdSigned: number;
-  weekWon: number; mtdWon: number;
+  weekSigned: number; mtdSigned: number; ytdSigned: number;
+  weekWon: number; mtdWon: number; ytdWon: number;
 }
 
 interface BDMWeeklyReport {
@@ -315,19 +316,19 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           const reportDoc = reportDocs[0];
           
           // Merge all matching TWTW submissions and Commitments for this BDM
-          const combinedTwiwWins = twiwDocs.flatMap(d => d.data().wins || []);
-          const combinedTwiwRisks = twiwDocs.flatMap(d => d.data().risks || []);
-          const combinedTwiwMajorUpdates = twiwDocs.flatMap(d => d.data().majorUpdates || []);
-          const combinedTwiwProjectedWins = twiwDocs.flatMap(d => d.data().projectedWins || []);
-          const combinedTwiwPriorities = twiwDocs.flatMap(d => d.data().priorities || []);
-          const combinedFocusAccounts = commitmentDocs.flatMap(d => d.data().focusAccounts || []);
+          const combinedTwiwWins = twiwDocs.flatMap(d => d.wins || []);
+          const combinedTwiwRisks = twiwDocs.flatMap(d => d.risks || []);
+          const combinedTwiwMajorUpdates = twiwDocs.flatMap(d => d.majorUpdates || []);
+          const combinedTwiwProjectedWins = twiwDocs.flatMap(d => d.projectedWins || []);
+          const combinedTwiwPriorities = twiwDocs.flatMap(d => d.priorities || []);
+          const combinedFocusAccounts = commitmentDocs.flatMap(d => d.focusAccounts || []);
 
-          const twiwDoc = twiwDocs.find(d => d.data().status === 'SUBMITTED') || twiwDocs[0];
-          const commitmentDoc = commitmentDocs.find(d => d.data().status === 'SUBMITTED') || commitmentDocs[0];
+          const twiwDoc = twiwDocs.find(d => d.status === 'SUBMITTED') || twiwDocs[0];
+          const commitmentDoc = commitmentDocs.find(d => d.status === 'SUBMITTED') || commitmentDocs[0];
 
-          const reportData = reportDoc?.data();
-          const twiwData = twiwDoc?.data();
-          const commitData = commitmentDoc?.data();
+          const reportData = reportDoc;
+          const twiwData = twiwDoc;
+          const commitData = commitmentDoc;
 
           // Join actionPlan array into a single string for display
           const joinedCommitments = commitData?.actionPlan?.length > 0 
@@ -346,10 +347,10 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
           const totalEAV = bdmDeals.reduce((sum, d) => sum + (d.value || 0), 0);
 
           // Aggregate activity counts across all matching progress docs
-          const callsMade = progressDocs.reduce((sum, d) => sum + (Number(d.data().calls) || 0), 0);
-          const meetingsHeld = progressDocs.reduce((sum, d) => sum + (Number(d.data().apps) || 0), 0);
-          const crmCalls = progressDocs.reduce((sum, d) => sum + (Number(d.data().crmCalls) || 0), 0);
-          const crmApps = progressDocs.reduce((sum, d) => sum + (Number(d.data().crmApps) || 0), 0);
+          const callsMade = progressDocs.reduce((sum, d) => sum + (Number(d.calls) || 0), 0);
+          const meetingsHeld = progressDocs.reduce((sum, d) => sum + (Number(d.apps) || 0), 0);
+          const crmCalls = progressDocs.reduce((sum, d) => sum + (Number(d.crmCalls) || 0), 0);
+          const crmApps = progressDocs.reduce((sum, d) => sum + (Number(d.crmApps) || 0), 0);
 
           return {
             id: commitmentDoc?.id || reportDoc?.id || twiwDoc?.id || `${bdm.id}_${selectedWeek}`,
@@ -494,14 +495,13 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
     
     // Calls (CRM/Man)
     const crmCalls = metrics.totalCrmCalls;
-    const manCalls = metrics.totalCalls;
 
     // Estimate EAV
     const totalEAVStr = (metrics.totalEAV / 1000000).toFixed(2);
 
-    const summaryDraft = `EXECUTIVE PERFORMANCE SUMMARY - WEEK ${selectedWeek.split('-')[1]}
-- Appointments: ${crmApps} completed via CRM (Manual logs show ${manApps} meetings).
-- Client Calls: ${crmCalls} logged in CRM (Manual: ${manCalls} calls total).
+    const summaryDraft = `EXECUTIVE PERFORMANCE SUMMARY - WEEK ${selectedWeek.split('-')[1]}    Please summarize the team's weekly performance in 4-5 high-impact bullet points focusing on:
+- Appointments: ${crmApps} completed via CRM.
+- Client Calls: ${crmCalls} logged in CRM.
 - Opportunities: ${teamOppsCount} new active opportunities valued at $${totalEAVStr}M in pipeline.
 - New Trading Accounts / New Business: ${teamNewBizCount} accounts successfully started trading live freight.
 - Governance Wins: ${teamSignedCount} agreements signed and verified this week.
@@ -516,11 +516,15 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     return getMonthWeeksForWeek(selectedWeek).filter(w => w <= selectedWeek);
   }, [selectedWeek]);
 
+  const ytdWeeks = useMemo(() => {
+    const year = selectedWeek.split('-')[0];
+    return availableWeeks.filter(w => w.startsWith(year) && w <= selectedWeek);
+  }, [selectedWeek, availableWeeks]);
+
   const crmMetricsByUserId = useMemo(() => {
     const map = new Map<string, CrmMetrics>();
-    reportData.forEach(r => map.set(r.userId, { eav: 0, weekOpps: 0, mtdOpps: 0, weekSigned: 0, mtdSigned: 0, weekWon: 0, mtdWon: 0 }));
+    reportData.forEach(r => map.set(r.userId, { eav: 0, weekOpps: 0, mtdOpps: 0, weekSigned: 0, mtdSigned: 0, ytdSigned: 0, weekWon: 0, mtdWon: 0, ytdWon: 0 }));
 
-    const mtdReviews = allPipelineReviews.filter(r => mtdWeeks.includes(r.week));
     const weekReviews = allPipelineReviews.filter(r => r.week === selectedWeek);
 
     // 1. EAV & Weekly Metrics
@@ -533,60 +537,52 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
       const val = Number(r.value) || 0;
       if (val > 0) entry.eav += val;
-
-      if (['Finalise', 'Pending Trade'].includes(r.stage || '')) entry.weekSigned += 1;
-      if (r.stage === 'Closed Won') entry.weekWon += 1;
     });
 
-    // 2. MTD Metrics (Unique Opps)
-    const mtdSignedOpps = new Set<string>();
-    const mtdWonOpps = new Set<string>();
-    mtdReviews.forEach(r => {
-      if (r.isBareAccount) return;
-      const key = r.salesforceId || r.opportunityName;
-      if (!key) return;
-      const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, r));
-      if (!report) return;
-      const entry = map.get(report.userId);
-      if (!entry) return;
-
-      if (['Finalise', 'Pending Trade'].includes(r.stage || '')) {
-        if (!mtdSignedOpps.has(key)) { mtdSignedOpps.add(key); entry.mtdSigned += 1; }
-      }
-      if (r.stage === 'Closed Won') {
-        if (!mtdWonOpps.has(key)) { mtdWonOpps.add(key); entry.mtdWon += 1; }
-      }
-    });
-
-    // 3. New Opps (First Appearance)
+    // 2. First Appearance Metrics (Opps, Signed, Won)
     const oppFirstWeek = new Map<string, string>();
+    const signedFirstWeek = new Map<string, string>();
+    const wonFirstWeek = new Map<string, string>();
+
     allPipelineReviews.forEach(r => {
       if (r.isBareAccount) return;
       const key = r.salesforceId || r.opportunityName;
       if (!key) return;
-      const existing = oppFirstWeek.get(key);
-      if (!existing || r.week < existing) oppFirstWeek.set(key, r.week);
+      
+      const existingOpp = oppFirstWeek.get(key);
+      if (!existingOpp || r.week < existingOpp) oppFirstWeek.set(key, r.week);
+
+      if (['Finalise', 'Pending Trade'].includes(r.stage || '')) {
+        const existingSigned = signedFirstWeek.get(key);
+        if (!existingSigned || r.week < existingSigned) signedFirstWeek.set(key, r.week);
+      }
+
+      if (r.stage === 'Closed Won') {
+        const existingWon = wonFirstWeek.get(key);
+        if (!existingWon || r.week < existingWon) wonFirstWeek.set(key, r.week);
+      }
     });
 
-    oppFirstWeek.forEach((firstWeek, key) => {
-      if (firstWeek === selectedWeek) {
-        const opp = weekReviews.find(r => (r.salesforceId || r.opportunityName) === key);
-        if (opp) {
-          const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, opp));
-          if (report && map.has(report.userId)) map.get(report.userId)!.weekOpps += 1;
-        }
-      }
-      if (mtdWeeks.includes(firstWeek)) {
-        const opp = mtdReviews.find(r => (r.salesforceId || r.opportunityName) === key && r.week === firstWeek);
-        if (opp) {
-          const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, opp));
-          if (report && map.has(report.userId)) map.get(report.userId)!.mtdOpps += 1;
-        }
-      }
-    });
+    const aggregateMetric = (firstWeekMap: Map<string, string>, metricWeek: 'weekOpps' | 'weekSigned' | 'weekWon', metricMtd: 'mtdOpps' | 'mtdSigned' | 'mtdWon', metricYtd?: 'ytdSigned' | 'ytdWon') => {
+      firstWeekMap.forEach((firstWeek, key) => {
+        const opp = allPipelineReviews.find(r => (r.salesforceId || r.opportunityName) === key && r.week === firstWeek);
+        if (!opp) return;
+        const report = reportData.find(u => isUserSubmissionMatch({ id: u.userId, name: u.userName, aliasIds: u.aliasIds }, opp));
+        if (!report || !map.has(report.userId)) return;
+        const entry = map.get(report.userId)!;
+
+        if (firstWeek === selectedWeek) entry[metricWeek] += 1;
+        if (mtdWeeks.includes(firstWeek)) entry[metricMtd] += 1;
+        if (metricYtd && ytdWeeks.includes(firstWeek)) entry[metricYtd] += 1;
+      });
+    };
+
+    aggregateMetric(oppFirstWeek, 'weekOpps', 'mtdOpps');
+    aggregateMetric(signedFirstWeek, 'weekSigned', 'mtdSigned', 'ytdSigned');
+    aggregateMetric(wonFirstWeek, 'weekWon', 'mtdWon', 'ytdWon');
 
     return map;
-  }, [allPipelineReviews, selectedWeek, mtdWeeks, reportData]);
+  }, [allPipelineReviews, selectedWeek, mtdWeeks, ytdWeeks, reportData, availableWeeks]);
 
   const teamCrmEAV = useMemo(() => {
     let sum = 0;
@@ -621,127 +617,85 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
   const pdfBdmIds = reportData.map(r => `gm-pdf-bdm-${r.userId}`);
 
-  const handleDispatchToGM = async (isBW = false) => {
-    setIsGeneratingPDF(true);
-
-    setTimeout(async () => {
-      try {
-        toast({ title: "Generating PDF", description: "Compiling Multi-Page A4 Report..." });
-
-        const [{ jsPDF }, html2canvasModule] = await Promise.all([
-          import('jspdf'),
-          import('html2canvas')
-        ]);
-        const html2canvas = html2canvasModule.default;
-
-        const baseCanvasOptions = (doc: Document) => {
-          const style = doc.createElement('style');
-          let css = `
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              transition: none !important;
-              animation: none !important;
-            }
-          `;
-          if (isBW) {
-            css += `
-              p, span, h1, h2, h3, h4, th, td, div { color: #0f172a !important; }
-              .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
-                color: #1e293b !important; font-weight: 900 !important;
-              }
-              .text-muted-foreground, .text-slate-400 { color: #475569 !important; opacity: 1 !important; }
-              .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 { background-color: #f8fafc !important; }
-              .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur { box-shadow: none !important; backdrop-filter: none !important; }
-              .border, .border-b, .border-t { border-color: #e2e8f0 !important; }
-            `;
-          }
-          style.innerHTML = css;
-          doc.head.appendChild(style);
-        };
-
-        const pageWidth = 595.28;
-        const pageHeight = 841.89;
-        const margin = 28;
-        const usableWidth = pageWidth - margin * 2;
-        const usableHeight = pageHeight - margin * 2;
-
-        const pdf = new jsPDF('p', 'pt', 'a4');
-
-        // ── PAGE 1: Cover / Summary Page ──────────────────────────────────────
-        const coverEl = document.getElementById('gm-pdf-cover');
-        if (coverEl) {
-          const coverCanvas = await html2canvas(coverEl, {
-            scale: 1.5,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            onclone: (d) => baseCanvasOptions(d),
-          });
-          const coverImg = coverCanvas.toDataURL('image/jpeg', 0.88);
-          const coverHeight = (coverCanvas.height * usableWidth) / coverCanvas.width;
-          let pos = margin;
-          let left = coverHeight;
-          pdf.addImage(coverImg, 'JPEG', margin, pos, usableWidth, coverHeight);
-          left -= usableHeight;
-          while (left > 0) {
-            pos -= usableHeight;
-            pdf.addPage();
-            pdf.addImage(coverImg, 'JPEG', margin, pos, usableWidth, coverHeight);
-            left -= usableHeight;
-          }
-        }
-
-        // ── PAGE 2+: One page per BDM ──────────────────────────────────────────
-        const extraSections = [...pdfBdmIds];
-        if (includeGroupPlan) {
-          extraSections.push('gm-pdf-group90-p1', 'gm-pdf-group90-p2', 'gm-pdf-group90-p3');
-        }
-        for (const sectionId of extraSections) {
-          const sectionEl = document.getElementById(sectionId);
-          if (!sectionEl) continue;
-          const sectionCanvas = await html2canvas(sectionEl, {
-            scale: 1.5,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            onclone: (d) => baseCanvasOptions(d),
-          });
-          const sectionImg = sectionCanvas.toDataURL('image/jpeg', 0.88);
-          const sectionHeight = (sectionCanvas.height * usableWidth) / sectionCanvas.width;
-          let pos = margin;
-          let left = sectionHeight;
-          pdf.addPage();
-          pdf.addImage(sectionImg, 'JPEG', margin, pos, usableWidth, sectionHeight);
-          left -= usableHeight;
-          while (left > 0) {
-            pos -= usableHeight;
-            pdf.addPage();
-            pdf.addImage(sectionImg, 'JPEG', margin, pos, usableWidth, sectionHeight);
-            left -= usableHeight;
-          }
-        }
-
-        const fileName = isBW
-          ? `GM_Dispatch_Report_BW_Week_${selectedWeek}.pdf`
-          : `GM_Dispatch_Report_Week_${selectedWeek}.pdf`;
-        pdf.save(fileName);
-        toast({ title: "Dispatch Complete", description: "Multi-page A4 PDF downloaded." });
-      } catch (err) {
-        console.error(err);
-        toast({ variant: "destructive", title: "Export Failed", description: "Could not generate PDF." });
-      } finally {
-        setIsGeneratingPDF(false);
+  const handleDispatchToGM = (isBW = false) => {
+    try {
+      const coverEl = document.getElementById('gm-pdf-cover');
+      let bodyHtml = '';
+      
+      if (coverEl) {
+        bodyHtml += coverEl.outerHTML;
       }
-    }, 1200);
+
+      const extraSections = [...pdfBdmIds];
+      if (includeGroupPlan) {
+        extraSections.push('gm-pdf-group90-p1', 'gm-pdf-group90-p2', 'gm-pdf-group90-p3');
+      }
+
+      for (const sectionId of extraSections) {
+        const sectionEl = document.getElementById(sectionId);
+        if (sectionEl) {
+          bodyHtml += `<div style="page-break-before: always;"></div>` + sectionEl.outerHTML;
+        }
+      }
+
+      const fileName = isBW
+        ? `GM_Dispatch_Report_BW_Week_${selectedWeek}`
+        : `GM_Dispatch_Report_Week_${selectedWeek}`;
+
+      let css = `
+        * {
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          transition: none !important;
+          animation: none !important;
+        }
+        #gm-pdf-cover, [id^="gm-pdf-bdm-"], [id^="gm-pdf-group90-"] {
+          width: 100% !important; /* expand to fit A4 width cleanly in print window */
+          max-width: 100% !important;
+          padding: 0 !important;
+        }
+      `;
+
+      if (isBW) {
+        css += `
+          p, span, h1, h2, h3, h4, th, td, div { color: #0f172a !important; }
+          .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
+            color: #1e293b !important; font-weight: 900 !important;
+          }
+          .text-muted-foreground, .text-slate-400 { color: #475569 !important; opacity: 1 !important; }
+          .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 { background-color: #f8fafc !important; }
+          .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur { box-shadow: none !important; backdrop-filter: none !important; }
+          .border, .border-b, .border-t { border-color: #e2e8f0 !important; }
+        `;
+      }
+
+      printHtmlInNewWindow({
+        title: fileName,
+        bodyHtml,
+        css
+      });
+
+    } catch (err) {
+      console.error(err);
+      toast({ variant: "destructive", title: "Export Failed", description: "Could not generate PDF." });
+    }
   };
 
   const metrics = useMemo(() => {
     const weekReviews = allPipelineReviews.filter(r => r.week === selectedWeek);
     const totalEAV = weekReviews.filter(r => !r.isBareAccount && r.stage !== 'Closed Lost').reduce((sum, r) => sum + (r.value || 0), 0);
     const totalOpps = weekReviews.filter(r => !r.isBareAccount && r.stage !== 'Closed Lost').length;
-    const totalSigned = weekReviews.filter(r => !r.isBareAccount && ['Finalise', 'Pending Trade'].includes(r.stage || '')).length;
-    const totalNewBiz = weekReviews.filter(r => !r.isBareAccount && r.stage === 'Closed Won').length;
+    
+    let totalSigned = 0;
+    let totalSignedYTD = 0;
+    let totalSignedMTD = 0;
+    let totalNewBiz = 0;
+    crmMetricsByUserId.forEach(v => {
+      totalSigned += v.weekSigned;
+      totalSignedMTD += v.mtdSigned;
+      totalSignedYTD += v.ytdSigned;
+      totalNewBiz += v.weekWon;
+    });
 
     const totalCalls = reportData.reduce((sum, r) => sum + (r.summary.callsMade || 0), 0);
     const totalApps = reportData.reduce((sum, r) => sum + (r.summary.meetingsHeld || 0), 0);
@@ -750,8 +704,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     const totalCrmCalls = weekProgresses.reduce((sum, p) => sum + (Number(p.crmCalls) || 0), 0);
     const totalCrmApps = weekProgresses.reduce((sum, p) => sum + (Number(p.crmApps) || 0), 0);
 
-    return { totalEAV, totalOpps, totalSigned, totalNewBiz, totalCalls, totalApps, totalCrmCalls, totalCrmApps };
-  }, [reportData, allPipelineReviews, allWeeklyProgresses, selectedWeek]);
+    return { totalEAV, totalOpps, totalSigned, totalSignedMTD, totalSignedYTD, totalNewBiz, totalCalls, totalApps, totalCrmCalls, totalCrmApps };
+  }, [reportData, allPipelineReviews, allWeeklyProgresses, selectedWeek, crmMetricsByUserId]);
 
   const performanceData = reportData.map(r => {
     const metrics = crmMetricsByUserId.get(r.userId);
@@ -759,7 +713,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       name: r.userName.split(' ')[0],
       eav: (metrics?.eav || r.summary.totalEAV || 0) / 1000,
       deals: metrics?.weekSigned || r.summary.signedPaperworkCount || 0,
-      calls: r.summary.callsMade || 0
+      calls: r.summary.crmCalls || 0
     };
   });
 
@@ -773,7 +727,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
   return (
     <div id="gm-report-capture" className="space-y-8 animate-in fade-in duration-700 pb-20 bg-slate-50 p-6 rounded-xl">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="flex flex-col 2xl:flex-row justify-between items-start 2xl:items-center gap-6">
         <div>
           <h1 className="text-3xl font-black uppercase text-primary flex items-center gap-3">
             <Shield className="w-8 h-8 text-accent" />
@@ -788,30 +742,35 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             </select>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2" data-html2canvas-ignore="true">
-          <Button variant="outline" onClick={generateExecutiveReview} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase h-10 shadow-lg shadow-amber-500/20">
-            <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
-          </Button>
-          <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-white">
-            <Download className="w-4 h-4 mr-2" /> EXPORT CSV
-          </Button>
-          <label className="flex items-center gap-2 cursor-pointer border border-slate-200 bg-white px-3 h-10 rounded-md shadow-sm hover:bg-slate-50 transition-colors">
-            <input 
-              type="checkbox" 
-              checked={includeGroupPlan} 
-              onChange={(e) => setIncludeGroupPlan(e.target.checked)}
-              className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary cursor-pointer"
-            />
-            <span className="text-[10px] font-black text-slate-700 uppercase pt-0.5">Include 30/60/90 Plan in PDF</span>
-          </label>
-          <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-slate-800 hover:bg-slate-700 font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-slate-800/20">
-            {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
-            {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH(B&W)'}
-          </Button>
-          <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-primary/20">
-            {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />} 
-            {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH TO GM'}
-          </Button>
+        
+        <div className="flex flex-wrap items-center gap-3" data-html2canvas-ignore="true">
+          <div className="flex flex-wrap items-center gap-2 xl:border-r xl:pr-3 border-slate-200">
+            <Button variant="outline" onClick={generateExecutiveReview} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase h-10 shadow-lg shadow-amber-500/20">
+              <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
+            </Button>
+            <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-white">
+              <Download className="w-4 h-4 mr-2" /> EXPORT CSV
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer border border-slate-200 bg-white px-3 h-10 rounded-md shadow-sm hover:bg-slate-50 transition-colors">
+              <input 
+                type="checkbox" 
+                checked={includeGroupPlan} 
+                onChange={(e) => setIncludeGroupPlan(e.target.checked)}
+                className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary cursor-pointer"
+              />
+              <span className="text-[10px] font-black text-slate-700 uppercase pt-0.5 whitespace-nowrap">Include 30/60/90 Plan in PDF</span>
+            </label>
+            <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-slate-800 hover:bg-slate-700 font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-slate-800/20">
+              {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
+              {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH(B&W)'}
+            </Button>
+            <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-primary/20">
+              {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />} 
+              {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH TO GM'}
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -962,15 +921,16 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             <Activity className="w-5 h-5 text-accent" />
             Team Activity Scorecard
           </CardTitle>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">CRM vs Manual logs comparison for Week {selectedWeek.split('-')[1]}</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Team Activity & Wins for Week {selectedWeek.split('-')[1]}</p>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table className="min-w-[600px]">
             <TableHeader className="bg-slate-50">
               <TableRow className="uppercase text-[8px] font-black tracking-widest border-b">
                 <TableHead className="pl-6">BDM/AM Identity</TableHead>
-                <TableHead className="text-center">CRM Calls</TableHead>
                 <TableHead className="text-center">CRM Appointments</TableHead>
+                <TableHead className="text-center">Total Opportunities</TableHead>
+                <TableHead className="text-center">Total Opportunities Value</TableHead>
                 <TableHead className="text-right pr-6">Weekly Wins Value</TableHead>
               </TableRow>
             </TableHeader>
@@ -980,8 +940,9 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 return (
                   <TableRow key={r.userId} className="hover:bg-slate-50 transition-colors">
                     <TableCell className="pl-6 font-black uppercase text-xs">{r.userName}</TableCell>
-                    <TableCell className="text-center font-bold text-xs text-blue-600">{r.summary.crmCalls || 0}</TableCell>
                     <TableCell className="text-center font-bold text-xs text-emerald-600">{r.summary.crmApps || 0}</TableCell>
+                    <TableCell className="text-center font-bold text-xs text-indigo-600">{r.summary.newOpportunitiesCount || 0}</TableCell>
+                    <TableCell className="text-center font-bold text-xs text-blue-600">${(r.summary.totalEAV || 0).toLocaleString()}</TableCell>
                     <TableCell className="text-right pr-6 font-black text-xs text-primary">${winsVal.toLocaleString()}</TableCell>
                   </TableRow>
                 );
@@ -1025,12 +986,11 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         </Card>
       </div>
 
-      {/* ── PDF CAPTURE ZONES (hidden from screen, shown only when generating) ── */}
-      {isGeneratingPDF && (
-        <div className="fixed left-[-9999px] top-0 z-[-1]">
+      {/* ── PDF CAPTURE ZONES (always mounted offscreen so they can be captured synchronously) ── */}
+      <div className="fixed left-[-9999px] top-0 z-[-1] pointer-events-none opacity-0">
 
-          {/* ZONE 1: Cover Page */}
-          <div id="gm-pdf-cover" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
+        {/* ZONE 1: Cover Page */}
+        <div id="gm-pdf-cover" style={{width: '794px', background: '#fff', padding: '40px', fontFamily: 'Inter, system-ui, sans-serif'}}>
             {/* Header Band */}
             <div style={{background: '#f1f5f9', borderRadius: '16px', padding: '36px 40px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
               <div>
@@ -1066,7 +1026,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                   <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px'}}>{r.userName.charAt(0)}</div>
                   <span style={{fontSize: '11px', fontWeight: 700, color: '#1e293b'}}>
                     {r.userName.split(' ')[0]}
-                    <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(C:{r.summary.crmCalls || 0} M:{r.summary.callsMade || 0} · A:{r.summary.crmApps || 0} M:{r.summary.meetingsHeld || 0})</span>
+                    <span style={{color: '#64748b', fontSize: '9px', fontWeight: 600, marginLeft: '4px'}}>(Calls: {r.summary.crmCalls || 0} · Apps: {r.summary.crmApps || 0})</span>
                   </span>
                 </div>
               ))}
@@ -1077,10 +1037,10 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
               {([
                 {label: 'Pipeline EAV', value: `$${(metrics.totalEAV/1000000).toFixed(1)}M`, sub: 'Target Achievement', color: '#1d4ed8', bg: '#eff6ff'},
                 {label: 'Total Opps', value: metrics.totalOpps, sub: 'Active Pipeline', color: '#059669', bg: '#f0fdf4'},
-                {label: 'Signed Paperwork', value: metrics.totalSigned, sub: 'Governance Win', color: '#7c3aed', bg: '#f5f3ff'},
-                {label: 'New Biz Started', value: metrics.totalNewBiz, sub: 'Live Freight', color: '#d97706', bg: '#fffbeb'},
-                {label: 'Team Calls', value: metrics.totalCalls, sub: `CRM: ${metrics.totalCrmCalls} Touch`, color: '#1d4ed8', bg: '#eff6ff'},
-                {label: 'Team Apps', value: metrics.totalApps, sub: `CRM: ${metrics.totalCrmApps} F2F`, color: '#059669', bg: '#f0fdf4'},
+                {label: 'Signed Paperwork', value: metrics.totalSigned, sub: `YTD: ${metrics.totalSignedYTD} / MTD: ${metrics.totalSignedMTD}`, color: '#7c3aed', bg: '#f5f3ff'},
+                {label: 'New Biz Started', value: metrics.totalNewBiz, sub: 'Chosen Week', color: '#d97706', bg: '#fffbeb'},
+                {label: 'Team Calls', value: metrics.totalCrmCalls, sub: `CRM Logged Touch`, color: '#1d4ed8', bg: '#eff6ff'},
+                {label: 'Team Apps', value: metrics.totalCrmApps, sub: `CRM Logged F2F`, color: '#059669', bg: '#f0fdf4'},
               ] as {label:string;value:string|number;sub:string;color:string;bg:string}[]).map((m) => (
                 <div key={m.label} style={{background: m.bg, border: `1px solid ${m.color}22`, borderRadius: '12px', padding: '14px 12px', textAlign: 'center'}}>
                   <div style={{fontSize: '9px', fontWeight: 800, color: m.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px', lineHeight: '1.2'}}>{m.label}</div>
@@ -1155,7 +1115,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           )}
 
         </div>
-      )}
+
 
       {/* ── INTERACTIVE TAB VIEW (screen only) ─────────────────────────────── */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6 w-full max-w-full overflow-hidden">
@@ -1774,11 +1734,11 @@ function BDMPdfPage({ report, pageNum, weekLabel, crmMetrics }: { report: BDMWee
       {/* ── KPI Pills ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', marginBottom: '22px' }}>
         {([
-          { label: 'Calls', value: s.callsMade || 0, subValue: s.crmCalls !== undefined ? `CRM: ${s.crmCalls}` : null, color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
-          { label: 'Apps', value: s.meetingsHeld || 0, subValue: s.crmApps !== undefined ? `CRM: ${s.crmApps}` : null, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
+          { label: 'Calls', value: s.crmCalls || 0, subValue: `CRM Logged`, color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+          { label: 'Apps', value: s.crmApps || 0, subValue: `CRM Logged`, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
           { label: 'Total EAV', value: formatEAV(crmMetrics?.eav ?? s.totalEAV), color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
           { label: 'New Opps', value: crmMetrics?.weekOpps ?? s.newOpportunitiesCount, subValue: `MTD: ${crmMetrics?.mtdOpps ?? 0}`, color: '#059669', bg: '#f0fdf4', border: '#bbf7d0' },
-          { label: 'Signed', value: crmMetrics?.weekSigned ?? s.signedPaperworkCount, subValue: `MTD: ${crmMetrics?.mtdSigned ?? 0}`, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+          { label: 'Signed', value: crmMetrics?.weekSigned ?? s.signedPaperworkCount, subValue: `MTD: ${crmMetrics?.mtdSigned ?? 0} | YTD: ${crmMetrics?.ytdSigned ?? 0}`, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
           { label: 'New Biz', value: crmMetrics?.weekWon ?? s.newBusinessCount, subValue: `MTD: ${crmMetrics?.mtdWon ?? 0}`, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
         ] as {label:string;value:string|number;subValue?:string|null;color:string;bg:string;border:string}[]).map((m) => (
           <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: '10px', padding: '12px 8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
