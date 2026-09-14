@@ -13,6 +13,7 @@ import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TwiwSubmissionSchema, validateDocument } from '@/lib/schemas';
 
 const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
 
@@ -52,8 +53,9 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
     if (!db) return;
     setIsSaving(true);
     try {
-      // Update submission state
-      await setDoc(doc(db, 'twiwSubmissions', submission.id), {
+      const payload = validateDocument(TwiwSubmissionSchema.partial(), {
+        userId: submission.userId,
+        week: submission.week,
         state: submissionState,
         wins: wins.filter(w => w.customer.trim()),
         risks: risks.filter(r => r.account.trim()),
@@ -65,7 +67,10 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
         nextWeekRoadblocks,
         nextWeekSupport,
         updatedAt: serverTimestamp()
-      }, { merge: true });
+      }, 'twiwSubmission');
+
+      // Update submission state
+      await setDoc(doc(db, 'twiwSubmissions', submission.id), payload, { merge: true });
 
       // If user profile is linked, update user profile state so future submissions default to the correct state
       if (submission.userId) {

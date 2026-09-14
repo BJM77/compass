@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Printer, Plus, Trash2, Clock, CalendarClock, Users, XCircle, Inbox, CheckCircle2, Save, FileText, ChevronDown, Check } from 'lucide-react';
+import { DebouncedInput } from '@/components/ui/debounced-input';
+import { Printer, Plus, Trash2, Clock, CalendarClock, Users, XCircle, Inbox, CheckCircle2, FileText, ChevronDown, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   DropdownMenu,
@@ -30,6 +31,7 @@ type Task = {
   text: string;
   quadrant?: 'Q1' | 'Q2' | 'Q3' | 'Q4';
   completed?: boolean;
+  movedToSoonAt?: number;
 };
 
 type TimePlan = {
@@ -55,7 +57,7 @@ type QuadrantData = {
 const QUADRANTS: QuadrantData[] = [
   {
     id: 'Q1',
-    title: 'Box 1: Do Now',
+    title: 'Do Now',
     subtitle: 'Urgent & Important',
     description: 'Crises, strict deadlines, sudden problems.',
     action: 'Do these right now.',
@@ -66,7 +68,7 @@ const QUADRANTS: QuadrantData[] = [
   },
   {
     id: 'Q2',
-    title: 'Box 2: Today',
+    title: 'Do Soon',
     subtitle: 'Not Urgent & Important',
     description: 'Long-term planning, self-care, learning.',
     action: 'Put these in your calendar for later.',
@@ -77,7 +79,7 @@ const QUADRANTS: QuadrantData[] = [
   },
   {
     id: 'Q3',
-    title: 'Box 3: Delegate',
+    title: 'Delegate',
     subtitle: 'Urgent & Not Important',
     description: 'Most phone calls, interruptions, meetings.',
     action: 'Let someone else handle these if you can.',
@@ -88,7 +90,7 @@ const QUADRANTS: QuadrantData[] = [
   },
   {
     id: 'Q4',
-    title: 'Box 4: Delete',
+    title: 'Delete',
     subtitle: 'Not Urgent & Not Important',
     description: 'Mindless scrolling, busywork that adds no value.',
     action: 'Cut these out of your day.',
@@ -133,70 +135,121 @@ export function ManageTimeView() {
     }
   }, [myPlans, currentPlanId, adminSelectedUserId]);
 
+  const savePlanWithTasks = async (newTasks: Task[], planId: string | null) => {
+    if (!db || !user) return planId;
+    setIsSaving(true);
+    try {
+      if (planId) {
+        await updateDoc(doc(db, 'timeManagementPlans', planId), {
+          tasks: newTasks,
+          updatedAt: serverTimestamp()
+        });
+        return planId;
+      } else {
+        const docRef = await addDoc(collection(db, 'timeManagementPlans'), {
+          userId: user.uid,
+          tasks: newTasks,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        setCurrentPlanId(docRef.id);
+        return docRef.id;
+      }
+    } catch (error) {
+      console.error("Error saving plan:", error);
+      toast({ title: 'Error', description: 'Failed to auto-save plan.', variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Auto-move Q2 -> Q1 after 24h interval
+  useEffect(() => {
+    if (!currentPlanId || adminSelectedUserId) return;
+
+    const checkAutoMove = () => {
+      setTasks(prevTasks => {
+        let changed = false;
+        const now = Date.now();
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        
+        const updatedTasks = prevTasks.map(t => {
+          if (t.quadrant === 'Q2' && t.movedToSoonAt && (now - t.movedToSoonAt > twentyFourHours)) {
+            changed = true;
+            return { ...t, quadrant: 'Q1' as const };
+          }
+          return t;
+        });
+        
+        if (changed) {
+          savePlanWithTasks(updatedTasks, currentPlanId);
+          toast({ title: 'Tasks Auto-Moved', description: 'Tasks older than 24 hours in "Do Soon" were moved to "Do Now".' });
+          return updatedTasks;
+        }
+        return prevTasks;
+      });
+    };
+
+    // Check immediately on load/mount
+    checkAutoMove();
+    
+    // Check every minute
+    const interval = setInterval(checkAutoMove, 60000);
+    return () => clearInterval(interval);
+  }, [currentPlanId, adminSelectedUserId]);
+
   const handlePrint = () => {
     window.print();
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     const text = newTaskText.trim();
     if (!text) return;
     
-    setTasks(prev => [
-      ...prev,
-      { id: Date.now().toString() + Math.random().toString(), text, completed: false }
-    ]);
-    
+    const newTask: Task = { id: Date.now().toString() + Math.random().toString(), text, completed: false };
+    const newTasks = [...tasks, newTask];
+    setTasks(newTasks);
     setNewTaskText('');
+    await savePlanWithTasks(newTasks, currentPlanId);
   };
 
-  const removeTask = (taskId: string) => {
-    setTasks(prev => prev.filter(t => t.id !== taskId));
+  const removeTask = async (taskId: string) => {
+    const newTasks = tasks.filter(t => t.id !== taskId);
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
   };
 
-  const updateTaskText = (taskId: string, newText: string) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, text: newText } : t));
+  const updateTaskText = async (taskId: string, newText: string) => {
+    const newTasks = tasks.map(t => t.id === taskId ? { ...t, text: newText } : t);
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
   };
 
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t));
+  const toggleTaskCompletion = async (taskId: string) => {
+    const newTasks = tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
   };
 
-  const setTaskQuadrant = (taskId: string, quadrant: 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, quadrant } : t));
+  const setTaskQuadrant = async (taskId: string, quadrant: 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined) => {
+    const newTasks = tasks.map(t => {
+      if (t.id === taskId) {
+        return { 
+          ...t, 
+          quadrant,
+          movedToSoonAt: quadrant === 'Q2' ? Date.now() : t.movedToSoonAt
+        };
+      }
+      return t;
+    });
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addTask();
-    }
-  };
-
-  const savePlan = async () => {
-    if (!db || !user) return;
-    setIsSaving(true);
-    try {
-      if (currentPlanId) {
-        await updateDoc(doc(db, 'timeManagementPlans', currentPlanId), {
-          tasks,
-          updatedAt: serverTimestamp()
-        });
-        toast({ title: 'Plan updated', description: 'Your time management plan has been saved.' });
-      } else {
-        const docRef = await addDoc(collection(db, 'timeManagementPlans'), {
-          userId: user.uid,
-          tasks,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-        setCurrentPlanId(docRef.id);
-        toast({ title: 'Plan saved', description: 'Your new time management plan has been saved.' });
-      }
-    } catch (error) {
-      console.error("Error saving plan:", error);
-      toast({ title: 'Error', description: 'Failed to save plan.', variant: 'destructive' });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -253,16 +306,24 @@ export function ManageTimeView() {
             {isViewOnly && <span className="text-sm font-normal bg-amber-100 text-amber-800 px-2 py-1 rounded ml-2">Viewing User's Plan</span>}
           </h1>
           <p className="text-sm text-slate-500 font-medium mt-1 max-w-2xl print:hidden">
-            First, brain dump all your tasks into the inbox below. Then, select a quadrant (Do Now, Today, Delegate, Delete) for each to organize them into the Eisenhower Matrix.
+            First, brain dump all your tasks into the inbox below. Then, select a quadrant (Do Now, Do Soon, Delegate, Delete) for each to organize them into the Eisenhower Matrix.
           </p>
           {/* Print only subtitle showing date */}
           <p className="hidden print:block text-slate-600 font-bold mt-2">
             Plan for: {format(new Date(), 'EEEE, MMMM do yyyy')}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 print:hidden">
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
           {!isViewOnly && (
             <>
+              <div className="hidden sm:flex items-center text-sm font-medium text-slate-500 mr-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                {isSaving ? (
+                  <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 animate-spin text-indigo-500" /> Saving...</span>
+                ) : (
+                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Saved</span>
+                )}
+              </div>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="font-semibold">
@@ -282,11 +343,6 @@ export function ManageTimeView() {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              <Button onClick={savePlan} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-wide">
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Plan'}
-              </Button>
             </>
           )}
 
@@ -405,9 +461,9 @@ export function ManageTimeView() {
                           {task.completed && <Check className="w-3 h-3" />}
                         </button>
                       )}
-                      <Input 
+                      <DebouncedInput 
                         value={task.text}
-                        onChange={(e) => updateTaskText(task.id, e.target.value)}
+                        onCommit={(val) => updateTaskText(task.id, val)}
                         disabled={isViewOnly}
                         className={`h-10 border-transparent hover:border-slate-200 focus:border-indigo-300 shadow-none px-2 font-medium text-base ${task.completed ? 'line-through text-slate-500' : 'text-slate-900'}`}
                       />
@@ -417,11 +473,6 @@ export function ManageTimeView() {
                       <div className="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-md border border-slate-100">
                         {(['Q1', 'Q2', 'Q3', 'Q4'] as const).map((q) => {
                           const qData = QUADRANTS.find(x => x.id === q)!;
-                          let shortLabel = "Q";
-                          if (q === 'Q1') shortLabel = "Do Now";
-                          if (q === 'Q2') shortLabel = "Today";
-                          if (q === 'Q3') shortLabel = "Delegate";
-                          if (q === 'Q4') shortLabel = "Delete";
                           
                           return (
                             <Button
@@ -431,7 +482,7 @@ export function ManageTimeView() {
                               onClick={() => setTaskQuadrant(task.id, q)}
                               className={`h-8 text-xs font-semibold ${qData.colorClass} border-transparent hover:${qData.bgColorClass} hover:border-${qData.colorClass.split('-')[1]}-200`}
                             >
-                              {shortLabel}
+                              {qData.title}
                             </Button>
                           );
                         })}
@@ -498,9 +549,9 @@ export function ManageTimeView() {
                       )}
                       
                       <div className="flex-1">
-                        <Input 
+                        <DebouncedInput 
                           value={task.text}
-                          onChange={(e) => updateTaskText(task.id, e.target.value)}
+                          onCommit={(val) => updateTaskText(task.id, val)}
                           disabled={isViewOnly}
                           className={`h-8 border-transparent hover:border-slate-200 focus:border-indigo-300 shadow-none px-2 font-medium print:border-none print:px-0 print:bg-transparent print:text-slate-900 print:text-sm print:resize-none print:h-auto ${task.completed ? 'line-through text-slate-500 print:line-through print:text-slate-500' : 'text-slate-900'}`}
                         />

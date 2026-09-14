@@ -25,6 +25,8 @@ import { calculateDealHealth } from '@/lib/deal-health';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { DebouncedInput, DebouncedTextarea } from '@/components/ui/debounced-input';
+import { PipelineReviewSchema, validateDocument } from '@/lib/schemas';
 
 export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunities' }: { userId: string, readOnly?: boolean, filterType?: 'opportunities' | 'accounts' | 'all' }) {
   const { isLeader } = useAuth();
@@ -166,12 +168,14 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
   const handleAddRow = async () => {
     if (!db) return;
     try {
-      await addDoc(collection(db, 'pipelineReviews'), {
+      const payload = validateDocument(PipelineReviewSchema, {
         userId, week: currentWeek, pipeline: '', value: 0,
         stage: 'Discovery', salesforceId: '',
         createdAt: serverTimestamp(), daysInStage: 0, rolloverCount: 0,
         isBareAccount: filterType === 'accounts'
-      });
+      }, 'pipelineReview');
+
+      await addDoc(collection(db, 'pipelineReviews'), payload);
     } catch (e) {
       toast({ variant: 'destructive', title: filterType === 'accounts' ? 'Failed to add account.' : 'Failed to add opportunity.' });
     }
@@ -348,7 +352,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         <div className="flex items-center gap-2">
                           <div className="flex-1 space-y-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <Input className="text-xs font-black uppercase h-9 bg-transparent border-transparent focus:border-primary/20 flex-1" value={row.pipeline} onChange={e => handleUpdate(row.id, 'pipeline', e.target.value)} readOnly={readOnly} />
+                              <DebouncedInput className="text-xs font-black uppercase h-9 bg-transparent border-transparent focus:border-primary/20 flex-1" value={row.pipeline || ''} onCommit={val => handleUpdate(row.id, 'pipeline', val)} readOnly={readOnly} />
                               {row.creditHold && (
                                 <span className="shrink-0 text-[7px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md border border-red-200">HOLD</span>
                               )}
@@ -366,7 +370,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                               )}
                               {row.opportunityName && (
                                 <a 
-                                  href="#"
+                                  href="#" 
                                   onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName || '', row.salesforceId); }}
                                   className="text-[9px] text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate block w-fit"
                                   title="Open Opportunity in Salesforce"
@@ -391,11 +395,11 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 </button>
                               )}
                             </div>
-                            <Input
+                            <DebouncedInput
                               className="text-[9px] font-mono h-6 bg-transparent border-dashed border-slate-200 focus:border-accent/40 px-2 placeholder:text-slate-300 rounded mt-1"
                               placeholder="Salesforce ID (optional)..."
                               value={row.salesforceId || ''}
-                              onChange={e => handleUpdate(row.id, 'salesforceId', e.target.value.trim())}
+                              onCommit={val => handleUpdate(row.id, 'salesforceId', val.trim())}
                               readOnly={readOnly}
                             />
                           </div>
@@ -410,7 +414,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><Input type="number" className="text-xs font-black h-9 pl-6 bg-transparent border-transparent focus:border-primary/20" value={row.value || 0} onChange={e => handleUpdate(row.id, 'value', parseFloat(e.target.value) || 0)} readOnly={readOnly} /></div>
+                          <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><DebouncedInput type="number" className="text-xs font-black h-9 pl-6 bg-transparent border-transparent focus:border-primary/20" value={row.value || 0} onCommit={val => handleUpdate(row.id, 'value', parseFloat(val) || 0)} readOnly={readOnly} /></div>
                           {(((row as any).closedWonValue || 0) > 0) && (
                             <p className="text-[8px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-100 text-center">
                               Won: ${Number((row as any).closedWonValue).toLocaleString()}
@@ -420,7 +424,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <Input className="text-xs font-bold h-9 bg-transparent border-transparent focus:border-primary/20" value={row.stage} onChange={e => handleUpdate(row.id, 'stage', e.target.value)} readOnly={readOnly} />
+                          <DebouncedInput className="text-xs font-bold h-9 bg-transparent border-transparent focus:border-primary/20" value={row.stage || ''} onCommit={val => handleUpdate(row.id, 'stage', val)} readOnly={readOnly} />
                           {row.lastSalesStageChangeDate && (
                             <p className="text-[8px] font-bold text-slate-400 px-2 uppercase tracking-wide">
                               Changed: {row.lastSalesStageChangeDate}
@@ -428,8 +432,8 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                           )}
                         </div>
                       </TableCell>
-                      <TableCell><Textarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.barriers} onChange={e => handleUpdate(row.id, 'barriers', e.target.value)} readOnly={readOnly} /></TableCell>
-                      <TableCell><Textarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.actionsForBen} onChange={e => handleUpdate(row.id, 'actionsForBen', e.target.value)} readOnly={readOnly} placeholder="Enter immediate next steps..." /></TableCell>
+                      <TableCell><DebouncedTextarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.barriers || ''} onCommit={val => handleUpdate(row.id, 'barriers', val)} readOnly={readOnly} /></TableCell>
+                      <TableCell><DebouncedTextarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.actionsForBen || ''} onCommit={val => handleUpdate(row.id, 'actionsForBen', val)} readOnly={readOnly} placeholder="Enter immediate next steps..." /></TableCell>
                       <TableCell className="text-center">
                         <Checkbox disabled={!canPerformFridayActions || readOnly} checked={(row as any).isRolledOver} onCheckedChange={() => handleRollover(row)} />
                       </TableCell>
@@ -536,7 +540,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                   {/* Account Name */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Input className="text-xs font-black uppercase h-8 bg-white" value={row.pipeline} onChange={e => handleUpdate(row.id, 'pipeline', e.target.value)} readOnly={readOnly} placeholder="Account Name" />
+                      <DebouncedInput className="text-xs font-black uppercase h-8 bg-white" value={row.pipeline || ''} onCommit={val => handleUpdate(row.id, 'pipeline', val)} readOnly={readOnly} placeholder="Account Name" />
                       {row.creditHold && (
                         <span className="shrink-0 text-[7px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md border border-red-200">HOLD</span>
                       )}
@@ -561,7 +565,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                       )}
                       {row.opportunityName && (
                         <a 
-                          href="#"
+                          href="#" 
                           onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName || '', row.salesforceId); }}
                           className="text-[8px] text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate max-w-[150px]"
                         >
@@ -590,12 +594,12 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                       <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Value ($)</label>
                       <div className="relative">
                         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400">$</span>
-                        <Input type="number" className="text-xs font-black h-8 pl-5 bg-white" value={row.value || 0} onChange={e => handleUpdate(row.id, 'value', parseFloat(e.target.value) || 0)} readOnly={readOnly} />
+                        <DebouncedInput type="number" className="text-xs font-black h-8 pl-5 bg-white" value={row.value || 0} onCommit={val => handleUpdate(row.id, 'value', parseFloat(val) || 0)} readOnly={readOnly} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Stage</label>
-                      <Input className="text-xs font-bold h-8 bg-white" value={row.stage} onChange={e => handleUpdate(row.id, 'stage', e.target.value)} readOnly={readOnly} />
+                      <DebouncedInput className="text-xs font-bold h-8 bg-white" value={row.stage || ''} onCommit={val => handleUpdate(row.id, 'stage', val)} readOnly={readOnly} />
                     </div>
                   </div>
 
@@ -603,11 +607,11 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                   <div className="space-y-2">
                     <div className="space-y-1">
                       <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Barriers & Risks</label>
-                      <Textarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.barriers} onChange={e => handleUpdate(row.id, 'barriers', e.target.value)} readOnly={readOnly} placeholder="Risks..." />
+                      <DebouncedTextarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.barriers || ''} onCommit={val => handleUpdate(row.id, 'barriers', val)} readOnly={readOnly} placeholder="Risks..." />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Commitment / Next Action</label>
-                      <Textarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.actionsForBen} onChange={e => handleUpdate(row.id, 'actionsForBen', e.target.value)} readOnly={readOnly} placeholder="Next Action..." />
+                      <DebouncedTextarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.actionsForBen || ''} onCommit={val => handleUpdate(row.id, 'actionsForBen', val)} readOnly={readOnly} placeholder="Next Action..." />
                     </div>
                   </div>
 

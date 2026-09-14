@@ -15,7 +15,7 @@ import { FactFindingForm } from './fact-finding-form';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { cn, openSalesforceSearch, normalizeBdmName } from '@/lib/utils';
-import { useIsMobile } from '@/lib/mobile-utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigation } from '@/contexts/navigation-context';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 

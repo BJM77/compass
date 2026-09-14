@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FactFindingForm } from './fact-finding-form';
+import { FactFindingForm, FactFindingFormHandle } from './fact-finding-form';
 import { CallPlanViewer, WhitespaceViewer } from './document-viewers';
 import { exportElementToPdf } from '@/lib/export-utils';
 import { Download, Loader2, X } from 'lucide-react';
@@ -21,6 +21,8 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
+  const formRef = useRef<FactFindingFormHandle>(null);
+
   if (!doc) return null;
 
   const getDocTitle = () => {
@@ -37,6 +39,16 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
   };
 
   const handlePdfExport = async () => {
+    if (docType === 'factFinding' && formRef.current) {
+      setIsExporting(true);
+      try {
+        await formRef.current.exportPdf();
+      } finally {
+        setIsExporting(false);
+      }
+      return;
+    }
+
     if (!containerRef.current) return;
     setIsExporting(true);
     try {
@@ -88,9 +100,9 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-          <div ref={containerRef} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm print:shadow-none print:border-none">
+          <div ref={containerRef} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             {docType === 'factFinding' && (
-              <FactFindingForm existingDoc={doc} docId={doc.id} onBack={onClose} viewOnly={true} />
+              <FactFindingForm ref={formRef} existingDoc={doc} docId={doc.id} onBack={onClose} viewOnly={true} />
             )}
             {docType === 'callPlan' && (
               <CallPlanViewer callPlan={doc} />

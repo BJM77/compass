@@ -6,6 +6,7 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DebouncedInput } from "@/components/ui/debounced-input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Star, Info, Lightbulb, Trash2, Save, Loader2 } from 'lucide-react';
@@ -122,8 +123,8 @@ export function SmartGoalsView({ userId }: { userId: string }) {
               <Button variant="ghost" size="icon" onClick={() => setSmartGoals(smartGoals.filter(g => g.id !== goal.id))} className="text-red-300 hover:text-red-600 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Specific Outcome</label><Input placeholder="What exactly?" value={goal.specific} onChange={e => { const n = [...smartGoals]; n[idx].specific = e.target.value; setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
-              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Success Metric</label><Input placeholder="How to measure?" value={goal.measurable} onChange={e => { const n = [...smartGoals]; n[idx].measurable = e.target.value; setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
+              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Specific Outcome</label><DebouncedInput placeholder="What exactly?" value={goal.specific || ''} onCommit={val => { const n = [...smartGoals]; n[idx].specific = val; setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
+              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Success Metric</label><DebouncedInput placeholder="How to measure?" value={goal.measurable || ''} onCommit={val => { const n = [...smartGoals]; n[idx].measurable = val; setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div className="space-y-1.5">
@@ -135,8 +136,8 @@ export function SmartGoalsView({ userId }: { userId: string }) {
                   <option value="PROPOSALS">PROPOSALS</option>
                 </select>
               </div>
-              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Target Value</label><Input type="number" value={goal.targetValue} onChange={e => { const n = [...smartGoals]; n[idx].targetValue = parseFloat(e.target.value); setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
-              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Deadline</label><Input placeholder="Friday 5pm" value={goal.timebound} onChange={e => { const n = [...smartGoals]; n[idx].timebound = e.target.value; setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
+              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Target Value</label><DebouncedInput type="number" value={goal.targetValue || 0} onCommit={val => { const n = [...smartGoals]; n[idx].targetValue = parseFloat(val) || 0; setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
+              <div className="space-y-1.5"><label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Deadline</label><DebouncedInput placeholder="Friday 5pm" value={goal.timebound || ''} onCommit={val => { const n = [...smartGoals]; n[idx].timebound = val; setSmartGoals(n); }} className="h-10 text-xs font-bold rounded-xl" /></div>
             </div>
           </div>
         ))}

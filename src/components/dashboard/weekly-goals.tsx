@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn, getWeekForDate, openSalesforceSearch } from '@/lib/utils';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DebouncedInput, DebouncedTextarea } from "@/components/ui/debounced-input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { 
@@ -599,13 +600,13 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
                       <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">EAV ($)</label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span>
-                        <Input type="number" placeholder="Value..." value={acc.eav || ''} onChange={e => { const n = [...focusAccounts]; n[idx].eav = parseFloat(e.target.value) || 0; setFocusAccounts(n); }} className="h-9 pl-6 text-[10px] font-bold" />
+                        <DebouncedInput type="number" placeholder="Value..." value={acc.eav || ''} onCommit={val => { const n = [...focusAccounts]; n[idx].eav = parseFloat(val) || 0; setFocusAccounts(n); }} className="h-9 pl-6 text-[10px] font-bold" />
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">About Account / Opportunity Context</label>
-                    <Textarea placeholder="Context, history, and strategic intent..." value={acc.aboutAccount} onChange={e => { const n = [...focusAccounts]; n[idx].aboutAccount = e.target.value; setFocusAccounts(n); }} className="min-h-[80px] text-[10px] font-medium leading-relaxed" />
+                    <DebouncedTextarea placeholder="Context, history, and strategic intent..." value={acc.aboutAccount || ''} onCommit={val => { const n = [...focusAccounts]; n[idx].aboutAccount = val; setFocusAccounts(n); }} className="min-h-[80px] text-[10px] font-medium leading-relaxed" />
                   </div>
                 </div>
               ))}
@@ -633,10 +634,10 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
                 <div key={idx} className="flex gap-4 items-start group">
                   <Badge variant="outline" className="w-20 justify-center py-2 font-black text-[10px] border-slate-200 shrink-0">Action {idx + 1}</Badge>
                   <div className="flex-1 relative">
-                    <Textarea 
+                    <DebouncedTextarea 
                       placeholder="Tactical focus..." 
-                      value={action} 
-                      onChange={e => updateAction(idx, e.target.value)} 
+                      value={action || ''} 
+                      onCommit={val => updateAction(idx, val)} 
                       className="min-h-[60px] text-[10px] font-bold rounded-xl shadow-inner pr-8" 
                     />
                     {idx >= 5 && (

@@ -61,20 +61,17 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, doc } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useIsMobile } from '@/lib/mobile-utils';
 import { format } from 'date-fns';
 import { getCurrentWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 import { NavigationProvider, useNavigation } from '@/contexts/navigation-context';
 import { getNavigationForUser, DashboardView } from '@/lib/navigation';
-import { MobileDashboard } from '@/components/dashboard/mobile-dashboard';
 
 function DashboardContent() {
   const { profile, isLeader, user, loading: isAuthLoading } = useAuth();
   const db = useFirestore();
   const auth = useFirebaseAuth();
   const router = useRouter();
-  const isMobile = useIsMobile();
   const { currentView, viewParams, navigateTo } = useNavigation();
   
   const { activeUserId, simulationUid, setSimulationUid } = usePipelineData();
@@ -354,10 +351,9 @@ function DashboardContent() {
 export default function DashboardPage() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
-  const isMobile = useIsMobile();
 
-  // If loading or determining mobile status
-  if (loading || isMobile === undefined) {
+  // If loading
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F6F8]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -374,11 +370,7 @@ export default function DashboardPage() {
   return (
     <PipelineProvider>
       <NavigationProvider>
-        {isMobile ? (
-          <MobileDashboard userId={user.uid} userName={profile?.name || user.email || 'User'} />
-        ) : (
-          <DashboardContent />
-        )}
+        <DashboardContent />
       </NavigationProvider>
     </PipelineProvider>
   );

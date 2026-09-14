@@ -23,13 +23,27 @@ export function initializeFirebase() {
   return getSdks(firebaseApp);
 }
 
-import { initializeFirestore, getFirestore } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  getFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager 
+} from 'firebase/firestore';
 
 export function getSdks(firebaseApp: FirebaseApp) {
   let firestore;
   try {
-    firestore = initializeFirestore(firebaseApp, {});
+    // Enable offline indexedDB persistence across tabs with automatic network sync.
+    // Also explicitly force long-polling to bypass WebChannel stream 400/404 errors in certain environments (like Next.js dev server or corporate proxies).
+    firestore = initializeFirestore(firebaseApp, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      }),
+      experimentalForceLongPolling: true
+    });
   } catch (e) {
+    // In dev mode with hot-reloading, initializeFirestore may throw if it was already initialized.
+    // In that case, we can safely just get the existing instance.
     firestore = getFirestore(firebaseApp);
   }
 
