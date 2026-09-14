@@ -41,14 +41,29 @@ const INITIAL_SERVICE_CONFIG = SERVICES.reduce((acc, service) => ({
   [service]: { state: 'WHITE_SPACE', priority: 'LOW', rationale: '', currentSpend: '', totalWallet: '' }
 }), {});
 
-export function WhitespaceAnalysis({ userId }: { userId: string }) {
+interface WhitespaceAnalysisProps {
+  userId: string;
+  initialAccountName?: string;
+  initialDocId?: string;
+  initialConfigs?: Record<string, ServiceConfig>;
+  onSaved?: (docId?: string) => void;
+}
+
+export function WhitespaceAnalysis({ 
+  userId, 
+  initialAccountName = '', 
+  initialDocId, 
+  initialConfigs, 
+  onSaved 
+}: WhitespaceAnalysisProps) {
   const db = useFirestore();
   const { toast } = useToast();
-  const [accountName, setAccountName] = useState('');
+  const [accountName, setAccountName] = useState(initialAccountName);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   const [serviceConfigs, setServiceConfigs] = useState<Record<string, ServiceConfig>>(
-    INITIAL_SERVICE_CONFIG as Record<string, ServiceConfig>
+    initialConfigs || (INITIAL_SERVICE_CONFIG as Record<string, ServiceConfig>)
   );
 
   const updateService = (service: string, field: keyof ServiceConfig, value: any) => {
@@ -63,6 +78,43 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
       setAccountName('');
       setServiceConfigs(INITIAL_SERVICE_CONFIG as Record<string, ServiceConfig>);
       toast({ title: "Analysis Cleared" });
+    }
+  };
+
+  const handleSaveOnly = async () => {
+    if (!accountName) {
+      toast({ variant: "destructive", title: "Missing Account Name" });
+      return;
+    }
+    if (!db || !userId) return;
+
+    setIsSaving(true);
+    try {
+      if (initialDocId) {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        await updateDoc(doc(db, 'whitespacePlans', initialDocId), {
+          accountName: accountName.toUpperCase(),
+          configs: serviceConfigs,
+          updatedAt: serverTimestamp(),
+        });
+        toast({ title: "White Space Updated", description: "Changes saved successfully." });
+        if (onSaved) onSaved(initialDocId);
+      } else {
+        const res = await addDoc(collection(db, 'whitespacePlans'), {
+          userId,
+          accountName: accountName.toUpperCase(),
+          configs: serviceConfigs,
+          createdAt: serverTimestamp(),
+          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days TTL
+        });
+        toast({ title: "White Space Saved", description: "Diagnostic saved to governance node." });
+        if (onSaved) onSaved(res.id);
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast({ variant: "destructive", title: "Save Failed", description: e.message });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -101,15 +153,25 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
 
       pdf.save(`${accountName.replace(/\s+/g, '_')}_Whitespace_Plan.pdf`);
 
-      // 2. Automate Save to Firestore (14 day retention)
+      // 2. Automate Save to Firestore (90 day retention)
       if (db && userId) {
-        await addDoc(collection(db, 'whitespacePlans'), {
-          userId,
-          accountName: accountName.toUpperCase(),
-          configs: serviceConfigs,
-          createdAt: serverTimestamp(),
-          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days TTL
-        });
+        if (initialDocId) {
+          const { doc, updateDoc } = await import('firebase/firestore');
+          await updateDoc(doc(db, 'whitespacePlans', initialDocId), {
+            accountName: accountName.toUpperCase(),
+            configs: serviceConfigs,
+            updatedAt: serverTimestamp(),
+          });
+        } else {
+          const res = await addDoc(collection(db, 'whitespacePlans'), {
+            userId,
+            accountName: accountName.toUpperCase(),
+            configs: serviceConfigs,
+            createdAt: serverTimestamp(),
+            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days TTL
+          });
+          if (onSaved) onSaved(res.id);
+        }
         toast({ title: "Analysis Archived", description: "Diagnostic saved to governance node for 90 days." });
       }
 
@@ -143,9 +205,13 @@ export function WhitespaceAnalysis({ userId }: { userId: string }) {
             className="w-full md:w-[240px] h-10 font-black uppercase text-xs border-none bg-slate-50 focus-visible:ring-0" 
           />
           <div className="hidden md:block h-6 w-px bg-slate-200 mx-1 self-center" />
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <Button variant="ghost" onClick={handleClear} className="flex-1 md:flex-none text-red-600 hover:bg-red-50 font-black h-10 px-2 text-[10px] uppercase">
               <RotateCcw className="w-3.5 h-3.5 mr-1" /> CLEAR
+            </Button>
+            <Button onClick={handleSaveOnly} disabled={!accountName || isSaving} variant="outline" className="flex-1 md:flex-none border-slate-300 font-black h-10 px-3 text-[10px] uppercase shadow-sm gap-2">
+              {isSaving ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5 shrink-0 text-emerald-600" />} 
+              <span>SAVE</span>
             </Button>
             <Button onClick={handleExport} disabled={!accountName || isExporting} className="flex-1 md:flex-none bg-slate-900 text-white font-black h-10 px-3 text-[10px] uppercase shadow-md gap-2">
               {isExporting ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <FileDown className="w-3.5 h-3.5 shrink-0" />} 

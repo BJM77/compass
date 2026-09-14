@@ -49,7 +49,8 @@ interface ServiceConfig {
 
 export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
   const db = useFirestore();
-  const { isLeader, user } = useAuth();
+  const { isLeader, isSuperAdmin, user, profile } = useAuth();
+  const isElevated = isLeader || isSuperAdmin;
   const { toast } = useToast();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
@@ -59,14 +60,24 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
   const [editConfigs, setEditConfigs] = useState<Record<string, ServiceConfig>>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  const effectiveUserId = userId || user?.uid || profile?.uid;
+
   const plansQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(
-      collection(db, 'whitespacePlans'),
-      orderBy('createdAt', 'desc'),
-      limit(500)
-    );
-  }, [db, userId]);
+    if (!db || !effectiveUserId) return null;
+    if (isElevated) {
+      return query(
+        collection(db, 'whitespacePlans'),
+        orderBy('createdAt', 'desc'),
+        limit(500)
+      );
+    } else {
+      return query(
+        collection(db, 'whitespacePlans'),
+        where('userId', '==', effectiveUserId),
+        limit(500)
+      );
+    }
+  }, [db, effectiveUserId, isElevated]);
 
   const { data: plans, isLoading } = useCollection(plansQuery);
 
@@ -75,14 +86,14 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     if (!plans) return [];
     const now = new Date();
     const activePlans = plans.filter(p => !p.expiresAt || p.expiresAt.toDate() > now);
-    if (isLeader) return activePlans;
-    return activePlans.filter(p => p.userId === userId);
-  }, [plans, isLeader, userId]);
+    if (isElevated) return activePlans;
+    return activePlans.filter(p => p.userId === effectiveUserId);
+  }, [plans, isElevated, effectiveUserId]);
 
   const usersQuery = useMemoFirebase(() => {
-    if (!db || !isLeader) return null;
+    if (!db || !isElevated) return null;
     return collection(db, 'users');
-  }, [db, isLeader]);
+  }, [db, isElevated]);
   
   const { data: allUsers } = useCollection(usersQuery);
 
@@ -201,7 +212,8 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     }
   };
 
-  const canEdit = selectedPlan && (isLeader || (user && selectedPlan.userId === user.uid));
+  const canEdit = selectedPlan && (isElevated || (user && selectedPlan.userId === user.uid) || (profile && selectedPlan.userId === profile.uid));
+  const canDelete = selectedPlan && (isElevated || (user && selectedPlan.userId === user.uid) || (profile && selectedPlan.userId === profile.uid));
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -226,6 +238,8 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
           <div className="grid gap-3">
             {filteredPlans.map((plan) => {
               const daysLeft = plan.expiresAt?.toDate ? differenceInDays(plan.expiresAt.toDate(), new Date()) : 0;
+              const isPlanOwner = (user && plan.userId === user.uid) || (profile && plan.userId === profile.uid);
+              const canDeleteThisPlan = isElevated || isPlanOwner;
               return (
                 <div
                   key={plan.id}
@@ -248,7 +262,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                     </Badge>
                   </div>
                   <p className="text-sm font-black text-primary uppercase leading-tight truncate pr-6">{plan.accountName}</p>
-                  {isLeader && plan.userId && (
+                  {isElevated && plan.userId && (
                     <div className="flex items-center gap-1.5 mt-1.5">
                       <UserIcon className="w-3 h-3 text-accent" />
                       <span className="text-[10px] font-bold text-accent uppercase tracking-wider">{userMap[plan.userId] || 'Unknown User'}</span>
@@ -262,7 +276,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                      </div>
                      <ChevronRight className={`w-4 h-4 transition-transform ${selectedPlanId === plan.id ? 'translate-x-1 text-accent' : 'text-slate-300'}`} />
                   </div>
-                  {isLeader && (
+                  {canDeleteThisPlan && (
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleDelete(plan.id); }}
                       className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"

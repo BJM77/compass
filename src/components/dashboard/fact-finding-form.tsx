@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useRef, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, limit, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select as UISelect, SelectContent, SelectItem, SelectTrigger as UISelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox as UICheckbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2, Copy } from 'lucide-react';
+import { ArrowLeft, Save, Printer, Loader2, FileText, CheckCircle2, Building, Package, Map, Truck, Info, Check, Coins, Edit2, Trash2, Copy, LayoutGrid, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { deduplicateUsers } from '@/lib/utils';
@@ -27,6 +27,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { WhitespaceAnalysis } from './whitespace-analysis';
+import { WhitespaceViewer } from './document-viewers';
+import { exportElementToPdf } from '@/lib/export-utils';
 
 const CARRIER_SERVICES = [
   // Next Available
@@ -110,18 +120,48 @@ function getSalesforceSearchUrl(companyName: string) {
 
 export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }: Props) {
   const db = useFirestore();
-  const { user, isLeader, profile } = useAuth();
+  const { user, isLeader, isSuperAdmin, profile } = useAuth();
+  const isElevated = isLeader || isSuperAdmin;
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const canEdit = !viewOnly;
   const [printType, setPrintType] = useState<'FULL' | 'REVIEW' | null>(null);
   const [isEditingOwner, setIsEditingOwner] = useState(false);
 
+  // Whitespace Modal States
+  const [isWsFormOpen, setIsWsFormOpen] = useState(false);
+  const [isViewWsOpen, setIsViewWsOpen] = useState(false);
+  const [isExportingWsPdf, setIsExportingWsPdf] = useState(false);
+  const wsPrintContainerRef = useRef<HTMLDivElement>(null);
+
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, 'users');
   }, [db]);
   const { data: users } = useCollection(usersQuery);
+
+  // Query Whitespace Plans for this account
+  const effectiveUserId = user?.uid || profile?.uid;
+  const companyTrimmed = (existingDoc?.companyName || '').trim().toUpperCase();
+
+  const whitespaceQuery = useMemoFirebase(() => {
+    if (!db || !effectiveUserId) return null;
+    if (isElevated) {
+      return query(
+        collection(db, 'whitespacePlans'),
+        orderBy('createdAt', 'desc'),
+        limit(500)
+      );
+    } else {
+      return query(
+        collection(db, 'whitespacePlans'),
+        where('userId', '==', effectiveUserId),
+        limit(500)
+      );
+    }
+  }, [db, effectiveUserId, isElevated]);
+
+  const { data: allWhitespacePlans } = useCollection(whitespaceQuery);
 
   const [formData, setFormData] = useState<Partial<FactFindingDoc>>({
     companyName: '',
@@ -174,6 +214,17 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
     archivedNotes: [],
     inSalesforce: false
   });
+
+  const matchingWhitespaceDoc = useMemo(() => {
+    if (!allWhitespacePlans || allWhitespacePlans.length === 0) return null;
+    const targetName = (formData.companyName || existingDoc?.companyName || '').trim().toUpperCase();
+    if (!targetName) return null;
+    return allWhitespacePlans.find((p: any) => 
+      p.accountName?.trim().toUpperCase() === targetName ||
+      targetName.includes(p.accountName?.trim().toUpperCase()) ||
+      p.accountName?.trim().toUpperCase().includes(targetName)
+    ) || null;
+  }, [allWhitespacePlans, formData.companyName, existingDoc?.companyName]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -751,10 +802,34 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
 
           <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:break-inside-avoid print:mt-8">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-slate-300 print:px-0">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
-                <Package className="w-5 h-5 text-primary print:text-slate-900" />
-                2. Domestic Freight Profile & Shipping Map
-              </CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary print:text-slate-900" />
+                  2. Domestic Freight Profile & Shipping Map
+                </CardTitle>
+
+                {/* Right-Justified White Space Action Buttons */}
+                <div className="flex items-center gap-2 self-start sm:self-auto print:hidden">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsWsFormOpen(true)}
+                    className="gap-2 font-bold bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100 h-9 text-xs shadow-sm"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5 text-amber-600" />
+                    White Space
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsViewWsOpen(true)}
+                    className="gap-2 font-bold bg-cyan-50 border-cyan-200 text-cyan-900 hover:bg-cyan-100 h-9 text-xs shadow-sm"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-cyan-600" />
+                    View WS
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6 print:px-0">
               
@@ -1610,10 +1685,126 @@ export function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }
               </div>
             </div>
 
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+
+        {/* White Space Form Dialog */}
+        <Dialog open={isWsFormOpen} onOpenChange={setIsWsFormOpen}>
+          <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-6 bg-slate-50/50">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl font-black uppercase text-slate-800 flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5 text-amber-600" />
+                White Space Analysis — {formData.companyName || 'Lead Diagnostic'}
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                Complete and save the strategic service expansion matrix for this account.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <WhitespaceAnalysis
+                userId={formData.userId || user?.uid || profile?.uid || ''}
+                initialAccountName={formData.companyName || ''}
+                onSaved={() => {
+                  setIsWsFormOpen(false);
+                  toast({ title: "White Space Completed", description: "White space diagnostic saved for this account." });
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* View WS Modal (Editable & Printable) */}
+        <Dialog open={isViewWsOpen} onOpenChange={setIsViewWsOpen}>
+          <DialogContent className="max-w-5xl max-h-[92vh] p-0 flex flex-col overflow-hidden bg-white shadow-2xl border border-slate-200 rounded-2xl">
+            <DialogHeader className="p-6 border-b border-slate-100 flex flex-row items-center justify-between shrink-0">
+              <div>
+                <DialogTitle className="text-xl font-black uppercase tracking-tight text-slate-800 flex items-center gap-2">
+                  <LayoutGrid className="w-5 h-5 text-cyan-600" />
+                  White Space Diagnostic
+                </DialogTitle>
+                <DialogDescription className="font-bold text-xs uppercase text-slate-400 mt-1">
+                  Account: {formData.companyName || 'Document'}
+                </DialogDescription>
+              </div>
+              <div className="flex items-center gap-2 pr-6">
+                {matchingWhitespaceDoc && (
+                  <Button
+                    onClick={async () => {
+                      if (!wsPrintContainerRef.current) return;
+                      setIsExportingWsPdf(true);
+                      try {
+                        const filename = `${(formData.companyName || 'Account').replace(/\s+/g, '_')}_whitespace_export.pdf`;
+                        await exportElementToPdf(wsPrintContainerRef.current, filename);
+                        toast({ title: "PDF Exported", description: "Whitespace PDF generated successfully." });
+                      } catch (err: any) {
+                        toast({ variant: "destructive", title: "PDF Export Failed", description: err.message });
+                      } finally {
+                        setIsExportingWsPdf(false);
+                      }
+                    }}
+                    disabled={isExportingWsPdf}
+                    size="sm"
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold gap-2 text-xs shadow-md border-none"
+                  >
+                    {isExportingWsPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+                    Export PDF
+                  </Button>
+                )}
+              </div>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+              {matchingWhitespaceDoc ? (
+                <div className="space-y-6">
+                  {/* Embedded Editable Whitespace Component */}
+                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <WhitespaceAnalysis
+                      userId={matchingWhitespaceDoc.userId || formData.userId || user?.uid || profile?.uid || ''}
+                      initialAccountName={matchingWhitespaceDoc.accountName || formData.companyName || ''}
+                      initialDocId={matchingWhitespaceDoc.id}
+                      initialConfigs={matchingWhitespaceDoc.configs}
+                      onSaved={() => {
+                        toast({ title: "White Space Updated", description: "Changes have been successfully saved." });
+                      }}
+                    />
+                  </div>
+
+                  {/* Printable Ref Container for Clean PDF Generation */}
+                  <div className="hidden">
+                    <div ref={wsPrintContainerRef} className="bg-white p-6">
+                      <WhitespaceViewer whitespaceDoc={matchingWhitespaceDoc} />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200 p-8 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                    <LayoutGrid className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black uppercase text-slate-700">No White Space Found</h3>
+                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto font-medium">
+                      No White Space analysis has been completed yet for <span className="font-bold text-slate-700">"{formData.companyName || 'this account'}"</span>.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setIsViewWsOpen(false);
+                      setIsWsFormOpen(true);
+                    }}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase h-10 px-6 gap-2 shadow-md"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    Complete White Space Now
+                  </Button>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </ViewOnlyContext.Provider>
   );
 }

@@ -23,13 +23,15 @@ export function initializeFirebase() {
   return getSdks(firebaseApp);
 }
 
-import { initializeFirestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore } from 'firebase/firestore';
 
 export function getSdks(firebaseApp: FirebaseApp) {
-  // Use initializeFirestore with auto-detect long polling to prevent WebChannel disconnects and 400/404 proxy errors
-  const firestore = initializeFirestore(firebaseApp, {
-    experimentalAutoDetectLongPolling: true
-  });
+  let firestore;
+  try {
+    firestore = initializeFirestore(firebaseApp, {});
+  } catch (e) {
+    firestore = getFirestore(firebaseApp);
+  }
 
   return {
     firebaseApp,
