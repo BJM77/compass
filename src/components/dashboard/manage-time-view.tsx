@@ -146,14 +146,20 @@ export function ManageTimeView() {
         });
         return planId;
       } else {
-        const docRef = await addDoc(collection(db, 'timeManagementPlans'), {
+        const { setDoc } = await import('firebase/firestore');
+        const newDocRef = doc(collection(db, 'timeManagementPlans'));
+        const newId = newDocRef.id;
+        // Synchronously update the ID so the next rapid-fire typed letter uses the SAME ID instead of spawning duplicates
+        setCurrentPlanId(newId);
+        
+        await setDoc(newDocRef, {
           userId: user.uid,
           tasks: newTasks,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-        setCurrentPlanId(docRef.id);
-        return docRef.id;
+        
+        return newId;
       }
     } catch (error) {
       console.error("Error saving plan:", error);
@@ -321,13 +327,19 @@ export function ManageTimeView() {
         <div className="flex flex-wrap items-center gap-2 print:hidden">
           {!isViewOnly && (
             <>
-              <div className="hidden sm:flex items-center text-sm font-medium text-slate-500 mr-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => savePlanWithTasks(tasks, currentPlanId)}
+                disabled={isSaving}
+                className="hidden sm:flex items-center text-sm font-medium mr-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200"
+              >
                 {isSaving ? (
                   <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 animate-spin text-indigo-500" /> Saving...</span>
                 ) : (
-                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Saved</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Force Save</span>
                 )}
-              </div>
+              </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
