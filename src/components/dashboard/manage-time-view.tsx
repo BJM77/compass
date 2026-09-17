@@ -29,9 +29,9 @@ import {
 type Task = {
   id: string;
   text: string;
-  quadrant?: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  quadrant?: 'Q1' | 'Q2' | 'Q3' | 'Q4' | null;
   completed?: boolean;
-  movedToSoonAt?: number;
+  movedToSoonAt?: number | null;
 };
 
 type TimePlan = {
