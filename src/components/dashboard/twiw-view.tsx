@@ -106,7 +106,7 @@ interface PriorityItem {
 export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWViewProps) {
   const db = useFirestore();
   const { toast } = useToast();
-  const { profile, user, isGuest } = useAuth();
+  const { profile, user, isGuest, isGM } = useAuth();
   const currentWeek = getCurrentWeek();
   const { pipelineReviews: allDeals } = usePipelineData();
   
@@ -521,7 +521,15 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         if (subDoc.exists()) {
           data = subDoc.data();
         } else {
-          const allSnap = await getDocs(query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek)));
+          let q = query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek));
+          
+          // Non-admins must strictly query their own userId to satisfy Firestore security rules
+          const isAdmin = isLeader || isGM;
+          if (!isAdmin) {
+            q = query(collection(db, 'twiwSubmissions'), where('week', '==', selectedWeek), where('userId', '==', userId));
+          }
+          
+          const allSnap = await getDocs(q);
           const found = allSnap.docs.find(d => isUserSubmissionMatch({ id: userId, name: bdmName }, { id: d.id, ...d.data() }));
           if (found) {
             data = found.data();

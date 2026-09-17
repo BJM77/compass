@@ -240,11 +240,18 @@ export function ManageTimeView() {
   const setTaskQuadrant = async (taskId: string, quadrant: 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined) => {
     const newTasks = tasks.map(t => {
       if (t.id === taskId) {
-        return { 
+        const updated = { 
           ...t, 
-          quadrant,
-          movedToSoonAt: quadrant === 'Q2' ? Date.now() : t.movedToSoonAt
+          quadrant: quadrant === undefined ? null : quadrant,
+          movedToSoonAt: quadrant === 'Q2' ? Date.now() : (t.movedToSoonAt || null)
         };
+        // Firestore strictly forbids `undefined` in documents, so we delete undefined keys
+        Object.keys(updated).forEach(k => {
+          if ((updated as any)[k] === undefined) {
+            delete (updated as any)[k];
+          }
+        });
+        return updated;
       }
       return t;
     });

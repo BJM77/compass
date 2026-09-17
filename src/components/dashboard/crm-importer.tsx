@@ -1449,7 +1449,7 @@ export function CRMImporter() {
       )}
       
       {/* Empty State Warning */}
-      {stats && previewRecords.length === 0 && previewActivityRecords.length === 0 && (
+      {stats && previewRecords.length === 0 && previewActivityRecords.length === 0 && previewActualSpendRecords.length === 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
           <div>
