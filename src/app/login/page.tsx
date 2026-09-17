@@ -43,10 +43,11 @@ export default function LoginPage() {
       // Record login time
       if (db && cred.user) {
         try {
-          await setDoc(doc(db, 'users', cred.user.uid), {
+          const { updateDoc } = await import('firebase/firestore');
+          await updateDoc(doc(db, 'users', cred.user.uid), {
             lastLoginAt: serverTimestamp(),
             isOnline: true
-          }, { merge: true });
+          });
         } catch (e) {
           console.warn("Could not log login time", e);
         }
