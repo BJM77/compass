@@ -375,6 +375,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
     if (targetName) {
       return query(
         collection(db, 'whitespacePlans'),
+        where('userId', '==', effectiveUserId),
         where('accountName', '==', targetName),
         limit(5)
       );
