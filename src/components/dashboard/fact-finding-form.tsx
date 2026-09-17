@@ -203,7 +203,22 @@ function buildPrintHtml(
     `) : ''}
 
     ${formData.selectedServices && formData.selectedServices.length > 0 ? section('5. Required Carrier Services',
-      `<ul>${formData.selectedServices.map((s: string) => `<li>${escapeHtml(s)}</li>`).join('')}</ul>`
+      `<ul style="list-style-type:none; padding-left:0; margin:0;">${formData.selectedServices.map((sid: string) => {
+        const s = CARRIER_SERVICES.find(srv => srv.id === sid);
+        const name = s ? s.name : sid;
+        const note = (formData.serviceNotes || {})[sid] || '';
+        const spendBand = (formData.serviceSpendBands || {})[sid] || '';
+        let html = `<li style="margin-bottom:12px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">`;
+        html += `<div style="font-weight:800; font-size:14px; color:#0f172a;">${escapeHtml(name)}</div>`;
+        if (spendBand) {
+          html += `<div style="font-size:12px; font-weight:700; color:#3b82f6; margin-top:4px;">Spend Band: ${escapeHtml(spendBand)}</div>`;
+        }
+        if (note) {
+          html += `<div style="margin-top:6px; font-size:13px; color:#475569; white-space:pre-wrap;">${escapeHtml(note)}</div>`;
+        }
+        html += `</li>`;
+        return html;
+      }).join('')}</ul>`
     ) : ''}
 
     ${formData.archivedNotes && formData.archivedNotes.length > 0 ? section('6. Historical Notes',
@@ -343,6 +358,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
     mapNotesFrom: '',
     mapNotesTo: '',
     serviceNotes: {},
+    serviceSpendBands: {},
     isArchived: false,
     stage: 'New',
     currentNote: '',
@@ -398,6 +414,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
         mapNotesFrom: existingDoc.mapNotesFrom || '',
         mapNotesTo: existingDoc.mapNotesTo || '',
         serviceNotes: existingDoc.serviceNotes || {},
+        serviceSpendBands: existingDoc.serviceSpendBands || {},
         currentNote: existingDoc.currentNote || '',
         archivedNotes: existingDoc.archivedNotes || [],
         inSalesforce: existingDoc.inSalesforce || false
@@ -425,6 +442,14 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
     setFormData(prev => ({
       ...prev,
       serviceNotes: { ...(prev.serviceNotes || {}), [serviceId]: value }
+    }));
+  };
+
+  const handleServiceSpendBand = (serviceId: string, value: string) => {
+    if (!canEdit) return;
+    setFormData(prev => ({
+      ...prev,
+      serviceSpendBands: { ...(prev.serviceSpendBands || {}), [serviceId]: value }
     }));
   };
 
@@ -1563,7 +1588,27 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <div className="space-y-2">
+                              <div className="space-y-3 pt-2">
+                                <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Select 
+                                    value={(formData.serviceSpendBands || {})[s.id] || ''} 
+                                    onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
+                                  >
+                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                      <SelectValue placeholder="Select Spend Band" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="SB 1">SB 1</SelectItem>
+                                      <SelectItem value="SB 2">SB 2</SelectItem>
+                                      <SelectItem value="SB 3">SB 3</SelectItem>
+                                      <SelectItem value="SB 4">SB 4</SelectItem>
+                                      <SelectItem value="SB 5">SB 5</SelectItem>
+                                      <SelectItem value="SB 6">SB 6</SelectItem>
+                                      <SelectItem value="SB 7">SB 7</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}

@@ -142,6 +142,7 @@ export interface FactFindingDoc {
   mapNotesTo?: string;
   serviceNotes?: Record<string, string>;
   serviceAdminNotes?: Record<string, string>;
+  serviceSpendBands?: Record<string, string>;
   currentNote?: string;
   archivedNotes?: { note: string; createdAt: any; createdByName: string; createdBy: string; }[];
   inSalesforce?: boolean;
