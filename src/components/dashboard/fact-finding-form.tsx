@@ -1390,7 +1390,27 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <div className="space-y-2">
+                              <div className="space-y-3 pt-2">
+                                <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Select 
+                                    value={(formData.serviceSpendBands || {})[s.id] || ''} 
+                                    onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
+                                  >
+                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                      <SelectValue placeholder="Select Spend Band" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="SB 1">SB 1</SelectItem>
+                                      <SelectItem value="SB 2">SB 2</SelectItem>
+                                      <SelectItem value="SB 3">SB 3</SelectItem>
+                                      <SelectItem value="SB 4">SB 4</SelectItem>
+                                      <SelectItem value="SB 5">SB 5</SelectItem>
+                                      <SelectItem value="SB 6">SB 6</SelectItem>
+                                      <SelectItem value="SB 7">SB 7</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}
@@ -1458,7 +1478,27 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <div className="space-y-2">
+                              <div className="space-y-3 pt-2">
+                                <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Select 
+                                    value={(formData.serviceSpendBands || {})[s.id] || ''} 
+                                    onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
+                                  >
+                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                      <SelectValue placeholder="Select Spend Band" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="SB 1">SB 1</SelectItem>
+                                      <SelectItem value="SB 2">SB 2</SelectItem>
+                                      <SelectItem value="SB 3">SB 3</SelectItem>
+                                      <SelectItem value="SB 4">SB 4</SelectItem>
+                                      <SelectItem value="SB 5">SB 5</SelectItem>
+                                      <SelectItem value="SB 6">SB 6</SelectItem>
+                                      <SelectItem value="SB 7">SB 7</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}
@@ -1523,7 +1563,27 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
-                              <div className="space-y-2">
+                              <div className="space-y-3 pt-2">
+                                <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Select 
+                                    value={(formData.serviceSpendBands || {})[s.id] || ''} 
+                                    onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
+                                  >
+                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                      <SelectValue placeholder="Select Spend Band" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="SB 1">SB 1</SelectItem>
+                                      <SelectItem value="SB 2">SB 2</SelectItem>
+                                      <SelectItem value="SB 3">SB 3</SelectItem>
+                                      <SelectItem value="SB 4">SB 4</SelectItem>
+                                      <SelectItem value="SB 5">SB 5</SelectItem>
+                                      <SelectItem value="SB 6">SB 6</SelectItem>
+                                      <SelectItem value="SB 7">SB 7</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                                 <Textarea
                                   placeholder={`Add notes about ${s.name}...`}
                                   value={(formData.serviceNotes || {})[s.id] || ''}
