@@ -320,3 +320,16 @@
     box-shadow: none !important;
   }
 }
+
+@keyframes scroll-up {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(-100%); }
+}
+
+.animate-scroll-up {
+  animation: scroll-up 15s linear infinite;
+}
+
+.pause-on-hover:hover .animate-scroll-up {
+  animation-play-state: paused;
+}

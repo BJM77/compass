@@ -38,6 +38,7 @@ import {
   Sparkles,
   Timer
 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { openSalesforceCreateLead, openSalesforceSearch, deduplicateUsers } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
@@ -64,7 +65,7 @@ export function CanvassingHub() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBu, setSelectedBu] = useState<string>('ALL');
   const [syncFilter, setSyncFilter] = useState<'ACTIVE' | 'SYNCED' | 'DRAFT' | 'ARCHIVED'>('ACTIVE');
-  const [scopeFilter, setScopeFilter] = useState<'MY' | 'ALL'>('ALL');
+  const [scopeFilter, setScopeFilter] = useState<string>('ALL');
   const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('LIST');
 
   // Query Canvassing Leads from Firestore
@@ -155,6 +156,9 @@ export function CanvassingHub() {
       if (scopeFilter === 'MY' && isLeader && lead.userId && lead.userId !== user?.uid) {
         return false;
       }
+      if (scopeFilter !== 'ALL' && scopeFilter !== 'MY' && lead.userId !== scopeFilter) {
+        return false;
+      }
 
       // Sync filter
       if (syncFilter === 'SYNCED' && !lead.inSalesforce) return false;
@@ -180,6 +184,13 @@ export function CanvassingHub() {
 
   // Quick stats
   const activeLeads = rawLeads?.filter(l => !l.archived) || [];
+
+  const usersWithLeads = useMemo(() => {
+    if (!activeLeads || !allUsers) return [];
+    const leadUserIds = new Set(activeLeads.map(l => l.userId).filter(Boolean));
+    return deduplicateUsers(allUsers).filter((u: any) => leadUserIds.has(u.id));
+  }, [activeLeads, allUsers]);
+
   const totalLeads = activeLeads.length;
   const myLeads = activeLeads.filter(l => l.userId === user?.uid).length;
   const syncedCount = activeLeads.filter(l => l.inSalesforce).length;
@@ -407,13 +418,17 @@ export function CanvassingHub() {
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {isLeader && (
-            <Select value={scopeFilter} onValueChange={(v: 'MY' | 'ALL') => setScopeFilter(v)}>
+            <Select value={scopeFilter} onValueChange={(v: string) => setScopeFilter(v)}>
               <SelectTrigger className="h-9 text-xs w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="MY">My Leads</SelectItem>
                 <SelectItem value="ALL">All Team</SelectItem>
+                <SelectItem value="MY">My Leads</SelectItem>
+                <SelectSeparator />
+                {usersWithLeads.map((u: any) => (
+                  <SelectItem key={u.id} value={u.id}>{u.name || u.email}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
@@ -526,19 +541,26 @@ export function CanvassingHub() {
                   </div>
 
                   {lead.businessUnit && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      <Badge variant="secondary" className="text-[10px] font-normal">
-                        {lead.businessUnit}
-                      </Badge>
-                      {lead.estimatedRevenue && (
-                        <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-300 font-semibold">
-                          ${lead.estimatedRevenue.toLocaleString()}/yr
+                    <div className="flex items-center justify-between pt-1 relative">
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge variant="secondary" className="text-[10px] font-normal">
+                          {lead.businessUnit}
                         </Badge>
-                      )}
-                      {lead.incumbent && (
-                        <Badge variant="outline" className="text-[10px] text-slate-600 dark:text-slate-400">
-                          vs {lead.incumbent}
-                        </Badge>
+                        {lead.estimatedRevenue && (
+                          <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-300 font-semibold">
+                            ${lead.estimatedRevenue.toLocaleString()}/yr
+                          </Badge>
+                        )}
+                        {lead.incumbent && (
+                          <Badge variant="outline" className="text-[10px] text-slate-600 dark:text-slate-400">
+                            vs {lead.incumbent}
+                          </Badge>
+                        )}
+                      </div>
+                      {lead.createdAt && (
+                        <span className="text-[10px] text-muted-foreground ml-2 whitespace-nowrap shrink-0">
+                          {formatDistanceToNow(lead.createdAt?.toDate ? lead.createdAt.toDate() : new Date(lead.createdAt))} ago
+                        </span>
                       )}
                     </div>
                   )}
@@ -556,7 +578,7 @@ export function CanvassingHub() {
 
                     {hasLocation && (
                       <div className="flex items-center justify-between text-[11px] pt-1 border-t border-border/50">
-                        <span className="text-muted-foreground">GPS Coordinates</span>
+                        <span className="text-muted-foreground">{lead.latitude?.toFixed(5)}, {lead.longitude?.toFixed(5)}</span>
                         <a
                           href={`https://www.google.com/maps/search/?api=1&query=${lead.latitude},${lead.longitude}`}
                           target="_blank"
@@ -592,9 +614,11 @@ export function CanvassingHub() {
 
                   {/* Notes snippet */}
                   {lead.notes && (
-                    <p className="text-[11px] text-muted-foreground bg-muted/20 p-2 rounded line-clamp-2 italic">
-                      "{lead.notes}"
-                    </p>
+                    <div className="relative h-14 overflow-hidden rounded bg-muted/20 p-2 pause-on-hover">
+                      <p className="text-[11px] text-muted-foreground italic animate-scroll-up absolute left-2 right-2">
+                        "{lead.notes}"
+                      </p>
+                    </div>
                   )}
 
                   {/* Rep & Date info */}
