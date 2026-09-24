@@ -1095,7 +1095,7 @@ export function CRMImporter() {
           const chunk = previewActualSpendRecords.slice(i, i + BATCH_SIZE);
           
           chunk.forEach(record => {
-            const spendRef = doc(db, 'actualSpend', record.id);
+            const spendRef = doc(db, 'actualRevenues', record.id);
             batch.set(spendRef, {
               ...record,
               uploadedAt: serverTimestamp()
