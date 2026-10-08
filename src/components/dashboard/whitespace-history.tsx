@@ -1,13 +1,11 @@
-"use client";
-
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, deleteDoc, doc, Timestamp, updateDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, Trash2, Calendar, LayoutGrid, FileText, ChevronRight, Loader2, Info, AlertTriangle, Edit3 } from 'lucide-react';
+import { History, Trash2, Calendar, LayoutGrid, FileText, ChevronRight, Loader2, Info, AlertTriangle, Edit3, Search, Download, Target, ExternalLink } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
-import { format, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/auth-context';
 import { Separator } from '@/components/ui/separator';
@@ -18,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
+import { openSalesforceSearch } from '@/lib/utils';
+import { jsPDF } from 'jspdf';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
   const isElevated = isLeader || isSuperAdmin;
   const { toast } = useToast();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Edit State
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -81,21 +82,40 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
 
   const { data: plans, isLoading } = useCollection(plansQuery);
 
-  // Filter client-side to handle specific user access if not leader and filter out expired documents
-  const filteredPlans = useMemo(() => {
-    if (!plans) return [];
-    const now = new Date();
-    const activePlans = plans.filter(p => !p.expiresAt || p.expiresAt.toDate() > now);
-    if (isElevated) return activePlans;
-    return activePlans.filter(p => p.userId === effectiveUserId);
-  }, [plans, isElevated, effectiveUserId]);
-
   const usersQuery = useMemoFirebase(() => {
     if (!db || !isElevated) return null;
     return collection(db, 'users');
   }, [db, isElevated]);
   
   const { data: allUsers } = useCollection(usersQuery);
+
+  const userMap = useMemo(() => {
+    const map: Record<string, string> = { 'TEAM_NODE': 'TEAM BLUEPRINT' };
+    allUsers?.forEach((u: any) => {
+      map[u.id] = u.name;
+    });
+    return map;
+  }, [allUsers]);
+
+  // Keep plans active indefinitely (no auto-delete filtering)
+  const activePlans = useMemo(() => {
+    if (!plans) return [];
+    if (isElevated) return plans;
+    return plans.filter(p => p.userId === effectiveUserId);
+  }, [plans, isElevated, effectiveUserId]);
+
+  // Search filter by Company Name or User Name
+  const filteredPlans = useMemo(() => {
+    if (!activePlans) return [];
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return activePlans;
+
+    return activePlans.filter(plan => {
+      const accMatch = (plan.accountName || '').toLowerCase().includes(term);
+      const userMatch = (userMap[plan.userId] || '').toLowerCase().includes(term);
+      return accMatch || userMatch;
+    });
+  }, [activePlans, searchTerm, userMap]);
 
   // Report telemetry to Developer Diagnostics bus
   useReportDiagnostic(() => {
@@ -115,7 +135,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
         { name: 'users', count: allUsers?.length, status: allUsers ? 'ready' : 'not-loaded' }
       ],
       customMetrics: {
-        'Active (Non-expired) Plans': filteredPlans.length,
+        'Total Active Plans': filteredPlans.length,
         'Selected Plan ID': selectedPlanId || 'None',
         'Viewing Mode': isLeader ? 'All Team Plans' : 'Personal Plans'
       },
@@ -138,15 +158,60 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     };
   }, [plans, allUsers, isLoading, filteredPlans, selectedPlanId, isLeader]);
 
-  const userMap = useMemo(() => {
-    const map: Record<string, string> = { 'TEAM_NODE': 'TEAM BLUEPRINT' };
-    allUsers?.forEach((u: any) => {
-      map[u.id] = u.name;
-    });
-    return map;
-  }, [allUsers]);
+  const selectedPlan = filteredPlans.find(p => p.id === selectedPlanId) || plans?.find(p => p.id === selectedPlanId);
 
-  const selectedPlan = filteredPlans.find(p => p.id === selectedPlanId);
+  // Export a whitespace plan to PDF for printing
+  const handleExportPdf = (plan: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!plan || !plan.accountName) return;
+
+    try {
+      const pdf = new jsPDF();
+      pdf.setFontSize(20); pdf.setFont("helvetica", "bold");
+      pdf.text("WHITESPACE ANALYSIS DIAGNOSTIC", 20, 20);
+      
+      pdf.setFontSize(14);
+      pdf.text(plan.accountName.toUpperCase(), 20, 30);
+      
+      pdf.setFontSize(10); pdf.setFont("helvetica", "normal");
+      const ownerName = userMap[plan.userId] || 'Unknown User';
+      const createdDateStr = plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'PPP') : 'N/A';
+      pdf.text(`User / BDM: ${ownerName}  |  Generated: ${createdDateStr}`, 20, 37);
+      
+      pdf.setDrawColor(0); pdf.line(20, 42, 190, 42);
+      
+      let y = 52;
+      const configs = plan.configs || {};
+      SERVICES.forEach(service => {
+        const config = configs[service] || { state: 'WHITE_SPACE', priority: 'LOW', rationale: '', currentSpend: 0, totalWallet: 0 };
+        const spend = Number(config.currentSpend) || 0;
+        const wallet = Number(config.totalWallet) || 0;
+        const share = wallet > 0 ? (spend / wallet) * 100 : 0;
+        
+        pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
+        pdf.text(`${service.toUpperCase()}: ${config.state || 'WHITE_SPACE'} (${config.priority || 'LOW'} PRIORITY)`, 20, y);
+        y += 6; 
+        
+        pdf.setFontSize(9); pdf.setFont("helvetica", "normal");
+        pdf.text(`Current Spend: $${spend.toLocaleString()}  |  Total Wallet: $${wallet.toLocaleString()}  |  Share: ${share.toFixed(1)}%`, 20, y);
+        y += 5;
+        pdf.text(`Expansion Opportunity: $${Math.max(0, wallet - spend).toLocaleString()}`, 20, y);
+        y += 5;
+        
+        const lines = pdf.splitTextToSize(`Rationale: ${config.rationale || "No documentation provided."}`, 170);
+        pdf.text(lines, 20, y);
+        y += (lines.length * 4.5) + 8;
+        
+        if (y > 270) { pdf.addPage(); y = 20; }
+      });
+
+      pdf.save(`${plan.accountName.replace(/\s+/g, '_')}_Whitespace_Diagnostic.pdf`);
+      toast({ title: "PDF Exported", description: "Diagnostic record downloaded for printing." });
+    } catch (err) {
+      console.error("PDF Export Error:", err);
+      toast({ variant: "destructive", title: "Export Failed", description: "Could not generate PDF file." });
+    }
+  };
 
   // Initialize edit form when selectedPlan or dialog open state changes
   useEffect(() => {
@@ -231,13 +296,23 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
             <History className="w-4 h-4 text-accent" />
             Strategic Archive
           </h2>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">90-Day Ephemeral Storage</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Permanent Diagnostic Repository</p>
         </header>
 
-        <ScrollArea className="h-[700px] pr-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search company or user..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-10 text-xs border-primary/20 rounded-xl bg-white shadow-sm"
+          />
+        </div>
+
+        <ScrollArea className="h-[650px] pr-4">
           <div className="grid gap-3">
             {filteredPlans.map((plan) => {
-              const daysLeft = plan.expiresAt?.toDate ? differenceInDays(plan.expiresAt.toDate(), new Date()) : 0;
               const isPlanOwner = (user && plan.userId === user.uid) || (profile && plan.userId === profile.uid);
               const canDeleteThisPlan = isElevated || isPlanOwner;
               return (
@@ -257,9 +332,15 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                          {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, p') : 'Just now'}
                        </span>
                     </div>
-                    <Badge variant="outline" className={`text-[8px] font-black uppercase border-none h-4 ${daysLeft < 3 ? 'text-red-600 bg-red-50' : 'text-slate-400 bg-slate-50'}`}>
-                       {daysLeft}D REMAINING
-                    </Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={(e) => handleExportPdf(plan, e)}
+                      title="Export PDF / Print"
+                      className="h-6 w-6 text-slate-400 hover:text-accent hover:bg-accent/10 rounded-lg p-0"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                   <p className="text-sm font-black text-primary uppercase leading-tight truncate pr-6">{plan.accountName}</p>
                   {isElevated && plan.userId && (
@@ -291,7 +372,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
               <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed">
                 <FileText className="w-10 h-10 text-slate-100 mx-auto mb-4" />
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
-                  No expansion plans found in the active 90-day window.
+                  No expansion plans match your search.
                 </p>
               </div>
             )}
@@ -307,15 +388,27 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                <CardHeader className="bg-slate-900 text-white pb-8">
                   <div className="flex justify-between items-start mb-4">
                      <Badge className="bg-accent text-white border-none font-black text-[9px] uppercase tracking-widest">Diagnostic Record</Badge>
-                     <div className="text-right">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Auto-Delete Target</p>
-                        <p className="text-xs font-black text-accent">{selectedPlan.expiresAt?.toDate ? format(selectedPlan.expiresAt.toDate(), 'PPPP') : 'N/A'}</p>
-                     </div>
+                     <Button 
+                       onClick={(e) => handleExportPdf(selectedPlan, e)}
+                       className="bg-white/10 hover:bg-white/20 text-white font-black text-[10px] uppercase h-8 px-3 gap-1.5 rounded-lg border border-white/20"
+                     >
+                       <Download className="w-3.5 h-3.5 text-accent" /> EXPORT PDF
+                     </Button>
                   </div>
                   
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                      <CardTitle className="text-3xl font-black tracking-tight uppercase">{selectedPlan.accountName}</CardTitle>
+                      {/* Active Salesforce Search Link */}
+                      <button 
+                        onClick={() => openSalesforceSearch(selectedPlan.accountName, selectedPlan.salesforceId)}
+                        className="text-left group/sf flex items-center gap-3 transition-colors"
+                        title="Click to search in Salesforce"
+                      >
+                        <CardTitle className="text-3xl font-black tracking-tight uppercase group-hover/sf:text-accent transition-colors flex items-center gap-2">
+                          {selectedPlan.accountName}
+                          <ExternalLink className="w-5 h-5 text-accent opacity-0 group-hover/sf:opacity-100 transition-opacity" />
+                        </CardTitle>
+                      </button>
                       <CardDescription className="text-slate-400 font-medium flex items-center gap-2 mt-1">
                         <Info className="w-3.5 h-3.5" /> 
                         {isLeader && selectedPlan.userId && (
@@ -471,12 +564,6 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                         </div>
                       );
                     })}
-                  </div>
-                  <div className="p-8 bg-slate-50 border-t flex items-center gap-4">
-                     <AlertTriangle className="w-5 h-5 text-orange-500" />
-                     <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed tracking-tight max-w-xl">
-                       GOVERNANCE PROTOCOL: This strategic diagnostic is ephemeral and will be irreversibly purged from the BDM Compass data node in {selectedPlan.expiresAt?.toDate ? differenceInDays(selectedPlan.expiresAt.toDate(), new Date()) : 0} days to maintain territory data hygiene.
-                     </p>
                   </div>
                </CardContent>
             </Card>

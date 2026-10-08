@@ -105,7 +105,6 @@ export function WhitespaceAnalysis({
           accountName: accountName.toUpperCase(),
           configs: serviceConfigs,
           createdAt: serverTimestamp(),
-          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days TTL
         });
         toast({ title: "White Space Saved", description: "Diagnostic saved to governance node." });
         if (onSaved) onSaved(res.id);
@@ -153,7 +152,7 @@ export function WhitespaceAnalysis({
 
       pdf.save(`${accountName.replace(/\s+/g, '_')}_Whitespace_Plan.pdf`);
 
-      // 2. Automate Save to Firestore (90 day retention)
+      // 2. Automate Save to Firestore
       if (db && userId) {
         if (initialDocId) {
           const { doc, updateDoc } = await import('firebase/firestore');
@@ -168,11 +167,10 @@ export function WhitespaceAnalysis({
             accountName: accountName.toUpperCase(),
             configs: serviceConfigs,
             createdAt: serverTimestamp(),
-            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days TTL
           });
           if (onSaved) onSaved(res.id);
         }
-        toast({ title: "Analysis Archived", description: "Diagnostic saved to governance node for 90 days." });
+        toast({ title: "Analysis Archived", description: "Diagnostic saved permanently to strategic archive." });
       }
 
     } catch (e) {

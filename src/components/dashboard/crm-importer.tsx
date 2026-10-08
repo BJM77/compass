@@ -1088,6 +1088,27 @@ export function CRMImporter() {
       // 3. Process Actual Spend imports if available
       let actualSpendImportCount = 0;
       if (previewActualSpendRecords.length > 0) {
+        // ═══════════════════════════════════════════════════════════════════
+        // SNAPSHOT REPLACE: The Actual Spend CSV is a cumulative YTD report.
+        // Wipe the existing ledger first so accounts that no longer appear in
+        // the source data are removed from BDM Compass entirely.
+        // accountMappings is deliberately NOT touched — rep assignments survive.
+        // ═══════════════════════════════════════════════════════════════════
+        const existingSpendSnap = await getDocs(collection(db, 'actualRevenues'));
+
+        if (existingSpendSnap.size > 0) {
+          const BATCH_SIZE = 400;
+          let deletedCount = 0;
+          for (let i = 0; i < existingSpendSnap.docs.length; i += BATCH_SIZE) {
+            const deleteBatch = writeBatch(db);
+            const chunk = existingSpendSnap.docs.slice(i, i + BATCH_SIZE);
+            chunk.forEach(d => deleteBatch.delete(d.ref));
+            await deleteBatch.commit();
+            deletedCount += chunk.length;
+          }
+          console.log(`[Actual Spend] Wiped ${deletedCount} stale rows before snapshot replace.`);
+        }
+
         const BATCH_SIZE = 400;
         let committedSpendCount = 0;
         for (let i = 0; i < previewActualSpendRecords.length; i += BATCH_SIZE) {
@@ -1121,7 +1142,10 @@ export function CRMImporter() {
       const activityMsg = activityImportCount > 0 ? `${activityImportCount} activity aggregates` : '';
       const spendMsg = actualSpendImportCount > 0 ? `${actualSpendImportCount} actual spend records` : '';
       const msgs = [pipelineMsg, activityMsg, spendMsg].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' & $1');
-      toast({ title: '✅ Import Complete', description: `Successfully synced ${msgs} to Firestore.` });
+      toast({ 
+        title: '✅ Import Complete', 
+        description: `Successfully synced ${msgs} to Firestore.${actualSpendImportCount > 0 ? ' Previous Actual Spend snapshot was replaced.' : ''}` 
+      });
 
       setPreviewRecords([]);
       setPreviewActivityRecords([]);

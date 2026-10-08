@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, setDoc, doc, serverTimestamp, writeBatch, getDocs } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,7 +12,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Search, Banknote, Calendar, Layers, Coins, Landmark, UserX } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Search, Banknote, Calendar, Layers, Coins, Landmark, UserX, Trash2, Loader2 } from 'lucide-react';
 import { ActualSpendRecord, AccountMapping, UserProfile } from '@/types/crm';
 import { useAuth } from '@/contexts/auth-context';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -287,26 +298,110 @@ export function ActualSpendView() {
     return groupedRecords.filter(r => r.assignedRep === 'Unassigned').length;
   }, [groupedRecords]);
 
+  const [isClearing, setIsClearing] = useState(false);
+
+  const handleClearLedger = async () => {
+    if (!db) return;
+    setIsClearing(true);
+    try {
+      const snap = await getDocs(collection(db, 'actualRevenues'));
+      if (snap.empty) {
+        toast({ title: 'Ledger Already Empty' });
+        return;
+      }
+
+      const BATCH_SIZE = 400;
+      let deleted = 0;
+      for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = snap.docs.slice(i, i + BATCH_SIZE);
+        chunk.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        deleted += chunk.length;
+      }
+
+      toast({
+        title: 'Ledger Cleared',
+        description: `Removed ${deleted} spend rows. Rep assignments were preserved.`,
+      });
+    } catch (e: any) {
+      console.error(e);
+      toast({
+        variant: 'destructive',
+        title: 'Clear Failed',
+        description: e?.message || 'Could not clear the ledger.',
+      });
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   const formatCategory = (categoryStr: string) => {
-    if (!categoryStr) return '-';
-    const cats = categoryStr.split(', ').filter(Boolean).sort();
+    if (!categoryStr) return '—';
+    const cats = categoryStr.split(', ').filter(Boolean);
+    if (cats.length === 0) return '—';
     if (cats.length === 1) {
       const cat = cats[0];
-      return `W${cat.substring(4)} (${cat.substring(0, 4)})`;
+      const m = cat.match(/^(\d{4})-W?(\d{1,2})$/);
+      if (m) return `W${m[2]} · ${m[1]}`;
+      return cat;
     }
-    return `${cats.length} Weeks`;
+    return cats.sort().slice(-1)[0];
   };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex justify-between items-end gap-4">
+      <div className="flex justify-between items-end gap-4 flex-wrap">
         <div>
           <h2 className="text-3xl font-black tracking-tight text-slate-800 flex items-center gap-3">
             <Coins className="w-8 h-8 text-primary" />
             Actual Spend Ledger
           </h2>
-          <p className="text-slate-500 mt-1 font-medium">Weekly actual revenue tracking for business accounts.</p>
+          <p className="text-slate-500 mt-1 font-medium">Cumulative YTD revenue snapshot for business accounts.</p>
         </div>
+
+        {isAdmin && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={isClearing}
+                className="gap-2 text-xs font-bold border-red-200 text-red-600 hover:bg-red-50 h-10"
+              >
+                {isClearing
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Trash2 className="w-3.5 h-3.5" />}
+                Clear Ledger
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear the entire Actual Spend Ledger?</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <span className="block">
+                    This permanently deletes every row in <code className="px-1 py-0.5 bg-slate-100 rounded text-[11px]">actualRevenues</code>.
+                  </span>
+                  <span className="block font-semibold text-slate-700">
+                    Rep assignments in <code className="px-1 py-0.5 bg-slate-100 rounded text-[11px]">accountMappings</code> are preserved — the ledger will repopulate with the same reps after your next CSV upload.
+                  </span>
+                  <span className="block text-red-600 font-semibold">
+                    This cannot be undone. You will need to re-import your YTD report to restore the ledger.
+                  </span>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isClearing}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearLedger}
+                  disabled={isClearing}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {isClearing ? 'Clearing…' : 'Yes, Clear Everything'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Overview Cards */}
@@ -425,7 +520,7 @@ export function ActualSpendView() {
                   <TableHead className="font-bold">Account</TableHead>
                   <TableHead className="font-bold">Business Unit</TableHead>
                   <TableHead className="font-bold text-right">Spend</TableHead>
-                  <TableHead className="font-bold text-center">Category/Week</TableHead>
+                  <TableHead className="font-bold text-center">Snapshot</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
