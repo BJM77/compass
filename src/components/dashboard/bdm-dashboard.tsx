@@ -6,6 +6,7 @@ import { KPICard } from './kpi-card';
 import { TerritoryPlaybook } from './territory-playbook';
 import { OnboardingPlan } from './onboarding-plan';
 import { TWIWView } from './twiw-view';
+import { ViewSkeleton } from '@/components/ui/view-skeleton';
 import { ActivityLogger } from './activity-logger';
 import { WeeklyGoals } from './weekly-goals';
 import { SmartGoalsView } from './smart-goals-view';
@@ -67,6 +68,9 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
 
   const userId = simulatedUser?.uid || authUser?.uid || null;
   const profile = simulatedUser?.profile || authProfile;
+
+  if (!profile) return <ViewSkeleton />;
+
   const isAM = profile?.role === 'ACCOUNT_MANAGER';
 
   const statsDocRef = useMemoFirebase(() => {

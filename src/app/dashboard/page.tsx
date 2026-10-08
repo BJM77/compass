@@ -148,7 +148,7 @@ function DashboardContent() {
     if (activeView === 'OVERVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OverviewHub /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
-    return <BDMDashboard simulatedUser={simulationUid ? { uid: simulationUid, profile: simulatedUserProfile! } : undefined} />;
+    return <BDMDashboard simulatedUser={simulationUid && simulatedUserProfile ? { uid: simulationUid, profile: simulatedUserProfile } : undefined} />;
   };
 
   return (
