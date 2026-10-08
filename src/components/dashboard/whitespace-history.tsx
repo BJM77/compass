@@ -3,7 +3,8 @@ import { collection, query, where, orderBy, deleteDoc, doc, Timestamp, updateDoc
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, Trash2, Calendar, LayoutGrid, FileText, ChevronRight, Loader2, Info, AlertTriangle, Edit3, Search, Download, Target, ExternalLink } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { History, Trash2, Calendar, LayoutGrid, FileText, ChevronRight, Loader2, Info, AlertTriangle, Edit3, Search, Download, Target, ExternalLink, List, Table as TableIcon } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -54,6 +55,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
   const { toast } = useToast();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
 
   // Edit State
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -291,12 +293,35 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-700">
       {/* Sidebar: Archive List */}
       <div className="lg:col-span-4 space-y-4">
-        <header className="px-1">
-          <h2 className="text-sm font-black uppercase tracking-tighter text-primary flex items-center gap-2">
-            <History className="w-4 h-4 text-accent" />
-            Strategic Archive
-          </h2>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Permanent Diagnostic Repository</p>
+        <header className="px-1 flex justify-between items-center">
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-tighter text-primary flex items-center gap-2">
+              <History className="w-4 h-4 text-accent" />
+              Strategic Archive
+            </h2>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Permanent Diagnostic Repository</p>
+          </div>
+          {/* View Toggle (List vs Card) */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setViewMode('card')}
+              title="Card View"
+              className={`h-7 w-7 rounded-lg transition-all ${viewMode === 'card' ? 'bg-white text-accent shadow-sm' : 'text-slate-400 hover:text-slate-700'}`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setViewMode('table')}
+              title="List View"
+              className={`h-7 w-7 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white text-accent shadow-sm' : 'text-slate-400 hover:text-slate-700'}`}
+            >
+              <List className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </header>
 
         {/* Search Bar */}
@@ -311,72 +336,149 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
         </div>
 
         <ScrollArea className="h-[650px] pr-4">
-          <div className="grid gap-3">
-            {filteredPlans.map((plan) => {
-              const isPlanOwner = (user && plan.userId === user.uid) || (profile && plan.userId === profile.uid);
-              const canDeleteThisPlan = isElevated || isPlanOwner;
-              return (
-                <div
-                  key={plan.id}
-                  onClick={() => setSelectedPlanId(plan.id)}
-                  className={`w-full text-left cursor-pointer p-4 rounded-2xl border-2 transition-all group relative ${
-                    selectedPlanId === plan.id 
-                      ? 'border-accent bg-accent/5 shadow-lg' 
-                      : 'border-slate-100 bg-white hover:border-slate-200'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                       <Calendar className="w-3 h-3 text-muted-foreground" />
-                       <span className="text-[9px] font-bold text-muted-foreground uppercase">
-                         {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, p') : 'Just now'}
-                       </span>
+          {viewMode === 'table' ? (
+            /* Compact List View */
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+              <Table>
+                <TableHeader className="bg-slate-50">
+                  <TableRow className="uppercase text-[9px] font-black tracking-widest border-b">
+                    <TableHead className="py-2.5 pl-3">Account</TableHead>
+                    <TableHead className="py-2.5 px-2 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPlans.map((plan) => {
+                    const isPlanOwner = (user && plan.userId === user.uid) || (profile && plan.userId === profile.uid);
+                    const canDeleteThisPlan = isElevated || isPlanOwner;
+                    const isSelected = selectedPlanId === plan.id;
+                    return (
+                      <TableRow
+                        key={plan.id}
+                        onClick={() => setSelectedPlanId(plan.id)}
+                        className={`cursor-pointer transition-colors ${
+                          isSelected ? 'bg-accent/10 font-black text-primary' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <TableCell className="py-2.5 pl-3">
+                          <p className={`text-xs uppercase leading-tight truncate max-w-[150px] ${isSelected ? 'font-black text-accent' : 'font-bold text-slate-800'}`}>
+                            {plan.accountName}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[9px] font-bold text-slate-400">
+                              {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d') : ''}
+                            </span>
+                            {isElevated && plan.userId && (
+                              <span className="text-[9px] font-bold text-accent truncate max-w-[90px]">
+                                • {userMap[plan.userId] || 'Unknown'}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-2.5 px-2 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={(e) => handleExportPdf(plan, e)}
+                              title="Export PDF / Print"
+                              className="h-7 w-7 text-slate-400 hover:text-accent hover:bg-accent/10 rounded-lg p-0"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </Button>
+                            {canDeleteThisPlan && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={(e) => { e.stopPropagation(); handleDelete(plan.id); }}
+                                title="Delete Diagnostic"
+                                className="h-7 w-7 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg p-0"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            /* Card View */
+            <div className="grid gap-3">
+              {filteredPlans.map((plan) => {
+                const isPlanOwner = (user && plan.userId === user.uid) || (profile && plan.userId === profile.uid);
+                const canDeleteThisPlan = isElevated || isPlanOwner;
+                return (
+                  <div
+                    key={plan.id}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    className={`w-full text-left cursor-pointer p-4 rounded-2xl border-2 transition-all group relative ${
+                      selectedPlanId === plan.id 
+                        ? 'border-accent bg-accent/5 shadow-lg' 
+                        : 'border-slate-100 bg-white hover:border-slate-200'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-1.5">
+                         <Calendar className="w-3 h-3 text-muted-foreground" />
+                         <span className="text-[9px] font-bold text-muted-foreground uppercase">
+                           {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, p') : 'Just now'}
+                         </span>
+                      </div>
+                      {/* Action buttons (Export PDF & Delete Trash) - clearly separated */}
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={(e) => handleExportPdf(plan, e)}
+                          title="Export PDF / Print"
+                          className="h-7 w-7 text-slate-400 hover:text-accent hover:bg-accent/10 rounded-lg p-0"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </Button>
+                        {canDeleteThisPlan && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={(e) => { e.stopPropagation(); handleDelete(plan.id); }}
+                            title="Delete Diagnostic"
+                            className="h-7 w-7 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg p-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={(e) => handleExportPdf(plan, e)}
-                      title="Export PDF / Print"
-                      className="h-6 w-6 text-slate-400 hover:text-accent hover:bg-accent/10 rounded-lg p-0"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  <p className="text-sm font-black text-primary uppercase leading-tight truncate pr-6">{plan.accountName}</p>
-                  {isElevated && plan.userId && (
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <UserIcon className="w-3 h-3 text-accent" />
-                      <span className="text-[10px] font-bold text-accent uppercase tracking-wider">{userMap[plan.userId] || 'Unknown User'}</span>
+                    <p className="text-sm font-black text-primary uppercase leading-tight truncate pr-2">{plan.accountName}</p>
+                    {isElevated && plan.userId && (
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <UserIcon className="w-3 h-3 text-accent" />
+                        <span className="text-[10px] font-bold text-accent uppercase tracking-wider">{userMap[plan.userId] || 'Unknown User'}</span>
+                      </div>
+                    )}
+                    <div className="mt-3 flex justify-between items-center">
+                       <div className="flex gap-1">
+                          {Object.keys(plan.configs || {}).slice(0, 3).map(s => (
+                            <div key={s} className="w-2 h-2 rounded-full bg-accent/20" />
+                          ))}
+                       </div>
+                       <ChevronRight className={`w-4 h-4 transition-transform ${selectedPlanId === plan.id ? 'translate-x-1 text-accent' : 'text-slate-300'}`} />
                     </div>
-                  )}
-                  <div className="mt-3 flex justify-between items-center">
-                     <div className="flex gap-1">
-                        {Object.keys(plan.configs || {}).slice(0, 3).map(s => (
-                          <div key={s} className="w-2 h-2 rounded-full bg-accent/20" />
-                        ))}
-                     </div>
-                     <ChevronRight className={`w-4 h-4 transition-transform ${selectedPlanId === plan.id ? 'translate-x-1 text-accent' : 'text-slate-300'}`} />
                   </div>
-                  {canDeleteThisPlan && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleDelete(plan.id); }}
-                      className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-            {filteredPlans.length === 0 && (
-              <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed">
-                <FileText className="w-10 h-10 text-slate-100 mx-auto mb-4" />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
-                  No expansion plans match your search.
-                </p>
-              </div>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
+          {filteredPlans.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed">
+              <FileText className="w-10 h-10 text-slate-100 mx-auto mb-4" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
+                No expansion plans match your search.
+              </p>
+            </div>
+          )}
         </ScrollArea>
       </div>
 
