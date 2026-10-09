@@ -53,7 +53,7 @@ import {
 import {
   LayoutDashboard, Users, Settings, LogOut, Compass, ShieldCheck,
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History, Link as LinkIcon,
-  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone, Navigation, ChevronDown, ChevronRight
+  Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone, Monitor, Navigation, ChevronDown, ChevronRight
 } from 'lucide-react';
 const CRMImporter = dynamic(() => import('@/components/dashboard/crm-importer').then(m => m.CRMImporter), { loading: () => <ViewSkeleton /> });
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -204,10 +204,29 @@ function DashboardContent() {
           <SidebarFooter className="p-4 border-t">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => { localStorage.setItem('forceMobile', 'true'); window.dispatchEvent(new Event('force-mobile-change')); }} className="text-indigo-600">
-                  <Smartphone className="w-4 h-4" />
-                  <span>Mobile Mode</span>
-                </SidebarMenuButton>
+                {typeof window !== 'undefined' && localStorage.getItem('forceMobile') === 'true' ? (
+                  <SidebarMenuButton 
+                    onClick={() => { 
+                      localStorage.removeItem('forceMobile'); 
+                      window.dispatchEvent(new Event('force-mobile-change')); 
+                    }} 
+                    className="text-indigo-600 font-bold"
+                  >
+                    <Monitor className="w-4 h-4" />
+                    <span>Desktop Mode</span>
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton 
+                    onClick={() => { 
+                      localStorage.setItem('forceMobile', 'true'); 
+                      window.dispatchEvent(new Event('force-mobile-change')); 
+                    }} 
+                    className="text-indigo-600"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    <span>Mobile Mode</span>
+                  </SidebarMenuButton>
+                )}
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleSignOut} className="text-red-500">
