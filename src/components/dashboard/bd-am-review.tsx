@@ -12,14 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { 
   Users, Calendar, TrendingUp, PhoneCall, CalendarCheck, Target, 
-  Trophy, AlertTriangle, Lightbulb, Rocket, DollarSign, Filter,
-  Building, RefreshCw, ChevronRight, FileText, CheckCircle2
+  Trophy, AlertTriangle, Rocket, DollarSign, Filter,
+  Building, Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, parseISO, isWithinInterval, subDays } from 'date-fns';
-import { formatEAV, getCurrentWeek, normalizeBdmName, isUserSubmissionMatch } from '@/lib/utils';
+import { formatEAV, getCurrentWeek, normalizeBdmName, isUserSubmissionMatch, getWeekForDate } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type DatePreset = 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | 'CUSTOM';
+type SortField = 'pipeline' | 'userName' | 'stage' | 'value' | 'probability' | 'expectedDate';
+type SortOrder = 'asc' | 'desc';
 
 export function BdAmReview() {
   const db = useFirestore();
@@ -34,7 +36,13 @@ export function BdAmReview() {
   const [customEndDate, setCustomEndDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [selectedUserId, setSelectedUserId] = useState<string>('ALL');
 
-  // Load team users for drop-down
+  // Ledger Search, Filter & Sort State
+  const [ledgerSearch, setLedgerSearch] = useState('');
+  const [ledgerStageFilter, setLedgerStageFilter] = useState('ALL');
+  const [sortField, setSortField] = useState<SortField>('value');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  // Load team users for drop-down (STRICTLY BDM & ACCOUNT_MANAGER only)
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, 'users');
@@ -43,7 +51,9 @@ export function BdAmReview() {
 
   const teamUsers = useMemo(() => {
     if (!rawUsers) return [];
-    return rawUsers.filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER' || u.role === 'LEADER' || u.role === 'GM');
+    return rawUsers
+      .filter(u => u.role === 'BDM' || u.role === 'ACCOUNT_MANAGER')
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [rawUsers]);
 
   // Determine current active user filter metadata
@@ -85,6 +95,17 @@ export function BdAmReview() {
     return { start, end };
   }, [datePreset, customStartDate, customEndDate]);
 
+  // Generate list of financial week keys falling in dateRange
+  const validWeeksInRange = useMemo(() => {
+    const weeks = new Set<string>();
+    const curr = new Date(dateRange.start);
+    while (curr <= dateRange.end) {
+      weeks.add(getWeekForDate(curr));
+      curr.setDate(curr.getDate() + 1);
+    }
+    return weeks;
+  }, [dateRange]);
+
   // -------------------------------------------------------------
   // 3. Load TWIW Submissions & Call Plans
   // -------------------------------------------------------------
@@ -119,29 +140,39 @@ export function BdAmReview() {
     return isWithinInterval(d, { start: dateRange.start, end: dateRange.end });
   };
 
+  // Helper for TWIW submission date matching
+  const isSubInRange = (sub: any) => {
+    if (sub.createdAt) {
+      return isDateInRange(sub.createdAt);
+    }
+    if (sub.updatedAt) {
+      return isDateInRange(sub.updatedAt);
+    }
+    if (sub.week) {
+      return validWeeksInRange.has(sub.week);
+    }
+    return false;
+  };
+
   // -------------------------------------------------------------
-  // 4. Filter & Aggregate TWTW Data (Wins, Risks, Updates, Priorities)
+  // 4. Filter & Aggregate TWTW Data (Wins, Risks, Updates)
   // -------------------------------------------------------------
   const aggregatedTwiwData = useMemo(() => {
-    if (!allTwiwSubmissions) return { wins: [], risks: [], majorUpdates: [], projectedWins: [], priorities: [], totalCalls: 0, totalApps: 0 };
+    if (!allTwiwSubmissions) return { wins: [], risks: [], majorUpdates: [], projectedWins: [], totalCalls: 0, totalApps: 0 };
 
     let filtered = allTwiwSubmissions.filter(sub => {
       // User filter check
       if (selectedUserId !== 'ALL') {
         if (!isUserSubmissionMatch({ id: selectedUserId, name: selectedUserObj?.name }, sub)) return false;
       }
-      // Date range check via submission createdAt or fallback week matching
-      if (sub.createdAt) {
-        return isDateInRange(sub.createdAt);
-      }
-      return true; // Fallback include if date field is pending
+      // Strict Date Range check
+      return isSubInRange(sub);
     });
 
     const wins: any[] = [];
     const risks: any[] = [];
     const majorUpdates: any[] = [];
     const projectedWins: any[] = [];
-    const priorities: any[] = [];
     let totalCalls = 0;
     let totalApps = 0;
 
@@ -164,18 +195,14 @@ export function BdAmReview() {
         if (!p.isHidden) projectedWins.push({ ...p, repName, week: sub.week });
       });
 
-      (sub.priorities || []).forEach((pr: any) => {
-        if (!pr.isHidden) priorities.push({ ...pr, repName, week: sub.week });
-      });
-
       if (sub.kpiReview) {
         totalCalls += Number(sub.kpiReview.callsActual) || 0;
         totalApps += Number(sub.kpiReview.appointmentsActual) || 0;
       }
     });
 
-    return { wins, risks, majorUpdates, projectedWins, priorities, totalCalls, totalApps };
-  }, [allTwiwSubmissions, selectedUserId, selectedUserObj, dateRange]);
+    return { wins, risks, majorUpdates, projectedWins, totalCalls, totalApps };
+  }, [allTwiwSubmissions, selectedUserId, selectedUserObj, dateRange, validWeeksInRange]);
 
   // -------------------------------------------------------------
   // 5. Aggregate Call Plans & Activity Metrics
@@ -189,16 +216,17 @@ export function BdAmReview() {
       filteredProgress = filteredProgress.filter(wp => wp.userId === selectedUserId);
     }
 
-    // Filter call plans by date range
+    // Filter call plans & weekly progress by date range
     const inRangePlans = filteredPlans.filter(cp => isDateInRange(cp.createdAt || cp.updatedAt));
     const totalCallsFromPlans = inRangePlans.length;
 
-    // Secondary source from weeklyProgress if TWIW KPIs not entered
     let progressCalls = 0;
     let progressApps = 0;
     filteredProgress.forEach(wp => {
-      progressCalls += Number(wp.calls || wp.crmCalls || 0);
-      progressApps += Number(wp.appointments || wp.crmApps || wp.meetingsHeld || 0);
+      if (wp.week && validWeeksInRange.has(wp.week)) {
+        progressCalls += Number(wp.calls || wp.crmCalls || 0);
+        progressApps += Number(wp.appointments || wp.crmApps || wp.meetingsHeld || 0);
+      }
     });
 
     const callsCount = Math.max(aggregatedTwiwData.totalCalls, totalCallsFromPlans, progressCalls);
@@ -209,10 +237,10 @@ export function BdAmReview() {
       appointments: appsCount,
       callPlansCreated: totalCallsFromPlans,
     };
-  }, [allCallPlans, allWeeklyProgress, selectedUserId, dateRange, aggregatedTwiwData]);
+  }, [allCallPlans, allWeeklyProgress, selectedUserId, dateRange, validWeeksInRange, aggregatedTwiwData]);
 
   // -------------------------------------------------------------
-  // 6. Aggregate Active Opportunities
+  // 6. Aggregate Active Opportunities & Sorting/Filtering
   // -------------------------------------------------------------
   const activeOpportunities = useMemo(() => {
     if (!allDeals) return [];
@@ -230,9 +258,68 @@ export function BdAmReview() {
     });
   }, [allDeals, selectedUserId, selectedUserObj]);
 
-  const totalActivePipelineValue = useMemo(() => {
-    return activeOpportunities.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  // Stage options derived dynamically from live active opportunities
+  const availableStages = useMemo(() => {
+    const stages = new Set<string>();
+    activeOpportunities.forEach(d => {
+      if (d.stage) stages.add(d.stage);
+    });
+    return Array.from(stages).sort();
   }, [activeOpportunities]);
+
+  // Process Search, Filter & Sort on Opportunities
+  const processedOpportunities = useMemo(() => {
+    let result = [...activeOpportunities];
+
+    // Search filter
+    if (ledgerSearch.trim()) {
+      const query = ledgerSearch.toLowerCase().trim();
+      result = result.filter(d => 
+        (d.pipeline || '').toLowerCase().includes(query) ||
+        (d.userName || '').toLowerCase().includes(query) ||
+        (d.accountMasterCode || '').toLowerCase().includes(query) ||
+        (d.businessUnit || '').toLowerCase().includes(query)
+      );
+    }
+
+    // Stage filter
+    if (ledgerStageFilter !== 'ALL') {
+      result = result.filter(d => d.stage === ledgerStageFilter);
+    }
+
+    // Sorting logic
+    result.sort((a, b) => {
+      let valA: any = a[sortField];
+      let valB: any = b[sortField];
+
+      if (sortField === 'value' || sortField === 'probability') {
+        valA = Number(valA) || 0;
+        valB = Number(valB) || 0;
+      } else {
+        valA = String(valA || '').toLowerCase();
+        valB = String(valB || '').toLowerCase();
+      }
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [activeOpportunities, ledgerSearch, ledgerStageFilter, sortField, sortOrder]);
+
+  const totalActivePipelineValue = useMemo(() => {
+    return processedOpportunities.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  }, [processedOpportunities]);
+
+  const handleSortToggle = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortOrder(field === 'value' || field === 'probability' ? 'desc' : 'asc');
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -257,18 +344,18 @@ export function BdAmReview() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Team Member Filter */}
+            {/* Team Member Filter (BDMs & AMs only) */}
             <div className="w-full sm:w-64">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Team Member</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Account Manager / BDM</label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger className="h-10 bg-slate-50 border-slate-200 rounded-xl font-bold text-slate-700 text-xs">
                   <SelectValue placeholder="Select Team Member" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="ALL" className="font-bold text-xs">All Team Members</SelectItem>
+                  <SelectItem value="ALL" className="font-bold text-xs">All BDMs & AMs</SelectItem>
                   {teamUsers.map(u => (
                     <SelectItem key={u.id} value={u.id} className="font-bold text-xs">
-                      {normalizeBdmName(u.name, u.id)} ({u.role?.replace('_', ' ') || 'BDM'})
+                      {normalizeBdmName(u.name, u.id)} ({u.role === 'ACCOUNT_MANAGER' ? 'AM' : 'BDM'})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -326,7 +413,7 @@ export function BdAmReview() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-emerald-500" />
-            <span>Target context: <strong className="text-slate-900 font-bold">{selectedUserObj ? selectedUserObj.name : 'Entire Team'}</strong></span>
+            <span>Target context: <strong className="text-slate-900 font-bold">{selectedUserObj ? selectedUserObj.name : 'All BDMs & AMs'}</strong></span>
           </div>
         </div>
       </div>
@@ -368,7 +455,7 @@ export function BdAmReview() {
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Opportunities</p>
-              <h3 className="text-2xl font-black text-slate-900">{activeOpportunities.length}</h3>
+              <h3 className="text-2xl font-black text-slate-900">{processedOpportunities.length}</h3>
               <p className="text-[10px] font-bold text-emerald-600 font-semibold">{formatEAV(totalActivePipelineValue)} Total EAV</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
@@ -526,74 +613,98 @@ export function BdAmReview() {
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* Strategic Focus For Next Week & Priorities */}
+      {/* Active Opportunities Table with Search, Filter & Column Sorting */}
       {/* ------------------------------------------------------------- */}
       <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white overflow-hidden">
-        <CardHeader className="bg-indigo-50/50 border-b border-indigo-100 py-4">
-          <CardTitle className="text-sm font-black uppercase tracking-wider text-indigo-900 flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-indigo-600" /> Strategic Focus & Commitments
-            </span>
-            <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 font-bold">{aggregatedTwiwData.priorities.length}</Badge>
-          </CardTitle>
-          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Priorities and focus commitments logged for upcoming execution
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-5 space-y-3">
-          {aggregatedTwiwData.priorities.length === 0 ? (
-            <div className="text-center py-8 text-xs font-bold text-slate-400">
-              No priorities or commitments recorded for this period.
+        <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <Target className="w-4 h-4 text-primary" /> Active Opportunities Ledger
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Live deals currently active in the sales pipeline
+              </CardDescription>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {aggregatedTwiwData.priorities.map((pr, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
-                    {idx + 1}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">{pr.text}</p>
-                    <p className="text-[10px] font-bold text-slate-400 mt-1">Salesperson: {pr.repName}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ------------------------------------------------------------- */}
-      {/* Active Opportunities Table */}
-      {/* ------------------------------------------------------------- */}
-      <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-              <Target className="w-4 h-4 text-primary" /> Active Opportunities Ledger
-            </CardTitle>
-            <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Live deals currently active in the sales pipeline
-            </CardDescription>
+            <Badge className="bg-primary text-white font-black text-xs px-3 py-1 self-start sm:self-auto">
+              {processedOpportunities.length} Deals ({formatEAV(totalActivePipelineValue)})
+            </Badge>
           </div>
-          <Badge className="bg-primary text-white font-black text-xs px-3 py-1">
-            {activeOpportunities.length} Deals ({formatEAV(totalActivePipelineValue)})
-          </Badge>
+
+          {/* Search Bar & Stage Filter Controls */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Input
+                placeholder="Search account, rep, BU..."
+                value={ledgerSearch}
+                onChange={e => setLedgerSearch(e.target.value)}
+                className="pl-9 h-9 text-xs font-semibold bg-white border-slate-200 rounded-xl"
+              />
+            </div>
+
+            {/* Stage Dropdown Filter */}
+            <div className="w-full sm:w-56">
+              <Select value={ledgerStageFilter} onValueChange={setLedgerStageFilter}>
+                <SelectTrigger className="h-9 bg-white border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+                  <SelectValue placeholder="Filter by Stage" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="ALL" className="text-xs font-semibold">All Pipeline Stages</SelectItem>
+                  {availableStages.map(stg => (
+                    <SelectItem key={stg} value={stg} className="text-xs font-semibold">{stg}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
+
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-slate-50 border-b border-slate-200">
-              <TableRow className="uppercase text-[9px] font-black tracking-widest text-slate-500">
-                <TableHead className="p-3">Opportunity / Account</TableHead>
-                <TableHead className="p-3">Rep</TableHead>
-                <TableHead className="p-3">Stage</TableHead>
-                <TableHead className="p-3">EAV Value</TableHead>
-                <TableHead className="p-3">Prob.</TableHead>
-                <TableHead className="p-3">Expected Close</TableHead>
+              <TableRow className="uppercase text-[9px] font-black tracking-widest text-slate-500 select-none">
+                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('pipeline')}>
+                  <div className="flex items-center gap-1.5">
+                    <span>Opportunity / Account</span>
+                    {sortField === 'pipeline' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                  </div>
+                </TableHead>
+                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('userName')}>
+                  <div className="flex items-center gap-1.5">
+                    <span>Rep</span>
+                    {sortField === 'userName' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                  </div>
+                </TableHead>
+                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('stage')}>
+                  <div className="flex items-center gap-1.5">
+                    <span>Stage</span>
+                    {sortField === 'stage' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                  </div>
+                </TableHead>
+                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('value')}>
+                  <div className="flex items-center gap-1.5">
+                    <span>EAV Value</span>
+                    {sortField === 'value' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                  </div>
+                </TableHead>
+                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('probability')}>
+                  <div className="flex items-center gap-1.5">
+                    <span>Prob.</span>
+                    {sortField === 'probability' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                  </div>
+                </TableHead>
+                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('expectedDate')}>
+                  <div className="flex items-center gap-1.5">
+                    <span>Expected Close</span>
+                    {sortField === 'expectedDate' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                  </div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-slate-100 bg-white">
-              {activeOpportunities.map((deal: any, idx: number) => (
+              {processedOpportunities.map((deal: any, idx: number) => (
                 <TableRow key={deal.id || `deal-${idx}`}>
                   <TableCell className="p-3">
                     <p className="font-bold text-xs text-slate-900">{deal.pipeline || 'Unnamed Deal'}</p>
@@ -618,10 +729,10 @@ export function BdAmReview() {
                   </TableCell>
                 </TableRow>
               ))}
-              {activeOpportunities.length === 0 && (
+              {processedOpportunities.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-12 text-slate-400 text-xs font-bold uppercase tracking-widest">
-                    No active opportunities found for the selected team member & timeframe.
+                    No active opportunities match the selected criteria.
                   </TableCell>
                 </TableRow>
               )}

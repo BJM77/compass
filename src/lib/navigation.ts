@@ -44,14 +44,12 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
       { view: 'CANVASSING', label: 'Canvassing', icon: Navigation },
       { view: 'FACT_FINDING', label: 'Fact Finding', icon: FileSearch },
       { view: 'WHITE_SPACE', label: 'White Space', icon: LayoutGrid, guestAllowed: true },
-      { view: 'ACTUAL_SPEND', label: 'Actual Spend', icon: Coins },
     ]
   },
   {
     id: 'strategy',
     label: 'Strategy & Playbooks',
     items: [
-      { view: 'BD_AM_REVIEW', label: 'BD/AM Review', icon: Users, guestAllowed: true },
       { view: 'SUCCESS_PLANS', label: 'Success Plans', icon: ClipboardList },
       { view: 'PLAYBOOK', label: 'Playbooks', icon: BookOpen },
       { view: 'STRATEGIC_ARCHIVE', label: 'Strategic Archive', icon: Archive },
@@ -61,6 +59,13 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     id: 'reporting',
     label: 'Reporting',
     items: [
+      { view: 'BD_AM_REVIEW', label: 'BD/AM Review', icon: Users, guestAllowed: true },
+      { view: 'ACTUAL_SPEND', label: 'Actual Spend', icon: Coins },
+      { view: 'GM_REVIEW', label: 'GM Command Hub', icon: Shield, adminOnly: true },
+      { view: 'FF_ADMIN', label: 'FF Admin', icon: FileSearch, adminOnly: true },
+      { view: 'STRATEGIC_REPOSITORY', label: 'Strategic Repo', icon: Sparkles, adminOnly: true },
+      { view: 'OVERVIEW', label: 'Executive Overview', icon: LayoutDashboard, adminOnly: true },
+      { view: 'DATA_HEALTH', label: 'Data Health', icon: Shield, adminOnly: true },
       { view: 'ARCHIVE', label: 'Weekly Snapshot', icon: Archive },
       { view: 'OPS_REPORT', label: 'Ops Report', icon: AlertCircle, guestAllowed: true },
     ]
@@ -70,22 +75,17 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     label: 'Leadership & Admin',
     items: [
       { view: 'TEAM', label: 'Team', icon: Users, adminOnly: true },
-      { view: 'GM_REVIEW', label: 'GM Command Hub', icon: Shield, adminOnly: true },
-      { view: 'FF_ADMIN', label: 'FF Admin', icon: FileSearch, adminOnly: true },
       { view: 'AM_BD', label: 'AM/BD Notes Admin', icon: ClipboardList, adminOnly: true },
       { view: 'TEAM_GOALS', label: 'Team Goals', icon: Star, adminOnly: true },
       { view: 'STRATEGY', label: 'Strategy', icon: Map, adminOnly: true },
-      { view: 'STRATEGIC_REPOSITORY', label: 'Strategic Repo', icon: Sparkles, adminOnly: true },
       { view: 'BRIEFS', label: 'Briefs', icon: Sparkles, adminOnly: true },
       { view: 'OPS_REVIEW', label: 'Ops Review Ledger', icon: Shield, adminOnly: true },
-      { view: 'OVERVIEW', label: 'Executive Overview', icon: LayoutDashboard, adminOnly: true },
     ]
   },
   {
     id: 'admin_system',
     label: 'System Admin',
     items: [
-      { view: 'DATA_HEALTH', label: 'Data Health', icon: Shield, adminOnly: true },
       { view: 'DATA_EXPLORER', label: 'Data Explorer', icon: Database, adminOnly: true },
       { view: 'UPLOAD', label: 'CRM Import', icon: Upload, adminOnly: true },
       { view: 'BROADCAST', label: 'Broadcast Admin', icon: Megaphone, adminOnly: true },
