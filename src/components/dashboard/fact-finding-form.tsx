@@ -836,7 +836,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     <Label htmlFor="currentCustomer" className="text-sm font-black text-indigo-700 cursor-pointer print:text-xs">Current Customer</Label>
                   </div>
                   <div className="flex flex-wrap gap-2 print:hidden">
-                    {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
+                    {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading', 'Down Trading'].map(s => (
                       <button
                         key={s}
                         type="button"

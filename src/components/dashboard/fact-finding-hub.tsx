@@ -193,7 +193,7 @@ export function FactFindingHub() {
     } else if (sortUserDir === 'stage_process') {
       const STAGE_ORDER = [
         'New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 
-        'Credit Check', 'Account Setup', 'Customer Training', 'Trading'
+        'Credit Check', 'Account Setup', 'Customer Training', 'Trading', 'Down Trading'
       ];
       result.sort((a, b) => {
         const idxA = STAGE_ORDER.indexOf(a.stage || 'New');
@@ -216,6 +216,7 @@ export function FactFindingHub() {
       case 'Account Setup': return { fill: 'w-[75%]', color: 'bg-teal-200', text: 'text-teal-800' };
       case 'Customer Training': return { fill: 'w-[90%]', color: 'bg-cyan-200', text: 'text-cyan-800' };
       case 'Trading': return { fill: 'w-[100%]', color: 'bg-green-300', text: 'text-green-900' };
+      case 'Down Trading': return { fill: 'w-[100%]', color: 'bg-red-200', text: 'text-red-800' };
       default: return { fill: 'w-[0%]', color: 'bg-transparent', text: 'text-slate-500' };
     }
   };
@@ -332,7 +333,7 @@ export function FactFindingHub() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Stages</SelectItem>
-                {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading'].map(s => (
+                {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading', 'Down Trading'].map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
