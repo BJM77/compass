@@ -55,6 +55,7 @@ import {
   UserCircle, XCircle, PhoneCall, Archive, Shield, MoreHorizontal, X, LayoutGrid, History, Link as LinkIcon,
   Loader2, Star, Sparkles, Map, Database, BarChart4, FileSearch, AlertCircle, ClipboardList, Coins, CalendarCheck, Beaker, Upload, Megaphone, Send, BookOpen, Clock, Smartphone, Monitor, Navigation, ChevronDown, ChevronRight
 } from 'lucide-react';
+const BdAmReview = dynamic(() => import('@/components/dashboard/bd-am-review').then(m => m.BdAmReview), { loading: () => <ViewSkeleton /> });
 const CRMImporter = dynamic(() => import('@/components/dashboard/crm-importer').then(m => m.CRMImporter), { loading: () => <ViewSkeleton /> });
 import { useAuth as useFirebaseAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -146,6 +147,7 @@ function DashboardContent() {
     if (activeView === 'FF_ADMIN' && isLeader) return <div className="w-full p-4 md:p-8"><FFAdminHub /></div>;
     if (activeView === 'DATA_HEALTH' && isLeader) return <div className="w-full p-4 md:p-8"><DataHealthDashboard /></div>;
     if (activeView === 'OVERVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OverviewHub /></div>;
+    if (activeView === 'BD_AM_REVIEW') return <div className="w-full p-4 md:p-8"><BdAmReview /></div>;
     
     if (isLeader && !simulationUid) return <LeaderDashboard onSimulate={handleSimulate} />;
     return <BDMDashboard simulatedUser={simulationUid && simulatedUserProfile ? { uid: simulationUid, profile: simulatedUserProfile } : undefined} />;

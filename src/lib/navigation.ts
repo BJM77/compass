@@ -6,7 +6,7 @@ export type DashboardView =
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' 
   | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' 
   | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' 
-  | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW' | 'ALIGN_CUSTOMER' | 'FF_ADMIN';
+  | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW' | 'ALIGN_CUSTOMER' | 'FF_ADMIN' | 'BD_AM_REVIEW';
 
 export type UserRole = 'BDM' | 'ACCOUNT_MANAGER' | 'LEADER' | 'GM' | 'ADMIN' | 'GUEST';
 
@@ -51,6 +51,7 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     id: 'strategy',
     label: 'Strategy & Playbooks',
     items: [
+      { view: 'BD_AM_REVIEW', label: 'BD/AM Review', icon: Users, guestAllowed: true },
       { view: 'SUCCESS_PLANS', label: 'Success Plans', icon: ClipboardList },
       { view: 'PLAYBOOK', label: 'Playbooks', icon: BookOpen },
       { view: 'STRATEGIC_ARCHIVE', label: 'Strategic Archive', icon: Archive },
