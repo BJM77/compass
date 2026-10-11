@@ -26,6 +26,9 @@ export default {
         'lg': '1024px',
         'xl': '1280px',
         '2xl': '1536px',
+        // Desktop navigation: mouse/trackpad screens >= 1024px, or any screen >= 1367px.
+        // Phones and touch tablets get the mobile layout (sticky bottom menu).
+        'nav': { raw: '(min-width: 1367px), (min-width: 1024px) and (pointer: fine)' },
         '3xl': '1920px',
       },
       spacing: {

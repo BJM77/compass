@@ -35,3 +35,34 @@ export function useIsMobile(): boolean {
 
   return isMobile;
 }
+
+/**
+ * Desktop navigation media query. Mirrors the Tailwind `nav` screen in tailwind.config.ts:
+ * desktop nav only for >= 1367px, or >= 1024px with a fine pointer (mouse/trackpad).
+ */
+export const DESKTOP_NAV_QUERY = "(min-width: 1367px), (min-width: 1024px) and (pointer: fine)";
+
+/**
+ * True on phones and touch tablets (and when 'forceMobile' is on): these use the
+ * mobile navigation (sticky bottom menu + slide-out sidebar sheet).
+ */
+export function useIsMobileNav(): boolean {
+  const [isMobileNav, setIsMobileNav] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(DESKTOP_NAV_QUERY);
+    const update = () => {
+      const forced = window.localStorage.getItem("forceMobile") === "true";
+      setIsMobileNav(forced || !mql.matches);
+    };
+    update();
+    mql.addEventListener("change", update);
+    window.addEventListener("force-mobile-change", update);
+    return () => {
+      mql.removeEventListener("change", update);
+      window.removeEventListener("force-mobile-change", update);
+    };
+  }, []);
+
+  return isMobileNav;
+}
