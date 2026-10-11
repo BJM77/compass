@@ -394,3 +394,15 @@ html.mobile-layout :is(main, [role="dialog"]) .recharts-responsive-container,
 html.mobile-layout :is(main, [role="dialog"]) .recharts-wrapper {
   max-width: 100% !important;
 }
+
+/* Root guard + tab strips scroll inside themselves (mobile/tablet) */
+html.mobile-layout [data-sidebar="inset"], html.mobile-layout main { min-width: 0; max-width: 100%; }
+html.mobile-layout [role="tablist"]:not([class*="grid"]) {
+  max-width: 100%;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+html.mobile-layout [role="tablist"]:not([class*="grid"]) > * { flex-shrink: 0; }
