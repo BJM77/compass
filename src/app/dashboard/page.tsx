@@ -108,6 +108,15 @@ function DashboardContent() {
       router.push('/login'); 
     } 
   };
+  // Logo/title home button: back to the main Dashboard view.
+  const goHome = () => {
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/dashboard')) {
+      router.push('/dashboard');
+      return;
+    }
+    navigateTo('DASHBOARD');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const handleSimulate = (uid: string) => { setSimulationUid(uid); navigateTo('DASHBOARD'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
     // Temporary escalation removed in favor of hardcoded check in auth-context
 
@@ -160,7 +169,7 @@ function DashboardContent() {
     <AuthGuard>
       <SidebarProvider>
         <Sidebar collapsible="icon">
-          <SidebarHeader className="p-4 flex items-center gap-2"><Compass className="w-6 h-6 text-primary" /><span className="font-bold text-lg text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></SidebarHeader>
+          <SidebarHeader className="p-4"><button type="button" onClick={goHome} aria-label="Home" title="Home" className="flex items-center gap-2 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Compass className="w-6 h-6 text-primary shrink-0" /><span className="font-bold text-lg text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></button></SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupContent>
@@ -245,10 +254,10 @@ function DashboardContent() {
         <SidebarInset className="bg-[#F7F6F8]">
           <header className="sticky top-0 z-30 flex items-center h-16 px-4 min-w-0 max-w-full bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2 print:hidden">
             <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center gap-2 nav:hidden pl-1">
+            <button type="button" onClick={goHome} aria-label="Home" title="Home" className="flex items-center gap-2 nav:hidden pl-1 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <Compass className="w-5 h-5 text-indigo-600" />
               <span className="font-black uppercase tracking-tight text-xs text-slate-900">BDM Compass</span>
-            </div>
+            </button>
             
             {isLeader && (
               <div className="ml-2">
