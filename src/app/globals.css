@@ -406,3 +406,6 @@ html.mobile-layout [role="tablist"]:not([class*="grid"]) {
   -webkit-overflow-scrolling: touch;
 }
 html.mobile-layout [role="tablist"]:not([class*="grid"]) > * { flex-shrink: 0; }
+
+/* Dev diagnostics button is desktop-only (overlaps the sticky bottom bar) */
+html.mobile-layout .dev-diagnostics-fab { display: none !important; }

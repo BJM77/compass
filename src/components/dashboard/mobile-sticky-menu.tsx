@@ -47,7 +47,12 @@ export function MobileStickyMenu({
       const stored = localStorage.getItem(PINNED_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) setPinnedIds(parsed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Cap at MAX_PINS (All Menus is always shown separately and doesn't count).
+          const trimmed = Array.from(new Set(parsed)).slice(0, MAX_PINS) as DashboardView[];
+          setPinnedIds(trimmed);
+          if (trimmed.length !== parsed.length) localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(trimmed));
+        }
       }
     } catch (e) {
       console.error('Failed to load pinned menu items', e);
@@ -58,7 +63,7 @@ export function MobileStickyMenu({
 
   // Only show pins the user can actually reach; fall back to their first items if none survive.
   const validPinned = useMemo(() => {
-    const valid = pinnedIds
+    const valid = pinnedIds.slice(0, MAX_PINS)
       .map(id => accessibleItems.find(i => i.view === id))
       .filter((i): i is NavItem => !!i);
     return valid.length > 0 ? valid : accessibleItems.slice(0, MAX_PINS);
@@ -76,7 +81,7 @@ export function MobileStickyMenu({
   };
 
   const openCustomize = () => {
-    setTempPinnedIds(validPinned.map(i => i.view));
+    setTempPinnedIds(validPinned.map(i => i.view).slice(0, MAX_PINS));
     setIsCustomizeOpen(true);
   };
 
@@ -90,7 +95,7 @@ export function MobileStickyMenu({
       setTempPinnedIds(tempPinnedIds.filter(v => v !== id));
     } else {
       if (tempPinnedIds.length >= MAX_PINS) {
-        toast({ title: 'Maximum quick links', description: `You can pin up to ${MAX_PINS} items on the sticky bar.`, variant: 'destructive' });
+        toast({ title: 'Maximum quick links', description: `You can pin up to ${MAX_PINS} items. All Menus is always shown in addition.`, variant: 'destructive' });
         return;
       }
       setTempPinnedIds([...tempPinnedIds, id]);
@@ -116,7 +121,7 @@ export function MobileStickyMenu({
         aria-label="Quick navigation"
         className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] print:hidden pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="flex items-center justify-around px-2 py-1.5 h-16 max-w-2xl mx-auto">
+        <div className="flex items-stretch justify-around gap-0.5 px-1 py-1.5 h-16 max-w-2xl mx-auto">
           {validPinned.map(item => {
             const isActive = activeView === item.view;
             return (
@@ -126,22 +131,22 @@ export function MobileStickyMenu({
                 onClick={() => go(item.view)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex flex-col items-center justify-center flex-1 min-w-0 py-1 px-1 rounded-xl gap-1 transition-all',
+                  'flex flex-col items-center justify-center flex-1 basis-0 min-w-0 py-1 px-0.5 rounded-xl gap-1 transition-all',
                   isActive ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                 )}
               >
-                <item.icon className={cn('h-5 w-5', isActive && 'stroke-[2.5px]')} />
-                <span className="truncate max-w-[80px] text-[10px] font-bold leading-none">{item.label}</span>
+                <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'stroke-[2.5px]')} />
+                <span className="truncate max-w-[70px] w-full text-center text-[10px] font-bold leading-none">{item.label}</span>
               </button>
             );
           })}
           <button
             type="button"
             onClick={() => setIsFullOpen(true)}
-            className="flex flex-col items-center justify-center flex-1 min-w-0 py-1 px-1 rounded-xl gap-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
+            className="flex flex-col items-center justify-center flex-1 basis-0 min-w-0 py-1 px-0.5 rounded-xl gap-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
           >
-            <Menu className="h-5 w-5" />
-            <span className="truncate max-w-[80px] text-[10px] font-bold leading-none">All Menus</span>
+            <Menu className="h-5 w-5 shrink-0" />
+            <span className="truncate max-w-[70px] w-full text-center text-[10px] font-bold leading-none">All Menus</span>
           </button>
         </div>
       </nav>
@@ -227,7 +232,7 @@ export function MobileStickyMenu({
               Customize Sticky Bar
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Choose up to {MAX_PINS} items for your bottom bar. Saved on this device.
+              Select up to {MAX_PINS} quick access items to feature on your mobile bottom bar. The All Menus button is always shown and doesn't count. Saved on this device.
             </DialogDescription>
           </DialogHeader>
 
