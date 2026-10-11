@@ -9,12 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star, MessageSquare } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { cn, openSalesforceSearch, normalizeBdmName } from '@/lib/utils';
+import { cn, openSalesforceSearch, normalizeBdmName, formatCurrency } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigation } from '@/contexts/navigation-context';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
@@ -23,6 +22,17 @@ function getSalesforceSearchUrl(companyName: string) {
   if (!companyName) return '#';
   const cleanTerm = companyName.split(' (')[0].split(' - ')[0].trim();
   return `https://teamglobalexp.lightning.force.com/_ui/search/ui/UnifiedSearchResults?searchType=2&str=${encodeURIComponent(cleanTerm)}`;
+}
+
+/** Value is free text (e.g. "$5,000" or "50 items"); format as currency only when it's a plain number. */
+function formatFactFindValue(v?: string | number | null): string {
+  if (v === undefined || v === null || v === '') return '-';
+  const str = String(v).trim();
+  if (/^\$?\s?[\d,]+(\.\d+)?$/.test(str)) {
+    const n = Number(str.replace(/[$,\s]/g, ''));
+    if (Number.isFinite(n)) return formatCurrency(n);
+  }
+  return str;
 }
 
 export function FactFindingHub() {
@@ -385,76 +395,78 @@ export function FactFindingHub() {
               <Button variant="link" onClick={() => { setSearchQuery(''); setUserFilter('all'); }} className="mt-2">Clear Filters</Button>
             </div>
           ) : viewMode === 'list' ? (
-            <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-sm">
-              <Table className="min-w-[800px]">
-                <TableHeader className="bg-slate-50/80">
-                  <TableRow>
-                    <TableHead className="font-bold">Customer</TableHead>
-                    <TableHead className="font-bold">Freight Type</TableHead>
-                    <TableHead className="font-bold">Stage</TableHead>
-                    <TableHead className="font-bold">Model</TableHead>
-                    <TableHead className="font-bold text-right">Value</TableHead>
-                    {isLeader && <TableHead className="font-bold">Owner</TableHead>}
-                    <TableHead className="font-bold">Created</TableHead>
-                    <TableHead className="font-bold">Modified</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAndSortedDocs.map(doc => (
-                    <TableRow key={doc.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSelectDoc(doc)}>
-                      <TableCell className="font-black">
-                        <div className="flex items-center gap-2">
-                          <a 
-                            href={getSalesforceSearchUrl(doc.companyName || '')} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline hover:text-indigo-600 truncate max-w-[200px]"
-                            onClick={(e) => e.stopPropagation()}
-                            title="Open in Salesforce"
-                          >
-                            {doc.companyName || 'Unnamed'}
-                          </a>
-                          {doc.inSalesforce && (
-                            <span title="In Salesforce">
-                              <Star className="w-4 h-4 text-amber-400 fill-amber-400 ml-1 shrink-0" />
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-slate-600">{doc.freightType || '-'}</TableCell>
-                      <TableCell>
-                        <span className={cn("text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border shadow-sm", getStageConfig(doc.stage || 'New').color, getStageConfig(doc.stage || 'New').text)}>
-                          {doc.stage || 'New'}
+            <div className="space-y-2 nav:space-y-0 nav:border nav:border-slate-200 nav:rounded-xl nav:bg-white nav:shadow-sm nav:overflow-hidden">
+              {/* Desktop column header (two-line rows) */}
+              <div className="hidden nav:block bg-slate-50/80 border-b border-slate-200 px-4 py-2 text-xs font-bold text-slate-500">
+                <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4">
+                  <span>Customer</span><span>Owner</span><span>Freight Type</span><span className="text-right">Value</span><span />
+                </div>
+                <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                  <span>Freight Size · Stage</span><span>Model</span><span>Created</span><span className="text-right">Modified</span><span />
+                </div>
+              </div>
+              {filteredAndSortedDocs.map(doc => {
+                const created = doc.createdAt?.toDate ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently';
+                const modified = doc.lastModifiedAt?.toDate ? format(doc.lastModifiedAt.toDate(), 'MMM d, yyyy') : '-';
+                const owner = userMap[doc.userId] || (isLeader ? 'Loading...' : 'Me');
+                const stage = doc.stage || 'New';
+                return (
+                  <div
+                    key={doc.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleSelectDoc(doc)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSelectDoc(doc); }}
+                    className="group cursor-pointer bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:bg-slate-50 transition-colors nav:rounded-none nav:border-0 nav:border-b nav:last:border-b-0 nav:shadow-none nav:px-4 nav:py-2.5"
+                  >
+                    {/* Line 1: customer, owner, freight type, value */}
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4 nav:items-center">
+                      <div className="flex items-center gap-1.5 min-w-0 basis-full nav:basis-auto font-black">
+                        <a
+                          href={getSalesforceSearchUrl(doc.companyName || '')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline hover:text-indigo-600 truncate"
+                          onClick={(e) => e.stopPropagation()}
+                          title="Open in Salesforce"
+                        >
+                          {doc.companyName || 'Unnamed'}
+                        </a>
+                        {doc.inSalesforce && (
+                          <span title="In Salesforce" className="shrink-0">
+                            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                          </span>
+                        )}
+                        <ChevronRight className="w-4 h-4 text-slate-400 ml-auto shrink-0 nav:hidden" />
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-slate-600 font-medium min-w-0">
+                        <User className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">{owner}</span>
+                      </div>
+                      <div className="text-xs text-slate-600 min-w-0 truncate">{doc.freightType || '-'}</div>
+                      <div className="font-black text-indigo-600 text-sm ml-auto nav:ml-0 nav:text-right truncate">{formatFactFindValue(doc.weeklyAmount)}</div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 hidden nav:block" />
+                    </div>
+                    {/* Line 2: freight size, stage, model, created, modified */}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {doc.freightSize && <span className="truncate" title="Freight size">{doc.freightSize}</span>}
+                        <span className={cn("shrink-0 text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border shadow-sm", getStageConfig(stage).color, getStageConfig(stage).text)}>
+                          {stage}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
                           {doc.businessModel || 'B2B'}
                         </span>
-                      </TableCell>
-                      <TableCell className="font-black text-indigo-600 text-right">{doc.weeklyAmount || '-'}</TableCell>
-                      {isLeader && (
-                        <TableCell>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
-                            <User className="w-3 h-3 text-slate-400" />
-                            {userMap[doc.userId] || 'Loading...'}
-                          </div>
-                        </TableCell>
-                      )}
-                      <TableCell className="text-slate-500 text-xs">
-                        {doc.createdAt ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}
-                      </TableCell>
-                      <TableCell className="text-slate-500 text-xs font-semibold">
-                        {doc.lastModifiedAt ? format(doc.lastModifiedAt.toDate(), 'MMM d, yyyy') : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </div>
+                      <div><span className="nav:hidden">Created </span>{created}</div>
+                      <div className="font-semibold nav:text-right"><span className="nav:hidden font-normal">Modified </span>{modified}</div>
+                      <span className="hidden nav:block" />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
