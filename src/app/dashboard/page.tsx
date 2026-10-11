@@ -243,7 +243,7 @@ function DashboardContent() {
           </SidebarFooter>
         </Sidebar>
         <SidebarInset className="bg-[#F7F6F8]">
-          <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2 print:hidden">
+          <header className="sticky top-0 z-30 flex items-center h-16 px-4 min-w-0 max-w-full bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2 print:hidden">
             <SidebarTrigger className="-ml-1" />
             <div className="flex items-center gap-2 nav:hidden pl-1">
               <Compass className="w-5 h-5 text-indigo-600" />
@@ -321,9 +321,9 @@ function DashboardContent() {
             )}
 
             <div className="flex-1" />
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-black uppercase tracking-widest text-slate-900">{profile?.name || user?.email}</p>
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="text-right hidden sm:block min-w-0">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-900 truncate max-w-[40vw] nav:max-w-none">{profile?.name || user?.email}</p>
                 <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role === 'GM' ? 'GM' : profile?.role?.replace('_', ' ').toLowerCase() || 'No Role'}</p>
               </div>
               <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs uppercase shrink-0">
@@ -332,7 +332,7 @@ function DashboardContent() {
             </div>
           </header>
           {/* Session Context Bar */}
-          <div className="bg-slate-900 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-300 py-2.5 px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-sm print:hidden">
+          <div className="bg-slate-900 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-300 py-2.5 px-4 sm:px-6 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2.5 min-w-0 max-w-full shadow-sm print:hidden">
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               {/* User Context */}
               <div className="flex items-center gap-1.5">
