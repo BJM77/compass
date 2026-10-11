@@ -67,6 +67,7 @@ import { getCurrentWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 import { NavigationProvider, useNavigation } from '@/contexts/navigation-context';
 import { getNavigationForUser, DashboardView } from '@/lib/navigation';
+import { MobileStickyMenu } from '@/components/dashboard/mobile-sticky-menu';
 
 function DashboardContent() {
   const { profile, isLeader, user, loading: isAuthLoading } = useAuth();
@@ -111,6 +112,8 @@ function DashboardContent() {
     // Temporary escalation removed in favor of hardcoded check in auth-context
 
   const activeView = profile?.role === 'GUEST' ? 'TWIW' : currentView;
+  // Single source of truth for role-based menu visibility (sidebar + mobile sticky menu).
+  const navGroups = getNavigationForUser(profile?.role as any, isLeader);
 
   const renderContent = () => {
     // DEFENSIVE: Block rendering if activeUserId is not yet resolved
@@ -176,7 +179,7 @@ function DashboardContent() {
                       </button>
                     </SidebarMenuItem>
                   )}
-                  {getNavigationForUser(profile?.role as any, isLeader).map((group, groupIdx) => {
+                  {navGroups.map((group, groupIdx) => {
                     const isCollapsed = collapsedGroups[group.id] || false;
                     return (
                     <div key={group.id} className={groupIdx > 0 ? "mt-4" : ""}>
@@ -242,7 +245,7 @@ function DashboardContent() {
         <SidebarInset className="bg-[#F7F6F8]">
           <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2 print:hidden">
             <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center gap-2 md:hidden pl-1">
+            <div className="flex items-center gap-2 nav:hidden pl-1">
               <Compass className="w-5 h-5 text-indigo-600" />
               <span className="font-black uppercase tracking-tight text-xs text-slate-900">BDM Compass</span>
             </div>
@@ -271,7 +274,7 @@ function DashboardContent() {
 
             {/* Top Menu for Admin, Leaders, Bdms, and AMs */}
             {(profile?.role === 'LEADER' || profile?.role === 'GM' || profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER' || isLeader) && (
-              <nav className="hidden md:flex items-center gap-1.5 ml-6 bg-slate-50/80 p-1 rounded-xl border border-slate-100/80">
+              <nav className="hidden nav:flex items-center gap-1.5 ml-6 bg-slate-50/80 p-1 rounded-xl border border-slate-100/80">
                 <a
                   href="https://studio--studio-7521332906-59af2.us-central1.hosted.app"
                   target="_blank"
@@ -355,7 +358,7 @@ function DashboardContent() {
               </div>
             </div>
           </div>
-          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto px-3 md:px-4 lg:px-6 pb-24 md:pb-8">
+          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto px-3 md:px-4 lg:px-6 pb-24 nav:pb-8">
             <ErrorBoundary>
               <Suspense fallback={<ViewSkeleton />}>
                 {renderContent()}
@@ -364,6 +367,15 @@ function DashboardContent() {
           </main>
           <DeveloperDiagnostics />
         </SidebarInset>
+        <MobileStickyMenu
+          groups={navGroups}
+          activeView={activeView as DashboardView}
+          onNavigate={navigateTo}
+          onSignOut={handleSignOut}
+          email={user?.email || profile?.email || ''}
+          showReturnToGovernance={!!(simulationUid && isLeader)}
+          onReturnToGovernance={() => { setSimulationUid(null); navigateTo('TEAM'); }}
+        />
       </SidebarProvider>
     </AuthGuard>
   );
