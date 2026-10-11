@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { useIsMobileNav } from '@/hooks/use-mobile';
 import { useDiagnostics } from '@/contexts/diagnostics-context';
 import { useNavigation } from '@/contexts/navigation-context';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -46,6 +47,8 @@ export function DeveloperDiagnostics() {
   const { currentView } = useNavigation();
   const { simulationUid, activeUserId } = usePipelineData();
 
+  // Hidden on phones/tablets and in Mobile Mode (it overlaps the sticky bottom bar).
+  const isMobileNav = useIsMobileNav();
   const [copied, setCopied] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     collections: true,
@@ -55,7 +58,7 @@ export function DeveloperDiagnostics() {
   });
 
   // HARD SECURITY GATE: If not super admin, render nothing and execute zero UI logic
-  if (!isSuperAdmin) {
+  if (!isSuperAdmin || isMobileNav) {
     return null;
   }
 
@@ -101,7 +104,7 @@ export function DeveloperDiagnostics() {
       {/* Floating Trigger Pill (Fixed Bottom Right) */}
       <aside 
         aria-label="Developer Diagnostics Controls"
-        className="fixed bottom-4 right-4 z-[9999] flex items-center gap-2 print:hidden"
+        className="dev-diagnostics-fab fixed bottom-4 right-4 z-[9999] hidden nav:flex items-center gap-2 print:hidden"
       >
         <button
           onClick={() => setIsDrawerOpen(!isDrawerOpen)}
