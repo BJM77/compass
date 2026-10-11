@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, where, serverTimestamp, updateDoc, doc, limit } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star, MessageSquare } from 'lucide-react';
+import { FileText, Plus, Calendar, Building, Package, Download, ChevronRight, FileSearch, User, Search, LayoutGrid, List, Clock, Star, MessageSquare, X, RotateCcw } from 'lucide-react';
 import { FactFindingForm } from './fact-finding-form';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { format } from 'date-fns';
@@ -53,6 +53,25 @@ export function FactFindingHub() {
   const [stageFilter, setStageFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [showArchived, setShowArchived] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Defaults for the search/filter controls (Active/Archived and Cards/List are separate toggles).
+  const FILTER_DEFAULTS = { search: '', user: 'all', stage: 'all', sort: 'date_desc' };
+  const filtersChanged =
+    searchQuery !== FILTER_DEFAULTS.search ||
+    userFilter !== FILTER_DEFAULTS.user ||
+    stageFilter !== FILTER_DEFAULTS.stage ||
+    sortUserDir !== FILTER_DEFAULTS.sort;
+  const clearSearch = () => {
+    setSearchQuery('');
+    searchInputRef.current?.focus();
+  };
+  const resetFilters = () => {
+    setSearchQuery(FILTER_DEFAULTS.search);
+    setUserFilter(FILTER_DEFAULTS.user);
+    setStageFilter(FILTER_DEFAULTS.stage);
+    setSortUserDir(FILTER_DEFAULTS.sort);
+  };
 
   const db = useFirestore();
   const { user, isLeader, profile } = useAuth();
@@ -305,11 +324,24 @@ export function FactFindingHub() {
             <div className="relative flex-1 w-full md:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <Input 
+                ref={searchInputRef}
                 placeholder="Search customer..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10 border-slate-200"
+                onKeyDown={(e) => { if (e.key === 'Escape' && searchQuery) { e.preventDefault(); clearSearch(); } }}
+                className="pl-9 pr-10 h-10 border-slate-200"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  aria-label="Clear search"
+                  title="Clear search"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
             
             <Select value={userFilter} onValueChange={setUserFilter}>
@@ -348,6 +380,19 @@ export function FactFindingHub() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resetFilters}
+              disabled={!filtersChanged}
+              aria-label="Reset search and filters"
+              title="Reset search and filters"
+              className="w-full md:w-auto h-10 min-h-[32px] px-3 shrink-0 border-slate-200 text-slate-600"
+            >
+              <RotateCcw className="w-4 h-4 mr-1.5" />
+              Reset
+            </Button>
 
             <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 w-full md:w-auto md:ml-auto">
               <Button 
@@ -392,7 +437,7 @@ export function FactFindingHub() {
           {filteredAndSortedDocs.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
               <p className="text-slate-500 font-bold">No documents match your search/filter criteria.</p>
-              <Button variant="link" onClick={() => { setSearchQuery(''); setUserFilter('all'); }} className="mt-2">Clear Filters</Button>
+              <Button variant="link" onClick={resetFilters} className="mt-2">Clear Filters</Button>
             </div>
           ) : viewMode === 'list' ? (
             <div className="space-y-2 nav:space-y-0 nav:border nav:border-slate-200 nav:rounded-xl nav:bg-white nav:shadow-sm nav:overflow-hidden">
