@@ -53,7 +53,10 @@ export function useIsMobileNav(): boolean {
     const mql = window.matchMedia(DESKTOP_NAV_QUERY);
     const update = () => {
       const forced = window.localStorage.getItem("forceMobile") === "true";
-      setIsMobileNav(forced || !mql.matches);
+      const mobile = forced || !mql.matches;
+      setIsMobileNav(mobile);
+      // Drives the single-column layout CSS in globals.css.
+      document.documentElement.classList.toggle("mobile-layout", mobile);
     };
     update();
     mql.addEventListener("change", update);

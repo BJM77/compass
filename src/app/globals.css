@@ -333,3 +333,64 @@
 .pause-on-hover:hover .animate-scroll-up {
   animation-play-state: paused;
 }
+
+/* ==========================================================================
+   Mobile / tablet single-column layout
+   `html.mobile-layout` is set by the inline script in app/layout.tsx and kept
+   in sync by useIsMobileNav(). It matches the Tailwind `nav` screen inverse:
+   phones, touch tablets (e.g. Galaxy Tab 800–1280px) and the Mobile Mode toggle.
+   Opt a grid out with data-keep-cols (e.g. calendars, tab strips).
+   ========================================================================== */
+html.mobile-layout,
+html.mobile-layout body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Every card grid / KPI row / dashboard tile layout becomes one full-width column */
+html.mobile-layout :is(main, [role="dialog"]) .grid:not([data-keep-cols]):not([role="tablist"]):not([class*="grid-cols-7"]):not([class*="grid-cols-8"]):not([class*="grid-cols-10"]) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+html.mobile-layout :is(main, [role="dialog"]) .grid:not([data-keep-cols]):not([role="tablist"]):not([class*="grid-cols-7"]):not([class*="grid-cols-8"]):not([class*="grid-cols-10"]) > * {
+  grid-column: 1 / -1 !important;
+  min-width: 0;
+}
+
+/* Side-by-side card rows that switch to a row at md/lg stay stacked */
+html.mobile-layout :is(main, [role="dialog"]) :is(.md\:flex-row, .lg\:flex-row) {
+  flex-direction: column !important;
+  align-items: stretch;
+}
+html.mobile-layout :is(main, [role="dialog"]) :is(.md\:flex-row, .lg\:flex-row) > * {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Overflow guards */
+html.mobile-layout main {
+  overflow-wrap: anywhere;
+}
+html.mobile-layout :is(main, [role="dialog"]) .flex > :not(.shrink-0):not(svg) {
+  min-width: 0;
+}
+html.mobile-layout :is(main, [role="dialog"]) :is(img, video, canvas, iframe) {
+  max-width: 100%;
+  height: auto;
+}
+html.mobile-layout :is(main, [role="dialog"]) [class*="w-["]:not(table):not(th):not(td):not(svg) {
+  max-width: 100%;
+}
+html.mobile-layout :is(main, [role="dialog"]) [class*="min-w-["]:not(table):not(.overflow-auto *):not(.overflow-x-auto *):not(.table-container *) {
+  min-width: 0 !important;
+}
+/* Tables scroll inside their own box instead of widening the page */
+html.mobile-layout main table:not(.overflow-auto table):not(.overflow-x-auto table):not(.table-container table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+html.mobile-layout :is(main, [role="dialog"]) .recharts-responsive-container,
+html.mobile-layout :is(main, [role="dialog"]) .recharts-wrapper {
+  max-width: 100% !important;
+}

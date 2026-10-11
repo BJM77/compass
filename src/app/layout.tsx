@@ -1,6 +1,7 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
+import { DESKTOP_NAV_QUERY } from '@/hooks/use-mobile';
 import { AuthProvider } from '@/contexts/auth-context';
 import { DiagnosticsProvider } from '@/contexts/diagnostics-context';
 import { Toaster } from '@/components/ui/toaster';
@@ -30,6 +31,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Set the mobile/tablet layout class before first paint (mirrors useIsMobileNav). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var d=window.matchMedia('${DESKTOP_NAV_QUERY}').matches;var f=localStorage.getItem('forceMobile')==='true';document.documentElement.classList.toggle('mobile-layout',f||!d);}catch(e){}})();`,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
