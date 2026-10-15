@@ -7,7 +7,7 @@ import { collection, doc, setDoc, serverTimestamp, query, where, getDocs, delete
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { FridayPerformanceReview } from './friday-performance-review';
 // jsPDF and html2canvas dynamically imported on demand
-import { getCurrentWeek, formatEAV } from '@/lib/utils';
+import { getCurrentWeek, formatEAV, escapeHtml } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -757,7 +757,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
     printWindow.document.write(`
       <html>
         <head>
-          <title>TGE North Parcels - TWTW - Week ${weekLabel}</title>
+          <title>TGE North Parcels - TWTW - Week ${escapeHtml(weekLabel)}</title>
           <style>
             @page { 
               size: landscape; 
@@ -943,7 +943,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
         <body>
           <div class="report-header">
             <h1>TGE North Parcels - TWTW</h1>
-            <p>Week ${weekLabel} • Consolidated Team Performance Report</p>
+            <p>Week ${escapeHtml(weekLabel)} • Consolidated Team Performance Report</p>
           </div>
           
           <!-- PAGE 1: KEY STANDOUTS -->
@@ -969,53 +969,53 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                   <td>
                     ${starredWins.map(w => `
                       <div class="item-block">
-                        <span class="card-badge">${w.state}</span>
-                        <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
-                        <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
-                        ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
-                        ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                        <span class="card-badge">${escapeHtml(w.state)}</span>
+                        <div class="item-customer">${escapeHtml(w.customer)}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
+                        <div class="item-salesperson">${escapeHtml(w.salespersonName || 'N/A')}</div>
+                        ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(w.businessUnits.join(', '))}</div>` : ''}
+                        ${w.updateText ? `<div class="item-desc">${escapeHtml(w.updateText)}</div>` : ''}
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
                     ${starredRisks.map(r => `
                       <div class="item-block">
-                        <span class="card-badge">${r.state}</span>
-                        <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
-                        <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
-                        ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
-                        <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                        <span class="card-badge">${escapeHtml(r.state)}</span>
+                        <div class="item-customer">${escapeHtml(r.account)}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
+                        <div class="item-salesperson">${escapeHtml(r.salespersonName || 'N/A')}</div>
+                        ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(r.businessUnits.join(', '))}</div>` : ''}
+                        <div class="item-desc">Mitigation: ${escapeHtml(r.mitigation)}</div>
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
                     ${starredUpdates.map(m => `
                       <div class="item-block">
-                        <span class="card-badge">${m.state}</span>
-                        <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
-                        <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
-                        ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
-                        ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                        <span class="card-badge">${escapeHtml(m.state)}</span>
+                        <div class="item-customer">${escapeHtml(m.customer)}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
+                        <div class="item-salesperson">${escapeHtml(m.salespersonName || 'N/A')}</div>
+                        ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(m.businessUnits.join(', '))}</div>` : ''}
+                        ${m.updateText ? `<div class="item-desc">${escapeHtml(m.updateText)}</div>` : ''}
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
                     ${starredProjected.map(p => `
                       <div class="item-block">
-                        <span class="card-badge">${p.state}</span>
-                        <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
-                        <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
-                        ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
-                        ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                        <span class="card-badge">${escapeHtml(p.state)}</span>
+                        <div class="item-customer">${escapeHtml(p.account)}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
+                        <div class="item-salesperson">${escapeHtml(p.salespersonName || 'N/A')}</div>
+                        ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(p.businessUnits.join(', '))}</div>` : ''}
+                        ${p.updateText ? `<div class="item-desc">${escapeHtml(p.updateText)}</div>` : ''}
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
                   <td>
                     ${starredPriorities.map(pr => `
                       <div class="item-block">
-                        <span class="card-badge">${pr.state}</span>
-                        <div class="item-desc">${pr.text}</div>
-                        <div class="item-salesperson">${pr.salespersonName || 'N/A'}</div>
+                        <span class="card-badge">${escapeHtml(pr.state)}</span>
+                        <div class="item-desc">${escapeHtml(pr.text)}</div>
+                        <div class="item-salesperson">${escapeHtml(pr.salespersonName || 'N/A')}</div>
                       </div>
                     `).join('') || '<div class="empty-text">-</div>'}
                   </td>
@@ -1049,7 +1049,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               return `
               <div class="page-container" style="${idx === 0 && !hasStandouts ? 'page-break-before: avoid;' : ''}">
                 <div class="region-title">
-                  ${state} Region <span class="badge">${subs.length} Reps</span>
+                  ${escapeHtml(state)} Region <span class="badge">${subs.length} Reps</span>
                 </div>
                 <table>
                   <thead>
@@ -1066,50 +1066,50 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                       <td>
                         ${allStateWins.map(w => `
                           <div class="item-block">
-                            <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
-                            <div class="item-salesperson">${w.rep}</div>
-                            ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
-                            ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                            <div class="item-customer">${escapeHtml(w.customer)}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
+                            <div class="item-salesperson">${escapeHtml(w.rep)}</div>
+                            ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(w.businessUnits.join(', '))}</div>` : ''}
+                            ${w.updateText ? `<div class="item-desc">${escapeHtml(w.updateText)}</div>` : ''}
                           </div>
                         `).join('') || '<div class="empty-text">-</div>'}
                       </td>
                       <td>
                         ${allStateRisks.map(r => `
                           <div class="item-block">
-                            <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
-                            <div class="item-salesperson">${r.rep}</div>
-                            ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
-                            <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                            <div class="item-customer">${escapeHtml(r.account)}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
+                            <div class="item-salesperson">${escapeHtml(r.rep)}</div>
+                            ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(r.businessUnits.join(', '))}</div>` : ''}
+                            <div class="item-desc">Mitigation: ${escapeHtml(r.mitigation)}</div>
                           </div>
                         `).join('') || '<div class="empty-text">-</div>'}
                       </td>
                       <td>
                         ${allStateUpdates.map(m => m.isLegacy ? `
-                          <div class="legacy-update">${m.text}</div>
+                          <div class="legacy-update">${escapeHtml(m.text)}</div>
                         ` : `
                           <div class="item-block">
-                            <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
-                            <div class="item-salesperson">${m.rep}</div>
-                            ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
-                            ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                            <div class="item-customer">${escapeHtml(m.customer)}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
+                            <div class="item-salesperson">${escapeHtml(m.rep)}</div>
+                            ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(m.businessUnits.join(', '))}</div>` : ''}
+                            ${m.updateText ? `<div class="item-desc">${escapeHtml(m.updateText)}</div>` : ''}
                           </div>
                         `).join('') || '<div class="empty-text">-</div>'}
                       </td>
                       <td>
                         ${allStateProjected.map(p => `
                           <div class="item-block">
-                            <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
-                            <div class="item-salesperson">${p.rep}</div>
-                            ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
-                            ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                            <div class="item-customer">${escapeHtml(p.account)}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
+                            <div class="item-salesperson">${escapeHtml(p.rep)}</div>
+                            ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(p.businessUnits.join(', '))}</div>` : ''}
+                            ${p.updateText ? `<div class="item-desc">${escapeHtml(p.updateText)}</div>` : ''}
                           </div>
                         `).join('') || '<div class="empty-text">-</div>'}
                       </td>
                       <td>
                         ${allStatePriorities.map(pr => `
                           <div class="item-block">
-                            <div class="item-desc">${pr.text}</div>
-                            <div class="item-salesperson">${pr.rep}</div>
+                            <div class="item-desc">${escapeHtml(pr.text)}</div>
+                            <div class="item-salesperson">${escapeHtml(pr.rep)}</div>
                           </div>
                         `).join('') || '<div class="empty-text">-</div>'}
                       </td>
@@ -1192,7 +1192,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
       return `
         <div class="page-container">
           <div class="region-header">
-            <h2>${state} Region <span class="badge">${subs.length} Reps</span></h2>
+            <h2>${escapeHtml(state)} Region <span class="badge">${subs.length} Reps</span></h2>
           </div>
           <table>
             <thead>
@@ -1209,50 +1209,50 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                 <td>
                   ${allStateWins.map(w => `
                     <div class="item-block">
-                      <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
-                      <div class="item-salesperson">${w.rep}</div>
-                      ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
-                      ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                      <div class="item-customer">${escapeHtml(w.customer)}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
+                      <div class="item-salesperson">${escapeHtml(w.rep)}</div>
+                      ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(w.businessUnits.join(', '))}</div>` : ''}
+                      ${w.updateText ? `<div class="item-desc">${escapeHtml(w.updateText)}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${allStateRisks.map(r => `
                     <div class="item-block">
-                      <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
-                      <div class="item-salesperson">${r.rep}</div>
-                            ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
-                      <div class="item-desc">Mitigation: ${r.mitigation}</div>
+                      <div class="item-customer">${escapeHtml(r.account)}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
+                      <div class="item-salesperson">${escapeHtml(r.rep)}</div>
+                            ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(r.businessUnits.join(', '))}</div>` : ''}
+                      <div class="item-desc">Mitigation: ${escapeHtml(r.mitigation)}</div>
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${allStateUpdates.map(m => m.isLegacy ? `
-                    <div class="legacy-update">${m.text}</div>
+                    <div class="legacy-update">${escapeHtml(m.text)}</div>
                   ` : `
                     <div class="item-block">
-                      <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
-                      <div class="item-salesperson">${m.rep}</div>
-                      ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
-                      ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                      <div class="item-customer">${escapeHtml(m.customer)}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
+                      <div class="item-salesperson">${escapeHtml(m.rep)}</div>
+                      ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(m.businessUnits.join(', '))}</div>` : ''}
+                      ${m.updateText ? `<div class="item-desc">${escapeHtml(m.updateText)}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${allStateProjected.map(p => `
                     <div class="item-block">
-                      <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
-                      <div class="item-salesperson">${p.rep}</div>
-                      ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
-                      ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                      <div class="item-customer">${escapeHtml(p.account)}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
+                      <div class="item-salesperson">${escapeHtml(p.rep)}</div>
+                      ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(p.businessUnits.join(', '))}</div>` : ''}
+                      ${p.updateText ? `<div class="item-desc">${escapeHtml(p.updateText)}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${allStatePriorities.map(pr => `
                     <div class="item-block">
-                      <div class="item-desc">${pr.text}</div>
-                      <div class="item-salesperson">${pr.rep}</div>
+                      <div class="item-desc">${escapeHtml(pr.text)}</div>
+                      <div class="item-salesperson">${escapeHtml(pr.rep)}</div>
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
@@ -1435,53 +1435,53 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                 <td>
                   ${starredWins.map(w => `
                     <div class="item-block">
-                      <span class="card-badge">${w.state}</span>
-                      <div class="item-customer">${w.customer}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
-                      <div class="item-salesperson">${w.salespersonName || 'N/A'}</div>
-                      ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${w.businessUnits.join(', ')}</div>` : ''}
-                      ${w.updateText ? `<div class="item-desc">${w.updateText}</div>` : ''}
+                      <span class="card-badge">${escapeHtml(w.state)}</span>
+                      <div class="item-customer">${escapeHtml(w.customer)}&nbsp;&nbsp;<span class="win-text" style="font-weight: 800;">${formatEAV(w.value)}</span></div>
+                      <div class="item-salesperson">${escapeHtml(w.salespersonName || 'N/A')}</div>
+                      ${w.businessUnits && w.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(w.businessUnits.join(', '))}</div>` : ''}
+                      ${w.updateText ? `<div class="item-desc">${escapeHtml(w.updateText)}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${starredRisks.map(r => `
                     <div class="item-block">
-                      <span class="card-badge">${r.state}</span>
-                      <div class="item-customer">${r.account}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
-                      <div class="item-salesperson">${r.salespersonName || 'N/A'}</div>
-                        ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${r.businessUnits.join(', ')}</div>` : ''}
-                      ${r.updateText ? `<div class="item-desc">${r.updateText}</div>` : ''}
+                      <span class="card-badge">${escapeHtml(r.state)}</span>
+                      <div class="item-customer">${escapeHtml(r.account)}&nbsp;&nbsp;<span class="risk-text" style="font-weight: 800;">${formatEAV(r.value)}</span></div>
+                      <div class="item-salesperson">${escapeHtml(r.salespersonName || 'N/A')}</div>
+                        ${r.businessUnits && r.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(r.businessUnits.join(', '))}</div>` : ''}
+                      ${r.updateText ? `<div class="item-desc">${escapeHtml(r.updateText)}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${starredUpdates.map(m => `
                     <div class="item-block">
-                      <span class="card-badge">${m.state}</span>
-                      <div class="item-customer">${m.customer}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
-                      <div class="item-salesperson">${m.salespersonName || 'N/A'}</div>
-                        ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${m.businessUnits.join(', ')}</div>` : ''}
-                        ${m.updateText ? `<div class="item-desc">${m.updateText}</div>` : ''}
+                      <span class="card-badge">${escapeHtml(m.state)}</span>
+                      <div class="item-customer">${escapeHtml(m.customer)}${m.value > 0 ? `&nbsp;&nbsp;<span class="update-text" style="font-weight: 800;">${formatEAV(m.value)}</span>` : ''}</div>
+                      <div class="item-salesperson">${escapeHtml(m.salespersonName || 'N/A')}</div>
+                        ${m.businessUnits && m.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(m.businessUnits.join(', '))}</div>` : ''}
+                        ${m.updateText ? `<div class="item-desc">${escapeHtml(m.updateText)}</div>` : ''}
                       </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${starredProjected.map(p => `
                     <div class="item-block">
-                      <span class="card-badge">${p.state}</span>
-                      <div class="item-customer">${p.account}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
-                      <div class="item-salesperson">${p.salespersonName || 'N/A'}</div>
-                      ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${p.businessUnits.join(', ')}</div>` : ''}
-                      ${p.updateText ? `<div class="item-desc">${p.updateText}</div>` : ''}
+                      <span class="card-badge">${escapeHtml(p.state)}</span>
+                      <div class="item-customer">${escapeHtml(p.account)}&nbsp;&nbsp;<span class="projected-text" style="font-weight: 800;">${formatEAV(p.value)}</span></div>
+                      <div class="item-salesperson">${escapeHtml(p.salespersonName || 'N/A')}</div>
+                      ${p.businessUnits && p.businessUnits.length > 0 ? `<div class="item-bu">BU: ${escapeHtml(p.businessUnits.join(', '))}</div>` : ''}
+                      ${p.updateText ? `<div class="item-desc">${escapeHtml(p.updateText)}</div>` : ''}
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
                 <td>
                   ${starredPriorities.map(pr => `
                     <div class="item-block">
-                      <span class="card-badge">${pr.state}</span>
-                      <div class="item-desc">${pr.text}</div>
-                      <div class="item-salesperson">${pr.salespersonName || 'N/A'}</div>
+                      <span class="card-badge">${escapeHtml(pr.state)}</span>
+                      <div class="item-desc">${escapeHtml(pr.text)}</div>
+                      <div class="item-salesperson">${escapeHtml(pr.salespersonName || 'N/A')}</div>
                     </div>
                   `).join('') || '<div class="empty-text">-</div>'}
                 </td>
@@ -1584,7 +1584,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
     printWindow.document.write(`
       <html>
         <head>
-          <title>Condensed TWTW Collation - Week ${weekLabel}</title>
+          <title>Condensed TWTW Collation - Week ${escapeHtml(weekLabel)}</title>
           <style>
             @page { 
               size: landscape; 
@@ -1691,7 +1691,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
         <body>
           <div class="report-header">
             <h1>TGE Parcel North - The Week That Was</h1>
-            <p>Week ${weekLabel} • Consolidated Team Performance Report</p>
+            <p>Week ${escapeHtml(weekLabel)} • Consolidated Team Performance Report</p>
           </div>
 
           <!-- SECTION 1: KEY WINS -->
@@ -1712,12 +1712,12 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <tbody>
                 ${allWins.map(w => `
                   <tr>
-                    <td><span class="badge">${w.state}</span></td>
-                    <td><strong>${w.rep}</strong></td>
-                    <td><strong>${w.customer}</strong></td>
+                    <td><span class="badge">${escapeHtml(w.state)}</span></td>
+                    <td><strong>${escapeHtml(w.rep)}</strong></td>
+                    <td><strong>${escapeHtml(w.customer)}</strong></td>
                     <td class="win-text">${formatEAV(w.value)}</td>
-                    <td>${w.businessUnits && w.businessUnits.length > 0 ? w.businessUnits.join(', ') : '-'}</td>
-                    <td>${w.updateText || '-'}</td>
+                    <td>${escapeHtml(w.businessUnits && w.businessUnits.length > 0 ? w.businessUnits.join(', ') : '-')}</td>
+                    <td>${escapeHtml(w.updateText || '-')}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -1742,11 +1742,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <tbody>
                 ${allRisks.map(r => `
                   <tr>
-                    <td><span class="badge">${r.state}</span></td>
-                    <td><strong>${r.rep}</strong></td>
-                    <td><strong>${r.account}</strong></td>
+                    <td><span class="badge">${escapeHtml(r.state)}</span></td>
+                    <td><strong>${escapeHtml(r.rep)}</strong></td>
+                    <td><strong>${escapeHtml(r.account)}</strong></td>
                     <td class="risk-text">${formatEAV(r.value)}</td>
-                    <td>${r.mitigation || '-'}</td>
+                    <td>${escapeHtml(r.mitigation || '-')}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -1772,12 +1772,12 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <tbody>
                 ${allUpdates.map(u => `
                   <tr>
-                    <td><span class="badge">${u.state}</span></td>
-                    <td><strong>${u.rep}</strong></td>
-                    <td><strong>${u.customer}</strong></td>
-                    <td class="update-text">${u.value > 0 ? formatEAV(u.value) : '-'}</td>
-                    <td>${u.businessUnits && u.businessUnits.length > 0 ? u.businessUnits.join(', ') : '-'}</td>
-                    <td>${u.updateText || '-'}</td>
+                    <td><span class="badge">${escapeHtml(u.state)}</span></td>
+                    <td><strong>${escapeHtml(u.rep)}</strong></td>
+                    <td><strong>${escapeHtml(u.customer)}</strong></td>
+                    <td class="update-text">${escapeHtml(u.value > 0 ? formatEAV(u.value) : '-')}</td>
+                    <td>${escapeHtml(u.businessUnits && u.businessUnits.length > 0 ? u.businessUnits.join(', ') : '-')}</td>
+                    <td>${escapeHtml(u.updateText || '-')}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -1803,12 +1803,12 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <tbody>
                 ${allProjected.map(p => `
                   <tr>
-                    <td><span class="badge">${p.state}</span></td>
-                    <td><strong>${p.rep}</strong></td>
-                    <td><strong>${p.account}</strong></td>
+                    <td><span class="badge">${escapeHtml(p.state)}</span></td>
+                    <td><strong>${escapeHtml(p.rep)}</strong></td>
+                    <td><strong>${escapeHtml(p.account)}</strong></td>
                     <td class="projected-text">${formatEAV(p.value)}</td>
-                    <td>${p.businessUnits && p.businessUnits.length > 0 ? p.businessUnits.join(', ') : '-'}</td>
-                    <td>${p.updateText || '-'}</td>
+                    <td>${escapeHtml(p.businessUnits && p.businessUnits.length > 0 ? p.businessUnits.join(', ') : '-')}</td>
+                    <td>${escapeHtml(p.updateText || '-')}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -1831,9 +1831,9 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <tbody>
                 ${allPriorities.map(pr => `
                   <tr>
-                    <td><span class="badge">${pr.state}</span></td>
-                    <td><strong>${pr.rep}</strong></td>
-                    <td>${pr.text || '-'}</td>
+                    <td><span class="badge">${escapeHtml(pr.state)}</span></td>
+                    <td><strong>${escapeHtml(pr.rep)}</strong></td>
+                    <td>${escapeHtml(pr.text || '-')}</td>
                   </tr>
                 `).join('')}
               </tbody>

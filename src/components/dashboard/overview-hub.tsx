@@ -109,7 +109,7 @@ export function OverviewHub() {
         roleStr === 'ADMIN' || 
         roleStr === 'SUPER_ADMIN' ||
         u.isMock ||
-        emailStr === '1@1.com' ||
+        emailStr === '1@1.com' || // test account excluded from stats (not a privilege check)
         emailStr.includes('guest') ||
         nameStr.includes('guest') ||
         nameStr.includes('admin') ||

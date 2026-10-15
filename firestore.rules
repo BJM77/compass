@@ -2,7 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── Core Auth Helpers ───────────────────────────────────────────────────────
+    // ─── Identity helpers ───────────────────────────────────────────────────────
+    // Privilege comes ONLY from users/{uid}.role, which only admins can set
+    // (owners cannot change it – see /users below). No hard-coded emails.
     function isSignedIn() {
       return request.auth != null;
     }
@@ -11,290 +13,330 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function myRole() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '')
+        : '';
     }
 
+    // Leaders / GM / admins (matches the app's isLeader + admin roles)
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == '1@1.com' ||
-        request.auth.token.email == 'joanne.ballantyne@teamglobalexp.com' ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
-          getUserData().role == 'LEADER' ||
-          getUserData().role == 'GM' ||
-          getUserData().role == 'ADMIN' ||
-          getUserData().role == 'SUPER_ADMIN'
-        ))
-      );
+      return myRole() in ['LEADER', 'GM', 'ADMIN', 'SUPER_ADMIN'];
     }
 
-    // ─── User Management ─────────────────────────────────────────────────────────
-    // Anyone can read their own user doc; admins can read all.
-    // Owners can update their own doc EXCEPT the role field (prevents self-escalation).
-    // Only admins can create, set role, or delete.
+    // Any real team member (not a guest, not a self-signed-up account)
+    function isStaff() {
+      return isAdmin() || myRole() in ['BDM', 'ACCOUNT_MANAGER', 'AM'];
+    }
+
+    // New doc must be owned by the caller (admins may create on behalf of others)
+    function createsOwn() {
+      return isAdmin() || (isSignedIn() && request.resource.data.get('userId', null) == request.auth.uid);
+    }
+
+    // Existing doc belongs to caller
+    function ownsExisting() {
+      return isSignedIn() && resource.data.get('userId', null) == request.auth.uid;
+    }
+
+    // Non-admins can't move a doc to someone else
+    function keepsOwner() {
+      return request.resource.data.get('userId', null) == resource.data.get('userId', null);
+    }
+
+    // Standard owner-scoped collection
+    function ownerRead() { return isAdmin() || ownsExisting(); }
+    function ownerUpdate() { return isAdmin() || (isStaff() && ownsExisting() && keepsOwner()); }
+    function ownerDelete() { return isAdmin() || (isStaff() && ownsExisting()); }
+    function staffCreatesOwn() { return isAdmin() || (isStaff() && createsOwn()); }
+
+    // ─── Users ──────────────────────────────────────────────────────────────────
+    // Staff can read the team list; guests only their own doc.
+    // Owners may update their own doc but never privilege fields.
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if (
-        isOwner(userId) && 
-        request.resource.data.role == 'GUEST' && 
-        request.resource.data.email.matches('.*@teamglobalexp\\.com$')
-      ) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId)
+        || isStaff()
+        || (isSignedIn() && request.auth.token.email != null
+            && resource.data.get('email', '') == request.auth.token.email);
+      allow create: if isAdmin() || (
+        isOwner(userId)
+        && request.resource.data.role == 'GUEST'
+        && request.resource.data.email is string
+        && request.resource.data.email.matches('.*@teamglobalexp\\.com$')
+      );
+      allow update: if isAdmin() || (
+        isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+             'role', 'isGuest', 'email', 'territory', 'state', 'zones', 'target',
+             'manualYtdTarget', 'assignedAgents', 'planType', 'specialisation',
+             'salesforceUserId', 'isMock'
+           ])
+      );
       allow delete: if isAdmin();
     }
 
-    // ─── Revenue Rollups ─────────────────────────────────────────────────────────
-    // Restricted to owner or admin — this data includes revenue targets.
+    // ─── Revenue Rollups ────────────────────────────────────────────────────────
     match /bdmStats/{userId} {
       allow read: if isAdmin() || isOwner(userId);
       allow write: if isAdmin();
     }
 
-    // ─── Strategy Documents ──────────────────────────────────────────────────────
+    // ─── Strategy Documents ─────────────────────────────────────────────────────
     match /callPlans/{planId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || resource.data.userId == 'TEAM_NODE'));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if isAdmin() || (isStaff() && (ownsExisting() || resource.data.get('userId', null) == 'TEAM_NODE'));
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
     match /callOutcomes/{outcomeId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if (isSignedIn() && request.resource.data.userId == request.auth.uid) || isAdmin();
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
       allow update, delete: if isAdmin();
     }
 
     match /whitespacePlans/{planId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || resource.data.userId == 'TEAM_NODE'));
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if isAdmin() || (isStaff() && (ownsExisting() || resource.data.get('userId', null) == 'TEAM_NODE'));
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
-    // ─── Pipeline & CRM Data ─────────────────────────────────────────────────────
+    // ─── Pipeline & CRM Data ────────────────────────────────────────────────────
     match /pipelineReviews/{reviewId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
     match /lostCustomers/{lostId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow delete: if isAdmin();
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update, delete: if isAdmin();
     }
 
     match /crmActivities/{activityId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
-    // ─── Weekly Governance Nodes ─────────────────────────────────────────────────
+    // ─── Weekly Governance ──────────────────────────────────────────────────────
     match /weeklyCommitments/{docId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
       allow delete: if isAdmin();
     }
 
     match /activityLogs/{logId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if (isSignedIn() && request.resource.data.userId == request.auth.uid) || isAdmin();
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
       allow update, delete: if isAdmin();
     }
 
     match /weeklyProgress/{id} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow write: if isSignedIn() && (resource == null || (resource == null || resource.data.userId == request.auth.uid) || isAdmin());
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if isAdmin();
     }
 
     match /weeklyActivity/{id} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow write: if isSignedIn() && (resource == null || (resource == null || resource.data.userId == request.auth.uid) || isAdmin());
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if isAdmin();
     }
 
-    // ─── Intelligence & Reporting ─────────────────────────────────────────────────
+    // ─── Intelligence & Reporting ───────────────────────────────────────────────
     match /aiBriefs/{briefId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
       allow update, delete: if isAdmin();
     }
 
     match /weeklyReports/{reportId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
       allow delete: if isAdmin();
     }
 
+    // TWTW – the only data collection guests use (their own submission).
     match /twiwSubmissions/{submissionId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if isAdmin() || ownsExisting();
+      allow create: if createsOwn();
+      allow update: if isAdmin() || (ownsExisting() && keepsOwner());
+      allow delete: if isAdmin() || ownsExisting();
     }
 
     match /opsReports/{reportId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
-    // ─── Friday Synthesis Data (BDM Weekly Submission) ───────────────────────────
+    // ─── Friday Synthesis Data ──────────────────────────────────────────────────
     match /opportunities/{oppId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
       allow update, delete: if isAdmin();
     }
 
     match /signedPaperwork/{docId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
       allow update, delete: if isAdmin();
     }
 
-    // ─── V1 Architectural Enhancements: Feature Flags & Telemetry ───────────────
+    match /newBusiness/{docId} {
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /weeklyGoals/{docId} {
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Feature flags & telemetry ──────────────────────────────────────────────
     match /appSettings/featureFlags {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
     match /telemetryEvents/{eventId} {
-      allow create: if (isSignedIn() && request.resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if isStaff() && request.resource.data.get('userId', null) == request.auth.uid;
       allow read: if isAdmin();
     }
 
+    // Only the client's increment shape is allowed, by staff.
     match /telemetryAggregates/{viewKey} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
-    }
-
-
-    match /newBusiness/{docId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin();
-    }
-
-    // ─── Weekly Goals (GM Report Generator) ──────────────────────────────────────
-    match /weeklyGoals/{docId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if isAdmin();
+      allow create, update: if isStaff()
+        && request.resource.data.keys().hasOnly(['viewKey', 'viewCount', 'lastUpdated'])
+        && request.resource.data.viewKey == viewKey;
       allow delete: if isAdmin();
     }
 
-    // ─── AI Usage Tracking ────────────────────────────────────────────────────────
     match /aiUsageLogs/{logId} {
-      allow get, list: if isAdmin();
-      allow create: if isSignedIn();
+      allow read: if isAdmin();
+      allow create: if isStaff();
       allow update, delete: if isAdmin();
     }
 
     match /gmReports/{reportId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
     match /teamReports/{id} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
-    // ─── Strategy & Progress ─────────────────────────────────────────────────────
+    // ─── Strategy & Progress ────────────────────────────────────────────────────
     match /monthlySmartGoals/{goalId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || (resource == null || resource.data.userId == request.auth.uid)));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
     match /coachingNotes/{userId} {
-      allow read: if isAdmin() || isOwner(userId);
-      allow write: if isAdmin() || isOwner(userId);
+      allow read, write: if isAdmin() || (isStaff() && isOwner(userId));
       match /entries/{entryId} {
-        allow read: if isAdmin() || isOwner(userId);
-        allow write: if isAdmin() || isOwner(userId);
+        allow read, write: if isAdmin() || (isStaff() && isOwner(userId));
       }
     }
 
+    // Doc ids: "<uid>_<PLAN>" (personal) or "SHARED_<PLAN>" (team-wide).
     match /onboardingProgress/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      allow read: if isStaff();
+      allow write: if isAdmin()
+        || (isStaff() && (docId.matches('^' + request.auth.uid + '_.*') || docId.matches('^SHARED_.*')));
     }
 
-    // ─── Success Plans ────────────────────────────────────────────────────────────
-    // Only the creator or an admin can read a plan.
+    // ─── Success Plans ──────────────────────────────────────────────────────────
     match /successPlans/{planId} {
-      allow read: if isAdmin() || (isSignedIn() && resource != null && (resource.data.createdBy == request.auth.uid || resource.data.teamMemberId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && (resource.data.createdBy == request.auth.uid || resource.data.teamMemberId == request.auth.uid));
+      allow read: if isAdmin() || (isStaff() && (resource.data.get('createdBy', null) == request.auth.uid || resource.data.get('teamMemberId', null) == request.auth.uid));
+      allow create: if isAdmin() || (isStaff() && request.resource.data.get('createdBy', null) == request.auth.uid);
+      allow update, delete: if isAdmin() || (isStaff() && (resource.data.get('createdBy', null) == request.auth.uid || resource.data.get('teamMemberId', null) == request.auth.uid));
     }
 
-    // ─── System Config ────────────────────────────────────────────────────────────
+    // ─── System config ──────────────────────────────────────────────────────────
     match /systemAnnouncements/{docId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
     match /strategyConfig/{docId} {
-      allow read: if isSignedIn();
+      allow read: if isStaff();
       allow write: if isAdmin();
     }
 
+    // "global" = team settings (staff read); "<uid>" = personal settings.
     match /appSettings/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin() || (isSignedIn() && docId == request.auth.uid);
+      allow read: if isStaff() || isOwner(docId);
+      allow write: if isAdmin() || isOwner(docId);
     }
 
     match /factFindingDocs/{docId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
     match /timeManagementPlans/{planId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
     match /canvass_leads/{leadId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow read: if ownerRead();
+      allow create: if staffCreatesOwn();
+      allow update: if ownerUpdate();
+      allow delete: if ownerDelete();
     }
 
+    // ─── Commercial data (staff only; Actual Spend screen is open to BDMs) ──────
     match /actualRevenues/{id} {
-      allow read: if isSignedIn();
+      allow read: if isStaff();
       allow write: if isAdmin();
     }
 
     match /globalRates/{id} {
-      allow read: if isSignedIn();
+      allow read: if isStaff();
       allow write: if isAdmin();
     }
 
-    // ─── AM/BD Targeted Notes ──────────────────────────────────────────────────
-    match /ambdNotes/{noteId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow create: if isAdmin();
-      allow update: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
-      allow delete: if isAdmin();
-    }
-
-    // ─── Master Customer & Accounts Data ───────────────────────────────────────
     match /customers/{customerId} {
-      allow read: if isSignedIn();
+      allow read: if isStaff();
       allow write: if isAdmin();
     }
 
+    // Assigning reps (Actual Spend / Align Customer) is admin-only, as before.
     match /accountMappings/{mappingId} {
-      allow read: if isSignedIn();
+      allow read: if isStaff();
       allow write: if isAdmin();
+    }
+
+    // ─── AM/BD Targeted Notes ───────────────────────────────────────────────────
+    match /ambdNotes/{noteId} {
+      allow read: if ownerRead();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (ownsExisting() && keepsOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'confirmedAt', 'readAt', 'updatedAt']));
+      allow delete: if isAdmin();
     }
   }
 }

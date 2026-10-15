@@ -1,0 +1,14 @@
+rules_version = '2';
+// Cloud Storage is not used by BDM Compass. Deny everything until a feature needs it;
+// then allow only authenticated owners under users/{uid}/... (pattern below).
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+    // Example for a future feature:
+    // match /users/{uid}/{allPaths=**} {
+    //   allow read, write: if request.auth != null && request.auth.uid == uid;
+    // }
+  }
+}
