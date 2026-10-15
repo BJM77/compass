@@ -58,7 +58,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profileLoading, setProfileLoading] = useState(true);
   const [mockProfile, setMockProfile] = useState<UserProfile | null>(null);
 
+  // Demo/mock profiles are a local development aid only; disabled in production builds.
   const setMockAuth = (profile: UserProfile | null) => {
+    if (process.env.NODE_ENV === 'production') return;
     setMockProfile(profile);
   };
 
@@ -117,12 +119,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user: mockProfile ? ({ uid: mockProfile.uid, email: 'demo@example.com' } as User) : firebaseUser,
     profile,
     loading: isUserLoading || profileLoading,
-    isLeader: profile?.role === 'LEADER' || profile?.role === 'GM' || firebaseUser?.email === '1@1.com' || mockProfile?.email === '1@1.com' || profile?.email === '1@1.com',
+    // Privilege comes only from the role on users/{uid} (set by admins). No hard-coded emails.
+    isLeader: ['LEADER', 'GM', 'ADMIN', 'SUPER_ADMIN'].includes(profile?.role as string),
     isBDM: profile?.role === 'BDM',
     isAM: profile?.role === 'ACCOUNT_MANAGER',
-    isGM: profile?.role === 'GM' || firebaseUser?.email === '1@1.com' || mockProfile?.email === '1@1.com' || profile?.email === '1@1.com',
+    isGM: profile?.role === 'GM',
     isGuest: profile?.role === 'GUEST',
-    isSuperAdmin: profile?.role === 'SUPER_ADMIN' || firebaseUser?.email === '1@1.com' || mockProfile?.email === '1@1.com' || profile?.email === '1@1.com',
+    isSuperAdmin: profile?.role === 'SUPER_ADMIN',
     setMockAuth,
   };
 

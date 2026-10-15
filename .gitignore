@@ -43,3 +43,13 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+# Source dumps / backups (may contain secrets) – never commit
+*.txt
+!public/**/*.txt
+legacy_backups/
+all*.txt
+*backup*.txt
+code_export*.txt
+dev.log
+firestore-debug.log
+*-debug.log

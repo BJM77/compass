@@ -87,7 +87,7 @@ export function FridayPerformanceReview({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<'DRAFT' | 'SUBMITTED' | 'NOT_STARTED' | 'REVIEWED_BY_ADMIN'>('NOT_STARTED');
 
-  const isSuperAdminOrLeader = isLeader || profile?.role === 'LEADER' || profile?.role === 'GM' || user?.email === '1@1.com';
+  const isSuperAdminOrLeader = isLeader || profile?.role === 'LEADER' || profile?.role === 'GM';
 
   // Unified site-wide deduplicated team members hook
   const { teamUsers, isLoading: isUsersLoading } = useTeamUsers();

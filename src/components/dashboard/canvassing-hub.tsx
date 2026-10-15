@@ -56,7 +56,7 @@ import {
 import { format } from 'date-fns';
 
 export function CanvassingHub() {
-  const { profile, isLeader, user } = useAuth();
+  const { profile, isLeader, isSuperAdmin, user } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
 
@@ -85,9 +85,9 @@ export function CanvassingHub() {
 
   // Query all users for reassignment (only for super admin)
   const usersQuery = useMemoFirebase(() => {
-    if (!db || user?.email !== '1@1.com') return null;
+    if (!db || !isSuperAdmin) return null;
     return collection(db, 'users');
-  }, [db, user?.email]);
+  }, [db, isSuperAdmin]);
   const { data: allUsers } = useCollection<any>(usersQuery);
 
   // Report telemetry to Developer Diagnostics bus
@@ -319,7 +319,7 @@ export function CanvassingHub() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
-        <TabsList className={`grid w-full ${isLeader || user?.email === '1@1.com' ? 'grid-cols-4' : 'grid-cols-3'} mb-6 h-12 bg-slate-100/50`}>
+        <TabsList className={`grid w-full ${isLeader || isSuperAdmin ? 'grid-cols-4' : 'grid-cols-3'} mb-6 h-12 bg-slate-100/50`}>
           <TabsTrigger value="NEW_LEAD" className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5">
             <Plus className="h-3.5 w-3.5 text-amber-500" />
             <span>New Lead</span>
@@ -343,7 +343,7 @@ export function CanvassingHub() {
             <MapPin className="h-3.5 w-3.5 text-red-500" />
             <span>Visited Areas Map</span>
           </TabsTrigger>
-          {(isLeader || user?.email === '1@1.com') && (
+          {(isLeader || isSuperAdmin) && (
             <TabsTrigger 
               value="TIMELINE" 
               className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
@@ -625,7 +625,7 @@ export function CanvassingHub() {
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
                     <span className="font-medium truncate max-w-[150px] flex items-center">
                       Rep: 
-                      {user?.email === '1@1.com' ? (
+                      {isSuperAdmin ? (
                         <div onClick={e => e.stopPropagation()} className="ml-1">
                           <Select 
                             value={lead.userId || ''} 
@@ -714,7 +714,7 @@ export function CanvassingHub() {
                       </AlertDialog>
                     )}
 
-                    {user?.email === '1@1.com' && (
+                    {isSuperAdmin && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50" title="Permanently Delete Lead">
