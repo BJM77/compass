@@ -1,0 +1,23 @@
+name: Uptime & Health Monitor
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-uptime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Uptime Check
+        run: node scripts/uptime-check.mjs
+        env:
+          UPTIME_TARGET_URL: 'https://bdmcompass.online'

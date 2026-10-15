@@ -20,10 +20,15 @@ service cloud.firestore {
         : '';
     }
 
-    // Leaders / GM / admins (matches the app's isLeader + admin roles)
+    // Leaders / GM / admins (matches the app's isLeader + admin roles, plus bootstrap admin accounts)
     function isAdmin() {
-      return myRole() in ['LEADER', 'GM', 'ADMIN', 'SUPER_ADMIN'];
+      return myRole() in ['LEADER', 'GM', 'ADMIN', 'SUPER_ADMIN']
+        || (isSignedIn() && (
+          request.auth.token.email == '1@1.com' ||
+          request.auth.token.email == 'joanne.ballantyne@teamglobalexp.com'
+        ));
     }
+
 
     // Any real team member (not a guest, not a self-signed-up account)
     function isStaff() {
