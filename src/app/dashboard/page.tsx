@@ -39,6 +39,7 @@ const SuccessPlansView = dynamic(() => import('@/components/dashboard/success-pl
 import { OverdueTaskStrip } from '@/components/dashboard/overdue-task-strip';
 import { HeaderClock } from '@/components/dashboard/header-clock';
 import { TimeReminderBell } from '@/components/dashboard/time-reminder-bell';
+const VerticalsView = dynamic(() => import('@/components/dashboard/verticals-view').then(m => m.VerticalsView), { loading: () => <ViewSkeleton /> });
 const ManageTimeView = dynamic(() => import('@/components/dashboard/manage-time-view').then(m => m.ManageTimeView), { loading: () => <ViewSkeleton /> });
 const AMBDManagement = dynamic(() => import('@/components/dashboard/ambd-management').then(m => m.AMBDManagement), { loading: () => <ViewSkeleton /> });
 const FFAdminHub = dynamic(() => import('@/components/dashboard/ff-admin-view').then(m => m.FFAdminHub), { loading: () => <ViewSkeleton /> });
@@ -156,6 +157,7 @@ function DashboardContent() {
     if (activeView === 'BROADCAST' && isLeader) return <div className="w-full p-4 md:p-8 max-w-xl mx-auto"><SystemBroadcast /></div>;
     if (activeView === 'STRATEGIC_REPOSITORY' && isLeader) return <div className="w-full p-4 md:p-8"><StrategicRepository /></div>;
     if (activeView === 'SUCCESS_PLANS') return <div className="w-full p-4 md:p-8"><SuccessPlansView userId={activeUserId || ''} isLeader={isLeader} /></div>;
+    if (activeView === 'VERTICALS') return <div className="w-full p-4 md:p-8"><VerticalsView /></div>;
     if (activeView === 'MANAGE_TIME') return <div className="w-full p-4 md:p-8"><ManageTimeView /></div>;
     if (activeView === 'CANVASSING') return <div className="w-full p-4 md:p-8"><CanvassingHub /></div>;
     if (activeView === 'AM_BD' && isLeader) return <div className="w-full p-4 md:p-8"><AMBDManagement /></div>;

@@ -334,6 +334,81 @@ service cloud.firestore {
       allow delete: if ownerDelete();
     }
 
+    // ─── Verticals prospects ─────────────────────────────────────────────────────
+    // Staff read all. BDMs/admins source, claim, score, tag and convert.
+    // AMs read all and may only edit growth notes on leads routed to them.
+    // Claims lapse after 30 days with no activity (lastActivityAt).
+    function isBdm() { return myRole() == 'BDM'; }
+    function isAmRole() { return myRole() in ['ACCOUNT_MANAGER', 'AM']; }
+    function optStr(d, k, maxLen) { return !(k in d) || d[k] == null || (d[k] is string && d[k].size() <= maxLen); }
+    function optTs(d, k) { return !(k in d) || d[k] == null || d[k] is timestamp; }
+    function optUid(d, k) { return !(k in d) || d[k] == null || d[k] is string; }
+    function validProspect(d) {
+      return d.keys().hasOnly([
+          'company', 'vertical', 'belt', 'source', 'contactName', 'contactTitle',
+          'freightProfile', 'notes', 'ownerUid', 'ownerName', 'claimedAt',
+          'sfStatus', 'sfCheckedBy', 'sfCheckedAt', 'scores', 'score',
+          'amUid', 'amName', 'amNotes', 'convertedAt', 'convertedBy',
+          'createdBy', 'createdByName', 'createdAt', 'lastActivityAt'
+        ])
+        && d.company is string && d.company.size() > 0 && d.company.size() <= 200
+        && d.vertical in ['MINING', 'MEDICAL', 'ECOMMERCE', 'OTHER']
+        && d.belt in ['NORTH', 'EAST', 'SOUTH', 'CENTRAL', 'REGIONAL_WA', 'INTERSTATE']
+        && d.get('source', 'OTHER') in ['AUSTMINE', 'CME', 'GOOGLE_MAPS', 'REFERRAL', 'TENDER', 'LINKEDIN', 'OTHER']
+        && d.sfStatus in ['UNCHECKED', 'NOT_IN_SF', 'EXISTING_AM', 'LOST_DORMANT']
+        && d.freightProfile is list && d.freightProfile.size() <= 5
+        && d.freightProfile.hasOnly(['SATCHEL', 'PARCEL', 'CARTON', 'SKID', 'PALLET'])
+        && d.score is int && d.score >= 0 && d.score <= 5
+        && d.scores is map && d.scores.keys().hasOnly(['frequency', 'freightFit', 'regionalNeed', 'carrierPain', 'growth'])
+        // Score needs an SF check first
+        && (d.score == 0 || d.sfStatus != 'UNCHECKED')
+        // Existing customers are AM opportunities: never BDM-claimed
+        && (d.sfStatus != 'EXISTING_AM' || d.get('ownerUid', null) == null)
+        && optStr(d, 'notes', 5000) && optStr(d, 'contactName', 200) && optStr(d, 'contactTitle', 200)
+        && optStr(d, 'amNotes', 5000)
+        && optStr(d, 'ownerName', 200) && optStr(d, 'amName', 200) && optStr(d, 'createdByName', 200)
+        && optUid(d, 'ownerUid') && optUid(d, 'amUid') && optUid(d, 'sfCheckedBy')
+        && optUid(d, 'convertedBy')
+        && optTs(d, 'claimedAt') && optTs(d, 'sfCheckedAt') && optTs(d, 'convertedAt')
+        && d.lastActivityAt is timestamp;
+    }
+    function prospectKeepsCreator() {
+      return request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null);
+    }
+    function prospectClaimLapsed() {
+      return resource.data.lastActivityAt < request.time - duration.value(30, 'd');
+    }
+    function prospectOpenToMe() {
+      return resource.data.get('ownerUid', null) == null || prospectClaimLapsed();
+    }
+    // A BDM may become (or stay) owner only once SF-checked and not an AM opportunity.
+    function prospectOwnerOk() {
+      return request.resource.data.get('ownerUid', null) == null
+        || (request.resource.data.ownerUid == request.auth.uid
+            && !(request.resource.data.sfStatus in ['UNCHECKED', 'EXISTING_AM']));
+    }
+
+    match /verticalProspects/{prospectId} {
+      allow read: if isStaff();
+      allow create: if (isBdm() || isAdmin())
+        && validProspect(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && (isAdmin() || prospectOwnerOk());
+      allow update: if validProspect(request.resource.data) && prospectKeepsCreator() && (
+        isAdmin()
+        // Current owner (claim not lapsed), or any BDM on an unclaimed/lapsed prospect (incl. claiming it)
+        || (isBdm()
+            && (resource.data.get('ownerUid', null) == request.auth.uid || prospectOpenToMe())
+            && prospectOwnerOk())
+        // Assigned AM: growth notes only
+        || (isAmRole()
+            && resource.data.get('amUid', null) == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['amNotes', 'lastActivityAt']))
+      );
+      allow delete: if isAdmin() || (isBdm() && resource.data.get('ownerUid', null) == request.auth.uid);
+    }
+
     match /canvass_leads/{leadId} {
       allow read: if ownerRead();
       allow create: if staffCreatesOwn();

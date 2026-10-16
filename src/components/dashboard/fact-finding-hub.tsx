@@ -275,7 +275,7 @@ export function FactFindingHub() {
           <DialogTitle className="sr-only">Fact Finding Document</DialogTitle>
           <DialogDescription className="sr-only">Create or manage a logistics discovery document.</DialogDescription>
           {selectedDoc === 'new' && (
-            <FactFindingForm onBack={() => setSelectedDoc(null)} />
+            <FactFindingForm prefill={viewParams?.prefill} onBack={() => setSelectedDoc(null)} />
           )}
           {selectedDoc !== null && selectedDoc !== 'new' && (
             <FactFindingForm docId={selectedDoc.id} existingDoc={selectedDoc} onBack={() => setSelectedDoc(null)} />

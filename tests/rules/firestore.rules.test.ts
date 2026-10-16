@@ -6,7 +6,7 @@ import {
   assertSucceeds,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, getDocs, setDoc, updateDoc, addDoc, collection, query, where, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc, collection, query, where, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
 
 let env: RulesTestEnvironment;
 
@@ -243,5 +243,103 @@ describe('Manage Time: push tokens, prefs, nudges, team counts', () => {
     }
     await assertFails(getDocs(collection(db(BDM), 'timeManagementPlans')));
     await assertSucceeds(getDocs(query(collection(db(BDM), 'timeManagementPlans'), where('userId', '==', BDM))));
+  });
+});
+
+describe('Verticals: verticalProspects', () => {
+  const base = (over: Record<string, unknown> = {}) => ({
+    company: 'Acme Mining Supplies', vertical: 'MINING', belt: 'EAST', source: 'AUSTMINE',
+    contactName: 'Jane', contactTitle: 'Logistics Manager', freightProfile: ['CARTON', 'PALLET'], notes: '',
+    ownerUid: null, ownerName: null, claimedAt: null,
+    sfStatus: 'UNCHECKED', sfCheckedBy: null, sfCheckedAt: null,
+    scores: { frequency: false, freightFit: false, regionalNeed: false, carrierPain: false, growth: false }, score: 0,
+    amUid: null, amName: null, amNotes: '',
+    convertedAt: null, convertedBy: null,
+    createdBy: BDM, createdByName: 'Bea', createdAt: serverTimestamp(), lastActivityAt: serverTimestamp(),
+    ...over,
+  });
+  const seed = async (id: string, data: Record<string, unknown>) => env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'verticalProspects', id), data);
+  });
+  const daysAgo = (d: number) => Timestamp.fromMillis(Date.now() - d * 86400000);
+
+  test('staff read; guests/strangers cannot', async () => {
+    await seed('p1', { ...base(), createdAt: daysAgo(1), lastActivityAt: daysAgo(1) });
+    for (const u of [BDM, AM, LEADER, GM, SUPER]) await assertSucceeds(getDoc(doc(db(u), 'verticalProspects', 'p1')));
+    for (const u of [GUEST, STRANGER]) await assertFails(getDoc(doc(db(u), 'verticalProspects', 'p1')));
+    await assertFails(getDocs(collection(db(GUEST), 'verticalProspects')));
+  });
+
+  test('BDM/admin create (validated); AM cannot; creator must be self', async () => {
+    await assertSucceeds(addDoc(collection(db(BDM), 'verticalProspects'), base()));
+    await assertSucceeds(addDoc(collection(db(LEADER), 'verticalProspects'), base({ createdBy: LEADER })));
+    await assertFails(addDoc(collection(db(AM), 'verticalProspects'), base({ createdBy: AM })));
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ createdBy: BDM2 })));
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ vertical: 'CRYPTO' })));
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ score: 6 })));
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ isAdmin: true })));
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ company: '' })));
+    // score / claim require SF status first
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ score: 2 })));
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ ownerUid: BDM })));
+    await assertSucceeds(addDoc(collection(db(BDM), 'verticalProspects'), base({ ownerUid: BDM, sfStatus: 'NOT_IN_SF', score: 3 })));
+  });
+
+  test('claim: only after SF check, not for EXISTING_AM, not when claimed by someone else', async () => {
+    await seed('u', { ...base(), createdAt: daysAgo(1), lastActivityAt: daysAgo(1) });
+    await assertFails(updateDoc(doc(db(BDM2), 'verticalProspects', 'u'), { ownerUid: BDM2, ownerName: 'Bob', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db(BDM2), 'verticalProspects', 'u'), { sfStatus: 'NOT_IN_SF', sfCheckedBy: BDM2, sfCheckedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db(BDM2), 'verticalProspects', 'u'), { ownerUid: BDM2, ownerName: 'Bob', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    // Now owned by BDM2 → BDM can't edit/claim it
+    await assertFails(updateDoc(doc(db(BDM), 'verticalProspects', 'u'), { ownerUid: BDM, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(BDM), 'verticalProspects', 'u'), { notes: 'hijack', lastActivityAt: serverTimestamp() }));
+    // Can't claim on behalf of someone else
+    await seed('u2', { ...base({ sfStatus: 'NOT_IN_SF' }), createdAt: daysAgo(1), lastActivityAt: daysAgo(1) });
+    await assertFails(updateDoc(doc(db(BDM), 'verticalProspects', 'u2'), { ownerUid: BDM2, lastActivityAt: serverTimestamp() }));
+    // EXISTING_AM is locked from BDM claim
+    await seed('am', { ...base({ sfStatus: 'EXISTING_AM' }), createdAt: daysAgo(1), lastActivityAt: daysAgo(1) });
+    await assertFails(updateDoc(doc(db(BDM), 'verticalProspects', 'am'), { ownerUid: BDM, ownerName: 'Bea', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    // Setting EXISTING_AM while owned is invalid unless released
+    await seed('own', { ...base({ sfStatus: 'NOT_IN_SF', ownerUid: BDM }), createdAt: daysAgo(1), lastActivityAt: daysAgo(1) });
+    await assertFails(updateDoc(doc(db(BDM), 'verticalProspects', 'own'), { sfStatus: 'EXISTING_AM', lastActivityAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db(BDM), 'verticalProspects', 'own'), { sfStatus: 'EXISTING_AM', ownerUid: null, ownerName: null, claimedAt: null, amUid: AM, amName: 'Amy', lastActivityAt: serverTimestamp() }));
+  });
+
+  test('lapsed claim (30+ days no activity) can be claimed by another BDM', async () => {
+    await seed('old', { ...base({ sfStatus: 'NOT_IN_SF', ownerUid: BDM, ownerName: 'Bea' }), claimedAt: daysAgo(40), createdAt: daysAgo(40), lastActivityAt: daysAgo(31) });
+    await assertSucceeds(updateDoc(doc(db(BDM2), 'verticalProspects', 'old'), { ownerUid: BDM2, ownerName: 'Bob', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    await seed('fresh', { ...base({ sfStatus: 'NOT_IN_SF', ownerUid: BDM, ownerName: 'Bea' }), claimedAt: daysAgo(20), createdAt: daysAgo(20), lastActivityAt: daysAgo(20) });
+    await assertFails(updateDoc(doc(db(BDM2), 'verticalProspects', 'fresh'), { ownerUid: BDM2, ownerName: 'Bob', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+  });
+
+  test('owner scores, converts, releases; cannot change creator', async () => {
+    await seed('o', { ...base({ sfStatus: 'NOT_IN_SF', ownerUid: BDM }), createdAt: daysAgo(2), lastActivityAt: daysAgo(1) });
+    const r = doc(db(BDM), 'verticalProspects', 'o');
+    await assertSucceeds(updateDoc(r, { scores: { frequency: true, freightFit: true, regionalNeed: false, carrierPain: false, growth: false }, score: 2, lastActivityAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(r, { convertedAt: serverTimestamp(), convertedBy: BDM, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(r, { createdBy: BDM2, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(r, { score: 9, lastActivityAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(r, { ownerUid: null, ownerName: null, claimedAt: null, lastActivityAt: serverTimestamp() }));
+  });
+
+  test('AM: routed lead growth notes only; cannot claim or edit others', async () => {
+    await seed('r', { ...base({ sfStatus: 'EXISTING_AM', amUid: AM, amName: 'Amy' }), createdAt: daysAgo(2), lastActivityAt: daysAgo(1) });
+    await seed('n', { ...base({ sfStatus: 'NOT_IN_SF' }), createdAt: daysAgo(2), lastActivityAt: daysAgo(1) });
+    await assertSucceeds(updateDoc(doc(db(AM), 'verticalProspects', 'r'), { amNotes: 'Upsell regional lanes', lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(AM), 'verticalProspects', 'r'), { sfStatus: 'NOT_IN_SF', lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(AM), 'verticalProspects', 'r'), { amUid: null, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(AM), 'verticalProspects', 'n'), { ownerUid: AM, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(AM), 'verticalProspects', 'n'), { amNotes: 'x', lastActivityAt: serverTimestamp() }));
+  });
+
+  test('admins override/reassign; delete by owner or admin only', async () => {
+    await seed('a', { ...base({ sfStatus: 'NOT_IN_SF', ownerUid: BDM }), createdAt: daysAgo(2), lastActivityAt: daysAgo(1) });
+    await assertSucceeds(updateDoc(doc(db(GM), 'verticalProspects', 'a'), { ownerUid: BDM2, ownerName: 'Bob', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(GM), 'verticalProspects', 'a'), { bogus: 1, lastActivityAt: serverTimestamp() }));
+    await assertFails(deleteDoc(doc(db(BDM), 'verticalProspects', 'a')));
+    await assertFails(deleteDoc(doc(db(AM), 'verticalProspects', 'a')));
+    await assertSucceeds(deleteDoc(doc(db(BDM2), 'verticalProspects', 'a')));
+    await seed('b', { ...base(), createdAt: daysAgo(2), lastActivityAt: daysAgo(1) });
+    await assertSucceeds(deleteDoc(doc(db(SUPER), 'verticalProspects', 'b')));
   });
 });

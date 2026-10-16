@@ -117,6 +117,14 @@ export function isUserSubmissionMatch(
  * Priority 2: Fall back to SOSL search by account/opportunity name.
  *   Uses the stable UnifiedSearchResults endpoint which works across Lightning org versions.
  */
+/** Salesforce global (unified) search URL for a company/account name. Same pattern as openSalesforceSearch. */
+export const SALESFORCE_BASE_URL = 'https://teamglobalexp.lightning.force.com';
+export function getSalesforceSearchUrl(term: string): string {
+  const cleanTerm = (term || '').split(' (')[0].split(' - ')[0].trim();
+  if (!cleanTerm) return '#';
+  return `${SALESFORCE_BASE_URL}/_ui/search/ui/UnifiedSearchResults?searchType=2&str=${encodeURIComponent(cleanTerm)}`;
+}
+
 export function openSalesforceSearch(term: string, salesforceId?: string) {
   if (!term || term === 'TEAM CAMPAIGN') return;
 

@@ -76,6 +76,8 @@ const AUSTRALIA_STATES = [
 interface Props {
   docId?: string;
   existingDoc?: FactFindingDoc;
+  /** Prefill values for a new doc (e.g. from Verticals → Convert to Fact Finding). */
+  prefill?: Partial<FactFindingDoc>;
   onBack: () => void;
   viewOnly?: boolean;
 }
@@ -291,7 +293,7 @@ export interface FactFindingFormHandle {
 }
 
 export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
-  function FactFindingForm({ docId, existingDoc, onBack, viewOnly = false }, ref) {
+  function FactFindingForm({ docId, existingDoc, prefill, onBack, viewOnly = false }, ref) {
   const db = useFirestore();
   const { user, isLeader, isSuperAdmin, profile } = useAuth();
   const isElevated = isLeader || isSuperAdmin;
@@ -404,6 +406,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    if (!existingDoc && prefill) setFormData(prev => ({ ...prev, ...prefill }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
