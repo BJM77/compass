@@ -76,6 +76,30 @@ service cloud.firestore {
            ])
       );
       allow delete: if isAdmin();
+
+      // Push notification tokens + preferences: owner only (Cloud Functions
+      // use the Admin SDK). Not readable by admins or other staff.
+      match /fcmTokens/{tokenId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.token is string
+          && request.resource.data.token.size() < 4096
+          && request.resource.data.keys().hasOnly(['token', 'userAgent', 'createdAt', 'updatedAt']);
+      }
+      match /notificationSettings/{settingId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && settingId == 'prefs'
+          && request.resource.data.keys().hasOnly([
+               'enabled', 'allowedStart', 'allowedEnd', 'weekdaysOnly',
+               'dailyDigest', 'deadlineNudges', 'escalation', 'updatedAt'
+             ]);
+      }
+      // notificationLog/* (send de-dupe) is server-only: no client access.
+    }
+
+    // Single-use notification action tokens: server-only (Admin SDK).
+    match /notificationActions/{token} {
+      allow read, write: if false;
     }
 
     // ─── Revenue Rollups ────────────────────────────────────────────────────────
@@ -273,8 +297,15 @@ service cloud.firestore {
     }
 
     // ─── System config ──────────────────────────────────────────────────────────
+    // "current" = team broadcast; "nudge_<uid>" = targeted Team Nudge (only
+    // that user and admins can read it).
     match /systemAnnouncements/{docId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (
+        resource == null
+        || resource.data.get('targetUserId', null) == null
+        || resource.data.get('targetUserId', null) == request.auth.uid
+        || isAdmin()
+      );
       allow write: if isAdmin();
     }
 

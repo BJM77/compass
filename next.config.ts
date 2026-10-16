@@ -11,7 +11,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://unpkg.com https://raw.githubusercontent.com https://placehold.co https://images.unsplash.com https://picsum.photos https://www.google.com https://*.googleusercontent.com",
-  "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://nominatim.openstreetmap.org https://overpass-api.de",
+  "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://*.cloudfunctions.net https://nominatim.openstreetmap.org https://overpass-api.de",
   "frame-src 'self' https://*.firebaseapp.com https://apis.google.com",
   "worker-src 'self' blob:",
   "object-src 'none'",

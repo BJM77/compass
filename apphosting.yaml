@@ -21,3 +21,9 @@ env:
     value: studio-5306701288-d19b1.firebasestorage.app
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
     value: 581796544364
+  # Web Push (FCM) VAPID public key – Firebase console → Project settings →
+  # Cloud Messaging → Web configuration → Web Push certificates → Generate key pair.
+  # It is a *public* key, so a plain value is fine. Uncomment and paste:
+  # - variable: NEXT_PUBLIC_FIREBASE_VAPID_KEY
+  #   value: <public key pair string>
+  #   availability: [BUILD, RUNTIME]

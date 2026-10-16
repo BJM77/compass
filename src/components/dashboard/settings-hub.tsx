@@ -27,6 +27,7 @@ import {
   LayoutGrid, GripVertical, EyeOff, Database
 } from 'lucide-react';
 
+import { NotificationSettings } from './notification-settings';
 import { ReportingToolsSettings, CustomDashboard, ReportWidget } from './reporting-tools-settings';
 
 export interface DashboardWidgetConfig {
@@ -394,6 +395,9 @@ export function SettingsHub() {
               <SettingRow label="Escalation Alerts" description="Notify leadership if activity targets are missed for 2+ weeks.">
                 <Switch checked={settings.escalationAlertsEnabled} onCheckedChange={v => set('escalationAlertsEnabled', v)} />
               </SettingRow>
+              <div className="pt-6">
+                <NotificationSettings />
+              </div>
             </SectionCard>
           )}
 

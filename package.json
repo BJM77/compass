@@ -10,7 +10,10 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:rules": "npx -y firebase-tools@13 emulators:exec --only firestore --project demo-compass-rules \"vitest run --config tests/rules/vitest.rules.config.mts\""
+    "test:rules": "npx -y firebase-tools@13 emulators:exec --only firestore --project demo-compass-rules \"vitest run --config tests/rules/vitest.rules.config.mts\"",
+    "test": "vitest run --dir tests/unit",
+    "build:functions": "npm --prefix functions run build",
+    "test:functions": "npm --prefix functions test"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.28.0",

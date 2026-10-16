@@ -36,6 +36,7 @@ const PlaybookView = dynamic(() => import('@/components/dashboard/playbook-view'
 const ActualSpendView = dynamic(() => import('@/components/dashboard/actual-spend-view').then(m => m.ActualSpendView), { loading: () => <ViewSkeleton /> });
 const StrategicRepository = dynamic(() => import('@/components/dashboard/strategic-repository').then(m => m.StrategicRepository), { loading: () => <ViewSkeleton /> });
 const SuccessPlansView = dynamic(() => import('@/components/dashboard/success-plans').then(m => m.SuccessPlansView), { loading: () => <ViewSkeleton /> });
+import { TimeReminderBell } from '@/components/dashboard/time-reminder-bell';
 const ManageTimeView = dynamic(() => import('@/components/dashboard/manage-time-view').then(m => m.ManageTimeView), { loading: () => <ViewSkeleton /> });
 const AMBDManagement = dynamic(() => import('@/components/dashboard/ambd-management').then(m => m.AMBDManagement), { loading: () => <ViewSkeleton /> });
 const FFAdminHub = dynamic(() => import('@/components/dashboard/ff-admin-view').then(m => m.FFAdminHub), { loading: () => <ViewSkeleton /> });
@@ -330,6 +331,7 @@ function DashboardContent() {
             )}
 
             <div className="flex-1" />
+            <TimeReminderBell onOpenManageTime={() => navigateTo('MANAGE_TIME')} />
             <div className="flex items-center gap-4 min-w-0">
               <div className="text-right hidden sm:block min-w-0">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-900 truncate max-w-[40vw] nav:max-w-none">{profile?.name || user?.email}</p>
