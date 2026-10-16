@@ -187,3 +187,61 @@ describe('BDM / AM main screens keep working', () => {
     await assertFails(setDoc(doc(db(GUEST), 'telemetryEvents', 'e2'), { userId: GUEST, viewKey: 'X' }));
   });
 });
+
+describe('Manage Time: push tokens, prefs, nudges, team counts', () => {
+  const prefs = { enabled: true, allowedStart: '07:00', allowedEnd: '18:00', weekdaysOnly: true, dailyDigest: true, deadlineNudges: true, escalation: true };
+
+  test('users manage only their own FCM tokens and prefs', async () => {
+    await assertSucceeds(setDoc(doc(db(BDM), 'users', BDM, 'fcmTokens', 'h1'), { token: 'tok', userAgent: 'ua', createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(doc(db(BDM), 'users', BDM, 'fcmTokens', 'h1')));
+    await assertSucceeds(setDoc(doc(db(BDM), 'users', BDM, 'notificationSettings', 'prefs'), prefs));
+    await assertSucceeds(getDoc(doc(db(BDM), 'users', BDM, 'notificationSettings', 'prefs')));
+    // Other users – including admins – can't read or write them
+    for (const other of [BDM2, LEADER, SUPER, GUEST, STRANGER]) {
+      await assertFails(getDoc(doc(db(other), 'users', BDM, 'fcmTokens', 'h1')));
+      await assertFails(getDocs(collection(db(other), 'users', BDM, 'fcmTokens')));
+      await assertFails(getDoc(doc(db(other), 'users', BDM, 'notificationSettings', 'prefs')));
+      await assertFails(setDoc(doc(db(other), 'users', BDM, 'fcmTokens', 'evil'), { token: 'x' }));
+      await assertFails(setDoc(doc(db(other), 'users', BDM, 'notificationSettings', 'prefs'), prefs));
+    }
+    await assertFails(getDoc(doc(db(), 'users', BDM, 'fcmTokens', 'h1')));
+  });
+
+  test('token/prefs shape is enforced; server-only collections are closed', async () => {
+    await assertFails(setDoc(doc(db(BDM), 'users', BDM, 'fcmTokens', 'h2'), { token: 'tok', role: 'SUPER_ADMIN' }));
+    await assertFails(setDoc(doc(db(BDM), 'users', BDM, 'notificationSettings', 'other'), prefs));
+    await assertFails(setDoc(doc(db(BDM), 'users', BDM, 'notificationSettings', 'prefs'), { ...prefs, isAdmin: true }));
+    await assertFails(setDoc(doc(db(BDM), 'users', BDM, 'notificationLog', 'k'), { sentAt: 1 }));
+    await assertFails(getDoc(doc(db(BDM), 'users', BDM, 'notificationLog', 'k')));
+    await assertFails(getDoc(doc(db(SUPER), 'notificationActions', 'abc')));
+    await assertFails(setDoc(doc(db(BDM), 'notificationActions', 'abc'), { uid: BDM, planId: 'p', taskId: 't', used: false }));
+  });
+
+  test('Team Nudge: admin writes nudge_<uid>; only target + admins read it', async () => {
+    const nudge = { type: 'TIME_NUDGE', targetUserId: BDM, message: 'Time check', active: true, createdBy: LEADER, updatedAt: serverTimestamp() };
+    await assertSucceeds(setDoc(doc(db(LEADER), 'systemAnnouncements', `nudge_${BDM}`), nudge));
+    await assertFails(setDoc(doc(db(BDM), 'systemAnnouncements', `nudge_${BDM2}`), { ...nudge, targetUserId: BDM2 }));
+    await assertSucceeds(getDoc(doc(db(BDM), 'systemAnnouncements', `nudge_${BDM}`)));
+    await assertSucceeds(getDoc(doc(db(GM), 'systemAnnouncements', `nudge_${BDM}`)));
+    await assertFails(getDoc(doc(db(BDM2), 'systemAnnouncements', `nudge_${BDM}`)));
+    await assertFails(getDoc(doc(db(GUEST), 'systemAnnouncements', `nudge_${BDM}`)));
+    // Non-existent nudge doc reads cleanly (banner listens for it)
+    await assertSucceeds(getDoc(doc(db(BDM2), 'systemAnnouncements', `nudge_${BDM2}`)));
+    // Team broadcast still readable by everyone signed in
+    await assertSucceeds(getDoc(doc(db(GUEST), 'systemAnnouncements', 'current')));
+  });
+
+  test('time plans: owner CRUD with dueAt; admins read team plans; peers cannot', async () => {
+    const task = { id: 't1', text: 'Call Acme', quadrant: 'Q1', completed: false, dueAt: Date.now(), reminders: ['15m'] };
+    await assertSucceeds(setDoc(doc(db(BDM), 'timeManagementPlans', 'p1'), { userId: BDM, tasks: [task], createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db(BDM), 'timeManagementPlans', 'p1'), { tasks: [{ ...task, completed: true }] }));
+    await assertFails(setDoc(doc(db(BDM), 'timeManagementPlans', 'p2'), { userId: BDM2, tasks: [] }));
+    await assertFails(getDoc(doc(db(BDM2), 'timeManagementPlans', 'p1')));
+    await assertFails(updateDoc(doc(db(BDM), 'timeManagementPlans', 'p1'), { userId: BDM2 }));
+    for (const admin of [LEADER, GM, SUPER]) {
+      await assertSucceeds(getDocs(collection(db(admin), 'timeManagementPlans')));
+    }
+    await assertFails(getDocs(collection(db(BDM), 'timeManagementPlans')));
+    await assertSucceeds(getDocs(query(collection(db(BDM), 'timeManagementPlans'), where('userId', '==', BDM))));
+  });
+});

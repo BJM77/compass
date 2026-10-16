@@ -1,0 +1,21 @@
+{
+  "name": "compass-functions",
+  "private": true,
+  "description": "BDM Compass Cloud Functions: Manage Time push reminders, digests and deadline nudges.",
+  "main": "lib/index.js",
+  "engines": { "node": "22" },
+  "scripts": {
+    "sync-shared": "cp ../src/lib/time-mgmt.ts src/shared/time-mgmt.ts",
+    "build": "tsc",
+    "test": "npm run build && node --test lib/*.test.js",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.5.0",
+    "firebase-functions": "^6.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

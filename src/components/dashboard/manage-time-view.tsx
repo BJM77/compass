@@ -3,13 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, updateDoc, doc, serverTimestamp, query, where, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DebouncedInput } from '@/components/ui/debounced-input';
-import { Printer, Plus, Trash2, Clock, CalendarClock, Users, XCircle, Inbox, CheckCircle2, FileText, ChevronDown, Check } from 'lucide-react';
+import { Printer, Plus, Trash2, Clock, CalendarClock, Users, XCircle, Inbox, CheckCircle2, FileText, ChevronDown, Check, AlertTriangle, BellRing } from 'lucide-react';
+import { Task, cleanTask, needsAttention, isStale } from '@/lib/time-mgmt';
+import { TaskDueControls, DueChip } from '@/components/dashboard/time-task-due';
 import { format } from 'date-fns';
 import {
   DropdownMenu,
@@ -26,13 +28,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-type Task = {
-  id: string;
-  text: string;
-  quadrant?: 'Q1' | 'Q2' | 'Q3' | 'Q4' | null;
-  completed?: boolean;
-  movedToSoonAt?: number | null;
-};
 
 type TimePlan = {
   id: string;
@@ -113,7 +108,8 @@ export function ManageTimeView() {
 
   // Admin view state
   const [adminSelectedUserId, setAdminSelectedUserId] = useState<string | null>(null);
-  const [adminUsers, setAdminUsers] = useState<{id: string, name: string}[]>([]);
+  const [adminUsers, setAdminUsers] = useState<{id: string, name: string, attention: number, stale: number}[]>([]);
+  const [nudgedIds, setNudgedIds] = useState<Record<string, boolean>>({});
   const [adminPlans, setAdminPlans] = useState<TimePlan[]>([]);
   const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
 
@@ -169,7 +165,15 @@ export function ManageTimeView() {
     }
   };
 
-  // Auto-move Q2 -> Q1 after 24h interval
+  /** Apply a change to one task, stamping touchedAt (used for escalation). */
+  const patchTask = async (taskId: string, patch: Partial<Task>) => {
+    const newTasks = tasks.map(t => t.id === taskId ? cleanTask({ ...t, ...patch, touchedAt: Date.now() }) : t);
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
+  };
+
+  // Auto-move to Do Now: Q2 tasks after 24h, and any incomplete task that is
+  // overdue or due today (Perth time).
   useEffect(() => {
     if (!currentPlanId || adminSelectedUserId) return;
 
@@ -179,17 +183,29 @@ export function ManageTimeView() {
         const now = Date.now();
         const twentyFourHours = 24 * 60 * 60 * 1000;
         
+        let movedStale = 0;
+        let movedDue = 0;
         const updatedTasks = prevTasks.map(t => {
+          if (t.quadrant === 'Q1' || t.completed) return t;
+          if (needsAttention(t, now)) {
+            changed = true;
+            movedDue++;
+            return { ...t, quadrant: 'Q1' as const, promotedAt: now };
+          }
           if (t.quadrant === 'Q2' && t.movedToSoonAt && (now - t.movedToSoonAt > twentyFourHours)) {
             changed = true;
-            return { ...t, quadrant: 'Q1' as const };
+            movedStale++;
+            return { ...t, quadrant: 'Q1' as const, promotedAt: now };
           }
           return t;
         });
         
         if (changed) {
           savePlanWithTasks(updatedTasks, currentPlanId);
-          toast({ title: 'Tasks Auto-Moved', description: 'Tasks older than 24 hours in "Do Soon" were moved to "Do Now".' });
+          const parts: string[] = [];
+          if (movedDue) parts.push(`${movedDue} overdue/due-today task${movedDue > 1 ? 's' : ''}`);
+          if (movedStale) parts.push(`${movedStale} task${movedStale > 1 ? 's' : ''} older than 24 hours in "Do Soon"`);
+          toast({ title: 'Tasks Auto-Moved to Do Now', description: `${parts.join(' and ')} moved to "Do Now".` });
           return updatedTasks;
         }
         return prevTasks;
@@ -212,7 +228,7 @@ export function ManageTimeView() {
     const text = newTaskText.trim();
     if (!text) return;
     
-    const newTask: Task = { id: Date.now().toString() + Math.random().toString(), text, completed: false };
+    const newTask: Task = { id: Date.now().toString() + Math.random().toString().slice(2, 8), text, completed: false, touchedAt: Date.now() };
     const newTasks = [...tasks, newTask];
     setTasks(newTasks);
     setNewTaskText('');
@@ -226,15 +242,12 @@ export function ManageTimeView() {
   };
 
   const updateTaskText = async (taskId: string, newText: string) => {
-    const newTasks = tasks.map(t => t.id === taskId ? { ...t, text: newText } : t);
-    setTasks(newTasks);
-    await savePlanWithTasks(newTasks, currentPlanId);
+    await patchTask(taskId, { text: newText });
   };
 
   const toggleTaskCompletion = async (taskId: string) => {
-    const newTasks = tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
-    setTasks(newTasks);
-    await savePlanWithTasks(newTasks, currentPlanId);
+    const t = tasks.find(x => x.id === taskId);
+    await patchTask(taskId, { completed: !t?.completed });
   };
 
   const setTaskQuadrant = async (taskId: string, quadrant: 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined) => {
@@ -243,7 +256,9 @@ export function ManageTimeView() {
         const updated = { 
           ...t, 
           quadrant: quadrant === undefined ? null : quadrant,
-          movedToSoonAt: quadrant === 'Q2' ? Date.now() : (t.movedToSoonAt || null)
+          movedToSoonAt: quadrant === 'Q2' ? Date.now() : (t.movedToSoonAt || null),
+          promotedAt: quadrant === 'Q1' ? Date.now() : (t.promotedAt || null),
+          touchedAt: Date.now(),
         };
         // Firestore strictly forbids `undefined` in documents, so we delete undefined keys
         Object.keys(updated).forEach(k => {
@@ -280,7 +295,22 @@ export function ManageTimeView() {
   const loadAdminUsers = async () => {
     if (!db) return;
     try {
-      const usersSnap = await getDocs(collection(db, 'users'));
+      const [usersSnap, plansSnap] = await Promise.all([
+        getDocs(collection(db, 'users')),
+        getDocs(query(collection(db, 'timeManagementPlans'), orderBy('createdAt', 'desc'))),
+      ]);
+      // Latest plan per user → overdue/due-today + stale Do Now counts.
+      const now = Date.now();
+      const counts: Record<string, { attention: number; stale: number }> = {};
+      plansSnap.docs.forEach(d => {
+        const plan = d.data() as TimePlan;
+        if (!plan.userId || counts[plan.userId]) return;
+        const planTasks = plan.tasks || [];
+        counts[plan.userId] = {
+          attention: planTasks.filter(t => needsAttention(t, now)).length,
+          stale: planTasks.filter(t => isStale(t, now)).length,
+        };
+      });
       const usersList = usersSnap.docs
         .filter(doc => {
           const role = doc.data().role;
@@ -288,8 +318,11 @@ export function ManageTimeView() {
         })
         .map(doc => ({
           id: doc.id,
-          name: doc.data().displayName || doc.data().email || 'Unknown User'
-        }));
+          name: doc.data().displayName || doc.data().name || doc.data().email || 'Unknown User',
+          attention: counts[doc.id]?.attention || 0,
+          stale: counts[doc.id]?.stale || 0,
+        }))
+        .sort((a, b) => b.attention - a.attention || a.name.localeCompare(b.name));
       setAdminUsers(usersList);
     } catch (error) {
       console.error("Error loading users", error);
@@ -305,6 +338,31 @@ export function ManageTimeView() {
       setAdminPlans(snap.docs.map(d => ({ id: d.id, ...d.data() } as TimePlan)));
     } catch (error) {
       console.error("Error loading user plans", error);
+    }
+  };
+
+  /**
+   * Team Nudge: writes to the existing systemAnnouncements broadcast mechanism
+   * (used by TEAM NUDGE on the leader dashboard), targeted at one user. The
+   * announcement banner shows it to that user only, and the
+   * onTeamNudge Cloud Function sends them a push notification.
+   */
+  const nudgeUser = async (u: { id: string; name: string; attention: number }) => {
+    if (!db || !user) return;
+    try {
+      await setDoc(doc(db, 'systemAnnouncements', `nudge_${u.id}`), {
+        type: 'TIME_NUDGE',
+        targetUserId: u.id,
+        message: `Time check: you have ${u.attention} overdue or due-today task${u.attention === 1 ? '' : 's'} in Manage Time. Please review your Do Now list.`,
+        active: true,
+        createdBy: user.uid,
+        updatedAt: serverTimestamp(),
+      });
+      setNudgedIds(prev => ({ ...prev, [u.id]: true }));
+      toast({ title: 'Nudge sent', description: `${u.name} will see a banner and get a push notification (if enabled).` });
+    } catch (e) {
+      console.error('Nudge failed', e);
+      toast({ title: 'Nudge failed', variant: 'destructive' });
     }
   };
 
@@ -390,19 +448,31 @@ export function ManageTimeView() {
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>View Team Time Management Plans</DialogTitle>
-                  <DialogDescription>Select a user to view their saved plans.</DialogDescription>
+                  <DialogDescription>Select a user to view their saved plans. Counts are from each person&apos;s latest plan (overdue/due today, and Do Now tasks untouched 2+ days).</DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="border rounded-md p-2 h-[300px] overflow-y-auto space-y-1">
                     <h4 className="text-sm font-semibold mb-2 px-2">Users</h4>
                     {adminUsers.map(u => (
-                      <button
-                        key={u.id}
-                        onClick={() => loadAdminUserPlans(u.id)}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm ${adminSelectedUserId === u.id ? 'bg-indigo-100 text-indigo-900 font-medium' : 'hover:bg-slate-100'}`}
-                      >
-                        {u.name}
-                      </button>
+                      <div key={u.id} className={`flex items-center gap-1 rounded-md ${adminSelectedUserId === u.id ? 'bg-indigo-100' : 'hover:bg-slate-100'}`}>
+                        <button
+                          onClick={() => loadAdminUserPlans(u.id)}
+                          className={`flex-1 min-w-0 text-left px-3 py-2 text-sm truncate ${adminSelectedUserId === u.id ? 'text-indigo-900 font-medium' : ''}`}
+                        >
+                          {u.name}
+                        </button>
+                        {u.attention > 0 && (
+                          <span title="Overdue or due today" className="text-[10px] font-bold bg-red-100 text-red-700 px-1.5 py-0.5 rounded shrink-0">{u.attention} due</span>
+                        )}
+                        {u.stale > 0 && (
+                          <span title="Do Now tasks untouched 2+ days" className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded shrink-0">{u.stale} stale</span>
+                        )}
+                        {(u.attention > 0 || u.stale > 0) && (
+                          <Button size="sm" variant="ghost" disabled={nudgedIds[u.id]} onClick={() => nudgeUser(u)} className="h-7 px-2 text-xs text-indigo-700 shrink-0" title="Send a Team Nudge">
+                            <BellRing className="w-3.5 h-3.5 mr-1" />{nudgedIds[u.id] ? 'Sent' : 'Nudge'}
+                          </Button>
+                        )}
+                      </div>
                     ))}
                   </div>
                   <div className="border rounded-md p-2 h-[300px] overflow-y-auto space-y-1">
@@ -493,8 +563,10 @@ export function ManageTimeView() {
                       />
                     </div>
                     
+                    <DueChip task={task} />
                     {!isViewOnly && (
                       <div className="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-md border border-slate-100">
+                        <TaskDueControls task={task} onChange={(patch) => patchTask(task.id, patch)} />
                         {(['Q1', 'Q2', 'Q3', 'Q4'] as const).map((q) => {
                           const qData = QUADRANTS.find(x => x.id === q)!;
                           
@@ -572,13 +644,26 @@ export function ManageTimeView() {
                          <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0 print:bg-slate-800 print:mb-2"></div>
                       )}
                       
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <DebouncedInput 
                           value={task.text}
                           onCommit={(val) => updateTaskText(task.id, val)}
                           disabled={isViewOnly}
                           className={`h-8 border-transparent hover:border-slate-200 focus:border-indigo-300 shadow-none px-2 font-medium print:border-none print:px-0 print:bg-transparent print:text-slate-900 print:text-sm print:resize-none print:h-auto ${task.completed ? 'line-through text-slate-500 print:line-through print:text-slate-500' : 'text-slate-900'}`}
                         />
+                        <div className="flex flex-wrap items-center gap-1.5 px-2">
+                          <DueChip task={task} />
+                          {!isViewOnly && <TaskDueControls task={task} onChange={(patch) => patchTask(task.id, patch)} compact />}
+                        </div>
+                        {!isViewOnly && isStale(task) && (
+                          <div className="mt-1.5 mx-2 flex flex-wrap items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-900 print:hidden">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            <span className="font-semibold">Untouched for 2+ days. Delegate or Delete?</span>
+                            <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => setTaskQuadrant(task.id, 'Q3')}>Delegate</Button>
+                            <Button size="sm" variant="outline" className="h-6 px-2 text-xs text-red-600" onClick={() => removeTask(task.id)}>Delete</Button>
+                            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => patchTask(task.id, {})}>Keep</Button>
+                          </div>
+                        )}
                       </div>
                       
                       {!isViewOnly && (

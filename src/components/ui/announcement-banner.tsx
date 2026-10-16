@@ -4,15 +4,31 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Megaphone, X, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 
+/**
+ * Shows the team-wide broadcast (systemAnnouncements/current) and, when a
+ * leader has nudged this user from Manage Time, their personal Team Nudge
+ * (systemAnnouncements/nudge_<uid>).
+ */
 export function AnnouncementBanner() {
+  const { user } = useAuth();
+  return (
+    <>
+      <AnnouncementDocBanner docId="current" label="Broadcast" />
+      {user?.uid && <AnnouncementDocBanner docId={`nudge_${user.uid}`} label="Team Nudge" />}
+    </>
+  );
+}
+
+function AnnouncementDocBanner({ docId, label }: { docId: string; label: string }) {
   const db = useFirestore();
   const [isVisible, setIsVisible] = useState(true);
 
   const announcementDocRef = useMemoFirebase(() => {
     if (!db) return null;
-    return doc(db, 'systemAnnouncements', 'current');
-  }, [db]);
+    return doc(db, 'systemAnnouncements', docId);
+  }, [db, docId]);
 
   const { data: announcement, isLoading } = useDoc(announcementDocRef);
 
@@ -36,7 +52,7 @@ export function AnnouncementBanner() {
             <Megaphone className="w-4 h-4" />
           </div>
           <p className="text-xs md:text-sm font-bold tracking-tight truncate">
-            <span className="uppercase tracking-widest text-[10px] bg-white/30 px-1.5 py-0.5 rounded mr-2 font-black">Broadcast</span>
+            <span className="uppercase tracking-widest text-[10px] bg-white/30 px-1.5 py-0.5 rounded mr-2 font-black">{label}</span>
             {announcement.message}
           </p>
         </div>

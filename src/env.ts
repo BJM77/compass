@@ -7,6 +7,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: z.string().min(1, 'Firebase Storage Bucket is missing'),
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().min(1, 'Firebase Messaging Sender ID is missing'),
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().min(1, 'Firebase App ID is missing'),
+  // Web Push certificate (VAPID public key) from Firebase console → Project settings →
+  // Cloud Messaging → Web configuration. Optional: push opt-in is hidden without it.
+  NEXT_PUBLIC_FIREBASE_VAPID_KEY: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse({
@@ -16,6 +19,7 @@ const parsedEnv = envSchema.safeParse({
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  NEXT_PUBLIC_FIREBASE_VAPID_KEY: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || undefined,
 });
 
 if (!parsedEnv.success) {
