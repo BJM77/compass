@@ -36,6 +36,7 @@ const PlaybookView = dynamic(() => import('@/components/dashboard/playbook-view'
 const ActualSpendView = dynamic(() => import('@/components/dashboard/actual-spend-view').then(m => m.ActualSpendView), { loading: () => <ViewSkeleton /> });
 const StrategicRepository = dynamic(() => import('@/components/dashboard/strategic-repository').then(m => m.StrategicRepository), { loading: () => <ViewSkeleton /> });
 const SuccessPlansView = dynamic(() => import('@/components/dashboard/success-plans').then(m => m.SuccessPlansView), { loading: () => <ViewSkeleton /> });
+import { OverdueTaskStrip } from '@/components/dashboard/overdue-task-strip';
 import { HeaderClock } from '@/components/dashboard/header-clock';
 import { TimeReminderBell } from '@/components/dashboard/time-reminder-bell';
 const ManageTimeView = dynamic(() => import('@/components/dashboard/manage-time-view').then(m => m.ManageTimeView), { loading: () => <ViewSkeleton /> });
@@ -344,6 +345,7 @@ function DashboardContent() {
               </div>
             </div>
           </header>
+          <OverdueTaskStrip onRearrange={(taskId) => navigateTo('MANAGE_TIME', taskId ? { highlightTaskId: taskId } : undefined)} />
           {/* Session Context Bar */}
           <div className="bg-slate-900 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-300 py-2.5 px-4 sm:px-6 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2.5 min-w-0 max-w-full shadow-sm print:hidden">
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { useNavigation } from '@/contexts/navigation-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, updateDoc, doc, serverTimestamp, query, where, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -100,6 +101,9 @@ export function ManageTimeView() {
   const { user, isLeader, isGM } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
+  const { viewParams } = useNavigation();
+  const highlightTaskId: string | null = viewParams?.highlightTaskId || null;
+  const [flashId, setFlashId] = useState<string | null>(null);
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskText, setNewTaskText] = useState('');
@@ -130,6 +134,16 @@ export function ManageTimeView() {
       setTasks([]);
     }
   }, [myPlans, currentPlanId, adminSelectedUserId]);
+
+  // Highlight a task when arriving from the overdue strip ("Rearrange").
+  useEffect(() => {
+    if (!highlightTaskId || !tasks.some(t => t.id === highlightTaskId)) return;
+    setFlashId(highlightTaskId);
+    const el = document.querySelector(`[data-task-id="${CSS.escape(highlightTaskId)}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const tm = setTimeout(() => setFlashId(null), 4000);
+    return () => clearTimeout(tm);
+  }, [highlightTaskId, tasks.length > 0]);
 
   const savePlanWithTasks = async (newTasks: Task[], planId: string | null) => {
     if (!db || !user) return planId;
@@ -545,7 +559,7 @@ export function ManageTimeView() {
               <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wider mb-2">Uncategorized Tasks ({inboxTasks.length})</h3>
               <div className="space-y-3">
                 {inboxTasks.map((task) => (
-                  <div key={task.id} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-lg border shadow-sm transition-all ${task.completed ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-indigo-200'}`}>
+                  <div key={task.id} data-task-id={task.id} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-lg border shadow-sm transition-all ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 ' : ''}${task.completed ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-indigo-200'}`}>
                     <div className="flex-1 flex items-center gap-3">
                       {!isViewOnly && (
                         <button
@@ -626,7 +640,7 @@ export function ManageTimeView() {
                 {/* List of active tasks */}
                 <div className="space-y-2 flex-1">
                   {qTasks.map((task) => (
-                    <div key={task.id} className="flex items-start gap-2 group print:items-end print:border-b print:border-slate-200 print:pb-2">
+                    <div key={task.id} data-task-id={task.id} className={`flex items-start gap-2 group rounded-md transition-shadow print:items-end print:border-b print:border-slate-200 print:pb-2 ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 bg-red-50' : ''}`}>
                       {!isViewOnly ? (
                         <>
                           <button
