@@ -1,4 +1,4 @@
-import { LucideIcon, LayoutDashboard, Navigation, Clock, CalendarCheck, Send, FileSearch, LayoutGrid, PhoneCall, ClipboardList, Archive, BookOpen, Coins, AlertCircle, Shield, Database, Settings, Star, Sparkles, Map, Users, Upload, Megaphone } from 'lucide-react';
+import { LucideIcon, LayoutDashboard, Navigation, Clock, CalendarCheck, Send, FileSearch, LayoutGrid, PhoneCall, ClipboardList, Archive, BookOpen, Coins, AlertCircle, Shield, Database, Settings, Star, Sparkles, Map, Users, Upload, Megaphone, Factory } from 'lucide-react';
 
 export type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
@@ -6,7 +6,7 @@ export type DashboardView =
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' 
   | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' 
   | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' 
-  | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW' | 'ALIGN_CUSTOMER' | 'FF_ADMIN' | 'BD_AM_REVIEW';
+  | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW' | 'ALIGN_CUSTOMER' | 'FF_ADMIN' | 'BD_AM_REVIEW' | 'VERTICALS';
 
 export type UserRole = 'BDM' | 'ACCOUNT_MANAGER' | 'LEADER' | 'GM' | 'ADMIN' | 'GUEST';
 
@@ -43,6 +43,7 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     items: [
       { view: 'CANVASSING', label: 'Canvassing', icon: Navigation },
       { view: 'FACT_FINDING', label: 'Fact Finding', icon: FileSearch },
+      { view: 'VERTICALS', label: 'Verticals', icon: Factory },
       { view: 'WHITE_SPACE', label: 'White Space', icon: LayoutGrid, guestAllowed: true },
     ]
   },
