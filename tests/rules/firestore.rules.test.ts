@@ -273,6 +273,8 @@ describe('Verticals: verticalProspects', () => {
   test('BDM/admin create (validated); AM cannot; creator must be self', async () => {
     await assertSucceeds(addDoc(collection(db(BDM), 'verticalProspects'), base()));
     await assertSucceeds(addDoc(collection(db(LEADER), 'verticalProspects'), base({ createdBy: LEADER })));
+    await assertSucceeds(addDoc(collection(db(BDM), 'verticalProspects'), base({ source: 'RESEARCH' })));
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ source: 'SCRAPED' })));
     await assertFails(addDoc(collection(db(AM), 'verticalProspects'), base({ createdBy: AM })));
     await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ createdBy: BDM2 })));
     await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ vertical: 'CRYPTO' })));

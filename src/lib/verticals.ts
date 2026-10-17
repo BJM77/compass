@@ -43,7 +43,7 @@ export const SF_STATUSES: { id: SfStatus; label: string; className: string }[] =
   { id: 'LOST_DORMANT', label: 'Lost / Dormant', className: 'bg-amber-50 text-amber-800 border-amber-200' },
 ];
 
-export type LeadSourceTag = 'AUSTMINE' | 'CME' | 'GOOGLE_MAPS' | 'REFERRAL' | 'TENDER' | 'LINKEDIN' | 'OTHER';
+export type LeadSourceTag = 'AUSTMINE' | 'CME' | 'GOOGLE_MAPS' | 'REFERRAL' | 'TENDER' | 'LINKEDIN' | 'RESEARCH' | 'OTHER';
 export const SOURCE_TAGS: { id: LeadSourceTag; label: string }[] = [
   { id: 'AUSTMINE', label: 'Austmine' },
   { id: 'CME', label: 'CME' },
@@ -51,6 +51,7 @@ export const SOURCE_TAGS: { id: LeadSourceTag; label: string }[] = [
   { id: 'REFERRAL', label: 'Referral' },
   { id: 'TENDER', label: 'Tender' },
   { id: 'LINKEDIN', label: 'LinkedIn' },
+  { id: 'RESEARCH', label: 'Research list' },
   { id: 'OTHER', label: 'Other' },
 ];
 
@@ -344,4 +345,27 @@ OBJECTIONS
 4. "You're too expensive."
    → "Price matters. Let's compare on your actual lanes and include failed deliveries, re-sends and admin across multiple carriers."` },
   ];
+}
+
+/** Normalised company name for de-duplication (matches the research-list merge). */
+export function normaliseCompany(name: string): string {
+  return (name || '')
+    .toLowerCase()
+    .replace(/\(.*?\)/g, '')
+    .replace(/\bincl\..*$/, '')
+    .replace(/\b(pty|ltd|limited|group|the|australia|aust)\b/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+const BELT_HINTS: [BeltId, RegExp][] = [
+  ['REGIONAL_WA', /bunbury|harvey|geraldton|margaret river|mount barker|northcliffe|kemerton|kalgoorlie|albany|karratha|hedland/i],
+  ['SOUTH', /henderson|bibra lake|cockburn|rockingham|kwinana|munster|jandakot|fremantle|myaree|palmyra/i],
+  ['EAST', /kewdale|welshpool|canning vale|o'connor|forrestdale|forrestfield|guildford|bayswater|morley|victoria park|burswood|midland/i],
+  ['NORTH', /malaga|wangara|balcatta|osborne park|joondalup|neerabup/i],
+  ['CENTRAL', /subiaco|west perth|nedlands|perth/i],
+];
+/** Best-guess belt from a free-text HQ location. */
+export function guessBelt(region: string | null | undefined): BeltId {
+  for (const [belt, re] of BELT_HINTS) if (re.test(region || '')) return belt;
+  return 'CENTRAL';
 }
