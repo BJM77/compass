@@ -354,7 +354,7 @@ service cloud.firestore {
         && d.company is string && d.company.size() > 0 && d.company.size() <= 200
         && d.vertical in ['MINING', 'MEDICAL', 'ECOMMERCE', 'OTHER']
         && d.belt in ['NORTH', 'EAST', 'SOUTH', 'CENTRAL', 'REGIONAL_WA', 'INTERSTATE']
-        && d.get('source', 'OTHER') in ['AUSTMINE', 'CME', 'GOOGLE_MAPS', 'REFERRAL', 'TENDER', 'LINKEDIN', 'OTHER']
+        && d.get('source', 'OTHER') in ['AUSTMINE', 'CME', 'GOOGLE_MAPS', 'REFERRAL', 'TENDER', 'LINKEDIN', 'RESEARCH', 'OTHER']
         && d.sfStatus in ['UNCHECKED', 'NOT_IN_SF', 'EXISTING_AM', 'LOST_DORMANT']
         && d.freightProfile is list && d.freightProfile.size() <= 5
         && d.freightProfile.hasOnly(['SATCHEL', 'PARCEL', 'CARTON', 'SKID', 'PALLET'])
