@@ -20,6 +20,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn, getSalesforceSearchUrl } from '@/lib/utils';
+import { SuggestedProspectsPanel } from './suggested-prospects-panel';
 import {
   VERTICALS, VerticalId, BELTS, BeltId, METRO_BELTS, FREIGHT_PROFILES, FreightProfile, SF_STATUSES, SfStatus,
   SCORE_CRITERIA, ScoreKey, SOURCE_TAGS, LeadSourceTag, LEAD_SOURCES, MAPS_KEYWORDS, PLAYBOOKS, PARCEL_SCOPE,
@@ -475,6 +476,8 @@ export function VerticalsView() {
                 ))}
               </CardContent>
             </Card>
+
+            <SuggestedProspectsPanel vertical={v.id} prospects={prospects} canAdd={canSource} uid={uid} myName={myName} />
 
             {/* Google Maps by belt */}
             <Card>
