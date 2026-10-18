@@ -349,12 +349,14 @@ service cloud.firestore {
           'freightProfile', 'notes', 'ownerUid', 'ownerName', 'claimedAt',
           'sfStatus', 'sfCheckedBy', 'sfCheckedAt', 'scores', 'score',
           'amUid', 'amName', 'amNotes', 'convertedAt', 'convertedBy',
-          'createdBy', 'createdByName', 'createdAt', 'lastActivityAt'
+          'createdBy', 'createdByName', 'createdAt', 'lastActivityAt',
+          // Written only by the server (Admin SDK) intel route
+          'painSignals', 'painCheckedAt'
         ])
         && d.company is string && d.company.size() > 0 && d.company.size() <= 200
         && d.vertical in ['MINING', 'MEDICAL', 'ECOMMERCE', 'OTHER']
         && d.belt in ['NORTH', 'EAST', 'SOUTH', 'CENTRAL', 'REGIONAL_WA', 'INTERSTATE']
-        && d.get('source', 'OTHER') in ['AUSTMINE', 'CME', 'GOOGLE_MAPS', 'REFERRAL', 'TENDER', 'LINKEDIN', 'RESEARCH', 'OTHER']
+        && d.get('source', 'OTHER') in ['AUSTMINE', 'CME', 'GOOGLE_MAPS', 'REFERRAL', 'TENDER', 'LINKEDIN', 'RESEARCH', 'LOOKALIKE', 'OTHER']
         && d.sfStatus in ['UNCHECKED', 'NOT_IN_SF', 'EXISTING_AM', 'LOST_DORMANT']
         && d.freightProfile is list && d.freightProfile.size() <= 5
         && d.freightProfile.hasOnly(['SATCHEL', 'PARCEL', 'CARTON', 'SKID', 'PALLET'])
@@ -389,13 +391,20 @@ service cloud.firestore {
             && !(request.resource.data.sfStatus in ['UNCHECKED', 'EXISTING_AM']));
     }
 
+    // Clients can never set or change server-written intel fields.
+    function prospectIntelUnchanged() {
+      return request.resource.data.get('painSignals', null) == resource.data.get('painSignals', null)
+        && request.resource.data.get('painCheckedAt', null) == resource.data.get('painCheckedAt', null);
+    }
+
     match /verticalProspects/{prospectId} {
       allow read: if isStaff();
       allow create: if (isBdm() || isAdmin())
         && validProspect(request.resource.data)
         && request.resource.data.createdBy == request.auth.uid
+        && !('painSignals' in request.resource.data) && !('painCheckedAt' in request.resource.data)
         && (isAdmin() || prospectOwnerOk());
-      allow update: if validProspect(request.resource.data) && prospectKeepsCreator() && (
+      allow update: if validProspect(request.resource.data) && prospectKeepsCreator() && prospectIntelUnchanged() && (
         isAdmin()
         // Current owner (claim not lapsed), or any BDM on an unclaimed/lapsed prospect (incl. claiming it)
         || (isBdm()
@@ -408,6 +417,10 @@ service cloud.firestore {
       );
       allow delete: if isAdmin() || (isBdm() && resource.data.get('ownerUid', null) == request.auth.uid);
     }
+
+    // Server-only intel cache and per-user usage counters (Admin SDK bypasses rules).
+    match /intelCache/{id} { allow read, write: if false; }
+    match /intelUsage/{id} { allow read, write: if false; }
 
     match /canvass_leads/{leadId} {
       allow read: if ownerRead();

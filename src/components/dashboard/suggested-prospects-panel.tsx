@@ -38,8 +38,8 @@ function freightGuess(s: SuggestedProspect): FreightProfile[] {
  * Rows already in verticalProspects (normalised name match) are marked.
  */
 export function SuggestedProspectsPanel({
-  vertical, prospects, canAdd, uid, myName,
-}: { vertical: VerticalId; prospects: VerticalProspect[]; canAdd: boolean; uid: string; myName: string }) {
+  vertical, prospects, canAdd, uid, myName, onCheckPain,
+}: { vertical: VerticalId; prospects: VerticalProspect[]; canAdd: boolean; uid: string; myName: string; onCheckPain?: (s: SuggestedProspect) => void }) {
   const db = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(true);
@@ -113,6 +113,7 @@ export function SuggestedProspectsPanel({
           ) : s.evidenceNote ? <span className="text-[11px] text-slate-500 break-words">Evidence: {s.evidenceNote}</span> : null}
           <span className="text-[10px] text-slate-400 break-words">{s.sources.join(' · ')}</span>
           <div className="flex-1" />
+          {onCheckPain && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onCheckPain(s)}>Check delivery pain</Button>}
           {added ? (
             <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50"><CheckCircle2 className="w-3 h-3 mr-1" />In prospects</Badge>
           ) : canAdd ? (

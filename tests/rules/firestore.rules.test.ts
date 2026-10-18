@@ -287,6 +287,23 @@ describe('Verticals: verticalProspects', () => {
     await assertSucceeds(addDoc(collection(db(BDM), 'verticalProspects'), base({ ownerUid: BDM, sfStatus: 'NOT_IN_SF', score: 3 })));
   });
 
+  test('intel: LOOKALIKE source ok; clients cannot set/alter painSignals; server-written pain survives edits; intel collections closed', async () => {
+    await assertSucceeds(addDoc(collection(db(BDM), 'verticalProspects'), base({ source: 'LOOKALIKE' })));
+    const pain = { score: 'HIGH', carrier: 'X', findings: [], opening: null, checkedAt: 1, noSignal: false };
+    await assertFails(addDoc(collection(db(BDM), 'verticalProspects'), base({ painSignals: pain })));
+    await assertFails(addDoc(collection(db(LEADER), 'verticalProspects'), base({ createdBy: LEADER, painCheckedAt: serverTimestamp() })));
+    // Doc already carrying server-written intel
+    await seed('i1', { ...base(), painSignals: pain, painCheckedAt: daysAgo(1), createdAt: daysAgo(1), lastActivityAt: daysAgo(1) });
+    await assertSucceeds(updateDoc(doc(db(BDM), 'verticalProspects', 'i1'), { notes: 'still fine', lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(BDM), 'verticalProspects', 'i1'), { painSignals: { ...pain, score: 'NONE' }, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(LEADER), 'verticalProspects', 'i1'), { painCheckedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(LEADER), 'verticalProspects', 'i1'), { painSignals: null, lastActivityAt: serverTimestamp() }));
+    for (const u of [BDM, LEADER, SUPER]) {
+      await assertFails(getDoc(doc(db(u), 'intelCache', 'pain_acme')));
+      await assertFails(setDoc(doc(db(u), 'intelUsage', `${u}_20261018`), { count: 0 }));
+    }
+  });
+
   test('claim: only after SF check, not for EXISTING_AM, not when claimed by someone else', async () => {
     await seed('u', { ...base(), createdAt: daysAgo(1), lastActivityAt: daysAgo(1) });
     await assertFails(updateDoc(doc(db(BDM2), 'verticalProspects', 'u'), { ownerUid: BDM2, ownerName: 'Bob', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
