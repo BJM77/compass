@@ -422,6 +422,28 @@ service cloud.firestore {
     match /intelCache/{id} { allow read, write: if false; }
     match /intelUsage/{id} { allow read, write: if false; }
 
+    // ─── Fuel surcharges ────────────────────────────────────────────────────
+    // Scraped data + history: written only by the server (Admin SDK). Staff read.
+    match /fuelSurcharges/{carrierId} { allow read: if isStaff(); allow write: if false; }
+    match /fuelSurchargeHistory/{id} { allow read: if isStaff(); allow write: if false; }
+    match /fuelSurchargeMeta/{id} { allow read, write: if false; }
+    // Admin manual overrides (known rate-card values or corrections).
+    match /fuelSurchargeOverrides/{carrierId} {
+      allow read: if isStaff();
+      allow create, update: if isAdmin()
+        && carrierId in ['tge', 'startrack', 'auspost', 'tnt', 'aramex', 'couriersplease', 'dhl', 'sendle',
+                         'kal', 'direct', 'hunter', 'northline', 'border', 'allied', 'mainfreight', 'followmont', 'capital']
+        && request.resource.data.keys().hasOnly(['pct', 'label', 'note', 'effective', 'enteredBy', 'enteredByName', 'enteredAt'])
+        && request.resource.data.pct is number && request.resource.data.pct >= 0 && request.resource.data.pct < 100
+        && request.resource.data.label is string && request.resource.data.label.size() > 0 && request.resource.data.label.size() <= 60
+        && request.resource.data.note is string && request.resource.data.note.size() <= 300
+        && (request.resource.data.effective == null || (request.resource.data.effective is string && request.resource.data.effective.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+        && request.resource.data.enteredBy == request.auth.uid
+        && request.resource.data.enteredByName is string && request.resource.data.enteredByName.size() <= 120
+        && request.resource.data.enteredAt == request.time;
+      allow delete: if isAdmin();
+    }
+
     match /canvass_leads/{leadId} {
       allow read: if ownerRead();
       allow create: if staffCreatesOwn();

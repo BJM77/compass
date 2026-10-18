@@ -19,6 +19,7 @@ import { defineBoolean, defineInt } from 'firebase-functions/params';
 import * as logger from 'firebase-functions/logger';
 import { randomBytes } from 'crypto';
 import { Task, NotificationPrefs } from './shared/time-mgmt';
+import { runFuelRefresh, type DbLike, type FetchLike } from './shared/fuel-surcharges';
 import {
   PendingNotification, mergePrefs, withinAllowedWindow, taskNotifications, digestNotification,
   deadlineWindows, perthWeekKey, applyAction, DEFAULT_NUDGE_CONFIG, NudgeConfig,
@@ -187,3 +188,12 @@ export const notificationAction = onRequest({ region: REGION, cors: true, memory
     if (!e?.status) logger.error('notificationAction failed', { error: String(e) });
   }
 });
+
+/** Weekly fuel-surcharge refresh: Monday 07:00 AWST (fixed carrier allow-list only). */
+export const refreshFuelSurcharges = onSchedule(
+  { schedule: '0 7 * * 1', region: REGION, timeZone: 'Australia/Perth', retryCount: 1, memory: '256MiB', timeoutSeconds: 120 },
+  async () => {
+    const r = await runFuelRefresh(getFirestore() as unknown as DbLike, fetch as unknown as FetchLike, Date.now(), { force: true, by: 'schedule' });
+    logger.info('fuel surcharges refreshed', { results: r.results.map(x => `${x.carrierId}:${x.status}${x.changed ? '*' : ''}`).join(' ') });
+  }
+);
