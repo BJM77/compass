@@ -43,7 +43,7 @@ export const SF_STATUSES: { id: SfStatus; label: string; className: string }[] =
   { id: 'LOST_DORMANT', label: 'Lost / Dormant', className: 'bg-amber-50 text-amber-800 border-amber-200' },
 ];
 
-export type LeadSourceTag = 'AUSTMINE' | 'CME' | 'GOOGLE_MAPS' | 'REFERRAL' | 'TENDER' | 'LINKEDIN' | 'RESEARCH' | 'OTHER';
+export type LeadSourceTag = 'AUSTMINE' | 'CME' | 'GOOGLE_MAPS' | 'REFERRAL' | 'TENDER' | 'LINKEDIN' | 'RESEARCH' | 'LOOKALIKE' | 'OTHER';
 export const SOURCE_TAGS: { id: LeadSourceTag; label: string }[] = [
   { id: 'AUSTMINE', label: 'Austmine' },
   { id: 'CME', label: 'CME' },
@@ -52,6 +52,7 @@ export const SOURCE_TAGS: { id: LeadSourceTag; label: string }[] = [
   { id: 'TENDER', label: 'Tender' },
   { id: 'LINKEDIN', label: 'LinkedIn' },
   { id: 'RESEARCH', label: 'Research list' },
+  { id: 'LOOKALIKE', label: 'WA lookalike' },
   { id: 'OTHER', label: 'Other' },
 ];
 
@@ -93,6 +94,9 @@ export type VerticalProspect = {
   amName?: string | null;
   /** AM growth notes. */
   amNotes?: string;
+  /** Server-written delivery-pain check (clients cannot edit). */
+  painSignals?: import('./intel').PainSignals | null;
+  painCheckedAt?: any | null;
 };
 
 /** Claim/score need an SF check first; existing customers are AM-only (no BDM claim). */

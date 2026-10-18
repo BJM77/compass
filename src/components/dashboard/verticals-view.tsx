@@ -21,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn, getSalesforceSearchUrl } from '@/lib/utils';
 import { SuggestedProspectsPanel } from './suggested-prospects-panel';
+import { PainBadge, PainDialog, LookalikeFinder, useIntelApi, type PainTarget } from './verticals-intel';
+import { hasCarrierPain, canRecheck, BATCH_SCAN_MAX } from '@/lib/intel';
 import {
   VERTICALS, VerticalId, BELTS, BeltId, METRO_BELTS, FREIGHT_PROFILES, FreightProfile, SF_STATUSES, SfStatus,
   SCORE_CRITERIA, ScoreKey, SOURCE_TAGS, LeadSourceTag, LEAD_SOURCES, MAPS_KEYWORDS, PLAYBOOKS, PARCEL_SCOPE,
@@ -145,6 +147,10 @@ export function VerticalsView() {
   const [statusFilter, setStatusFilter] = useState<SfStatus | 'ALL'>('ALL');
   const [ownerFilter, setOwnerFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
+  const [painOnly, setPainOnly] = useState(false);
+  const [painTarget, setPainTarget] = useState<PainTarget | null>(null);
+  const [scanning, setScanning] = useState<string | null>(null);
+  const intelApi = useIntelApi();
   const [dialog, setDialog] = useState<{ mode: 'add' } | { mode: 'edit'; p: VerticalProspect } | null>(null);
   const [amNotesTarget, setAmNotesTarget] = useState<VerticalProspect | null>(null);
   const [amNotesText, setAmNotesText] = useState('');
@@ -231,14 +237,28 @@ export function VerticalsView() {
         if (ownerFilter === 'UNCLAIMED') return !p.ownerUid || isClaimExpired(p, now);
         return p.ownerUid === ownerFilter;
       })
+      .filter(p => !painOnly || hasCarrierPain(p.painSignals))
       .filter(p => !q || [p.company, p.contactName, p.contactTitle, p.notes].some(x => (x || '').toLowerCase().includes(q)))
       .sort((a, b) => (b.score || 0) - (a.score || 0) || tsMs(b.lastActivityAt) - tsMs(a.lastActivityAt));
-  }, [prospects, vFilter, beltFilter, statusFilter, ownerFilter, search, uid, now]);
+  }, [prospects, vFilter, beltFilter, statusFilter, ownerFilter, search, painOnly, uid, now]);
 
   const owners = useMemo(() => {
     const ids = Array.from(new Set(prospects.map(p => p.ownerUid).filter(Boolean))) as string[];
     return ids.map(id => ({ id, name: prospects.find(p => p.ownerUid === id)?.ownerName || userName(id) }));
   }, [prospects, users]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const scanClaimed = async () => {
+    const due = prospects.filter(p => p.ownerUid === uid && !isClaimExpired(p, now) && canRecheck(p.painSignals)).slice(0, BATCH_SCAN_MAX);
+    if (!due.length) { toast({ title: 'Nothing to scan', description: 'All your claimed prospects were checked in the last 14 days.' }); return; }
+    let done = 0;
+    for (const p of due) {
+      setScanning(`${done + 1}/${due.length}: ${p.company}`);
+      try { await intelApi('pain', { prospectId: p.id }); done++; }
+      catch (e: any) { toast({ title: `Stopped at ${p.company}`, description: e.message, variant: 'destructive' }); break; }
+    }
+    setScanning(null);
+    toast({ title: `Scanned ${done} prospect${done === 1 ? '' : 's'}` });
+  };
 
   const amLeads = prospects.filter(p => p.sfStatus === 'EXISTING_AM' && p.amUid === uid);
 
@@ -299,6 +319,13 @@ export function VerticalsView() {
             <Badge variant="outline"><MapPin className="w-3 h-3 mr-0.5" />{label(BELTS, p.belt)}</Badge>
             <Badge variant="outline">{label(SOURCE_TAGS, p.source)}</Badge>
             {(p.freightProfile || []).map(fp => <Badge key={fp} variant="secondary">{label(FREIGHT_PROFILES, fp)}</Badge>)}
+            <PainBadge p={p.painSignals} onClick={() => setPainTarget({ company: p.company, prospectId: p.id, existing: p.painSignals })} />
+            {!p.painSignals && (
+              <button type="button" onClick={() => setPainTarget({ company: p.company, prospectId: p.id })}
+                className="inline-flex items-center gap-1 text-[10px] font-bold border border-dashed rounded-full px-2 py-0.5 text-slate-600 hover:bg-slate-50">
+                Check delivery pain
+              </button>
+            )}
             {p.convertedAt && <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100">Fact Finding</Badge>}
           </div>
 
@@ -477,7 +504,7 @@ export function VerticalsView() {
               </CardContent>
             </Card>
 
-            <SuggestedProspectsPanel vertical={v.id} prospects={prospects} canAdd={canSource} uid={uid} myName={myName} />
+            <SuggestedProspectsPanel vertical={v.id} prospects={prospects} canAdd={canSource} uid={uid} myName={myName} onCheckPain={s => setPainTarget({ company: s.company, suggestedId: s.id })} />
 
             {/* Google Maps by belt */}
             <Card>
@@ -537,6 +564,9 @@ export function VerticalsView() {
         ))}
       </Tabs>
 
+      <LookalikeFinder prospects={prospects} canAdd={canSource} uid={uid} myName={myName} />
+      <PainDialog target={painTarget} onClose={() => setPainTarget(null)} />
+
       {/* Prospect list */}
       <Card>
         <CardHeader className="py-3 px-4 flex-row items-center justify-between gap-2 space-y-0">
@@ -569,6 +599,17 @@ export function VerticalsView() {
                 <SelectItem value="UNCLAIMED">Unclaimed / lapsed</SelectItem>
                 {owners.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
               </SelectContent></Select>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" className="h-4 w-4" checked={painOnly} onChange={e => setPainOnly(e.target.checked)} />
+              Has carrier pain
+            </label>
+            {isBdm && (
+              <Button size="sm" variant="outline" disabled={!!scanning} onClick={scanClaimed} title={`Checks up to ${BATCH_SCAN_MAX} of your claimed prospects not checked in 14 days`}>
+                {scanning ? `Scanning ${scanning}` : 'Scan my claimed prospects'}
+              </Button>
+            )}
           </div>
           {filtered.length === 0 ? (
             <p className="text-sm text-slate-500 py-6 text-center">No prospects match.{canSource ? ' Add one from a lead source above.' : ''}</p>
