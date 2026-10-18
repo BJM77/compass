@@ -362,3 +362,40 @@ describe('Verticals: verticalProspects', () => {
     await assertSucceeds(deleteDoc(doc(db(SUPER), 'verticalProspects', 'b')));
   });
 });
+
+describe('Fuel surcharges', () => {
+  const ov = (over: Record<string, unknown> = {}) => ({ pct: 18.5, label: 'Domestic', note: 'Oct rate card', effective: '2026-10-01', enteredBy: LEADER, enteredByName: 'Lee', enteredAt: serverTimestamp(), ...over });
+  test('staff read scraped data; nobody writes it client-side; guests cannot read', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'fuelSurcharges', 'tge'), { carrierId: 'tge', status: 'ok' });
+      await setDoc(doc(ctx.firestore(), 'fuelSurchargeHistory', 'h1'), { carrierId: 'tge' });
+    });
+    for (const u of [BDM, AM, LEADER, SUPER]) {
+      await assertSucceeds(getDoc(doc(db(u), 'fuelSurcharges', 'tge')));
+      await assertSucceeds(getDocs(collection(db(u), 'fuelSurchargeHistory')));
+    }
+    for (const u of [GUEST, STRANGER]) await assertFails(getDoc(doc(db(u), 'fuelSurcharges', 'tge')));
+    for (const u of [BDM, LEADER, SUPER]) {
+      await assertFails(setDoc(doc(db(u), 'fuelSurcharges', 'tge'), { carrierId: 'tge', status: 'ok' }));
+      await assertFails(addDoc(collection(db(u), 'fuelSurchargeHistory'), { carrierId: 'tge' }));
+      await assertFails(setDoc(doc(db(u), 'fuelSurchargeMeta', 'refresh'), { lastRunAt: 0 }));
+      await assertFails(getDoc(doc(db(u), 'fuelSurchargeMeta', 'refresh')));
+    }
+  });
+  test('only admins write validated manual overrides', async () => {
+    await assertSucceeds(setDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal'), ov()));
+    await assertSucceeds(setDoc(doc(db(SUPER), 'fuelSurchargeOverrides', 'tge'), ov({ enteredBy: SUPER, effective: null })));
+    await assertSucceeds(getDoc(doc(db(BDM), 'fuelSurchargeOverrides', 'kal')));
+    await assertFails(getDoc(doc(db(GUEST), 'fuelSurchargeOverrides', 'kal')));
+    await assertFails(setDoc(doc(db(BDM), 'fuelSurchargeOverrides', 'kal'), ov({ enteredBy: BDM })));
+    await assertFails(setDoc(doc(db(AM), 'fuelSurchargeOverrides', 'kal'), ov({ enteredBy: AM })));
+    await assertFails(setDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'evilcorp'), ov()));
+    await assertFails(setDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal'), ov({ pct: 150 })));
+    await assertFails(setDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal'), ov({ pct: '18' })));
+    await assertFails(setDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal'), ov({ enteredBy: BDM })));
+    await assertFails(setDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal'), ov({ extra: 1 })));
+    await assertFails(setDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal'), ov({ effective: 'soon' })));
+    await assertFails(deleteDoc(doc(db(BDM), 'fuelSurchargeOverrides', 'kal')));
+    await assertSucceeds(deleteDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal')));
+  });
+});

@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "engines": { "node": "22" },
   "scripts": {
-    "sync-shared": "cp ../src/lib/time-mgmt.ts src/shared/time-mgmt.ts",
+    "sync-shared": "cp ../src/lib/time-mgmt.ts src/shared/time-mgmt.ts && cp ../src/lib/fuel-surcharges.ts src/shared/fuel-surcharges.ts",
     "build": "tsc",
     "test": "npm run build && node --test lib/*.test.js",
     "deploy": "firebase deploy --only functions"
