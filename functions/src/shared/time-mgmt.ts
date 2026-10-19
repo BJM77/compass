@@ -32,6 +32,10 @@ export type Task = {
   touchedAt?: number | null;
   /** When the task was (auto-)promoted to Do Now, epoch ms. */
   promotedAt?: number | null;
+  /** When it was ticked complete, epoch ms (null for tasks completed before this existed). */
+  completedAt?: number | null;
+  /** Quadrant it was in when completed (restored on un-tick). */
+  completedFromQuadrant?: Quadrant | null;
 };
 
 export const PERTH_TZ = 'Australia/Perth';
@@ -259,4 +263,64 @@ export function mergeContinuousPlans(plans: PlanLike[]): MergedPlan {
   }
   const carriedIds = Array.from(new Set([...(active.carriedIds || []), ...newlyCarried]));
   return { activePlanId: active.id, tasks, carriedIds, newlyCarried };
+}
+
+// ─── Completed tasks ───────────────────────────────────────────────────────
+export function completeTask(t: Task, now = Date.now()): Task {
+  return { ...t, completed: true, completedAt: now, completedFromQuadrant: t.quadrant ?? null, snoozedUntil: null, touchedAt: now };
+}
+export function uncompleteTask(t: Task, now = Date.now()): Task {
+  return { ...t, completed: false, completedAt: null, quadrant: t.completedFromQuadrant ?? t.quadrant ?? null, completedFromQuadrant: null, touchedAt: now };
+}
+
+/** Completed tasks across ALL plans (newest copy of each id wins), most recent first; unknown dates last. */
+export function allCompletedTasks(plans: PlanLike[], activeTasks?: Task[]): Task[] {
+  const sorted = [...plans].sort((a, b) => planMs(b) - planMs(a));
+  const lists: Task[][] = activeTasks ? [activeTasks, ...sorted.slice(1).map(p => p.tasks || [])] : sorted.map(p => p.tasks || []);
+  const seen = new Set<string>();
+  const out: Task[] = [];
+  for (const list of lists) for (const t of list) {
+    if (!t?.id || seen.has(t.id)) continue;
+    seen.add(t.id);
+    if (t.completed) out.push(t);
+  }
+  return out.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+}
+
+export type CompletedPeriod = 'today' | 'week' | 'month' | 'year' | 'all';
+export const COMPLETED_PERIODS: { id: CompletedPeriod; label: string }[] = [
+  { id: 'today', label: 'Today' }, { id: 'week', label: 'This week' }, { id: 'month', label: 'This month' },
+  { id: 'year', label: 'This year' }, { id: 'all', label: 'All' },
+];
+
+/** Start of the Perth period containing `now` (week starts Monday 00:00 Perth). */
+export function perthPeriodStart(period: Exclude<CompletedPeriod, 'all'>, now = Date.now()): number {
+  const p = perthParts(now);
+  if (period === 'today') return perthTime(p.year, p.month, p.day);
+  if (period === 'week') return perthTime(p.year, p.month, p.day - ((p.weekday + 6) % 7));
+  if (period === 'month') return perthTime(p.year, p.month, 1);
+  return perthTime(p.year, 1, 1);
+}
+
+export function inCompletedPeriod(t: Task, period: CompletedPeriod, now = Date.now()): boolean {
+  if (!t.completed) return false;
+  if (period === 'all') return true;
+  return !!t.completedAt && t.completedAt >= perthPeriodStart(period, now) && t.completedAt <= now + 60_000;
+}
+
+/** "Mon 19 Oct 2026, 12:41 pm WST" */
+export function formatCompletedAt(ms: number): string {
+  const p = perthParts(ms);
+  const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][p.weekday];
+  const mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][p.month - 1];
+  const h12 = p.hour % 12 === 0 ? 12 : p.hour % 12;
+  return `${wd} ${p.day} ${mo} ${p.year}, ${h12}:${String(p.minute).padStart(2, '0')} ${p.hour < 12 ? 'am' : 'pm'} WST`;
+}
+/** Group key/label for a completed task's Perth date. */
+export function completedDayLabel(t: Task): string {
+  if (!t.completedAt) return 'Completed (date unknown)';
+  const p = perthParts(t.completedAt);
+  const wd = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][p.weekday];
+  const mo = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][p.month - 1];
+  return `${wd} ${p.day} ${mo} ${p.year}`;
 }

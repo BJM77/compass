@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useNavigation } from '@/contexts/navigation-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { mergeContinuousPlans } from '@/lib/time-mgmt';
+import { mergeContinuousPlans, completeTask, uncompleteTask, allCompletedTasks } from '@/lib/time-mgmt';
+import { TimeCompletedPanel } from './time-completed-panel';
 import { collection, updateDoc, doc, serverTimestamp, query, where, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -113,7 +114,6 @@ export function ManageTimeView() {
   const [carriedIds, setCarriedIds] = useState<string[]>([]);
   /** Read-only look at an older plan doc (history). */
   const [historyPlan, setHistoryPlan] = useState<TimePlan | null>(null);
-  const [showCompleted, setShowCompleted] = useState(false);
 
   // Admin view state
   const [adminSelectedUserId, setAdminSelectedUserId] = useState<string | null>(null);
@@ -285,7 +285,19 @@ export function ManageTimeView() {
 
   const toggleTaskCompletion = async (taskId: string) => {
     const t = tasks.find(x => x.id === taskId);
-    await patchTask(taskId, { completed: !t?.completed });
+    if (!t) return;
+    const next = t.completed ? uncompleteTask(t) : completeTask(t);
+    const newTasks = tasks.map(x => (x.id === taskId ? cleanTask(next) : x));
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
+  };
+
+  /** Un-tick from the Completed panel; tasks completed in an older plan are brought back into the active plan. */
+  const restoreTask = async (t: Task) => {
+    const restored = cleanTask(uncompleteTask(t));
+    const newTasks = tasks.some(x => x.id === t.id) ? tasks.map(x => (x.id === t.id ? restored : x)) : [...tasks, restored];
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
   };
 
   const setTaskQuadrant = async (taskId: string, quadrant: 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined) => {
@@ -404,7 +416,11 @@ export function ManageTimeView() {
   const isViewOnly = !!adminSelectedUserId || !!historyPlan;
   const shownTasks = historyPlan ? (historyPlan.tasks || []) : tasks;
   const openTasks = shownTasks.filter(t => !t.completed);
-  const completedTasks = shownTasks.filter(t => t.completed);
+  const completedTasks = historyPlan
+    ? shownTasks.filter(t => t.completed)
+    : adminSelectedUserId
+      ? allCompletedTasks(adminPlans as any)
+      : allCompletedTasks((myPlans || []) as any, tasks);
   const inboxTasks = openTasks.filter(t => !t.quadrant);
 
   return (
@@ -590,11 +606,9 @@ export function ManageTimeView() {
                   <div key={task.id} data-task-id={task.id} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-lg border shadow-sm transition-all ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 ' : ''}${task.completed ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-indigo-200'}`}>
                     <div className="flex-1 flex items-center gap-3">
                       {!isViewOnly && (
-                        <button
-                          onClick={() => toggleTaskCompletion(task.id)}
-                          className={`w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 hover:border-indigo-400'}`}
-                        >
-                          {task.completed && <Check className="w-3 h-3" />}
+                        <button type="button" onClick={() => toggleTaskCompletion(task.id)} title="Mark complete" aria-label={`Complete ${task.text}`}
+                          className="shrink-0 h-8 w-8 -m-1 flex items-center justify-center rounded-full text-slate-300 hover:text-emerald-600 hover:bg-emerald-50">
+                          <CheckCircle2 className="w-6 h-6" />
                         </button>
                       )}
                       <DebouncedInput 
@@ -671,11 +685,9 @@ export function ManageTimeView() {
                     <div key={task.id} data-task-id={task.id} className={`flex items-start gap-2 group rounded-md transition-shadow print:items-end print:border-b print:border-slate-200 print:pb-2 ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 bg-red-50' : ''}`}>
                       {!isViewOnly ? (
                         <>
-                          <button
-                            onClick={() => toggleTaskCompletion(task.id)}
-                            className={`mt-2 w-4 h-4 shrink-0 rounded-sm border flex items-center justify-center transition-colors print:hidden ${task.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 hover:border-indigo-400'}`}
-                          >
-                            {task.completed && <Check className="w-3 h-3" />}
+                          <button type="button" onClick={() => toggleTaskCompletion(task.id)} title="Mark complete" aria-label={`Complete ${task.text}`}
+                            className="mt-0.5 shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 print:hidden">
+                            <CheckCircle2 className="w-6 h-6" />
                           </button>
                           {/* Print specific checkbox */}
                           <div className="hidden print:flex items-center justify-center mt-1 mr-2 w-5 h-5 border-2 border-slate-800 text-slate-800 shrink-0 font-bold">
@@ -743,28 +755,7 @@ export function ManageTimeView() {
         })}
       </div>
 
-      {completedTasks.length > 0 && (
-        <Card className="print:hidden">
-          <CardHeader className="py-3">
-            <button type="button" onClick={() => setShowCompleted(v => !v)} className="flex items-center gap-2 text-sm font-bold text-slate-700">
-              <ChevronDown className={`w-4 h-4 transition-transform ${showCompleted ? '' : '-rotate-90'}`} />
-              Completed ({completedTasks.length})
-            </button>
-          </CardHeader>
-          {showCompleted && (
-            <CardContent className="space-y-1 pt-0">
-              {completedTasks.map(t => (
-                <div key={t.id} className="flex items-center gap-2 text-sm text-slate-500">
-                  {!isViewOnly ? (
-                    <button type="button" onClick={() => toggleTaskCompletion(t.id)} title="Mark not done" className="w-4 h-4 shrink-0 rounded-sm border border-emerald-500 bg-emerald-500 text-white flex items-center justify-center"><Check className="w-3 h-3" /></button>
-                  ) : <Check className="w-4 h-4 text-emerald-600" />}
-                  <span className="line-through break-words">{t.text}</span>
-                </div>
-              ))}
-            </CardContent>
-          )}
-        </Card>
-      )}
+      <TimeCompletedPanel tasks={completedTasks} readOnly={isViewOnly} onUncomplete={restoreTask} />
     </div>
   );
 }

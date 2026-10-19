@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Check, X, ArrowRight } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, X, ArrowRight } from 'lucide-react';
 import { collection, doc, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
-import { mergeContinuousPlans } from '@/lib/time-mgmt';
+import { mergeContinuousPlans, completeTask, cleanTask } from '@/lib/time-mgmt';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -47,7 +47,7 @@ export function OverdueTaskStrip({ onRearrange }: { onRearrange: (taskId?: strin
   const markDone = async (taskId: string) => {
     setPending(p => ({ ...p, [taskId]: true }));
     try {
-      const tasks = merged.tasks.map(t => t.id === taskId ? { ...t, completed: true, snoozedUntil: null, touchedAt: Date.now() } : t);
+      const tasks = merged.tasks.map(t => t.id === taskId ? cleanTask(completeTask(t)) : t);
       await updateDoc(doc(db, 'timeManagementPlans', merged.activePlanId!), { tasks, carriedIds: merged.carriedIds, updatedAt: serverTimestamp() });
     } catch (e) {
       setPending(p => ({ ...p, [taskId]: false }));
@@ -81,7 +81,7 @@ export function OverdueTaskStrip({ onRearrange }: { onRearrange: (taskId?: strin
                   className="flex items-center gap-0.5 rounded-full bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 text-[10px] font-bold uppercase"
                   aria-label={`Mark "${t.text}" done`}
                 >
-                  <Check className="w-3 h-3" /> Done
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Done
                 </button>
               </li>
             ))}
