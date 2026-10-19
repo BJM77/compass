@@ -211,3 +211,52 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   deadlineNudges: true,
   escalation: true,
 };
+
+// ─── Continuous plan (no weekly reset) ─────────────────────────────────────
+// A user may have several timeManagementPlans docs (history). The newest is the
+// ACTIVE plan; every incomplete task from older plans is carried into it.
+// Dedupe is idempotent by task id, and the active plan records `carriedIds`
+// (every id ever carried in) so a task deleted/completed in the active plan is
+// never resurrected from an older doc. Older docs are never modified.
+export type PlanLike = { id: string; tasks?: Task[]; createdAt?: any; carriedIds?: string[] };
+
+const planMs = (p: PlanLike): number => {
+  const c = p.createdAt;
+  if (!c) return Number.MAX_SAFE_INTEGER; // pending serverTimestamp = newest
+  if (typeof c === 'number') return c;
+  if (typeof c.toMillis === 'function') return c.toMillis();
+  if (typeof c._seconds === 'number') return c._seconds * 1000;
+  if (typeof c.seconds === 'number') return c.seconds * 1000;
+  return 0;
+};
+
+export type MergedPlan = {
+  /** Active (newest) plan id, or null if the user has no plans yet. */
+  activePlanId: string | null;
+  /** Active plan's tasks followed by open tasks carried from older plans. */
+  tasks: Task[];
+  /** Ids to store on the active plan (existing + newly carried). */
+  carriedIds: string[];
+  /** Ids newly carried on this merge (if non-empty, persist to the active plan). */
+  newlyCarried: string[];
+};
+
+export function mergeContinuousPlans(plans: PlanLike[]): MergedPlan {
+  const sorted = [...plans].sort((a, b) => planMs(b) - planMs(a));
+  const active = sorted[0];
+  if (!active) return { activePlanId: null, tasks: [], carriedIds: [], newlyCarried: [] };
+  const tasks: Task[] = [...(active.tasks || [])];
+  const seen = new Set<string>([...tasks.map(t => t.id), ...(active.carriedIds || [])]);
+  const newlyCarried: string[] = [];
+  // Newest older plan first, so the most recent copy of a task wins.
+  for (const p of sorted.slice(1)) {
+    for (const t of p.tasks || []) {
+      if (!t?.id || t.completed || seen.has(t.id)) continue;
+      seen.add(t.id);
+      tasks.push(t);
+      newlyCarried.push(t.id);
+    }
+  }
+  const carriedIds = Array.from(new Set([...(active.carriedIds || []), ...newlyCarried]));
+  return { activePlanId: active.id, tasks, carriedIds, newlyCarried };
+}
