@@ -164,7 +164,7 @@ export function applyAction(tasks: Task[], taskId: string, action: 'snooze1h' | 
   const next = tasks.map(t => {
     if (t.id !== taskId) return t;
     found = true;
-    if (action === 'done') return { ...t, completed: true, snoozedUntil: null, touchedAt: now };
+    if (action === 'done') return { ...t, completed: true, completedAt: now, completedFromQuadrant: t.quadrant ?? null, snoozedUntil: null, touchedAt: now };
     if (action === 'tomorrow') return { ...t, dueAt: tomorrow9am(now), snoozedUntil: null, touchedAt: now };
     return { ...t, snoozedUntil: now + 60 * 60 * 1000, touchedAt: now };
   });

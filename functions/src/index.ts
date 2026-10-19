@@ -18,7 +18,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { defineBoolean, defineInt } from 'firebase-functions/params';
 import * as logger from 'firebase-functions/logger';
 import { randomBytes } from 'crypto';
-import { Task, NotificationPrefs } from './shared/time-mgmt';
+import { Task, NotificationPrefs, mergeContinuousPlans } from './shared/time-mgmt';
 import { runFuelRefresh, type DbLike, type FetchLike } from './shared/fuel-surcharges';
 import {
   PendingNotification, mergePrefs, withinAllowedWindow, taskNotifications, digestNotification,
@@ -91,9 +91,11 @@ async function processUser(ctx: Ctx, uid: string, prefs: NotificationPrefs, cfg:
   const userSnap = await db.collection('users').doc(uid).get();
   const role = String(userSnap.get('role') || '');
 
-  const planSnap = await db.collection('timeManagementPlans').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(1).get();
-  const plan = planSnap.docs[0];
-  const tasks: Task[] = (plan?.get('tasks') as Task[]) || [];
+  // Continuous plan: all of the user's plans, open tasks carried into the newest one.
+  const planSnap = await db.collection('timeManagementPlans').where('userId', '==', uid).get();
+  const merged = mergeContinuousPlans(planSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })));
+  const plan = merged.activePlanId ? { id: merged.activePlanId } : undefined;
+  const tasks: Task[] = merged.tasks;
 
   const pending: PendingNotification[] = [...taskNotifications(tasks, prefs, now)];
   const digest = digestNotification(tasks, prefs, now);
@@ -174,12 +176,14 @@ export const notificationAction = onRequest({ region: REGION, cors: true, memory
       const aRef = db.collection('notificationActions').doc(token);
       const a = await tx.get(aRef);
       if (!a.exists || a.get('used') || (a.get('expiresAt') || 0) < now) throw Object.assign(new Error('invalid'), { status: 403 });
-      const pRef = db.collection('timeManagementPlans').doc(String(a.get('planId')));
-      const p = await tx.get(pRef);
-      if (!p.exists || p.get('userId') !== a.get('uid')) throw Object.assign(new Error('invalid'), { status: 403 });
-      const next = applyAction((p.get('tasks') as Task[]) || [], String(a.get('taskId')), action, now);
-      if (!next) throw Object.assign(new Error('not found'), { status: 404 });
-      tx.update(pRef, { tasks: next, updatedAt: FieldValue.serverTimestamp() });
+      const uid = String(a.get('uid'));
+      const plansSnap = await tx.get(db.collection('timeManagementPlans').where('userId', '==', uid));
+      if (!plansSnap.docs.some(d => d.id === String(a.get('planId')))) throw Object.assign(new Error('invalid'), { status: 403 });
+      // Apply to the continuous set and write it to the active (newest) plan.
+      const merged = mergeContinuousPlans(plansSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })));
+      const next = applyAction(merged.tasks, String(a.get('taskId')), action, now);
+      if (!next || !merged.activePlanId) throw Object.assign(new Error('not found'), { status: 404 });
+      tx.update(db.collection('timeManagementPlans').doc(merged.activePlanId), { tasks: next, carriedIds: merged.carriedIds, updatedAt: FieldValue.serverTimestamp() });
       tx.update(aRef, { used: true, usedAt: now, action });
     });
     res.status(200).json({ ok: true });

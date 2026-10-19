@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Check, X, ArrowRight } from 'lucide-react';
-import { collection, doc, limit, orderBy, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
+import { AlertTriangle, CheckCircle2, X, ArrowRight } from 'lucide-react';
+import { collection, doc, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
+import { mergeContinuousPlans, completeTask, cleanTask } from '@/lib/time-mgmt';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -31,22 +32,23 @@ export function OverdueTaskStrip({ onRearrange }: { onRearrange: (taskId?: strin
 
   const planQuery = useMemoFirebase(() => {
     if (!db || !user || isGuest) return null;
-    return query(collection(db, 'timeManagementPlans'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(1));
+    return query(collection(db, 'timeManagementPlans'), where('userId', '==', user.uid));
   }, [db, user, isGuest]);
   const { data: plans } = useCollection<{ tasks?: Task[] }>(planQuery);
+  // Continuous plan: open tasks across all plans, written back to the newest plan.
+  const merged = mergeContinuousPlans((plans || []) as any);
 
   if (!user || isGuest || dismissed || now === null) return null;
-  const plan = plans?.[0];
-  const overdue = (plan?.tasks || [])
+  const overdue = merged.tasks
     .filter(t => !t.completed && !pending[t.id] && t.dueAt && t.dueAt < now)
     .sort((a, b) => (a.dueAt || 0) - (b.dueAt || 0));
-  if (!plan || overdue.length === 0) return null;
+  if (!merged.activePlanId || overdue.length === 0) return null;
 
   const markDone = async (taskId: string) => {
     setPending(p => ({ ...p, [taskId]: true }));
     try {
-      const tasks = (plan.tasks || []).map(t => t.id === taskId ? { ...t, completed: true, snoozedUntil: null, touchedAt: Date.now() } : t);
-      await updateDoc(doc(db, 'timeManagementPlans', plan.id), { tasks, updatedAt: serverTimestamp() });
+      const tasks = merged.tasks.map(t => t.id === taskId ? cleanTask(completeTask(t)) : t);
+      await updateDoc(doc(db, 'timeManagementPlans', merged.activePlanId!), { tasks, carriedIds: merged.carriedIds, updatedAt: serverTimestamp() });
     } catch (e) {
       setPending(p => ({ ...p, [taskId]: false }));
       toast({ title: 'Could not mark done', variant: 'destructive' });
@@ -79,7 +81,7 @@ export function OverdueTaskStrip({ onRearrange }: { onRearrange: (taskId?: strin
                   className="flex items-center gap-0.5 rounded-full bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 text-[10px] font-bold uppercase"
                   aria-label={`Mark "${t.text}" done`}
                 >
-                  <Check className="w-3 h-3" /> Done
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Done
                 </button>
               </li>
             ))}

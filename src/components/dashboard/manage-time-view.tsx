@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useNavigation } from '@/contexts/navigation-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { mergeContinuousPlans, completeTask, uncompleteTask, allCompletedTasks } from '@/lib/time-mgmt';
+import { TimeCompletedPanel } from './time-completed-panel';
 import { collection, updateDoc, doc, serverTimestamp, query, where, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -109,6 +111,9 @@ export function ManageTimeView() {
   const [newTaskText, setNewTaskText] = useState('');
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [carriedIds, setCarriedIds] = useState<string[]>([]);
+  /** Read-only look at an older plan doc (history). */
+  const [historyPlan, setHistoryPlan] = useState<TimePlan | null>(null);
 
   // Admin view state
   const [adminSelectedUserId, setAdminSelectedUserId] = useState<string | null>(null);
@@ -125,15 +130,30 @@ export function ManageTimeView() {
   // Load current user's plans
   const { data: myPlans } = useCollection<TimePlan>(myPlansQuery);
 
+  // Continuous plan: no weekly reset. Open tasks from ALL of the user's plans are
+  // carried into the newest (active) plan; older plan docs are left untouched.
   useEffect(() => {
-    if (myPlans && myPlans.length > 0 && !currentPlanId && !adminSelectedUserId) {
-      const latestPlan = myPlans[0];
-      setCurrentPlanId(latestPlan.id);
-      setTasks(latestPlan.tasks || []);
-    } else if (myPlans && myPlans.length === 0 && !currentPlanId) {
-      setTasks([]);
+    if (!myPlans || currentPlanId || adminSelectedUserId) return;
+    const merged = mergeContinuousPlans(myPlans as any);
+    if (!merged.activePlanId) { setTasks([]); return; }
+    setCurrentPlanId(merged.activePlanId);
+    setTasks(merged.tasks);
+    setCarriedIds(merged.carriedIds);
+    if (merged.newlyCarried.length) {
+      // Persist once so the carry-over is stored on the active plan (idempotent by id).
+      savePlanWithTasks(merged.tasks, merged.activePlanId, merged.carriedIds);
     }
-  }, [myPlans, currentPlanId, adminSelectedUserId]);
+  }, [myPlans, currentPlanId, adminSelectedUserId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep in sync with writes from elsewhere (overdue strip, notification actions,
+  // another device) so a stale local copy never overwrites them.
+  useEffect(() => {
+    if (!myPlans || !currentPlanId || adminSelectedUserId) return;
+    const merged = mergeContinuousPlans(myPlans as any);
+    if (merged.activePlanId !== currentPlanId) return;
+    setTasks(prev => (JSON.stringify(prev) === JSON.stringify(merged.tasks) ? prev : merged.tasks));
+    setCarriedIds(merged.carriedIds);
+  }, [myPlans]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Highlight a task when arriving from the overdue strip ("Rearrange").
   useEffect(() => {
@@ -145,13 +165,15 @@ export function ManageTimeView() {
     return () => clearTimeout(tm);
   }, [highlightTaskId, tasks.length > 0]);
 
-  const savePlanWithTasks = async (newTasks: Task[], planId: string | null) => {
+  const savePlanWithTasks = async (newTasks: Task[], planId: string | null, carried: string[] = carriedIds) => {
     if (!db || !user) return planId;
+    if (adminSelectedUserId || historyPlan) return planId; // never write while viewing someone else's / an old plan
     setIsSaving(true);
     try {
       if (planId) {
         await updateDoc(doc(db, 'timeManagementPlans', planId), {
           tasks: newTasks,
+          carriedIds: carried,
           updatedAt: serverTimestamp()
         });
         return planId;
@@ -164,7 +186,9 @@ export function ManageTimeView() {
         
         await setDoc(newDocRef, {
           userId: user.uid,
+          // Only created when the user has no plan at all; seeded with whatever is open.
           tasks: newTasks,
+          carriedIds: carried,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -261,7 +285,19 @@ export function ManageTimeView() {
 
   const toggleTaskCompletion = async (taskId: string) => {
     const t = tasks.find(x => x.id === taskId);
-    await patchTask(taskId, { completed: !t?.completed });
+    if (!t) return;
+    const next = t.completed ? uncompleteTask(t) : completeTask(t);
+    const newTasks = tasks.map(x => (x.id === taskId ? cleanTask(next) : x));
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
+  };
+
+  /** Un-tick from the Completed panel; tasks completed in an older plan are brought back into the active plan. */
+  const restoreTask = async (t: Task) => {
+    const restored = cleanTask(uncompleteTask(t));
+    const newTasks = tasks.some(x => x.id === t.id) ? tasks.map(x => (x.id === t.id ? restored : x)) : [...tasks, restored];
+    setTasks(newTasks);
+    await savePlanWithTasks(newTasks, currentPlanId);
   };
 
   const setTaskQuadrant = async (taskId: string, quadrant: 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined) => {
@@ -295,15 +331,8 @@ export function ManageTimeView() {
     }
   };
 
-  const createNewPlan = () => {
-    setCurrentPlanId(null);
-    setTasks([]);
-  };
-
-  const loadPlan = (plan: TimePlan) => {
-    setCurrentPlanId(plan.id);
-    setTasks(plan.tasks || []);
-  };
+  /** History: read-only view of an older plan doc (the active plan is continuous). */
+  const viewHistoryPlan = (plan: TimePlan) => setHistoryPlan(plan);
 
   // Admin Functionality
   const loadAdminUsers = async () => {
@@ -316,11 +345,14 @@ export function ManageTimeView() {
       // Latest plan per user → overdue/due-today + stale Do Now counts.
       const now = Date.now();
       const counts: Record<string, { attention: number; stale: number }> = {};
+      const byUser: Record<string, any[]> = {};
       plansSnap.docs.forEach(d => {
-        const plan = d.data() as TimePlan;
-        if (!plan.userId || counts[plan.userId]) return;
-        const planTasks = plan.tasks || [];
-        counts[plan.userId] = {
+        const plan = d.data() as TimePlan & { userId?: string };
+        if (plan.userId) (byUser[plan.userId] = byUser[plan.userId] || []).push({ ...plan, id: d.id });
+      });
+      Object.entries(byUser).forEach(([uid, plans]) => {
+        const planTasks = mergeContinuousPlans(plans).tasks;
+        counts[uid] = {
           attention: planTasks.filter(t => needsAttention(t, now)).length,
           stale: planTasks.filter(t => isStale(t, now)).length,
         };
@@ -381,8 +413,15 @@ export function ManageTimeView() {
   };
 
   const isAdmin = isLeader || isGM;
-  const isViewOnly = !!adminSelectedUserId;
-  const inboxTasks = tasks.filter(t => !t.quadrant);
+  const isViewOnly = !!adminSelectedUserId || !!historyPlan;
+  const shownTasks = historyPlan ? (historyPlan.tasks || []) : tasks;
+  const openTasks = shownTasks.filter(t => !t.completed);
+  const completedTasks = historyPlan
+    ? shownTasks.filter(t => t.completed)
+    : adminSelectedUserId
+      ? allCompletedTasks(adminPlans as any)
+      : allCompletedTasks((myPlans || []) as any, tasks);
+  const inboxTasks = openTasks.filter(t => !t.quadrant);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 print:m-0 print:p-0 print:max-w-none print:bg-white print:space-y-4">
@@ -393,7 +432,7 @@ export function ManageTimeView() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
             <Clock className="w-8 h-8 text-indigo-600 print:text-slate-800" />
             Time Management Matrix
-            {isViewOnly && <span className="text-sm font-normal bg-amber-100 text-amber-800 px-2 py-1 rounded ml-2">Viewing User's Plan</span>}
+            {isViewOnly && <span className="text-sm font-normal bg-amber-100 text-amber-800 px-2 py-1 rounded ml-2">{historyPlan ? 'Viewing an older plan (read-only)' : "Viewing User's Plan"}</span>}
           </h1>
           <p className="text-sm text-slate-500 font-medium mt-1 max-w-2xl print:hidden">
             First, brain dump all your tasks into the inbox below. Then, select a quadrant (Do Now, Do Soon, Delegate, Delete) for each to organize them into the Eisenhower Matrix.
@@ -428,11 +467,8 @@ export function ManageTimeView() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={createNewPlan}>
-                    <Plus className="w-4 h-4 mr-2" /> New Plan
-                  </DropdownMenuItem>
                   {myPlans?.map(plan => (
-                    <DropdownMenuItem key={plan.id} onClick={() => loadPlan(plan)}>
+                    <DropdownMenuItem key={plan.id} onClick={() => viewHistoryPlan(plan)}>
                       <CalendarClock className="w-4 h-4 mr-2" />
                       Plan from {plan.createdAt ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}
                     </DropdownMenuItem>
@@ -443,8 +479,8 @@ export function ManageTimeView() {
           )}
 
           {isViewOnly && (
-             <Button variant="outline" onClick={() => { setAdminSelectedUserId(null); setCurrentPlanId(null); setTasks([]); }}>
-               Exit View
+             <Button variant="outline" onClick={() => { if (historyPlan) { setHistoryPlan(null); return; } setAdminSelectedUserId(null); setCurrentPlanId(null); setTasks([]); }}>
+               {historyPlan ? 'Back to current' : 'Exit View'}
              </Button>
           )}
 
@@ -462,7 +498,7 @@ export function ManageTimeView() {
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>View Team Time Management Plans</DialogTitle>
-                  <DialogDescription>Select a user to view their saved plans. Counts are from each person&apos;s latest plan (overdue/due today, and Do Now tasks untouched 2+ days).</DialogDescription>
+                  <DialogDescription>Select a user to view their saved plans. Counts are from each person&apos;s open tasks across all plans (overdue/due today, and Do Now tasks untouched 2+ days).</DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="border rounded-md p-2 h-[300px] overflow-y-auto space-y-1">
@@ -495,20 +531,28 @@ export function ManageTimeView() {
                       <div className="text-sm text-slate-500 p-2">Select a user first.</div>
                     ) : adminPlans.length === 0 ? (
                       <div className="text-sm text-slate-500 p-2">No plans found.</div>
-                    ) : (
-                      adminPlans.map(plan => (
+                    ) : (<>
+                      <button
+                        onClick={() => { setTasks(mergeContinuousPlans(adminPlans as any).tasks); setIsAdminViewOpen(false); }}
+                        className="w-full text-left px-3 py-2 rounded-md text-sm font-semibold bg-indigo-50 hover:bg-indigo-100 flex items-center justify-between"
+                      >
+                        <span>Current (all open tasks)</span>
+                        <span className="text-xs text-indigo-700 bg-white px-1.5 py-0.5 rounded">{mergeContinuousPlans(adminPlans as any).tasks.filter(t => !t.completed).length} open</span>
+                      </button>
+                      {adminPlans.map(plan => (
                         <button
                           key={plan.id}
                           onClick={() => {
-                            loadPlan(plan);
+                            setTasks(plan.tasks || []);
                             setIsAdminViewOpen(false);
                           }}
                           className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-slate-100 flex items-center justify-between"
                         >
                           <span>{plan.createdAt ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'Unknown Date'}</span>
-                          <span className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{plan.tasks.length} tasks</span>
+                          <span className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{(plan.tasks || []).length} tasks</span>
                         </button>
-                      ))
+                      ))}
+                    </>
                     )}
                   </div>
                 </div>
@@ -562,11 +606,9 @@ export function ManageTimeView() {
                   <div key={task.id} data-task-id={task.id} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-lg border shadow-sm transition-all ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 ' : ''}${task.completed ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-indigo-200'}`}>
                     <div className="flex-1 flex items-center gap-3">
                       {!isViewOnly && (
-                        <button
-                          onClick={() => toggleTaskCompletion(task.id)}
-                          className={`w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 hover:border-indigo-400'}`}
-                        >
-                          {task.completed && <Check className="w-3 h-3" />}
+                        <button type="button" onClick={() => toggleTaskCompletion(task.id)} title="Mark complete" aria-label={`Complete ${task.text}`}
+                          className="shrink-0 h-8 w-8 -m-1 flex items-center justify-center rounded-full text-slate-300 hover:text-emerald-600 hover:bg-emerald-50">
+                          <CheckCircle2 className="w-6 h-6" />
                         </button>
                       )}
                       <DebouncedInput 
@@ -611,7 +653,7 @@ export function ManageTimeView() {
               </div>
             </div>
           )}
-          {inboxTasks.length === 0 && tasks.length > 0 && (
+          {inboxTasks.length === 0 && openTasks.length > 0 && (
             <div className="flex items-center justify-center py-6 text-slate-500 gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
               <span>All tasks categorized!</span>
@@ -623,7 +665,7 @@ export function ManageTimeView() {
       {/* The 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-4 print:grid-cols-2">
         {QUADRANTS.map((quadrant) => {
-          const qTasks = tasks.filter(t => t.quadrant === quadrant.id);
+          const qTasks = openTasks.filter(t => t.quadrant === quadrant.id);
           
           return (
             <Card key={quadrant.id} className={`border-2 shadow-sm flex flex-col h-full print:shadow-none print:border-2 print:border-slate-300 ${quadrant.borderColorClass}`}>
@@ -643,11 +685,9 @@ export function ManageTimeView() {
                     <div key={task.id} data-task-id={task.id} className={`flex items-start gap-2 group rounded-md transition-shadow print:items-end print:border-b print:border-slate-200 print:pb-2 ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 bg-red-50' : ''}`}>
                       {!isViewOnly ? (
                         <>
-                          <button
-                            onClick={() => toggleTaskCompletion(task.id)}
-                            className={`mt-2 w-4 h-4 shrink-0 rounded-sm border flex items-center justify-center transition-colors print:hidden ${task.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 hover:border-indigo-400'}`}
-                          >
-                            {task.completed && <Check className="w-3 h-3" />}
+                          <button type="button" onClick={() => toggleTaskCompletion(task.id)} title="Mark complete" aria-label={`Complete ${task.text}`}
+                            className="mt-0.5 shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 print:hidden">
+                            <CheckCircle2 className="w-6 h-6" />
                           </button>
                           {/* Print specific checkbox */}
                           <div className="hidden print:flex items-center justify-center mt-1 mr-2 w-5 h-5 border-2 border-slate-800 text-slate-800 shrink-0 font-bold">
@@ -715,6 +755,7 @@ export function ManageTimeView() {
         })}
       </div>
 
+      <TimeCompletedPanel tasks={completedTasks} readOnly={isViewOnly} onUncomplete={restoreTask} />
     </div>
   );
 }

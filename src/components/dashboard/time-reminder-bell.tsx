@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { mergeContinuousPlans } from '@/lib/time-mgmt';
 import { useFirestore, useCollection, useMemoFirebase, useFirebaseApp } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { listenForeground } from '@/lib/push';
@@ -43,12 +44,12 @@ export function TimeReminderBell({ onOpenManageTime }: { onOpenManageTime: () =>
 
   const latestPlanQuery = useMemoFirebase(() => {
     if (!db || !user || isGuest) return null;
-    return query(collection(db, 'timeManagementPlans'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(1));
+    return query(collection(db, 'timeManagementPlans'), where('userId', '==', user.uid));
   }, [db, user, isGuest]);
   const { data: plans } = useCollection<{ tasks?: Task[] }>(latestPlanQuery);
 
   if (!user || isGuest) return null;
-  const items = (plans?.[0]?.tasks || [])
+  const items = mergeContinuousPlans((plans || []) as any).tasks
     .filter(t => needsAttention(t, now))
     .sort((a, b) => (a.dueAt || 0) - (b.dueAt || 0));
   const count = items.length;

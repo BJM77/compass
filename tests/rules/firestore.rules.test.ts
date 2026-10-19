@@ -243,6 +243,11 @@ describe('Manage Time: push tokens, prefs, nudges, team counts', () => {
     }
     await assertFails(getDocs(collection(db(BDM), 'timeManagementPlans')));
     await assertSucceeds(getDocs(query(collection(db(BDM), 'timeManagementPlans'), where('userId', '==', BDM))));
+    // Continuous plan: owner may write carriedIds on any of their plans (incl. older ones); peers may not
+    await assertSucceeds(setDoc(doc(db(BDM), 'timeManagementPlans', 'old1'), { userId: BDM, tasks: [task], createdAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db(BDM), 'timeManagementPlans', 'old1'), { tasks: [], carriedIds: ['t1'], updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(BDM2), 'timeManagementPlans', 'old1'), { carriedIds: [] }));
+    await assertFails(getDocs(query(collection(db(BDM2), 'timeManagementPlans'), where('userId', '==', BDM))));
   });
 });
 
