@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
 import { normalizeBdmName } from '@/lib/utils';
@@ -25,7 +25,8 @@ export function useTeamUsers(): { teamUsers: UnifiedTeamUser[]; isLoading: boole
 
   const usersQuery = useMemoFirebase(() => {
     if (!db || !isLeader) return null;
-    return collection(db, 'users');
+    // Server-side filter: only team roles (case variants kept to match the client-side uppercase check)
+    return query(collection(db, 'users'), where('role', 'in', ['BDM', 'ACCOUNT_MANAGER', 'AM', 'bdm', 'account_manager', 'am', 'Bdm', 'Am']));
   }, [db, isLeader]);
 
   const { data: rawUsers, isLoading } = useCollection<any>(usersQuery);
