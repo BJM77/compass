@@ -201,3 +201,67 @@ export const refreshFuelSurcharges = onSchedule(
     logger.info('fuel surcharges refreshed', { results: r.results.map(x => `${x.carrierId}:${x.status}${x.changed ? '*' : ''}`).join(' ') });
   }
 );
+
+/**
+ * weeklyRetentionCleanup (Sundays 00:05 Perth): keeps the big collections small.
+ *  - crmActivities: deletes docs whose activity `date` (fallback `createdAt`) is older than 4 weeks.
+ *  - pipelineReviews: these are LIVE deals/accounts (the app shows the latest `week` per
+ *    salesforceId/accountMasterCode/id), so only SUPERSEDED rows are deleted: not the latest week
+ *    for their key (globally or for their owner) AND `updatedAt` (fallback `createdAt`) older than 4 weeks.
+ *  Docs with no usable date are always kept.
+ */
+const RETENTION_MS = 28 * 24 * 60 * 60 * 1000;
+function toMs(v: any): number | null {
+  if (v == null) return null;
+  if (typeof v.toMillis === 'function') return v.toMillis();
+  if (typeof v === 'number') return v;
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? null : t;
+}
+async function batchDelete(db: Firestore, refs: FirebaseFirestore.DocumentReference[]): Promise<number> {
+  let n = 0;
+  for (let i = 0; i < refs.length; i += 400) {
+    const b = db.batch();
+    refs.slice(i, i + 400).forEach((r) => b.delete(r));
+    await b.commit();
+    n += Math.min(400, refs.length - i);
+  }
+  return n;
+}
+export const weeklyRetentionCleanup = onSchedule(
+  { schedule: '5 0 * * 0', timeZone: 'Australia/Perth', region: REGION, timeoutSeconds: 540, memory: '512MiB' },
+  async () => {
+    const db = getFirestore();
+    const cutoff = Date.now() - RETENTION_MS;
+
+    const crm = await db.collection('crmActivities').get();
+    const crmOld = crm.docs.filter((d) => {
+      const t = toMs(d.get('date')) ?? toMs(d.get('createdAt'));
+      return t != null && t < cutoff;
+    });
+    const crmDeleted = await batchDelete(db, crmOld.map((d) => d.ref));
+
+    const pr = await db.collection('pipelineReviews').get();
+    const key = (d: FirebaseFirestore.QueryDocumentSnapshot) =>
+      String(d.get('salesforceId') || d.get('accountMasterCode') || d.id);
+    const best = new Map<string, string>();
+    for (const d of pr.docs) {
+      const w = String(d.get('week') || '');
+      for (const k of ['G|' + key(d), 'U|' + d.get('userId') + '|' + key(d)]) {
+        if (!best.has(k) || w > (best.get(k) as string)) best.set(k, w);
+      }
+    }
+    const prOld = pr.docs.filter((d) => {
+      const w = String(d.get('week') || '');
+      const latest = w >= (best.get('G|' + key(d)) as string) || w >= (best.get('U|' + d.get('userId') + '|' + key(d)) as string);
+      const t = toMs(d.get('updatedAt')) ?? toMs(d.get('createdAt'));
+      return !latest && t != null && t < cutoff;
+    });
+    const prDeleted = await batchDelete(db, prOld.map((d) => d.ref));
+
+    logger.info('weeklyRetentionCleanup', {
+      crmActivities: { scanned: crm.size, deleted: crmDeleted },
+      pipelineReviews: { scanned: pr.size, deleted: prDeleted },
+    });
+  }
+);
