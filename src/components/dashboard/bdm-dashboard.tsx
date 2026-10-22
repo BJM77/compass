@@ -35,7 +35,7 @@ import { doc, collection, query, where, orderBy, limit } from 'firebase/firestor
 import { format } from 'date-fns';
 import { jsPDF } from "jspdf";
 import { computeMomentum } from '@/lib/momentum';
-import { getCurrentWeek, getNextWeekKey, formatEAV, getWidgetSpanClass } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, getWidgetSpanClass, getNwaReviewWeek } from '@/lib/utils';
 import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
@@ -86,7 +86,8 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   const { data: twtwData } = useDoc(twtwDocRef);
   const twtwStatus = twtwData?.status || 'NOT_STARTED';
 
-  const nextWeekKey = getNextWeekKey(currentWeek);
+  // NWA plan for the week ahead (Monday meeting): keyed by the planned week
+  const nextWeekKey = getNextWeekKey(getNwaReviewWeek());
   const commitmentsDocRef = useMemoFirebase(() => {
     if (!db || !userId) return null;
     return doc(db, 'weeklyCommitments', `${userId}_${nextWeekKey}`);
@@ -123,7 +124,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
       'Sales Week': currentWeek,
       'Next Week Key': nextWeekKey,
       'TWTW Status': twtwStatus,
-      'Friday FW Status': fridayStatus,
+      'NWA Status': fridayStatus,
       'Target Assigned ($)': stats?.target ? `$${Number(stats.target).toLocaleString()}` : 'No Target Set',
     },
     issues: [
@@ -150,7 +151,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     const callPrepIdx = result.findIndex(w => w.id === 'call-prep');
     
     let twiwWidget: DashboardWidgetConfig = { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true };
-    let fridayWidget: DashboardWidgetConfig = { id: 'friday-fw', name: 'Friday FW', width: 3, visible: true };
+    let fridayWidget: DashboardWidgetConfig = { id: 'friday-fw', name: 'Next Weeks Activity (NWA)', width: 3, visible: true };
     let callPrepWidget: DashboardWidgetConfig = { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false };
     
     // Extract widgets in reverse index order to avoid shifting issues
@@ -170,7 +171,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     });
 
     twiwWidget.name = 'Thursday TWTW';
-    // fridayWidget name is already Friday FW
+    // fridayWidget name is Next Weeks Activity (NWA)
 
     if (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER') {
       twiwWidget.visible = true;
@@ -559,7 +560,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
             userName={profile?.name || 'BDM'}
             userRole={profile?.role || 'BDM'}
             userState={profile?.state || 'WA'}
-            selectedWeek={currentWeek}
+            selectedWeek={getNwaReviewWeek()}
           />
         );
       case 'twiw':
@@ -641,12 +642,12 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
             className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
           >
             <ListChecks className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-wider">Friday FW</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">NWA</span>
             <Badge className={cn("border-none font-bold text-[8px] uppercase", 
               fridayStatus === 'SUBMITTED' ? 'bg-emerald-500/20 text-emerald-300' : 
               fridayStatus === 'DRAFT' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'
             )}>
-              {fridayStatus === 'SUBMITTED' ? 'Done' : fridayStatus === 'DRAFT' ? 'Draft' : 'Due: Friday Morning'}
+              {fridayStatus === 'SUBMITTED' ? 'Done' : fridayStatus === 'DRAFT' ? 'Draft' : 'Due: Monday Morning'}
             </Badge>
           </button>
 
@@ -684,7 +685,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
               'voice-logger': 'Logger',
               'crm-summary': 'Summary',
               'monday-planning': 'Monday Planning',
-              'friday-fw': 'Friday FW',
+              'friday-fw': 'Next Weeks Activity (NWA)',
               'twiw': 'Thursday TWTW',
               'call-prep': 'Planning',
               'smart-goals': 'Goals',

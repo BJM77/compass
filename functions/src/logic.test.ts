@@ -55,9 +55,11 @@ test('digest from 8am with top 3 Do Now', () => {
 test('deadline nudge windows', () => {
   const thu1pm = perthTime(2026, 10, 15, 13, 0);
   const fri11 = perthTime(2026, 10, 16, 11, 0);
+  const mon7 = perthTime(2026, 10, 19, 7, 0);
   assert.deepEqual(deadlineWindows('BDM', prefs, DEFAULT_NUDGE_CONFIG, thu1pm), { twtw: true, fw: false });
-  assert.deepEqual(deadlineWindows('BDM', prefs, DEFAULT_NUDGE_CONFIG, fri11), { twtw: false, fw: true });
-  assert.deepEqual(deadlineWindows('GM', prefs, DEFAULT_NUDGE_CONFIG, fri11), { twtw: false, fw: false });
+  assert.deepEqual(deadlineWindows('BDM', prefs, DEFAULT_NUDGE_CONFIG, fri11), { twtw: false, fw: false });
+  assert.deepEqual(deadlineWindows('BDM', prefs, DEFAULT_NUDGE_CONFIG, mon7), { twtw: false, fw: true });
+  assert.deepEqual(deadlineWindows('GM', prefs, DEFAULT_NUDGE_CONFIG, mon7), { twtw: false, fw: false });
   assert.deepEqual(deadlineWindows('BDM', { ...prefs, deadlineNudges: false }, DEFAULT_NUDGE_CONFIG, thu1pm), { twtw: false, fw: false });
 });
 

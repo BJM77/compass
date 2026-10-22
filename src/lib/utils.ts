@@ -263,6 +263,19 @@ export function getCurrentWeek(): string {
 }
 
 /**
+ * Week reviewed in the Monday NWA (Next Weeks Activity) meeting.
+ * Mon–Thu: the week just finished (plan saved for the current week).
+ * Fri–Sun: the current week (reps preparing early for Monday).
+ */
+export function getNwaReviewWeek(date: Date = new Date()): string {
+  const day = date.getDay(); // 0=Sun … 6=Sat
+  if (day >= 1 && day <= 4) {
+    return getWeekForDate(new Date(date.getTime() - 7 * 24 * 60 * 60 * 1000));
+  }
+  return getWeekForDate(date);
+}
+
+/**
  * Returns all financial week keys that fall within the current calendar month.
  */
 export function getCurrentMonthWeeks(): string[] {
