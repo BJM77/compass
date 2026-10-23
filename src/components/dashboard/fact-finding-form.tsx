@@ -369,7 +369,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
   });
 
   // Query Whitespace Plans for this account
-  const effectiveUserId = user?.uid || profile?.uid;
+  // For a record shared with me (or opened by an admin) the linked White Space belongs to the record's owner
+  const effectiveUserId = existingDoc?.userId || user?.uid || profile?.uid;
 
   const whitespaceQuery = useMemoFirebase(() => {
     if (!db || !effectiveUserId) return null;
@@ -709,7 +710,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
         </div>
         {!viewOnly && (
           <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-            {docId && isLeader && (
+            {docId && (isLeader || (!!formData.userId && formData.userId !== user?.uid)) && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
