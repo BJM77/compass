@@ -361,6 +361,21 @@ export function normaliseCompany(name: string): string {
     .replace(/[^a-z0-9]/g, '');
 }
 
+/** verticalDismissals doc ID for a company ("Trading with TGE" marker). Letters + digits only. */
+export function dismissalKey(name: string): string {
+  return normaliseCompany(name).slice(0, 150);
+}
+
+export type VerticalDismissal = {
+  id: string;
+  company: string;
+  reason: 'TRADING_WITH_TGE';
+  suggestedId?: string;
+  dismissedBy: string;
+  dismissedByName?: string;
+  dismissedAt: any;
+};
+
 const BELT_HINTS: [BeltId, RegExp][] = [
   ['REGIONAL_WA', /bunbury|harvey|geraldton|margaret river|mount barker|northcliffe|kemerton|kalgoorlie|albany|karratha|hedland/i],
   ['SOUTH', /henderson|bibra lake|cockburn|rockingham|kwinana|munster|jandakot|fremantle|myaree|palmyra/i],

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { Lightbulb, ExternalLink, Copy, Check, Plus, ChevronDown, ChevronRight, CheckCircle2, Info } from 'lucide-react';
+import { Lightbulb, ExternalLink, Copy, Check, Plus, ChevronDown, ChevronRight, CheckCircle2, Info, Handshake, Undo2 } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn, getSalesforceSearchUrl } from '@/lib/utils';
-import { VerticalId, VerticalProspect, FreightProfile, normaliseCompany, guessBelt } from '@/lib/verticals';
+import { VerticalId, VerticalProspect, FreightProfile, normaliseCompany, guessBelt, dismissalKey } from '@/lib/verticals';
 import { WA_SUGGESTED_PROSPECTS, SuggestedProspect } from '@/data/wa-suggested-prospects';
+import type { VerticalDismissals } from '@/hooks/use-vertical-dismissals';
 
 function confidenceClass(c: string) {
   if (c === 'high') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -36,25 +37,29 @@ function freightGuess(s: SuggestedProspect): FreightProfile[] {
 /**
  * "Suggested WA prospects" from the research handover, per vertical tab.
  * Rows already in verticalProspects (normalised name match) are marked.
+ * "Trading with TGE" marks a company that is already a customer: it is hidden for everyone
+ * (shared verticalDismissals) and can be restored from "Show hidden".
  */
 export function SuggestedProspectsPanel({
-  vertical, prospects, canAdd, uid, myName, onCheckPain,
-}: { vertical: VerticalId; prospects: VerticalProspect[]; canAdd: boolean; uid: string; myName: string; onCheckPain?: (s: SuggestedProspect) => void }) {
+  vertical, prospects, canAdd, uid, myName, onCheckPain, dismissals,
+}: { vertical: VerticalId; prospects: VerticalProspect[]; canAdd: boolean; uid: string; myName: string; onCheckPain?: (s: SuggestedProspect) => void; dismissals: VerticalDismissals }) {
   const db = useFirestore();
   const { toast } = useToast();
   const [open, setOpen] = useState(true);
   const [showLow, setShowLow] = useState(false);
   const [hideAdded, setHideAdded] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
 
   const existing = useMemo(() => new Set(prospects.map(p => normaliseCompany(p.company))), [prospects]);
   const rows = WA_SUGGESTED_PROSPECTS.filter(s => s.vertical === vertical);
   const isAdded = (s: SuggestedProspect) => existing.has(normaliseCompany(s.company));
-  const visible = rows.filter(s => !(hideAdded && isAdded(s)));
+  const hiddenRows = rows.filter(s => dismissals.isDismissed(s.company));
+  const visible = rows.filter(s => !dismissals.isDismissed(s.company)).filter(s => !(hideAdded && isAdded(s)));
   const main = visible.filter(s => !s.lowPriority);
   const low = visible.filter(s => s.lowPriority);
-  const addedCount = rows.filter(isAdded).length;
+  const addedCount = rows.filter(s => isAdded(s) && !dismissals.isDismissed(s.company)).length;
 
   if (rows.length === 0) return null;
 
@@ -78,6 +83,24 @@ export function SuggestedProspectsPanel({
     } finally {
       setBusy(b => ({ ...b, [s.id]: false }));
     }
+  };
+
+  const markTrading = async (s: SuggestedProspect) => {
+    setBusy(b => ({ ...b, [`t-${s.id}`]: true }));
+    try {
+      await dismissals.markTrading(s.company, s.id);
+      toast({ title: `${s.company} marked as trading with TGE`, description: 'Hidden from suggestions for everyone. Use "Show hidden" to restore.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Could not mark as trading with TGE', variant: 'destructive' });
+    } finally {
+      setBusy(b => ({ ...b, [`t-${s.id}`]: false }));
+    }
+  };
+
+  const restore = async (s: SuggestedProspect) => {
+    try { await dismissals.restore(s.company); toast({ title: `${s.company} restored to suggestions` }); }
+    catch (e) { console.error(e); toast({ title: 'Could not restore', variant: 'destructive' }); }
   };
 
   const copy = async (s: SuggestedProspect) => {
@@ -114,6 +137,10 @@ export function SuggestedProspectsPanel({
           <span className="text-[10px] text-slate-400 break-words">{s.sources.join(' · ')}</span>
           <div className="flex-1" />
           {onCheckPain && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onCheckPain(s)}>Check delivery pain</Button>}
+          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy[`t-${s.id}`]} onClick={() => markTrading(s)}
+            title="Already a customer: remove from suggestions for everyone">
+            <Handshake className="w-3.5 h-3.5 mr-1" />Trading with TGE
+          </Button>
           {added ? (
             <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50"><CheckCircle2 className="w-3 h-3 mr-1" />In prospects</Badge>
           ) : canAdd ? (
@@ -152,12 +179,17 @@ export function SuggestedProspectsPanel({
             <label className="inline-flex items-center gap-1 text-xs cursor-pointer">
               <input type="checkbox" checked={hideAdded} onChange={e => setHideAdded(e.target.checked)} /> Hide added
             </label>
+            {hiddenRows.length > 0 && (
+              <button type="button" onClick={() => setShowHidden(v => !v)} className="text-xs font-bold text-indigo-700 hover:underline">
+                {showHidden ? 'Hide' : 'Show'} hidden ({hiddenRows.length} trading with TGE)
+              </button>
+            )}
           </CardDescription>
         )}
       </CardHeader>
       {open && (
         <CardContent className="px-3 pb-3 space-y-3">
-          {main.length ? grouped(main) : <p className="text-sm text-slate-500">All suggestions are already in prospects.</p>}
+          {main.length ? grouped(main) : <p className="text-sm text-slate-500">No suggestions to show: all are in prospects or marked as trading with TGE.</p>}
           {low.length > 0 && (
             <div className="border-t pt-2">
               <button type="button" onClick={() => setShowLow(v => !v)} className="text-xs font-bold text-slate-600 flex items-center gap-1">
@@ -165,6 +197,20 @@ export function SuggestedProspectsPanel({
                 Low priority / mostly bulk ({low.length})
               </button>
               {showLow && <div className="mt-2">{grouped(low)}</div>}
+            </div>
+          )}
+          {showHidden && hiddenRows.length > 0 && (
+            <div className="border-t pt-2 space-y-1.5">
+              <p className="text-xs font-bold text-slate-600">Hidden: already trading with TGE</p>
+              {hiddenRows.map(s => (
+                <div key={s.id} className="flex items-center gap-2 min-w-0 rounded-md border bg-slate-50 px-2 py-1.5">
+                  <span className="text-sm font-semibold truncate min-w-0 flex-1">{s.company}</span>
+                  <span className="hidden sm:block text-[11px] text-slate-500 truncate max-w-[40%]">
+                    {dismissals.byKey.get(dismissalKey(s.company))?.dismissedByName ? `by ${dismissals.byKey.get(dismissalKey(s.company))?.dismissedByName}` : ''}
+                  </span>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs shrink-0" onClick={() => restore(s)}><Undo2 className="w-3.5 h-3.5 mr-1" />Restore</Button>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>

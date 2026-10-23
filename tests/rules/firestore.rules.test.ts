@@ -404,3 +404,51 @@ describe('Fuel surcharges', () => {
     await assertSucceeds(deleteDoc(doc(db(LEADER), 'fuelSurchargeOverrides', 'kal')));
   });
 });
+
+describe('Verticals: verticalDismissals ("Trading with TGE")', () => {
+  const payload = (uid: string, over: Record<string, unknown> = {}) => ({
+    company: 'Kitchen Warehouse', reason: 'TRADING_WITH_TGE', suggestedId: 'kitchen-warehouse',
+    dismissedBy: uid, dismissedByName: 'Someone', dismissedAt: serverTimestamp(), ...over,
+  });
+  const seed = async (key: string) => env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'verticalDismissals', key), { ...payload(BDM), dismissedAt: Timestamp.now() });
+  });
+
+  test('BDM, AM and admins can mark a company; the marker is shared with all staff', async () => {
+    await assertSucceeds(setDoc(doc(db(BDM), 'verticalDismissals', 'kitchenwarehouse'), payload(BDM)));
+    await assertSucceeds(setDoc(doc(db(AM), 'verticalDismissals', 'acme'), payload(AM)));
+    await assertSucceeds(setDoc(doc(db(LEADER), 'verticalDismissals', 'bunnings'), payload(LEADER)));
+    for (const u of [BDM, BDM2, AM, LEADER, GM, SUPER]) {
+      await assertSucceeds(getDoc(doc(db(u), 'verticalDismissals', 'kitchenwarehouse')));
+      await assertSucceeds(getDocs(collection(db(u), 'verticalDismissals')));
+    }
+  });
+
+  test('guests and strangers cannot read or write', async () => {
+    await seed('kitchenwarehouse');
+    for (const u of [GUEST, STRANGER]) {
+      await assertFails(getDoc(doc(db(u), 'verticalDismissals', 'kitchenwarehouse')));
+      await assertFails(setDoc(doc(db(u), 'verticalDismissals', 'other'), payload(u)));
+      await assertFails(deleteDoc(doc(db(u), 'verticalDismissals', 'kitchenwarehouse')));
+    }
+  });
+
+  test('create is validated: own uid, fixed reason, clean key, no extra fields, server time', async () => {
+    await assertFails(setDoc(doc(db(BDM), 'verticalDismissals', 'a'), payload(BDM2)));
+    await assertFails(setDoc(doc(db(BDM), 'verticalDismissals', 'a'), payload(BDM, { reason: 'OTHER' })));
+    await assertFails(setDoc(doc(db(BDM), 'verticalDismissals', 'Not Clean'), payload(BDM)));
+    await assertFails(setDoc(doc(db(BDM), 'verticalDismissals', 'a'), payload(BDM, { isAdmin: true })));
+    await assertFails(setDoc(doc(db(BDM), 'verticalDismissals', 'a'), payload(BDM, { company: '' })));
+    await assertFails(setDoc(doc(db(BDM), 'verticalDismissals', 'a'), payload(BDM, { dismissedAt: Timestamp.fromMillis(1) })));
+    await assertSucceeds(setDoc(doc(db(BDM), 'verticalDismissals', 'a'), (({ suggestedId, ...rest }) => rest)(payload(BDM))));
+  });
+
+  test('markers cannot be edited; staff can delete (undo / restore)', async () => {
+    await seed('kitchenwarehouse');
+    await assertFails(updateDoc(doc(db(BDM), 'verticalDismissals', 'kitchenwarehouse'), { company: 'x' }));
+    await assertFails(setDoc(doc(db(BDM2), 'verticalDismissals', 'kitchenwarehouse'), payload(BDM2)));
+    await assertSucceeds(deleteDoc(doc(db(BDM2), 'verticalDismissals', 'kitchenwarehouse')));
+    await seed('kitchenwarehouse');
+    await assertSucceeds(deleteDoc(doc(db(AM), 'verticalDismissals', 'kitchenwarehouse')));
+  });
+});

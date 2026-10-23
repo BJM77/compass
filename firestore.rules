@@ -418,6 +418,24 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isBdm() && resource.data.get('ownerUid', null) == request.auth.uid);
     }
 
+    // "Trading with TGE" markers: a suggested / lookalike company that is already a customer is
+    // hidden from the suggestion lists for everyone. Doc ID = normalised company name
+    // (lowercase letters + digits, matches normaliseCompany() in src/lib/verticals.ts).
+    match /verticalDismissals/{key} {
+      allow read: if isStaff();
+      allow create: if isStaff()
+        && key.matches('^[a-z0-9]{1,150}$')
+        && request.resource.data.keys().hasOnly(['company', 'reason', 'suggestedId', 'dismissedBy', 'dismissedByName', 'dismissedAt'])
+        && request.resource.data.company is string && request.resource.data.company.size() > 0 && request.resource.data.company.size() <= 200
+        && request.resource.data.reason == 'TRADING_WITH_TGE'
+        && request.resource.data.dismissedBy == request.auth.uid
+        && request.resource.data.dismissedAt == request.time
+        && optStr(request.resource.data, 'suggestedId', 200)
+        && optStr(request.resource.data, 'dismissedByName', 200);
+      allow update: if false;
+      allow delete: if isStaff(); // undo / "show hidden"
+    }
+
     // Server-only intel cache and per-user usage counters (Admin SDK bypasses rules).
     match /intelCache/{id} { allow read, write: if false; }
     match /intelUsage/{id} { allow read, write: if false; }

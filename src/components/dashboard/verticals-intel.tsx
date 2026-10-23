@@ -18,6 +18,7 @@ import { cn, getSalesforceSearchUrl } from '@/lib/utils';
 import { BELTS, VERTICALS, normaliseCompany, type VerticalProspect } from '@/lib/verticals';
 import { PAIN_LABEL, MAX_NAME, MAX_NOTES, PAIN_RECHECK_DAYS, canRecheck, type Lookalike, type PainSignals, type PainScore } from '@/lib/intel';
 import { WA_SUGGESTED_PROSPECTS } from '@/data/wa-suggested-prospects';
+import type { VerticalDismissals } from '@/hooks/use-vertical-dismissals';
 
 const label = <T extends { id: string; label: string }>(list: T[], id: string) => list.find(x => x.id === id)?.label || id;
 
@@ -117,7 +118,7 @@ export function PainDialog({ target, onClose }: { target: PainTarget | null; onC
 }
 
 // ─── WA Lookalike finder ────────────────────────────────────────────────────
-export function LookalikeFinder({ prospects, canAdd, uid, myName }: { prospects: VerticalProspect[]; canAdd: boolean; uid: string; myName: string }) {
+export function LookalikeFinder({ prospects, canAdd, uid, myName, dismissals }: { prospects: VerticalProspect[]; canAdd: boolean; uid: string; myName: string; dismissals?: VerticalDismissals }) {
   const api = useIntelApi();
   const db = useFirestore();
   const { toast } = useToast();
@@ -202,9 +203,11 @@ export function LookalikeFinder({ prospects, canAdd, uid, myName }: { prospects:
         {results && (results.length === 0 ? <p className="text-sm text-slate-500">No verified lookalikes found. Try adding notes or a different seed.</p> : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
             {results.map(l => {
+              // Companies marked "Trading with TGE" (shared) are existing customers: flag them, don't offer to add
+              const trading = !!dismissals?.isDismissed(l.company);
               const already = l.alreadyInList || inProspects.has(normaliseCompany(l.company)) || added[l.company];
               return (
-                <div key={l.company} className={cn('min-w-0 rounded-lg border bg-white p-3 space-y-1.5', already && 'opacity-70 bg-slate-50')}>
+                <div key={l.company} className={cn('min-w-0 rounded-lg border bg-white p-3 space-y-1.5', (already || trading) && 'opacity-70 bg-slate-50')}>
                   <div className="flex items-start gap-1.5 min-w-0">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 min-w-0">
@@ -226,7 +229,8 @@ export function LookalikeFinder({ prospects, canAdd, uid, myName }: { prospects:
                     <a href={l.website} target="_blank" rel="noopener noreferrer nofollow" className="text-[11px] text-indigo-700 hover:underline inline-flex items-center gap-0.5 break-all">{l.website.replace(/^https:\/\//, '')}<ExternalLink className="w-3 h-3" /></a>
                     <span className="text-slate-400">{l.verifiedBy === 'grounded' ? 'seen in search sources' : 'domain verified'}</span>
                     <div className="flex-1" />
-                    {already ? <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50"><CheckCircle2 className="w-3 h-3 mr-1" />Already in list</Badge>
+                    {trading ? <Badge variant="outline" className="text-sky-700 border-sky-200 bg-sky-50"><CheckCircle2 className="w-3 h-3 mr-1" />Trading with TGE</Badge>
+                      : already ? <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50"><CheckCircle2 className="w-3 h-3 mr-1" />Already in list</Badge>
                       : canAdd ? <Button size="sm" className="h-7 text-xs" onClick={() => add(l)}><Plus className="w-3.5 h-3.5 mr-1" />Add to prospects</Button> : null}
                   </div>
                 </div>
