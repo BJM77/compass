@@ -21,8 +21,10 @@ import {
   Users, TrendingUp, AlertTriangle, BarChart3, 
   ShieldCheck, Mail, Compass, FileText, Loader2, 
   DollarSign, Activity, Phone, Calendar, Target,
-  ExternalLink
+  ExternalLink, LayoutDashboard
 } from 'lucide-react';
+import { DashboardWidgetGrid } from './widgets/dashboard-widget-grid';
+import { useDashboardLayout } from '@/hooks/use-dashboard-layout';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -40,8 +42,11 @@ interface LeaderDashboardProps {
 }
 
 export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const db = useFirestore();
+  const [activeTab, setActiveTab] = useState('my-dashboard');
+  // Layout set in Dashboard Design: the Leaders layout when "Leaders use the same layout" is off, else the Everyone layout.
+  const { layout: leaderLayout } = useDashboardLayout('leader');
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = useState(false);
   const [openModal, setOpenModal] = useState<'REV' | 'APPS' | 'CALLS' | null>(null);
@@ -243,20 +248,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     }
   };
 
-  if (isStatsLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Compass className="animate-spin" /></div>;
-
-  return (
-    <div className="w-full p-4 md:p-8 space-y-6 animate-in fade-in duration-700">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary p-2 rounded-xl shadow-lg rotate-3 shrink-0"><ShieldCheck className="w-5 h-5 text-white" /></div>
-          <h1 className="text-xl md:text-4xl font-extrabold font-headline text-primary tracking-tighter">Governance Command</h1>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleTeamSync} disabled={isSyncing} className="h-10 text-xs font-semibold"><Mail className="w-4 h-4 mr-2" /> TEAM NUDGE</Button>
-        </div>
-      </header>
-
+  const teamKpiRow = (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard 
           title="Territory Rev" 
@@ -296,11 +288,28 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
           icon={<Target className="w-4 h-4 text-accent" />} 
         />
       </div>
+  );
 
+  if (isStatsLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Compass className="animate-spin" /></div>;
 
-      <Tabs defaultValue="dashboard" className="w-full space-y-6">
+  return (
+    <div className="w-full p-4 md:p-8 space-y-6 animate-in fade-in duration-700">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary p-2 rounded-xl shadow-lg rotate-3 shrink-0"><ShieldCheck className="w-5 h-5 text-white" /></div>
+          <h1 className="text-xl md:text-4xl font-extrabold font-headline text-primary tracking-tighter">Governance Command</h1>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleTeamSync} disabled={isSyncing} className="h-10 text-xs font-semibold"><Mail className="w-4 h-4 mr-2" /> TEAM NUDGE</Button>
+        </div>
+      </header>
+
+      {activeTab !== 'my-dashboard' && teamKpiRow}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
         <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-10 flex overflow-x-auto scrollbar-hide max-w-full">
-          <TabsTrigger value="dashboard" className="font-semibold text-xs"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
+          <TabsTrigger value="my-dashboard" className="font-semibold text-xs"><LayoutDashboard className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
+          <TabsTrigger value="dashboard" className="font-semibold text-xs"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Team Overview</TabsTrigger>
           <TabsTrigger value="activity-metrics" className="font-semibold text-xs"><Activity className="w-3.5 h-3.5 mr-1.5" /> Plan Metrics</TabsTrigger>
           <TabsTrigger value="group-90" className="font-semibold text-xs">Group 90</TabsTrigger>
           <TabsTrigger value="bdm-north" className="font-semibold text-xs">BDM North</TabsTrigger>
@@ -310,6 +319,23 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
           <TabsTrigger value="ai-report" className="font-semibold text-xs bg-accent/10 text-accent">AI Report</TabsTrigger>
           <TabsTrigger value="users" className="font-semibold text-xs"><Users className="w-3.5 h-3.5 mr-1.5" /> Users</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="my-dashboard" className="space-y-6">
+          <DashboardWidgetGrid
+            layout={leaderLayout}
+            context={{
+              userId: user?.uid || '',
+              userName: profile?.name || 'Leader',
+              role: profile?.role || 'LEADER',
+              territory: profile?.territory,
+              audience: 'leader',
+              // Revenue & Pipeline shows team totals for Leaders (the same four cards as Team Overview).
+              overrides: { 'kpi-pipeline': teamKpiRow },
+            }}
+            anchors
+            collapsible
+          />
+        </TabsContent>
 
         <TabsContent value="dashboard" className="space-y-6">
            <SalesVelocityWidgets teamStats={teamStats || []} allDeals={allDeals || []} totalRevenue={aggregates.totalRevenue} />

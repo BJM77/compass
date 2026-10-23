@@ -551,3 +551,32 @@ describe('Access: dataShares (one-way, full access)', () => {
     await assertFails(getDoc(doc(db(BDM2), 'callPlans', 'cp1')));
   });
 });
+
+describe('Dashboard Designer: appSettings/global layout writes are admin-only', () => {
+  const payload = () => ({
+    dashboardLayout: [{ id: 'today', name: 'Today', width: 3, visible: true }],
+    leaderDashboardLayout: [{ id: 'team-snapshot', name: 'Team', width: 3, visible: true }],
+    useSameLayoutForLeaders: false,
+    dashboardLayoutHistory: [{ savedAt: 1, savedBy: LEADER, savedByName: 'Lea', everyone: [], leaders: [], useSameLayoutForLeaders: false }],
+    dashboardLayoutUpdatedAt: serverTimestamp(),
+    dashboardLayoutUpdatedBy: LEADER,
+  });
+
+  test('admin roles (role field only) can save the layout', async () => {
+    for (const uid of [LEADER, GM, SUPER]) {
+      await assertSucceeds(setDoc(doc(db(uid), 'appSettings', 'global'), payload(), { merge: true }));
+    }
+  });
+
+  test('BDM, Account Manager, guests, strangers and signed-out users cannot', async () => {
+    for (const uid of [BDM, AM, GUEST, STRANGER, undefined]) {
+      await assertFails(setDoc(doc(db(uid), 'appSettings', 'global'), payload(), { merge: true }));
+      await assertFails(updateDoc(doc(db(uid), 'appSettings', 'global'), { dashboardLayout: [] }));
+    }
+  });
+
+  test('staff can read the layout (BDM/AM dashboards need it); guests and signed-out users cannot', async () => {
+    for (const uid of [BDM, AM, LEADER]) await assertSucceeds(getDoc(doc(db(uid), 'appSettings', 'global')));
+    for (const uid of [GUEST, STRANGER, undefined]) await assertFails(getDoc(doc(db(uid), 'appSettings', 'global')));
+  });
+});

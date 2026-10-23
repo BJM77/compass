@@ -1,47 +1,16 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
+import { doc } from 'firebase/firestore';
+import { Compass } from 'lucide-react';
 import { useAuth, UserProfile } from '@/contexts/auth-context';
-import { KPICard } from './kpi-card';
-import { TerritoryPlaybook } from './territory-playbook';
-import { OnboardingPlan } from './onboarding-plan';
-import { TWIWView } from './twiw-view';
 import { ViewSkeleton } from '@/components/ui/view-skeleton';
-import { ActivityLogger } from './activity-logger';
-import { WeeklyGoals } from './weekly-goals';
-import { SmartGoalsView } from './smart-goals-view';
-import { PipelineReviewTable } from './pipeline-review-table';
-import { CallPlanning } from './call-planning';
-import { BehaviorAlerts } from './behavior-alerts';
-import { FridayPerformanceReview } from './friday-performance-review';
-import { VoiceActionLogger } from './voice-action-logger';
-import { HistoricalActivity } from './historical-activity';
-import { AIDealWhisperer } from './ai-deal-whisperer';
-import { AMBDNotesWidget } from './ambd-notes-widget';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  FileDown, DollarSign, Zap, PhoneCall, Gauge, 
-  ShieldCheck, Compass, ListChecks, ExternalLink, 
-  Loader2, Target, ArrowRight, Sparkles, TrendingUp, 
-  CalendarClock, Activity, Send, ChevronDown, ChevronUp
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
-import { doc, collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { format } from 'date-fns';
-import { jsPDF } from "jspdf";
-import { computeMomentum } from '@/lib/momentum';
-import { getCurrentWeek, getNextWeekKey, formatEAV, getWidgetSpanClass } from '@/lib/utils';
-import { useCRMSummary } from '@/hooks/use-crm-summary';
-import { CRMSummaryPanel } from './crm-summary-panel';
-import { usePipelineData } from '@/contexts/pipeline-context';
-import { calculateDealHealth } from '@/lib/deal-health';
-import { DEFAULT_DASHBOARD_LAYOUT, DashboardWidgetConfig } from './settings-hub';
+import { useDoc, useMemoFirebase, useFirestore } from '@/firebase';
+import { useDashboardLayout } from '@/hooks/use-dashboard-layout';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
+import { getCurrentWeek } from '@/lib/utils';
+import { DashboardWidgetGrid } from './widgets/dashboard-widget-grid';
 
 interface BDMDashboardProps {
   simulatedUser?: {
@@ -50,61 +19,23 @@ interface BDMDashboardProps {
   };
 }
 
+/**
+ * BDM / Account Manager dashboard. What shows, in what order and at what width is decided by the
+ * layout an admin/leader saved in Dashboard Design (appSettings/global.dashboardLayout). There are
+ * no hard-coded overrides: the saved layout is what renders.
+ */
 export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
   const { profile: authProfile, user: authUser } = useAuth();
   const db = useFirestore();
-  const { toast } = useToast();
-  const [isExporting, setIsExporting] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [collapsedWidgets, setCollapsedWidgets] = useState<Record<string, boolean>>({
-    'monday-planning': true,
-    'friday-fw': true,
-    'call-prep': true,
-    'smart-goals': true,
-    'success-plan': true,
-    'voice-logger': true,
-  });
   const currentWeek = getCurrentWeek();
 
   const userId = simulatedUser?.uid || authUser?.uid || null;
   const profile = simulatedUser?.profile || authProfile;
 
-  if (!profile) return <ViewSkeleton />;
+  const statsDocRef = useMemoFirebase(() => (db && userId ? doc(db, 'bdmStats', userId) : null), [db, userId]);
+  const { data: stats, isLoading: isStatsLoading } = useDoc<any>(statsDocRef);
 
-  const isAM = profile?.role === 'ACCOUNT_MANAGER';
-
-  const statsDocRef = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return doc(db, 'bdmStats', userId);
-  }, [db, userId]);
-  const { data: stats, isLoading: isStatsLoading } = useDoc(statsDocRef);
-
-  const twtwDocRef = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return doc(db, 'twiwSubmissions', `${userId}_${currentWeek}`);
-  }, [db, userId, currentWeek]);
-  const { data: twtwData } = useDoc(twtwDocRef);
-  const twtwStatus = twtwData?.status || 'NOT_STARTED';
-
-  const nextWeekKey = getNextWeekKey(currentWeek);
-  const commitmentsDocRef = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return doc(db, 'weeklyCommitments', `${userId}_${nextWeekKey}`);
-  }, [db, userId, nextWeekKey]);
-  const { data: commitmentsData } = useDoc(commitmentsDocRef);
-  const fridayStatus = commitmentsData?.status || 'NOT_STARTED';
-
-  const settingsDocRef = useMemoFirebase(() => {
-    if (!db || !authUser) return null;
-    return doc(db, 'appSettings', 'global');
-  }, [db, authUser]);
-  const { data: globalSettings } = useDoc(settingsDocRef);
-  const rawLayout = useMemo(() => {
-    const savedLayout = (globalSettings?.dashboardLayout || DEFAULT_DASHBOARD_LAYOUT) as DashboardWidgetConfig[];
-    const savedIds = new Set(savedLayout.map(w => w.id));
-    const missingWidgets = DEFAULT_DASHBOARD_LAYOUT.filter(w => !savedIds.has(w.id));
-    return [...savedLayout, ...missingWidgets];
-  }, [globalSettings]);
+  const { layout, isLoading: isLayoutLoading } = useDashboardLayout('everyone');
 
   // Report telemetry to Developer Diagnostics bus
   useReportDiagnostic(() => ({
@@ -112,18 +43,14 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     reportedAt: new Date(),
     collections: [
       { name: `bdmStats/${userId}`, count: stats ? 1 : 0, status: isStatsLoading ? 'loading' : (stats ? 'ready' : 'empty') },
-      { name: `twiwSubmissions/${userId}_${currentWeek}`, count: twtwData ? 1 : 0, status: twtwData ? 'ready' : 'empty' },
-      { name: `weeklyCommitments/${userId}_${nextWeekKey}`, count: commitmentsData ? 1 : 0, status: commitmentsData ? 'ready' : 'empty' },
-      { name: 'appSettings/global', count: globalSettings ? 1 : 0, status: globalSettings ? 'ready' : 'empty' }
+      { name: 'appSettings/global', count: layout.length, status: isLayoutLoading ? 'loading' : 'ready' },
     ],
     customMetrics: {
       'Active User ID': userId || 'None',
       'User Name': profile?.name || 'Unknown',
       'User Role': profile?.role || 'BDM',
       'Sales Week': currentWeek,
-      'Next Week Key': nextWeekKey,
-      'TWTW Status': twtwStatus,
-      'Friday FW Status': fridayStatus,
+      'Visible Widgets': layout.filter(w => w.visible).map(w => w.id).join(', '),
       'Target Assigned ($)': stats?.target ? `$${Number(stats.target).toLocaleString()}` : 'No Target Set',
     },
     issues: [
@@ -133,657 +60,34 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         title: 'Missing BDM Revenue Target',
         detail: `User ${profile?.name || userId} has no revenue target set in bdmStats.`
       }] : []),
-      ...(twtwStatus === 'NOT_STARTED' ? [{
-        severity: 'info' as const,
-        category: 'sync' as const,
-        title: 'TWTW Not Submitted',
-        detail: `User has not submitted TWTW report for week ${currentWeek}.`
-      }] : [])
     ]
-  }), [userId, profile, stats, isStatsLoading, twtwData, commitmentsData, globalSettings, currentWeek, nextWeekKey, twtwStatus, fridayStatus]);
-  
-  const layout = useMemo(() => {
-    let result = [...rawLayout].filter(w => w.id !== 'voice-logger');
-    
-    const twiwIdx = result.findIndex(w => w.id === 'twiw');
-    const fridayIdx = result.findIndex(w => w.id === 'friday-fw');
-    const callPrepIdx = result.findIndex(w => w.id === 'call-prep');
-    
-    let twiwWidget: DashboardWidgetConfig = { id: 'twiw', name: 'The Week That Was (TWTW)', width: 3, visible: true };
-    let fridayWidget: DashboardWidgetConfig = { id: 'friday-fw', name: 'Friday FW', width: 3, visible: true };
-    let callPrepWidget: DashboardWidgetConfig = { id: 'call-prep', name: 'Call Prep / Call Planning', width: 3, visible: false };
-    
-    // Extract widgets in reverse index order to avoid shifting issues
-    const indices = [
-      { id: 'twiw', idx: twiwIdx },
-      { id: 'friday-fw', idx: fridayIdx },
-      { id: 'call-prep', idx: callPrepIdx }
-    ].sort((a, b) => b.idx - a.idx);
-    
-    indices.forEach(item => {
-      if (item.idx !== -1) {
-        const extracted = result.splice(item.idx, 1)[0];
-        if (item.id === 'twiw') twiwWidget = extracted;
-        else if (item.id === 'friday-fw') fridayWidget = extracted;
-        else if (item.id === 'call-prep') callPrepWidget = extracted;
-      }
-    });
+  }), [userId, profile, stats, isStatsLoading, layout, isLayoutLoading, currentWeek]);
 
-    twiwWidget.name = 'Thursday TWTW';
-    // fridayWidget name is already Friday FW
+  const context = useMemo(() => ({
+    userId: userId || '',
+    userName: profile?.name || 'BDM',
+    role: profile?.role || 'BDM',
+    territory: profile?.territory,
+    audience: 'everyone' as const,
+  }), [userId, profile]);
 
-    if (profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER') {
-      twiwWidget.visible = true;
-      fridayWidget.visible = true;
-      result = result.filter(w => w.id !== 'monday-planning');
-    }
-
-    // Find the insertion point (minimum index of the original positions)
-    const originalIndices = [twiwIdx, fridayIdx, callPrepIdx].filter(idx => idx !== -1);
-    const insertIdx = originalIndices.length > 0 ? Math.min(...originalIndices) : result.length;
-    
-    // Insert them sequentially: twiw first, then friday-fw, then call-prep
-    result.splice(insertIdx, 0, twiwWidget, fridayWidget, callPrepWidget);
-    
-    // Force 'ambd-notes' to be placed under 'kpi-cards'
-    const ambdIdx = result.findIndex(w => w.id === 'ambd-notes');
-    if (ambdIdx !== -1) {
-      const [ambdWidget] = result.splice(ambdIdx, 1);
-      const kpiIdx = result.findIndex(w => w.id === 'kpi-cards');
-      if (kpiIdx !== -1) {
-        result.splice(kpiIdx + 1, 0, ambdWidget);
-      } else {
-        result.unshift(ambdWidget);
-      }
-    }
-    
-    return result;
-  }, [rawLayout, profile]);
-
-  const { pipelineReviews: allDeals } = usePipelineData();
-
-  // Load Fact Findings
-  const ffQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(collection(db, 'factFindingDocs'), where('userId', '==', userId));
-  }, [db, userId]);
-  const { data: factFindings } = useCollection(ffQuery);
-
-  // Load Call Plans
-  const cpQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(collection(db, 'callPlans'), where('userId', '==', userId));
-  }, [db, userId]);
-  const { data: callPlans } = useCollection(cpQuery);
-
-  // Load Whitespace Plans
-  const wpQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
-    return query(collection(db, 'whitespacePlans'), where('userId', '==', userId));
-  }, [db, userId]);
-  const { data: whitespacePlans } = useCollection(wpQuery);
-
-  const recommendations = useMemo(() => {
-    const list: any[] = [];
-    const myDeals = allDeals?.filter(d => d.userId === userId && d.isReviewSelected) || [];
-    
-    myDeals.forEach(deal => {
-      const dealNameUpper = (deal.pipeline || '').toUpperCase();
-      const oppNameUpper = (deal.opportunityName || '').toUpperCase();
-      
-      const hasFF = factFindings?.some(ff => {
-        const ffName = (ff.companyName || '').toUpperCase();
-        return ffName && (ffName === dealNameUpper || ffName === oppNameUpper);
-      });
-      
-      const hasCP = callPlans?.some(cp => {
-        const cpName = (cp.accountName || '').toUpperCase();
-        return cpName && (cpName === dealNameUpper || cpName === oppNameUpper);
-      });
-
-      const hasWP = whitespacePlans?.some(wp => {
-        const wpName = (wp.accountName || '').toUpperCase();
-        return wpName && (wpName === dealNameUpper || wpName === oppNameUpper);
-      });
-
-      // Check 1: Fact Finding exists but no Call Plan
-      if (hasFF && !hasCP) {
-        list.push({
-          id: `ff-no-cp-${deal.id}`,
-          type: 'ACTION',
-          title: `Prepare Call Plan: ${deal.pipeline}`,
-          description: `Discovery data exists in Fact Finding. Prepare a professional SPIN call plan to drive commitment.`,
-          actionLabel: 'Plan Call',
-          actionView: 'CALL_PLANNING',
-          actionParams: { type: 'top8', data: deal }
-        });
-      }
-
-      // Check 2: Stalled in stage > 30 days
-      const daysInStage = Number(deal.daysInStage) || 0;
-      if (daysInStage > 30) {
-        list.push({
-          id: `stalled-${deal.id}`,
-          type: 'WARNING',
-          title: `Stalled Deal Alert: ${deal.pipeline}`,
-          description: `Opportunity has been in '${deal.stage}' stage for ${daysInStage} days. Re-assess barriers or schedule a coaching sync.`,
-          actionLabel: 'Log Activity',
-          actionView: 'overview'
-        });
-      }
-
-      // Check 3: No Whitespace diagnostic
-      if (!hasWP && deal.isBareAccount) {
-        list.push({
-          id: `no-wp-${deal.id}`,
-          type: 'ACTION',
-          title: `Run Whitespace Diagnostic: ${deal.pipeline}`,
-          description: `Archived customer node lacks service share mapping. Complete a Whitespace diagnostic to target expansion.`,
-          actionLabel: 'Run Whitespace',
-          actionView: 'WHITE_SPACE'
-        });
-      }
-    });
-
-    if (list.length === 0) {
-      list.push({
-        id: 'default-1',
-        type: 'STRENGTH',
-        title: 'Strategy Pipeline Aligned',
-        description: 'All active review accounts have call preparations and whitespace diagnostics current. Great execution!',
-      });
-    }
-
-    return list.slice(0, 3);
-  }, [allDeals, userId, factFindings, callPlans, whitespacePlans]);
-
-  const pipelineTotal = useMemo(() => {
-    if (!allDeals) return 0;
-    return allDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
-  }, [allDeals]);
-
-  const momentumCounts = useMemo(() => {
-    if (!allDeals) return { HOT: 0, MOVING: 0, STALLING: 0, DEAD: 0 };
-    const counts = { HOT: 0, MOVING: 0, STALLING: 0, DEAD: 0 };
-    allDeals.forEach(d => {
-      const m = computeMomentum({
-        daysInStage: d.daysInStage || 0,
-        rolloverCount: d.rolloverCount || 0,
-        barrierText: d.barriers || '',
-        lastBarrierText: d.lastBarrierText || ''
-      });
-      counts[m.score]++;
-    });
-    return counts;
-  }, [allDeals]);
-
-  const weightedForecast = useMemo(() => {
-    const stageWeights: Record<string, number> = {
-      'Discovery': 0.1,
-      'Proposal': 0.3,
-      'Negotiation': 0.6,
-      'Verbal': 0.85,
-      'Portfolio': 0.5,
-    };
-    return allDeals?.reduce((sum, deal) => {
-      const weight = (deal.stage ? stageWeights[deal.stage] : undefined) ?? 0.2;
-      return sum + ((Number(deal.value) || 0) * weight);
-    }, 0) ?? 0;
-  }, [allDeals]);
-
-  const crmSummary = useCRMSummary(userId, false, allDeals || []);
-
-  const handleExportPdf = () => {
-    if (!profile) return;
-    setIsExporting(true);
-    try {
-      const pdfDoc = new jsPDF();
-
-      // --- Header ---
-      pdfDoc.setFontSize(20);
-      pdfDoc.setFont("helvetica", "bold");
-      pdfDoc.text("WEEKLY PERFORMANCE PACK", 20, 20);
-      pdfDoc.setFontSize(10);
-      pdfDoc.setFont("helvetica", "normal");
-      pdfDoc.text(`${profile.name}  |  ${profile.territory?.replace(/_/g, ' ')}  |  Week ${currentWeek.split('-')[1]}`, 20, 28);
-      pdfDoc.setDrawColor(30, 58, 138);
-      pdfDoc.setLineWidth(0.5);
-      pdfDoc.line(20, 32, 190, 32);
-
-      // --- KPIs ---
-      pdfDoc.setFont("helvetica", "bold");
-      pdfDoc.setFontSize(9);
-      pdfDoc.text("KEY PERFORMANCE INDICATORS", 20, 40);
-      pdfDoc.setFont("helvetica", "normal");
-      pdfDoc.text(`Revenue YTD:`, 20, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(crmSummary.myStats?.custYTDRevenueThisFY || 0)}`, 60, 48);
-      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Target:`, 100, 48); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(stats?.target || 0)}`, 120, 48);
-      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Weighted Forecast:`, 20, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(weightedForecast)}`, 70, 55);
-      pdfDoc.setFont("helvetica", "normal"); pdfDoc.text(`Pipeline Total:`, 100, 55); pdfDoc.setFont("helvetica", "bold"); pdfDoc.text(`${formatEAV(pipelineTotal)}`, 140, 55);
-
-      // --- Momentum ---
-      pdfDoc.setFont("helvetica", "bold");
-      pdfDoc.text("MOMENTUM BREAKDOWN", 20, 65);
-      pdfDoc.setFont("helvetica", "normal");
-      pdfDoc.text(`HOT: ${momentumCounts.HOT}   MOVING: ${momentumCounts.MOVING}   STALLING: ${momentumCounts.STALLING}   DEAD: ${momentumCounts.DEAD}`, 20, 72);
-      pdfDoc.line(20, 76, 190, 76);
-
-      // --- Pipeline Table ---
-      pdfDoc.setFont("helvetica", "bold");
-      pdfDoc.text("PIPELINE LEDGER", 20, 83);
-
-      let y = 91;
-      pdfDoc.setFontSize(8);
-      pdfDoc.setFont("helvetica", "bold");
-      pdfDoc.text("ACCOUNT / OPPORTUNITY", 20, y);
-      pdfDoc.text("VALUE", 115, y);
-      pdfDoc.text("STAGE", 138, y);
-      pdfDoc.text("MOMENTUM", 168, y);
-      y += 3;
-      pdfDoc.line(20, y, 190, y);
-      y += 5;
-
-      pdfDoc.setFont("helvetica", "normal");
-      const sortedDeals = [...(allDeals || [])].sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
-      sortedDeals.forEach(deal => {
-        if (y > 275) { pdfDoc.addPage(); y = 20; }
-        const m = computeMomentum({
-          daysInStage: deal.daysInStage || 0,
-          rolloverCount: deal.rolloverCount || 0,
-          barrierText: deal.barriers || '',
-          lastBarrierText: deal.lastBarrierText || ''
-        });
-        pdfDoc.text((deal.pipeline || 'Unknown').substring(0, 38), 20, y);
-        pdfDoc.text(`$${((Number(deal.value) || 0) / 1000).toFixed(0)}K`, 115, y);
-        pdfDoc.text((deal.stage || '').substring(0, 12), 138, y);
-        pdfDoc.text(m.score, 168, y);
-        y += 7;
-      });
-
-      pdfDoc.save(`${profile.name.replace(/\s+/g, '_')}_Wk${currentWeek.split('-')[1]}_Performance_Pack.pdf`);
-      toast({ title: "Weekly Pack Exported" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Export Failed" });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const renderWidget = (id: string) => {
-    switch (id) {
-      case 'kpi-cards':
-        return (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
-            <KPICard title="Rev YTD" value={`${formatEAV(crmSummary.myStats?.custYTDRevenueThisFY || 0)}`} subtitle={`Tgt: ${formatEAV(stats?.target || 0)}`} icon={<DollarSign className="w-4 h-4" />} info="Annual strategic revenue achievement." />
-            <KPICard title="Forecast" value={`${formatEAV(weightedForecast)}`} subtitle="Weighted" icon={<TrendingUp className="w-4 h-4 text-success" />} info="Calculated based on stage probability × value." />
-            <KPICard title="Strategic Yield" value={`${formatEAV((isAM ? (crmSummary.myStats?.custYTDRevenueThisFY || 0) : pipelineTotal) / (stats?.activityScore || 1))}`} subtitle="Val/Activity" icon={<Gauge className="w-4 h-4" />} info="The 'Professional Multiplier': Revenue generated per unit of activity." />
-            <KPICard 
-              title="Velocity Pulse" 
-              value={`${momentumCounts.HOT}`} 
-              subtitle="Hot Deals"
-              status={momentumCounts.STALLING > 3 ? 'AT_RISK' : 'ON_TRACK'} 
-              icon={<Activity className="w-4 h-4 text-accent" />} 
-              info="Live momentum tracking. Flagging deals based on stage duration." 
-            />
-          </div>
-        );
-      case 'crm-summary':
-        return <CRMSummaryPanel summary={crmSummary} showAllUsers={false} currentWeek={currentWeek} />;
-      case 'smart-goals':
-        return <SmartGoalsView userId={userId || ''} />;
-      case 'next-best-actions':
-        return (
-          <Card className="border-none shadow-xl bg-primary text-white overflow-hidden relative h-full">
-             <div className="absolute top-0 right-0 p-6 opacity-10"><Sparkles className="w-24 h-24 text-accent" /></div>
-             <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-semibold flex items-center gap-2 text-accent">
-                   <Sparkles className="w-3.5 h-3.5" /> Next Best Actions
-                </CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-3">
-                {recommendations.map((rec) => {
-                   let typeColor = "bg-success-fill/20 text-success border-success/30";
-                   if (rec.type === 'WARNING') {
-                      typeColor = "bg-destructive/20 text-destructive border-destructive/30";
-                   } else if (rec.type === 'ACTION') {
-                      typeColor = "bg-warning/20 text-warning border-warning/30";
-                   }
-                   return (
-                      <div key={rec.id} className="p-3 bg-card/5 rounded-xl border border-white/10 flex flex-col gap-2 hover:bg-card/10 transition-all">
-                         <div className="flex items-center justify-between gap-2">
-                            <span className={cn("text-xs font-semibold px-1.5 py-0.5 rounded border", typeColor)}>
-                               {rec.type}
-                            </span>
-                            {rec.actionLabel && (
-                               <button
-                                  onClick={() => {
-                                     if (rec.actionView === 'CALL_PLANNING') {
-                                        window.dispatchEvent(new CustomEvent('switch-view', {
-                                           detail: { view: 'CALL_PLANNING', params: rec.actionParams }
-                                        }));
-                                     } else if (rec.actionView === 'WHITE_SPACE') {
-                                        window.dispatchEvent(new CustomEvent('switch-view', {
-                                           detail: { view: 'WHITE_SPACE' }
-                                        }));
-                                     } else if (rec.actionView) {
-                                        const widgetMap: Record<string, string> = {
-                                           'overview': 'kpi-cards',
-                                           'monday': 'monday-planning',
-                                           'accounts': 'customer-review',
-                                           'pipeline': 'pipeline-review',
-                                           'submission': 'friday-fw',
-                                           'prep': 'call-prep',
-                                           'reset': 'success-plan'
-                                        };
-                                        const targetWidgetId = widgetMap[rec.actionView];
-                                        if (targetWidgetId) {
-                                           setCollapsedWidgets(prev => ({ ...prev, [targetWidgetId]: false }));
-                                           setTimeout(() => {
-                                              const element = document.getElementById(`widget-${targetWidgetId}`);
-                                              if (element) {
-                                                 const yOffset = -160;
-                                                 const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                                                 window.scrollTo({ top: y, behavior: 'smooth' });
-                                              }
-                                           }, 100);
-                                        }
-                                     }
-                                  }}
-                                  className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
-                               >
-                                  {rec.actionLabel} <ArrowRight className="w-2.5 h-2.5" />
-                               </button>
-                            )}
-                         </div>
-                         <p className="text-xs font-semibold text-white leading-tight">{rec.title}</p>
-                         <p className="text-xs font-medium text-muted-foreground/60 leading-snug">{rec.description}</p>
-                      </div>
-                   );
-                })}
-             </CardContent>
-          </Card>
-        );
-      case 'strategic-nudge':
-        return (
-          <Card className="border-none shadow-xl bg-card overflow-hidden relative h-full border-2 border-accent/20">
-             <div className="absolute top-0 right-0 p-6 opacity-5"><CalendarClock className="w-24 h-24 text-accent" /></div>
-             <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold flex items-center gap-2 text-primary"><CalendarClock className="w-3.5 h-3.5 text-accent" /> Strategic Nudge</CardTitle></CardHeader>
-             <CardContent className="space-y-4">
-                <div>
-                   <p className="text-sm font-semibold text-primary">30-60-90 Success Plan</p>
-                   <p className="text-xs text-muted-foreground font-bold mt-1 leading-tight">Your individual strategic roadmap requires completion for quarterly governance.</p>
-                </div>
-                <Button 
-                  onClick={() => {
-                    setCollapsedWidgets(prev => ({ ...prev, 'success-plan': false }));
-                    setTimeout(() => {
-                      const element = document.getElementById('widget-success-plan');
-                      if (element) {
-                        const yOffset = -160;
-                        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                        window.scrollTo({ top: y, behavior: 'smooth' });
-                      }
-                    }, 100);
-                  }}
-                  className="w-full bg-accent hover:bg-accent/90 text-white font-semibold h-9 text-xs rounded-xl shadow-lg shadow-accent/20 gap-2"
-                >
-                   Update Success Plan <ArrowRight className="w-3 h-3" />
-                </Button>
-             </CardContent>
-          </Card>
-        );
-      case 'behavioral-pulse':
-        return <BehaviorAlerts stats={stats} />;
-      case 'voice-logger':
-        return <VoiceActionLogger userId={userId || ''} userName={profile?.name || 'BDM'} />;
-      case 'habit-tracker':
-        return <ActivityLogger userId={userId || ''} />;
-      case 'historical-activity':
-        return <HistoricalActivity userId={userId || ''} />;
-      case 'territory-playbook':
-        return <TerritoryPlaybook territory={profile?.territory || 'FLEX'} zones={profile?.zones || []} />;
-      case 'monday-planning':
-        return <WeeklyGoals userId={userId || ''} />;
-      case 'customer-review':
-        return <PipelineReviewTable userId={userId || ''} filterType="accounts" />;
-      case 'pipeline-review':
-        return (
-          <div className="space-y-6">
-            <AIDealWhisperer deals={allDeals || []} />
-            <PipelineReviewTable userId={userId || ''} filterType="opportunities" />
-          </div>
-        );
-      case 'friday-fw':
-        return (
-          <FridayPerformanceReview 
-            userId={userId || ''}
-            userName={profile?.name || 'BDM'}
-            userRole={profile?.role || 'BDM'}
-            userState={profile?.state || 'WA'}
-            selectedWeek={currentWeek}
-          />
-        );
-      case 'twiw':
-        return <TWIWView userId={userId || ''} isLeader={false} />;
-      case 'call-prep':
-        return <CallPlanning userId={userId || ''} />;
-      case 'success-plan':
-        if (authProfile?.role === 'SUPER_ADMIN') return null;
-        return <OnboardingPlan userId={userId || 'BDM'} userName={profile?.name || 'BDM'} planType={profile?.planType || 'BDM_NORTH_90'} />;
-      case 'ambd-notes':
-        return <AMBDNotesWidget userId={userId || ''} />;
-      default:
-        return null;
-    }
-  };
-
-  if (isStatsLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Compass className="animate-spin" /></div>;
+  if (!profile) return <ViewSkeleton />;
+  const isAM = profile.role === 'ACCOUNT_MANAGER';
+  if (isStatsLoading || isLayoutLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Compass className="animate-spin" /></div>;
 
   return (
     <div className="w-full p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-xl md:text-3xl font-extrabold font-headline text-primary tracking-tighter">{isAM ? 'Portfolio Intelligence' : 'Professional Brief'}</h1>
+          <h1 className="text-xl md:text-3xl font-black font-headline text-primary tracking-tighter uppercase">{isAM ? 'Portfolio Intelligence' : 'Professional Brief'}</h1>
           <div className="flex items-center gap-2">
-            <Badge className="bg-accent text-white border-none font-semibold text-xs">{profile?.territory?.replace('_', ' ')}</Badge>
-            <p className="text-muted-foreground text-xs font-bold tracking-tight">{profile?.name}</p>
+            <Badge className="bg-accent text-white border-none font-black text-[9px] uppercase tracking-widest">{profile.territory?.replace('_', ' ')}</Badge>
+            <p className="text-muted-foreground text-xs font-bold uppercase tracking-tight">{profile.name}</p>
           </div>
         </div>
       </header>
 
-      {/* 📍 QUICK NAVIGATION - 5 Core Pages */}
-      <div className="bg-primary text-white rounded-3xl p-6 shadow-xl border border-primary/80 space-y-4">
-        <p className="text-xs font-semibold text-muted-foreground">📍 Quick Navigation - 5 Core Pages</p>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
-          >
-            <Gauge className="w-5 h-5 text-accent group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold">Dashboard</span>
-            <Badge className="bg-accent/20 text-info border-none font-bold text-xs">Active</Badge>
-          </button>
-          
-          <button
-            onClick={() => {
-              setCollapsedWidgets(prev => ({ ...prev, 'twiw': false }));
-              setTimeout(() => {
-                const element = document.getElementById('widget-twiw');
-                if (element) {
-                  const yOffset = -160;
-                  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                  window.scrollTo({ top: y, behavior: 'smooth' });
-                }
-              }, 100);
-            }}
-            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
-          >
-            <FileDown className="w-5 h-5 text-destructive group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold">TWTW</span>
-            <Badge className={cn("border-none font-bold text-xs", 
-              twtwStatus === 'SUBMITTED' ? 'bg-success-fill/20 text-success' : 'bg-destructive/20 text-destructive'
-            )}>
-              {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due: Thursday Morning'}
-            </Badge>
-          </button>
-
-          <button
-            onClick={() => {
-              setCollapsedWidgets(prev => ({ ...prev, 'friday-fw': false }));
-              setTimeout(() => {
-                const element = document.getElementById('widget-friday-fw');
-                if (element) {
-                  const yOffset = -160;
-                  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                  window.scrollTo({ top: y, behavior: 'smooth' });
-                }
-              }, 100);
-            }}
-            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
-          >
-            <ListChecks className="w-5 h-5 text-warning group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold">Friday FW</span>
-            <Badge className={cn("border-none font-bold text-xs", 
-              fridayStatus === 'SUBMITTED' ? 'bg-success-fill/20 text-success' : 
-              fridayStatus === 'DRAFT' ? 'bg-warning/20 text-warning' : 'bg-destructive/20 text-destructive'
-            )}>
-              {fridayStatus === 'SUBMITTED' ? 'Done' : fridayStatus === 'DRAFT' ? 'Draft' : 'Due: Friday Morning'}
-            </Badge>
-          </button>
-
-          <button
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'WHITE_SPACE' } }));
-            }}
-            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
-          >
-            <Compass className="w-5 h-5 text-success group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold">White Space</span>
-            <Badge className="bg-success-fill/20 text-success border-none font-bold text-xs">Gaps Map</Badge>
-          </button>
-
-          <button
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'CALL_PLANNING' } }));
-            }}
-            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
-          >
-            <PhoneCall className="w-5 h-5 text-accent group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold">Call Plan</span>
-            <Badge className="bg-accent/20 text-info border-none font-bold text-xs">SPIN prep</Badge>
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        {/* Dynamic Sticky Anchor Navigation Bar */}
-        <div className="bg-card border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20 max-w-full">
-          {layout.filter(w => w.visible).map(widget => {
-            // Map widget IDs to requested shortened names
-            const shortNames: Record<string, string> = {
-              'kpi-cards': 'Summary',
-              'voice-logger': 'Logger',
-              'crm-summary': 'Summary',
-              'monday-planning': 'Monday Planning',
-              'friday-fw': 'Friday FW',
-              'twiw': 'Thursday TWTW',
-              'call-prep': 'Planning',
-              'smart-goals': 'Goals',
-              'success-plan': 'Plan Details',
-              // Fallbacks for other widgets
-              'behavioral-pulse': 'Pulse',
-              'next-best-actions': 'Next Actions',
-              'strategic-nudge': 'Nudge',
-              'territory-playbook': 'Playbook',
-              'habit-tracker': 'Habits',
-              'historical-activity': 'History',
-              'customer-review': 'Customers',
-              'pipeline-review': 'Opportunities'
-            };
-
-            const displayName = shortNames[widget.id] || widget.name.split(' (')[0].split(' Panel')[0].split(' Tracker')[0].split(' Cards')[0].split(' Table')[0].split(' Recommendation')[0];
-
-            return (
-              <button
-                key={widget.id}
-                onClick={() => {
-                  // Automatically expand target widget if collapsed
-                  setCollapsedWidgets(prev => ({ ...prev, [widget.id]: false }));
-                  setTimeout(() => {
-                    const element = document.getElementById(`widget-${widget.id}`);
-                    if (element) {
-                      const yOffset = -160;
-                      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                      window.scrollTo({ top: y, behavior: 'smooth' });
-                    }
-                  }, 100);
-                }}
-                className="flex-1 text-center rounded-lg px-4 py-2.5 font-semibold text-xs text-foreground/75 hover:bg-secondary/60 hover:text-primary transition-all whitespace-nowrap"
-              >
-                {displayName}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Dynamic Grid Layout */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {layout.filter(w => w.visible && !(w.id === 'success-plan' && authProfile?.role === 'SUPER_ADMIN')).map(widget => {
-            const isCollapsed = collapsedWidgets[widget.id] ?? false;
-            const spanClass = getWidgetSpanClass(widget.width as 1 | 2 | 3);
-            return (
-              <div 
-                key={widget.id} 
-                id={`widget-${widget.id}`}
-                className={cn(
-                  spanClass,
-                  "flex flex-col gap-4 border border-border bg-card rounded-3xl p-4 md:p-5 shadow-sm scroll-mt-40 transition-all duration-300 h-fit min-w-0 overflow-hidden"
-                )}
-              >
-                {/* Header bar with collapse toggle */}
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-primary" />
-                    <h3 className="text-xs font-semibold text-foreground">
-                      {widget.name.split(' (')[0].split(' Panel')[0].split(' Tracker')[0].split(' Cards')[0].split(' Table')[0].split(' Recommendation')[0]}
-                    </h3>
-                  </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setCollapsedWidgets(prev => ({
-                        ...prev,
-                        [widget.id]: !prev[widget.id]
-                      }));
-                    }}
-                    className="h-8 px-3 text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-secondary/60 flex items-center gap-1.5 rounded-xl"
-                  >
-                    {isCollapsed ? (
-                      <>
-                        <span>Show Details</span>
-                        <ChevronDown className="w-3.5 h-3.5 text-accent" />
-                      </>
-                    ) : (
-                      <>
-                        <span>Hide Details</span>
-                        <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {/* Body block */}
-                {!isCollapsed && (
-                  <div className="pt-2 animate-in fade-in duration-300">
-                    {renderWidget(widget.id)}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <DashboardWidgetGrid layout={layout} context={context} anchors collapsible />
     </div>
   );
 }
