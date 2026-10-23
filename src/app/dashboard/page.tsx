@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import { AuthGuard } from '@/components/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
 import dynamic from 'next/dynamic';
@@ -72,7 +73,8 @@ import { format } from 'date-fns';
 import { getCurrentWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 import { NavigationProvider, useNavigation } from '@/contexts/navigation-context';
-import { getNavigationForUser, DashboardView } from '@/lib/navigation';
+import { getNavigationForUser, findGroupIdForView, DEFAULT_COLLAPSED_GROUPS, DashboardView } from '@/lib/navigation';
+import { CommandPalette, CommandPaletteTrigger, useCommandPalette } from '@/components/dashboard/command-palette';
 import { MobileStickyMenu } from '@/components/dashboard/mobile-sticky-menu';
 
 function DashboardContent() {
@@ -89,13 +91,8 @@ function DashboardContent() {
   const { data: allUsers } = useCollection(usersQuery);
   const simulatedUserProfile = allUsers?.find(u => u.id === simulationUid);
   
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
-    field: true,
-    strategy: true,
-    reporting: true,
-    admin_leadership: true,
-    admin_system: true,
-  });
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({ ...DEFAULT_COLLAPSED_GROUPS });
+  const palette = useCommandPalette();
 
   const toggleGroup = (groupId: string) => {
     setCollapsedGroups(prev => ({
@@ -129,6 +126,16 @@ function DashboardContent() {
   const activeView = profile?.role === 'GUEST' ? 'TWIW' : currentView;
   // Single source of truth for role-based menu visibility (sidebar + mobile sticky menu).
   const navGroups = getNavigationForUser(profile?.role as any, isLeader);
+
+  // Always open the sidebar group that holds the page being viewed.
+  useEffect(() => {
+    const gid = findGroupIdForView(activeView as DashboardView);
+    if (gid) setCollapsedGroups(prev => (prev[gid] ? { ...prev, [gid]: false } : prev));
+  }, [activeView]);
+
+  const activeNav = navGroups.flatMap(g => g.items.map(i => ({ ...i, groupLabel: g.label }))).find(i => i.view === activeView);
+  const pageTitle = activeNav?.label ?? 'Dashboard';
+  const pageGroup = activeNav?.groupLabel;
 
   const renderContent = () => {
     // DEFENSIVE: Block rendering if activeUserId is not yet resolved
@@ -177,10 +184,18 @@ function DashboardContent() {
   return (
     <AuthGuard>
       <SidebarProvider>
-        <Sidebar collapsible="icon">
-          <SidebarHeader className="p-4"><button type="button" onClick={goHome} aria-label="Home" title="Home" className="flex items-center gap-2 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Compass className="w-6 h-6 text-primary shrink-0" /><span className="font-bold text-lg text-primary group-data-[collapsible=icon]:hidden">BDM Compass</span></button></SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
+        <Sidebar collapsible="icon" className="border-sidebar-border">
+          <SidebarHeader className="px-4 py-4 border-b border-sidebar-border">
+            <button type="button" onClick={goHome} aria-label="Home" title="Home" className="flex items-center gap-3 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"><Compass className="w-5 h-5" /></span>
+              <span className="flex flex-col items-start leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="font-semibold text-base text-white tracking-tight">BDM Compass</span>
+                <span className="text-xs text-sidebar-muted">Sales performance</span>
+              </span>
+            </button>
+          </SidebarHeader>
+          <SidebarContent className="py-2">
+            <SidebarGroup className="py-0">
               <SidebarGroupContent>
                 <SidebarMenu className="px-2 space-y-1">
                   {simulationUid && isLeader && (
@@ -190,61 +205,64 @@ function DashboardContent() {
                           setSimulationUid(null);
                           navigateTo('TEAM'); // Return to Governance/Users page
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all font-black text-xs uppercase tracking-wider border border-amber-500/20 mb-2 group"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-warning/15 text-gold hover:bg-warning/25 transition-colors font-semibold text-sm border border-gold/30 mb-2 group"
                       >
                         <XCircle className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
-                        <span>Return to Governance</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Return to Governance</span>
                       </button>
                     </SidebarMenuItem>
                   )}
                   {navGroups.map((group, groupIdx) => {
                     const isCollapsed = collapsedGroups[group.id] || false;
                     return (
-                    <div key={group.id} className={groupIdx > 0 ? "mt-4" : ""}>
-                      {groupIdx > 0 && (
-                        <SidebarGroupLabel 
-                          className="px-4 text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 cursor-pointer flex items-center gap-1 hover:text-slate-600 transition-colors"
-                          onClick={() => toggleGroup(group.id)}
-                        >
-                          {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                          {group.label}
-                        </SidebarGroupLabel>
-                      )}
-                      {!isCollapsed && group.items.map(nav => (
-                        <SidebarMenuItem key={nav.view}>
-                          <SidebarMenuButton isActive={activeView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
-                            <nav.icon className="w-4 h-4" />
-                            <span>{nav.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                    <div key={group.id} className={cn(groupIdx > 0 && "mt-3 group-data-[collapsible=icon]:mt-2 group-data-[collapsible=icon]:pt-2 group-data-[collapsible=icon]:border-t group-data-[collapsible=icon]:border-sidebar-border")}>
+                      <SidebarGroupLabel
+                        role="button"
+                        aria-expanded={!isCollapsed}
+                        className="px-3 text-xs font-semibold text-sidebar-muted tracking-wide mb-1 cursor-pointer flex items-center justify-between hover:text-white transition-colors"
+                        onClick={() => toggleGroup(group.id)}
+                      >
+                        <span>{group.label}</span>
+                        {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </SidebarGroupLabel>
+                      {/* In icon-collapse mode every group's icons stay visible regardless of the group's open state. */}
+                      <div className={cn("space-y-0.5", isCollapsed && "hidden group-data-[collapsible=icon]:block")}>
+                        {group.items.map(nav => (
+                          <SidebarMenuItem key={nav.view}>
+                            <SidebarMenuButton isActive={activeView === nav.view} onClick={() => navigateTo(nav.view)} tooltip={nav.label}>
+                              <nav.icon className="w-4 h-4" />
+                              <span>{nav.label}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </div>
                     </div>
                   )})}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="p-4 border-t">
+          <SidebarFooter className="p-3 border-t border-sidebar-border">
             <SidebarMenu>
               <SidebarMenuItem>
                 {typeof window !== 'undefined' && localStorage.getItem('forceMobile') === 'true' ? (
-                  <SidebarMenuButton 
-                    onClick={() => { 
-                      localStorage.removeItem('forceMobile'); 
-                      window.dispatchEvent(new Event('force-mobile-change')); 
-                    }} 
-                    className="text-indigo-600 font-bold"
+                  <SidebarMenuButton
+                    onClick={() => {
+                      localStorage.removeItem('forceMobile');
+                      window.dispatchEvent(new Event('force-mobile-change'));
+                    }}
+                    tooltip="Desktop Mode"
                   >
                     <Monitor className="w-4 h-4" />
                     <span>Desktop Mode</span>
                   </SidebarMenuButton>
                 ) : (
-                  <SidebarMenuButton 
-                    onClick={() => { 
-                      localStorage.setItem('forceMobile', 'true'); 
-                      window.dispatchEvent(new Event('force-mobile-change')); 
-                    }} 
-                    className="text-indigo-600"
+                  <SidebarMenuButton
+                    onClick={() => {
+                      localStorage.setItem('forceMobile', 'true');
+                      window.dispatchEvent(new Event('force-mobile-change'));
+                    }}
+                    tooltip="Mobile Mode"
                   >
                     <Smartphone className="w-4 h-4" />
                     <span>Mobile Mode</span>
@@ -252,7 +270,7 @@ function DashboardContent() {
                 )}
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleSignOut} className="text-red-500">
+                <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out" className="text-red-300 hover:text-red-200">
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
                 </SidebarMenuButton>
@@ -260,14 +278,18 @@ function DashboardContent() {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="bg-[#F7F6F8]">
-          <header className="sticky top-0 z-30 flex items-center h-16 px-4 min-w-0 max-w-full bg-white border-b border-slate-200/50 shadow-sm shrink-0 gap-2 print:hidden">
-            <SidebarTrigger className="-ml-1" />
-            <button type="button" onClick={goHome} aria-label="Home" title="Home" className="flex items-center gap-2 nav:hidden pl-1 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-              <Compass className="w-5 h-5 text-indigo-600" />
-              <span className="font-black uppercase tracking-tight text-xs text-slate-900">BDM Compass</span>
+        <SidebarInset className="bg-background">
+          <header className="sticky top-0 z-30 flex items-center h-16 px-4 min-w-0 max-w-full bg-card border-b border-border shadow-card shrink-0 gap-3 print:hidden">
+            <SidebarTrigger className="-ml-1 text-muted-foreground" />
+            <button type="button" onClick={goHome} aria-label="Home" title="Home" className="flex items-center gap-2 nav:hidden cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Compass className="w-4 h-4" /></span>
+              <span className="font-semibold text-sm text-foreground">BDM Compass</span>
             </button>
-            
+            <div className="hidden nav:flex flex-col justify-center leading-tight min-w-0">
+              {pageGroup && <span className="text-xs font-medium text-muted-foreground">{pageGroup}</span>}
+              <h1 className="text-lg font-semibold text-foreground truncate">{pageTitle}</h1>
+            </div>
+
             {isLeader && (
               <div className="ml-2">
                 <CreateNoteDialog />
@@ -275,107 +297,72 @@ function DashboardContent() {
             )}
 
             {simulationUid && isLeader && (
-              <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-amber-800 text-xs font-bold animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
-                <span>Simulating: <strong className="font-black">{simulatedUserProfile?.name || simulationUid}</strong></span>
+              <div className="flex items-center gap-2 bg-warning-soft px-3 py-1 rounded-full border border-warning/30 text-warning text-sm font-medium">
+                <span className="w-2 h-2 rounded-full bg-warning inline-block animate-pulse" />
+                <span>Simulating: <strong className="font-semibold">{simulatedUserProfile?.name || simulationUid}</strong></span>
                 <button
                   onClick={() => {
                     setSimulationUid(null);
                     navigateTo('TEAM');
                   }}
-                  className="ml-2 underline font-black hover:text-amber-950 uppercase text-[10px] tracking-wider"
+                  className="ml-1 underline font-semibold hover:opacity-80 text-xs"
                 >
                   Exit
                 </button>
               </div>
             )}
 
-            {/* Top Menu for Admin, Leaders, Bdms, and AMs */}
-            {(profile?.role === 'LEADER' || profile?.role === 'GM' || profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER' || isLeader) && (
-              <nav className="hidden nav:flex items-center gap-1.5 ml-6 bg-slate-50/80 p-1 rounded-xl border border-slate-100/80">
-                <a
-                  href="https://studio--studio-7521332906-59af2.us-central1.hosted.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Just Easy</span>
-                </a>
-                <button
-                  onClick={() => navigateTo('MANAGE_TIME')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-200 ${
-                    activeView === 'MANAGE_TIME'
-                      ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
-                  }`}
-                >
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Manage Time</span>
-                </button>
-                <button
-                  onClick={() => navigateTo('FACT_FINDING')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-200 ${
-                    activeView === 'FACT_FINDING'
-                      ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
-                  }`}
-                >
-                  <FileSearch className="w-3.5 h-3.5" />
-                  <span>Fact Finding</span>
-                </button>
-                <button
-                  onClick={() => navigateTo('WHITE_SPACE')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-200 ${
-                    activeView === 'WHITE_SPACE'
-                      ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
-                  }`}
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span>White Space</span>
-                </button>
-              </nav>
-            )}
-
             <div className="flex-1" />
+            <CommandPaletteTrigger onClick={() => palette.setOpen(true)} />
+            {/* External tool link kept from the old top menu; page links now live in the sidebar and Cmd/Ctrl+K. */}
+            {(profile?.role === 'LEADER' || profile?.role === 'GM' || profile?.role === 'BDM' || profile?.role === 'ACCOUNT_MANAGER' || isLeader) && (
+              <a
+                href="https://studio--studio-7521332906-59af2.us-central1.hosted.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden nav:inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-accent hover:bg-info-soft transition-colors"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Just Easy</span>
+              </a>
+            )}
             <HeaderClock />
             <TimeReminderBell onOpenManageTime={() => navigateTo('MANAGE_TIME')} />
-            <div className="flex items-center gap-4 min-w-0">
+            <div className="flex items-center gap-3 min-w-0 pl-1">
               <div className="text-right hidden sm:block min-w-0">
-                <p className="text-xs font-black uppercase tracking-widest text-slate-900 truncate max-w-[40vw] nav:max-w-none">{profile?.name || user?.email}</p>
-                <p className="text-[10px] font-bold text-slate-400 capitalize">{profile?.role === 'GM' ? 'GM' : profile?.role?.replace('_', ' ').toLowerCase() || 'No Role'}</p>
+                <p className="text-sm font-semibold text-foreground truncate max-w-[40vw] nav:max-w-none">{profile?.name || user?.email}</p>
+                <p className="text-xs text-muted-foreground capitalize">{profile?.role === 'GM' ? 'GM' : profile?.role?.replace('_', ' ').toLowerCase() || 'No Role'}</p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs uppercase shrink-0">
+              <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm uppercase shrink-0 ring-2 ring-border">
                 {(profile?.name || user?.email || '?').charAt(0)}
               </div>
             </div>
           </header>
           <OverdueTaskStrip onRearrange={(taskId) => navigateTo('MANAGE_TIME', taskId ? { highlightTaskId: taskId } : undefined)} />
           {/* Session Context Bar */}
-          <div className="bg-slate-900 border-b border-slate-800 text-[10px] sm:text-xs font-semibold text-slate-300 py-2.5 px-4 sm:px-6 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2.5 min-w-0 max-w-full shadow-sm print:hidden">
+          <div className="bg-secondary/70 border-b border-border text-xs font-medium text-muted-foreground py-2 px-4 sm:px-6 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 min-w-0 max-w-full print:hidden">
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               {/* User Context */}
               <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span>BDM Context: <strong className="text-white">{simulationUid ? `${simulatedUserProfile?.name || simulationUid} (Simulating)` : `${profile?.name || user?.email || 'Guest'} (Me)`}</strong></span>
+                <Users className="w-3.5 h-3.5 text-info shrink-0" />
+                <span>BDM context: <strong className="font-semibold text-foreground">{simulationUid ? `${simulatedUserProfile?.name || simulationUid} (Simulating)` : `${profile?.name || user?.email || 'Guest'} (Me)`}</strong></span>
               </div>
-              
+
               {/* Divider */}
-              <span className="hidden sm:inline text-slate-700">|</span>
+              <span className="hidden sm:inline text-border">|</span>
 
               {/* Week Context */}
               <div className="flex items-center gap-1.5">
-                <CalendarCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Sales Week: <strong className="text-white">{getCurrentWeek()}</strong></span>
+                <CalendarCheck className="w-3.5 h-3.5 text-success shrink-0" />
+                <span>Sales week: <strong className="font-semibold text-foreground">{getCurrentWeek()}</strong></span>
               </div>
             </div>
 
             {/* Sync Context */}
             <div className="flex items-center gap-1.5 self-stretch sm:self-auto justify-between sm:justify-start">
               <div className="flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Last CRM Sync: <strong className="text-white">{settingsData?.lastCrmSync?.toDate ? format(settingsData.lastCrmSync.toDate(), 'MMM d, yyyy h:mm a') : 'Never'}</strong></span>
+                <Database className="w-3.5 h-3.5 text-warning shrink-0" />
+                <span>Last CRM sync: <strong className="font-semibold text-foreground">{settingsData?.lastCrmSync?.toDate ? format(settingsData.lastCrmSync.toDate(), 'MMM d, yyyy h:mm a') : 'Never'}</strong></span>
               </div>
             </div>
           </div>
@@ -388,6 +375,7 @@ function DashboardContent() {
           </main>
           <DeveloperDiagnostics />
         </SidebarInset>
+        <CommandPalette groups={navGroups} activeView={activeView as DashboardView} onNavigate={navigateTo} open={palette.open} setOpen={palette.setOpen} />
         <MobileStickyMenu
           groups={navGroups}
           activeView={activeView as DashboardView}
@@ -409,7 +397,7 @@ export default function DashboardPage() {
   // If loading
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F6F8]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );

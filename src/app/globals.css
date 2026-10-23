@@ -3,32 +3,133 @@
 @tailwind utilities;
 
 @layer base {
+  /* BDM Compass "Success" theme: navy base, orange call-to-action, green for wins.
+     Accent = interactive blue (used by text-accent / bg-accent across views).
+     Orange is exposed as `cta` and is for FILLS with white text only (contrast ~3:1 on white). */
   :root {
-    --background: 260 20% 97%;
-    --foreground: 260 20% 10%;
+    --background: 216 29% 97%;          /* #F4F6F9 */
+    --foreground: 216 50% 12%;          /* #0F1B2D ink */
     --card: 0 0% 100%;
-    --card-foreground: 260 20% 15%;
+    --card-foreground: 216 50% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 260 20% 15%;
-    --primary: 265 17% 26%;
-    --primary-foreground: 260 20% 98%;
-    --secondary: 260 20% 94%;
-    --secondary-foreground: 265 17% 26%;
-    --muted: 260 10% 92%;
-    --muted-foreground: 260 10% 40%;
-    --accent: 240 50% 60%;
+    --popover-foreground: 216 50% 12%;
+    --primary: 213 72% 16%;             /* #0B2545 navy */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 35% 94%;           /* #EAEFF5 */
+    --secondary-foreground: 213 72% 16%;
+    --muted: 213 35% 94%;
+    --muted-foreground: 213 17% 43%;    /* #5B6B7F */
+    --accent: 216 84% 52%;              /* #1F6FEB info blue */
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 260 15% 90%;
-    --input: 260 15% 90%;
-    --ring: 265 17% 26%;
+    --destructive: 0 61% 48%;           /* #C53030 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 212 25% 88%;              /* #D9E0E8 */
+    --input: 212 25% 88%;
+    --ring: 216 84% 52%;
     --radius: 0.75rem;
-    --chart-1: 265 17% 26%;
-    --chart-2: 240 50% 60%;
-    --chart-3: 260 20% 40%;
-    --chart-4: 240 40% 75%;
-    --chart-5: 265 30% 50%;
+
+    /* Semantic tokens */
+    --surface: 0 0% 100%;
+    --surface-2: 213 35% 94%;
+    --cta: 21 89% 54%;                  /* #F26B21 */
+    --cta-foreground: 0 0% 100%;
+    --cta-hover: 21 83% 46%;            /* #D95A14 */
+    --success: 160 75% 29%;             /* #12805C text */
+    --success-fill: 155 65% 38%;        /* #22A06B fills */
+    --success-foreground: 0 0% 100%;
+    --success-soft: 150 41% 93%;
+    --warning: 36 71% 42%;              /* #B7791F */
+    --warning-foreground: 0 0% 100%;
+    --warning-ink: 37 78% 31%;          /* #8A5A12 warning text on light surfaces (AA) */
+    --success-ink: 160 80% 24%;         /* #0C6B4C success text on light surfaces (AA) */
+    --warning-soft: 39 88% 94%;
+    --danger-soft: 0 81% 96%;
+    --info: 216 84% 52%;                /* #1F6FEB */
+    --info-foreground: 0 0% 100%;
+    --info-soft: 218 92% 95%;
+    --gold: 41 79% 52%;                 /* #E5A823 sparingly */
+    --gold-foreground: 216 50% 12%;
+
+    /* Charts: #0B2545 #0E9AA7 #F26B21 #22A06B #6366F1 #94A3B8 */
+    --chart-1: 213 72% 16%;
+    --chart-2: 185 85% 35%;
+    --chart-3: 21 89% 54%;
+    --chart-4: 155 65% 38%;
+    --chart-5: 239 84% 67%;
+    --chart-6: 215 20% 65%;
+
+    /* Sidebar (navy) - these were previously unmapped, which made the sidebar render as the page colour */
+    --sidebar-background: 213 72% 16%;  /* #0B2545 */
+    --sidebar-foreground: 214 47% 93%;  /* #E6EDF6 */
+    --sidebar-primary: 21 89% 54%;      /* orange active pip */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 66% 22%;      /* #13315C */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 58% 25%;      /* #1B3A66 */
+    --sidebar-ring: 21 89% 54%;
+    --sidebar-muted: 211 27% 70%;       /* #9FB3C8 group labels */
+  }
+
+  /* Dark theme tokens. No toggle is wired yet: hard-coded bg-white / slate-* classes in views
+     still need the colour sweep before dark mode can ship. */
+  .dark {
+    --background: 218 52% 8%;           /* #0A1220 */
+    --foreground: 214 47% 93%;          /* #E6EDF6 */
+    --card: 217 46% 12%;                /* #111C2E */
+    --card-foreground: 214 47% 93%;
+    --popover: 217 46% 12%;
+    --popover-foreground: 214 47% 93%;
+    --primary: 220 82% 65%;             /* #5B8DEF */
+    --primary-foreground: 218 52% 8%;
+    --secondary: 218 47% 17%;           /* #172640 */
+    --secondary-foreground: 214 47% 93%;
+    --muted: 218 47% 17%;
+    --muted-foreground: 214 22% 64%;    /* #8FA1B8 */
+    --accent: 220 82% 65%;
+    --accent-foreground: 218 52% 8%;
+    --destructive: 0 91% 71%;           /* #F87171 */
+    --destructive-foreground: 218 52% 8%;
+    --border: 217 36% 22%;              /* #24344D */
+    --input: 217 36% 22%;
+    --ring: 220 82% 65%;
+
+    --surface: 217 46% 12%;
+    --surface-2: 218 47% 17%;
+    --cta: 21 100% 65%;                 /* #FF8A4C */
+    --cta-foreground: 218 52% 8%;
+    --cta-hover: 21 100% 71%;
+    --success: 158 64% 52%;             /* #34D399 */
+    --success-fill: 158 64% 52%;
+    --success-foreground: 218 52% 8%;
+    --success-soft: 160 50% 14%;
+    --warning: 41 90% 66%;              /* #F6C65B */
+    --warning-foreground: 218 52% 8%;
+    --warning-ink: 41 90% 66%;
+    --success-ink: 158 64% 52%;
+    --warning-soft: 41 50% 16%;
+    --danger-soft: 0 45% 18%;
+    --info: 220 82% 65%;
+    --info-foreground: 218 52% 8%;
+    --info-soft: 220 50% 18%;
+    --gold: 41 90% 66%;
+    --gold-foreground: 218 52% 8%;
+
+    --chart-1: 220 82% 65%;
+    --chart-2: 185 70% 50%;
+    --chart-3: 21 100% 65%;
+    --chart-4: 158 64% 52%;
+    --chart-5: 239 84% 75%;
+    --chart-6: 215 20% 65%;
+
+    --sidebar-background: 218 52% 6%;
+    --sidebar-foreground: 214 47% 93%;
+    --sidebar-primary: 21 100% 65%;
+    --sidebar-primary-foreground: 218 52% 8%;
+    --sidebar-accent: 218 47% 17%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 36% 22%;
+    --sidebar-ring: 21 100% 65%;
+    --sidebar-muted: 214 22% 64%;
   }
 }
 
@@ -36,10 +137,31 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground;
     max-width: 100%;
     overflow-x: hidden;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.01em;
+  }
+  /* Numbers line up in tables and KPI tiles */
+  table, .tabular-nums, .kpi-number {
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  input:focus-visible, textarea:focus-visible, select:focus-visible,
+  button:focus-visible, [role="button"]:focus-visible, [role="tab"]:focus-visible {
+    outline: none;
   }
 }
 

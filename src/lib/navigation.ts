@@ -25,10 +25,15 @@ export interface NavGroup {
   items: NavItem[];
 }
 
+/**
+ * Navigation is grouped by what the user is trying to do: Today / Pipeline / Insights / Library / Admin.
+ * Role access is decided per item (adminOnly / guestAllowed / roles) in getNavigationForUser, so regrouping
+ * never changes who can see what.
+ */
 export const NAVIGATION_REGISTRY: NavGroup[] = [
   {
-    id: 'core',
-    label: 'Core Workflows',
+    id: 'today',
+    label: 'Today',
     items: [
       { view: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard, guestAllowed: true },
       { view: 'TWIW', label: 'TWTW', icon: CalendarCheck, guestAllowed: true },
@@ -38,57 +43,51 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     ]
   },
   {
-    id: 'field',
-    label: 'Field & Discovery',
+    id: 'pipeline',
+    label: 'Pipeline',
     items: [
-      { view: 'CANVASSING', label: 'Canvassing', icon: Navigation },
+      { view: 'WHITE_SPACE', label: 'White Space', icon: LayoutGrid, guestAllowed: true },
+      { view: 'SUCCESS_PLANS', label: 'Success Plans', icon: ClipboardList },
       { view: 'FACT_FINDING', label: 'Fact Finding', icon: FileSearch },
+      { view: 'CANVASSING', label: 'Canvassing', icon: Navigation },
       { view: 'VERTICALS', label: 'Verticals', icon: Factory },
       { view: 'FUEL_SURCHARGES', label: 'Fuel Surcharges', icon: Fuel },
-      { view: 'WHITE_SPACE', label: 'White Space', icon: LayoutGrid, guestAllowed: true },
     ]
   },
   {
-    id: 'strategy',
-    label: 'Strategy & Playbooks',
-    items: [
-      { view: 'SUCCESS_PLANS', label: 'Success Plans', icon: ClipboardList },
-      { view: 'PLAYBOOK', label: 'Playbooks', icon: BookOpen },
-      { view: 'STRATEGIC_ARCHIVE', label: 'Strategic Archive', icon: Archive },
-    ]
-  },
-  {
-    id: 'reporting',
-    label: 'Reporting',
+    id: 'insights',
+    label: 'Insights',
     items: [
       { view: 'BD_AM_REVIEW', label: 'BD/AM Review', icon: Users, guestAllowed: true },
       { view: 'ACTUAL_SPEND', label: 'Actual Spend', icon: Coins },
-      { view: 'GM_REVIEW', label: 'GM Command Hub', icon: Shield, adminOnly: true },
-      { view: 'FF_ADMIN', label: 'FF Admin', icon: FileSearch, adminOnly: true },
-      { view: 'STRATEGIC_REPOSITORY', label: 'Strategic Repo', icon: Sparkles, adminOnly: true },
-      { view: 'OVERVIEW', label: 'Executive Overview', icon: LayoutDashboard, adminOnly: true },
-      { view: 'DATA_HEALTH', label: 'Data Health', icon: Shield, adminOnly: true },
       { view: 'ARCHIVE', label: 'Weekly Snapshot', icon: Archive },
       { view: 'OPS_REPORT', label: 'Ops Report', icon: AlertCircle, guestAllowed: true },
+      { view: 'GM_REVIEW', label: 'GM Command Hub', icon: Shield, adminOnly: true },
+      { view: 'OVERVIEW', label: 'Executive Overview', icon: LayoutDashboard, adminOnly: true },
+      { view: 'DATA_HEALTH', label: 'Data Health', icon: Shield, adminOnly: true },
     ]
   },
   {
-    id: 'admin_leadership',
-    label: 'Leadership & Admin',
+    id: 'library',
+    label: 'Library',
+    items: [
+      { view: 'PLAYBOOK', label: 'Playbooks', icon: BookOpen },
+      { view: 'STRATEGIC_ARCHIVE', label: 'Strategic Archive', icon: Archive },
+      { view: 'STRATEGIC_REPOSITORY', label: 'Strategic Repo', icon: Sparkles, adminOnly: true },
+      { view: 'BRIEFS', label: 'Briefs', icon: Sparkles, adminOnly: true },
+    ]
+  },
+  {
+    id: 'admin',
+    label: 'Admin & Settings',
     items: [
       { view: 'TEAM', label: 'Team', icon: Users, adminOnly: true },
       { view: 'ACCESS', label: 'Access', icon: KeyRound, adminOnly: true },
-      { view: 'AM_BD', label: 'AM/BD Notes Admin', icon: ClipboardList, adminOnly: true },
       { view: 'TEAM_GOALS', label: 'Team Goals', icon: Star, adminOnly: true },
       { view: 'STRATEGY', label: 'Strategy', icon: Map, adminOnly: true },
-      { view: 'BRIEFS', label: 'Briefs', icon: Sparkles, adminOnly: true },
+      { view: 'AM_BD', label: 'AM/BD Notes Admin', icon: ClipboardList, adminOnly: true },
+      { view: 'FF_ADMIN', label: 'FF Admin', icon: FileSearch, adminOnly: true },
       { view: 'OPS_REVIEW', label: 'Ops Review Ledger', icon: Shield, adminOnly: true },
-    ]
-  },
-  {
-    id: 'admin_system',
-    label: 'System Admin',
-    items: [
       { view: 'DATA_EXPLORER', label: 'Data Explorer', icon: Database, adminOnly: true },
       { view: 'UPLOAD', label: 'CRM Import', icon: Upload, adminOnly: true },
       { view: 'BROADCAST', label: 'Broadcast Admin', icon: Megaphone, adminOnly: true },
@@ -97,6 +96,18 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     ]
   }
 ];
+
+/** Groups that start collapsed in the desktop sidebar (the group holding the active view is always opened). */
+export const DEFAULT_COLLAPSED_GROUPS: Record<string, boolean> = {
+  insights: true,
+  library: true,
+  admin: true,
+};
+
+/** Find the group id that contains a view. */
+export function findGroupIdForView(view: DashboardView): string | undefined {
+  return NAVIGATION_REGISTRY.find(g => g.items.some(i => i.view === view))?.id;
+}
 
 export function getNavigationForUser(role: UserRole | undefined, isLeader: boolean): NavGroup[] {
   if (!role) return [];
