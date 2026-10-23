@@ -58,29 +58,29 @@ export function SalesVelocityWidgets({ teamStats, allDeals, totalRevenue }: Sale
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Revenue Tracker */}
-      <Card className="border-none shadow-xl bg-white overflow-hidden lg:col-span-12 relative">
-        <div className="absolute top-0 left-0 w-full h-1 bg-green-500" />
+      <Card className="border-none shadow-xl bg-card overflow-hidden lg:col-span-12 relative">
+        <div className="absolute top-0 left-0 w-full h-1 bg-success-fill" />
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2 text-primary">
-              <DollarSign className="w-5 h-5 text-green-500" /> Revenue vs. Target
+            <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2 text-primary">
+              <DollarSign className="w-5 h-5 text-success" /> Revenue vs. Target
             </CardTitle>
             <div className="text-right">
-              <p className="text-2xl font-black text-slate-800">{formatM(totalRevenue)}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Team Target: {formatM(totalTarget)}</p>
+              <p className="text-2xl font-extrabold text-foreground">{formatM(totalRevenue)}</p>
+              <p className="text-xs font-bold text-muted-foreground">Team Target: {formatM(totalTarget)}</p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 mt-2">
-            <div className="flex justify-between text-[10px] font-black uppercase text-slate-500">
+            <div className="flex justify-between text-xs font-semibold text-muted-foreground">
               <span>0%</span>
-              <span className="text-green-600">{revPercentage.toFixed(1)}% Achieved</span>
+              <span className="text-success-ink">{revPercentage.toFixed(1)}% Achieved</span>
               <span>100%</span>
             </div>
-            <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden shadow-inner relative">
+            <div className="w-full bg-secondary h-4 rounded-full overflow-hidden shadow-inner relative">
               <div 
-                className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-1000" 
+                className="h-full bg-gradient-to-r from-success-fill to-success-fill transition-all duration-1000" 
                 style={{ width: `${revPercentage}%` }} 
               />
             </div>
@@ -89,27 +89,27 @@ export function SalesVelocityWidgets({ teamStats, allDeals, totalRevenue }: Sale
       </Card>
 
       {/* Closing Radar */}
-      <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden lg:col-span-6 relative">
+      <Card className="border-none shadow-xl bg-primary text-white overflow-hidden lg:col-span-6 relative">
         <div className="absolute top-0 right-0 p-6 opacity-5"><Radar className="w-32 h-32 text-accent" /></div>
         <CardHeader className="pb-4">
-          <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-accent">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-accent">
             <Radar className="w-4 h-4" /> Closing Radar
           </CardTitle>
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Top 3 Late-Stage Deals</p>
+          <p className="text-xs text-muted-foreground font-bold">Top 3 Late-Stage Deals</p>
         </CardHeader>
         <CardContent className="space-y-3">
           {closingRadar.length === 0 ? (
-            <p className="text-xs text-slate-500 font-bold uppercase py-4">No late-stage deals found.</p>
+            <p className="text-xs text-muted-foreground font-bold py-4">No late-stage deals found.</p>
           ) : (
             closingRadar.map((deal, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+              <div key={idx} className="flex items-center justify-between p-3 bg-card/5 rounded-xl border border-white/10 hover:bg-card/10 transition-colors">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black text-white uppercase truncate">{deal.pipeline}</p>
-                  <p className="text-[10px] text-accent font-bold mt-0.5">{deal.userName} • {deal.stage}</p>
+                  <p className="text-xs font-semibold text-white truncate">{deal.pipeline}</p>
+                  <p className="text-xs text-accent font-bold mt-0.5">{deal.userName} • {deal.stage}</p>
                 </div>
                 <div className="text-right shrink-0 ml-4">
-                  <p className="text-sm font-black text-green-400">${((Number(deal.value) || 0) / 1000).toFixed(0)}K</p>
-                  <Badge variant="outline" className="text-[8px] bg-green-500/10 text-green-400 border-green-500/20 mt-1 uppercase">HOT</Badge>
+                  <p className="text-sm font-semibold text-success">${((Number(deal.value) || 0) / 1000).toFixed(0)}K</p>
+                  <Badge variant="outline" className="text-xs bg-success-fill/10 text-success border-success/20 mt-1">HOT</Badge>
                 </div>
               </div>
             ))
@@ -118,27 +118,27 @@ export function SalesVelocityWidgets({ teamStats, allDeals, totalRevenue }: Sale
       </Card>
 
       {/* Stalled Deals Alert */}
-      <Card className="border-none shadow-xl bg-white overflow-hidden lg:col-span-6 relative border-2 border-red-500/10">
-        <div className="absolute top-0 right-0 p-6 opacity-5"><AlertTriangle className="w-32 h-32 text-red-500" /></div>
+      <Card className="border-none shadow-xl bg-card overflow-hidden lg:col-span-6 relative border-2 border-destructive/10">
+        <div className="absolute top-0 right-0 p-6 opacity-5"><AlertTriangle className="w-32 h-32 text-destructive" /></div>
         <CardHeader className="pb-4">
-          <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-red-600">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-destructive">
             <Flame className="w-4 h-4" /> Stalled Deals
           </CardTitle>
-          <p className="text-[10px] text-slate-400 font-bold uppercase">High-Value Opportunities Needing Action</p>
+          <p className="text-xs text-muted-foreground font-bold">High-Value Opportunities Needing Action</p>
         </CardHeader>
         <CardContent className="space-y-3">
           {stalledDeals.length === 0 ? (
-            <p className="text-xs text-slate-400 font-bold uppercase py-4">No stalled deals detected.</p>
+            <p className="text-xs text-muted-foreground font-bold py-4">No stalled deals detected.</p>
           ) : (
             stalledDeals.map((deal, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 bg-red-50/50 rounded-xl border border-red-100 hover:bg-red-50 transition-colors">
+              <div key={idx} className="flex items-center justify-between p-3 bg-danger-soft/50 rounded-xl border border-destructive/20 hover:bg-danger-soft transition-colors">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black text-slate-800 uppercase truncate">{deal.pipeline}</p>
-                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">{deal.userName} • {deal.stage}</p>
+                  <p className="text-xs font-semibold text-foreground truncate">{deal.pipeline}</p>
+                  <p className="text-xs text-muted-foreground font-bold mt-0.5">{deal.userName} • {deal.stage}</p>
                 </div>
                 <div className="text-right shrink-0 ml-4">
-                  <p className="text-sm font-black text-red-600">${((Number(deal.value) || 0) / 1000).toFixed(0)}K</p>
-                  <Badge variant="outline" className={`text-[8px] mt-1 uppercase ${deal.momentum.bg} ${deal.momentum.color}`}>{deal.momentum.score}</Badge>
+                  <p className="text-sm font-semibold text-destructive">${((Number(deal.value) || 0) / 1000).toFixed(0)}K</p>
+                  <Badge variant="outline" className={`text-xs mt-1 ${deal.momentum.bg} ${deal.momentum.color}`}>{deal.momentum.score}</Badge>
                 </div>
               </div>
             ))

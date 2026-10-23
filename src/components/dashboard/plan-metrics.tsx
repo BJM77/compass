@@ -152,38 +152,38 @@ export function PlanMetrics() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
         <div>
-          <h2 className="text-xl font-black uppercase tracking-tight text-primary">Execution Metrics</h2>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Live Planning & Performance Summary for Week {currentWeek.split('-')[1]}</p>
+          <h2 className="text-xl font-bold tracking-tight text-primary">Execution Metrics</h2>
+          <p className="text-xs font-bold text-muted-foreground mt-1">Live Planning & Performance Summary for Week {currentWeek.split('-')[1]}</p>
         </div>
         <div className="flex flex-wrap gap-4">
-          <div className="bg-white px-4 py-2 rounded-xl border flex flex-col items-end shadow-sm">
-             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Call Plans</span>
-             <span className="text-lg font-black text-primary">{callPlans?.length || 0}</span>
+          <div className="bg-card px-4 py-2 rounded-xl border flex flex-col items-end shadow-sm">
+             <span className="text-xs font-semibold text-muted-foreground">Total Call Plans</span>
+             <span className="text-lg font-bold text-primary">{callPlans?.length || 0}</span>
           </div>
-          <div className="bg-white px-4 py-2 rounded-xl border flex flex-col items-end shadow-sm">
-             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total White Space</span>
-             <span className="text-lg font-black text-primary">{whitespacePlans?.length || 0}</span>
+          <div className="bg-card px-4 py-2 rounded-xl border flex flex-col items-end shadow-sm">
+             <span className="text-xs font-semibold text-muted-foreground">Total White Space</span>
+             <span className="text-lg font-bold text-primary">{whitespacePlans?.length || 0}</span>
           </div>
-          <div className="bg-white px-4 py-2 rounded-xl border flex flex-col items-end shadow-sm">
-             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Fact Findings</span>
-             <span className="text-lg font-black text-primary">{factFindings?.length || 0}</span>
+          <div className="bg-card px-4 py-2 rounded-xl border flex flex-col items-end shadow-sm">
+             <span className="text-xs font-semibold text-muted-foreground">Total Fact Findings</span>
+             <span className="text-lg font-bold text-primary">{factFindings?.length || 0}</span>
           </div>
         </div>
       </div>
 
       {/* Team Activity & Execution Scorecard */}
-      <Card className="border-none shadow-xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-900 text-white pb-6">
+      <Card className="border-none shadow-xl bg-card overflow-hidden">
+        <CardHeader className="bg-primary text-white pb-6">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-black flex items-center gap-2 uppercase tracking-tight">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2 tracking-tight">
                 <Activity className="w-4 h-4 text-accent animate-pulse" /> Team Activity & Execution Scorecard
               </CardTitle>
-              <CardDescription className="text-slate-400 font-bold text-[10px] tracking-widest uppercase">
+              <CardDescription className="text-muted-foreground font-bold text-xs">
                 Activity, Fact Finding, and Opportunities count by BDM & AM
               </CardDescription>
             </div>
-            <Badge className="bg-accent/20 text-accent font-black uppercase text-[10px] tracking-wider border-accent/30 px-3 py-1">
+            <Badge className="bg-accent/20 text-accent font-semibold text-xs border-accent/30 px-3 py-1">
               Sales Week {currentWeek.split('-')[1]}
             </Badge>
           </div>
@@ -191,8 +191,8 @@ export function PlanMetrics() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-slate-50">
-                <TableRow className="uppercase text-[9px] font-black tracking-widest border-b">
+              <TableHeader className="bg-secondary/60">
+                <TableRow className=" text-xs font-semibold border-b">
                   <TableHead className="px-6 py-4">BDM/AM Identity</TableHead>
                   <TableHead className="text-center">Role</TableHead>
                   <TableHead className="text-center">Weekly Appointments</TableHead>
@@ -204,46 +204,46 @@ export function PlanMetrics() {
               </TableHeader>
               <TableBody className="divide-y">
                 {userMetrics.map(({ user, totalAppointments, crmApps, manualApps, totalFactFindings, oppsCreated, oppsWon, totalActivities }) => (
-                  <TableRow key={user.id} className="hover:bg-slate-50 transition-colors">
+                  <TableRow key={user.id} className="hover:bg-secondary/60 transition-colors">
                     <TableCell className="px-6 py-4">
-                      <div className="font-black text-sm text-primary">{user.name}</div>
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{user.email || 'No email'}</div>
+                      <div className="font-semibold text-sm text-primary">{user.name}</div>
+                      <div className="text-xs font-bold text-muted-foreground">{user.email || 'No email'}</div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-wider ${
-                        user.role === 'BDM' ? 'border-indigo-200 text-indigo-700 bg-indigo-50' : 'border-emerald-200 text-emerald-700 bg-emerald-50'
+                      <Badge variant="outline" className={`font-semibold text-xs ${
+                        user.role === 'BDM' ? 'border-info/30 text-primary bg-info-soft' : 'border-success/25 text-success-ink bg-success-soft'
                       }`}>
                         {user.role === 'BDM' ? 'BDM' : 'AM'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center justify-center">
-                        <span className="font-bold text-sm text-slate-800">{totalAppointments}</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase">
+                        <span className="font-bold text-sm text-foreground">{totalAppointments}</span>
+                        <span className="text-xs text-muted-foreground font-bold">
                           CRM: {crmApps} • Man: {manualApps}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1.5 font-bold text-sm text-slate-800">
-                        <FileSpreadsheet className="w-3.5 h-3.5 text-blue-500" />
+                      <div className="flex items-center justify-center gap-1.5 font-bold text-sm text-foreground">
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-accent" />
                         {totalFactFindings}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1.5 font-bold text-sm text-slate-800">
-                        <PlusCircle className="w-3.5 h-3.5 text-orange-500" />
+                      <div className="flex items-center justify-center gap-1.5 font-bold text-sm text-foreground">
+                        <PlusCircle className="w-3.5 h-3.5 text-warning" />
                         {oppsCreated}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1.5 font-bold text-sm text-slate-800">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <div className="flex items-center justify-center gap-1.5 font-bold text-sm text-foreground">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                         {oppsWon}
                       </div>
                     </TableCell>
                     <TableCell className="text-right px-6">
-                      <Badge className="bg-primary text-white font-black text-xs px-3 py-1 shadow-sm">
+                      <Badge className="bg-primary text-white font-semibold text-xs px-3 py-1 shadow-sm">
                         {totalActivities}
                       </Badge>
                     </TableCell>
@@ -251,7 +251,7 @@ export function PlanMetrics() {
                 ))}
                 {userMetrics.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-[10px] font-black uppercase text-slate-400 tracking-widest bg-slate-50/50">
+                    <TableCell colSpan={7} className="text-center py-12 text-xs font-semibold text-muted-foreground bg-secondary/60">
                       No active BDMs or Account Managers found.
                     </TableCell>
                   </TableRow>
@@ -264,20 +264,20 @@ export function PlanMetrics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          {/* Call Plans Card */}
-         <Card className="border-none shadow-xl bg-white overflow-hidden">
-            <CardHeader className="bg-slate-900 text-white pb-6">
-               <CardTitle className="text-sm font-black flex items-center gap-2 uppercase tracking-tight">
+         <Card className="border-none shadow-xl bg-card overflow-hidden">
+            <CardHeader className="bg-primary text-white pb-6">
+               <CardTitle className="text-sm font-semibold flex items-center gap-2 tracking-tight">
                  <PhoneCall className="w-4 h-4 text-accent" /> Completed Call Plans
                </CardTitle>
-               <CardDescription className="text-slate-400 font-bold text-[10px] tracking-widest uppercase">
+               <CardDescription className="text-muted-foreground font-bold text-xs">
                  Latest SPIN Strategies logged this week
                </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
                <div className="overflow-x-auto">
                  <Table>
-                   <TableHeader className="bg-slate-50">
-                     <TableRow className="uppercase text-[9px] font-black tracking-widest">
+                   <TableHeader className="bg-secondary/60">
+                     <TableRow className=" text-xs font-semibold">
                        <TableHead className="px-6 py-3">BDM</TableHead>
                        <TableHead>Target Account</TableHead>
                        <TableHead className="text-right px-6">Timestamp</TableHead>
@@ -285,17 +285,17 @@ export function PlanMetrics() {
                    </TableHeader>
                    <TableBody className="divide-y">
                      {sortedCallPlans.map(plan => (
-                       <TableRow key={plan.id} className="hover:bg-slate-50 transition-colors">
-                         <TableCell className="px-6 py-4 font-black text-xs text-primary">{getUserName(plan.userId)}</TableCell>
+                       <TableRow key={plan.id} className="hover:bg-secondary/60 transition-colors">
+                         <TableCell className="px-6 py-4 font-semibold text-xs text-primary">{getUserName(plan.userId)}</TableCell>
                          <TableCell className="text-xs font-bold">{plan.accountName}</TableCell>
-                         <TableCell className="text-right px-6 text-[10px] font-bold text-muted-foreground uppercase">
+                         <TableCell className="text-right px-6 text-xs font-bold text-muted-foreground">
                            {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'EEE h:mm a') : 'Just now'}
                          </TableCell>
                        </TableRow>
                      ))}
                      {sortedCallPlans.length === 0 && (
                        <TableRow>
-                         <TableCell colSpan={3} className="text-center py-12 text-[10px] font-black uppercase text-slate-400 tracking-widest bg-slate-50/50">
+                         <TableCell colSpan={3} className="text-center py-12 text-xs font-semibold text-muted-foreground bg-secondary/60">
                            No call plans logged this week.
                          </TableCell>
                        </TableRow>
@@ -307,20 +307,20 @@ export function PlanMetrics() {
          </Card>
 
          {/* White Space Plans Card */}
-         <Card className="border-none shadow-xl bg-white overflow-hidden">
-            <CardHeader className="bg-slate-900 text-white pb-6">
-               <CardTitle className="text-sm font-black flex items-center gap-2 uppercase tracking-tight">
+         <Card className="border-none shadow-xl bg-card overflow-hidden">
+            <CardHeader className="bg-primary text-white pb-6">
+               <CardTitle className="text-sm font-semibold flex items-center gap-2 tracking-tight">
                  <LayoutGrid className="w-4 h-4 text-accent" /> White Space Expansion
                </CardTitle>
-               <CardDescription className="text-slate-400 font-bold text-[10px] tracking-widest uppercase">
+               <CardDescription className="text-muted-foreground font-bold text-xs">
                  Latest cross-sell diagnostics logged this week
                </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
                <div className="overflow-x-auto">
                  <Table>
-                   <TableHeader className="bg-slate-50">
-                     <TableRow className="uppercase text-[9px] font-black tracking-widest">
+                   <TableHeader className="bg-secondary/60">
+                     <TableRow className=" text-xs font-semibold">
                        <TableHead className="px-6 py-3">BDM</TableHead>
                        <TableHead>Target Account</TableHead>
                        <TableHead className="text-right px-6">Timestamp</TableHead>
@@ -328,17 +328,17 @@ export function PlanMetrics() {
                    </TableHeader>
                    <TableBody className="divide-y">
                      {sortedWhitespacePlans.map(plan => (
-                       <TableRow key={plan.id} className="hover:bg-slate-50 transition-colors">
-                         <TableCell className="px-6 py-4 font-black text-xs text-primary">{getUserName(plan.userId)}</TableCell>
+                       <TableRow key={plan.id} className="hover:bg-secondary/60 transition-colors">
+                         <TableCell className="px-6 py-4 font-semibold text-xs text-primary">{getUserName(plan.userId)}</TableCell>
                          <TableCell className="text-xs font-bold">{plan.accountName}</TableCell>
-                         <TableCell className="text-right px-6 text-[10px] font-bold text-muted-foreground uppercase">
+                         <TableCell className="text-right px-6 text-xs font-bold text-muted-foreground">
                            {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'EEE h:mm a') : 'Just now'}
                          </TableCell>
                        </TableRow>
                      ))}
                      {sortedWhitespacePlans.length === 0 && (
                        <TableRow>
-                         <TableCell colSpan={3} className="text-center py-12 text-[10px] font-black uppercase text-slate-400 tracking-widest bg-slate-50/50">
+                         <TableCell colSpan={3} className="text-center py-12 text-xs font-semibold text-muted-foreground bg-secondary/60">
                            No white space diagnostics logged this week.
                          </TableCell>
                        </TableRow>

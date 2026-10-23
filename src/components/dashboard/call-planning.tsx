@@ -306,43 +306,43 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold font-headline text-primary tracking-tight flex items-center gap-3 uppercase">
+        <h1 className="text-2xl md:text-3xl font-bold font-headline text-primary tracking-tight flex items-center gap-3">
           <PhoneCall className="w-6 h-6 md:w-8 md:h-8 text-accent" />
           Call Planning Center
         </h1>
         <div className="flex items-center gap-4">
-          <Button onClick={() => setSpinGuideOpen(true)} className="bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 font-black h-11 px-6 uppercase text-xs shadow-lg gap-2">
+          <Button onClick={() => setSpinGuideOpen(true)} className="bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 font-semibold h-11 px-6 text-xs shadow-lg gap-2">
             <Sparkles className="w-4 h-4" /> SPIN GUIDE
           </Button>
-          <Button onClick={handleNewPlan} className="bg-primary hover:bg-primary/90 text-white font-black h-11 px-6 uppercase text-xs shadow-lg gap-2">
+          <Button onClick={handleNewPlan} className="bg-primary hover:bg-primary/90 text-white font-semibold h-11 px-6 text-xs shadow-lg gap-2">
             <Plus className="w-4 h-4" /> NEW PREP
           </Button>
         </div>
       </header>
 
-      <Card className="border-none shadow-2xl bg-white overflow-hidden print:shadow-none print:border-2">
-        <CardHeader className="bg-slate-900 text-white pb-8 print:bg-white print:text-black print:border-b-4 print:border-black">
+      <Card className="border-none shadow-2xl bg-card overflow-hidden print:shadow-none print:border-2">
+        <CardHeader className="bg-primary text-white pb-8 print:bg-card print:text-black print:border-b-4 print:border-black">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <Badge className="bg-accent text-white border-none font-black text-[9px] uppercase tracking-widest mb-2 print:hidden">Elite Prep Mode</Badge>
-              <CardTitle className="text-3xl font-black tracking-tight flex items-center gap-3">
+              <Badge className="bg-accent text-white border-none font-semibold text-xs mb-2 print:hidden">Elite Prep Mode</Badge>
+              <CardTitle className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
                 <PhoneCall className="w-8 h-8 text-accent print:hidden" />
                 SPIN Strategy Planner
               </CardTitle>
-              <CardDescription className="text-slate-400 font-medium print:text-slate-600">
+              <CardDescription className="text-muted-foreground font-medium print:text-foreground/75">
                 Situation • Problem • Implication • Need-Payoff
               </CardDescription>
             </div>
             <div className="flex gap-2 print:hidden">
               {selectedPlanId && (
-                <Button variant="outline" onClick={() => setOutcomeDialogOpen(true)} className="bg-green-600 border-none text-white hover:bg-green-700 font-black h-10 px-4 text-xs">
+                <Button variant="outline" onClick={() => setOutcomeDialogOpen(true)} className="bg-success-fill border-none text-white hover:bg-success font-semibold h-10 px-4 text-xs">
                   <CheckCircle2 className="w-4 h-4 mr-2" /> LOG OUTCOME
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={handlePrint} className="bg-white/10 border-white/20 text-white hover:bg-white/20 font-black h-10 px-4 text-xs">
+              <Button variant="outline" size="sm" onClick={handlePrint} className="bg-card/10 border-white/20 text-white hover:bg-card/20 font-semibold h-10 px-4 text-xs">
                 <Printer className="w-4 h-4 mr-2" /> PRINT PLAN
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-accent hover:bg-accent/90 text-white font-black h-10 px-6 text-xs shadow-xl">
+              <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-accent hover:bg-accent/90 text-white font-semibold h-10 px-6 text-xs shadow-xl">
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                 ARCHIVE PREP
               </Button>
@@ -353,25 +353,25 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
         <CardContent className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                  <Target className="w-3.5 h-3.5 text-primary" /> Target Account / Opportunity
               </Label>
               <Input 
                 placeholder="e.g. Rio Tinto - Kwinana Logistics" 
                 value={formData.accountName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, accountName: e.target.value})}
-                className="font-black text-lg h-12 uppercase tracking-tight bg-slate-50 focus:bg-white transition-all border-slate-200"
+                className="font-bold text-lg h-12 tracking-tight bg-secondary/60 focus:bg-card transition-all border-border"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                 <ShieldCheck className="w-3.5 h-3.5 text-green-600" /> Primary Call Objective
+              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                 <ShieldCheck className="w-3.5 h-3.5 text-success-ink" /> Primary Call Objective
               </Label>
               <Input 
                 placeholder="e.g. Secure commitment for 30-day pilot" 
                 value={formData.objective}
                 onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, objective: e.target.value})}
-                className="font-bold text-sm h-12 bg-slate-50 focus:bg-white transition-all border-slate-200"
+                className="font-bold text-sm h-12 bg-secondary/60 focus:bg-card transition-all border-border"
               />
             </div>
           </div>
@@ -380,65 +380,65 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
           {/* New Target Account Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                 Introduction
               </Label>
               <Textarea 
                 placeholder="e.g. Briefly introduce yourself..." 
                 value={formData.introduction}
                 onChange={(e: any) => setFormData({...formData, introduction: e.target.value})}
-                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
+                className="min-h-[80px] bg-secondary/60 focus:bg-card transition-all border-border"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                 Build R (Rapport)
               </Label>
               <Textarea 
                 placeholder="e.g. Mention their recent company news..." 
                 value={formData.buildRapport}
                 onChange={(e: any) => setFormData({...formData, buildRapport: e.target.value})}
-                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
+                className="min-h-[80px] bg-secondary/60 focus:bg-card transition-all border-border"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                 About Them
               </Label>
               <Textarea 
                 placeholder="e.g. Focus on their specific needs..." 
                 value={formData.aboutThem}
                 onChange={(e: any) => setFormData({...formData, aboutThem: e.target.value})}
-                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
+                className="min-h-[80px] bg-secondary/60 focus:bg-card transition-all border-border"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                 About Us
               </Label>
               <Textarea 
                 placeholder="e.g. High-level pitch connecting to their needs..." 
                 value={formData.aboutUs}
                 onChange={(e: any) => setFormData({...formData, aboutUs: e.target.value})}
-                className="min-h-[80px] bg-slate-50 focus:bg-white transition-all border-slate-200"
+                className="min-h-[80px] bg-secondary/60 focus:bg-card transition-all border-border"
               />
             </div>
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
               <Box className="w-3.5 h-3.5 text-accent" /> Proposed Services
             </Label>
-            <div className="flex flex-wrap gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 print:bg-white print:border-2">
+            <div className="flex flex-wrap gap-4 p-4 bg-secondary/60 rounded-xl border border-border print:bg-card print:border-2">
               {AVAILABLE_SERVICES.map(service => (
-                <div key={service} className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-lg border shadow-sm group hover:border-accent transition-colors">
+                <div key={service} className="flex items-center space-x-2 bg-card px-3 py-1.5 rounded-lg border shadow-sm group hover:border-accent transition-colors">
                   <Checkbox 
                     id={`service-${service}`} 
                     checked={formData.services.includes(service)}
                     onCheckedChange={() => toggleService(service)}
-                    className="border-slate-300 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                    className="border-border data-[state=checked]:bg-accent data-[state=checked]:border-accent"
                   />
-                  <label htmlFor={`service-${service}`} className="text-xs font-black uppercase tracking-tight text-primary cursor-pointer select-none">
+                  <label htmlFor={`service-${service}`} className="text-xs font-semibold tracking-tight text-primary cursor-pointer select-none">
                     {service}
                   </label>
                 </div>
@@ -450,51 +450,51 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4 group">
-               <h4 className="text-xs font-black uppercase text-blue-600 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">S</div>
+               <h4 className="text-xs font-semibold text-accent flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-info-soft flex items-center justify-center">S</div>
                   Situation Questions
                </h4>
                <Textarea 
                   placeholder="What are the current volumes? Which carriers are used today?"
                   value={formData.situation}
                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, situation: e.target.value})}
-                  className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-blue-400 focus:bg-white transition-all resize-none leading-relaxed"
+                  className="min-h-[140px] bg-secondary/60 text-sm font-medium border-border focus:border-info/50 focus:bg-card transition-all resize-none leading-relaxed"
                />
             </div>
             <div className="space-y-4 group">
-               <h4 className="text-xs font-black uppercase text-orange-600 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-orange-100 flex items-center justify-center">P</div>
+               <h4 className="text-xs font-semibold text-warning-ink flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-warning-soft flex items-center justify-center">P</div>
                   Problem Questions
                </h4>
                <Textarea 
                   placeholder="Where are the delays happening? Is the current provider failing?"
                   value={formData.problem}
                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, problem: e.target.value})}
-                  className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-orange-400 focus:bg-white transition-all resize-none leading-relaxed"
+                  className="min-h-[140px] bg-secondary/60 text-sm font-medium border-border focus:border-warning/50 focus:bg-card transition-all resize-none leading-relaxed"
                />
             </div>
             <div className="space-y-4 group">
-               <h4 className="text-xs font-black uppercase text-red-600 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-red-100 flex items-center justify-center">I</div>
+               <h4 className="text-xs font-semibold text-destructive flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-danger-soft flex items-center justify-center">I</div>
                   Implication Questions
                </h4>
                <Textarea 
                   placeholder="What happens to your project timeline if freight is late?"
                   value={formData.implication}
                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, implication: e.target.value})}
-                  className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-red-400 focus:bg-white transition-all resize-none leading-relaxed"
+                  className="min-h-[140px] bg-secondary/60 text-sm font-medium border-border focus:border-destructive/50 focus:bg-card transition-all resize-none leading-relaxed"
                />
             </div>
             <div className="space-y-4 group">
-               <h4 className="text-xs font-black uppercase text-green-600 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center">N</div>
+               <h4 className="text-xs font-semibold text-success-ink flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-success-soft flex items-center justify-center">N</div>
                   Need-Payoff Questions
                </h4>
                <Textarea 
                   placeholder="If we could guarantee reduction in transit time, how would that help?"
                   value={formData.needPayoff}
                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData({...formData, needPayoff: e.target.value})}
-                  className="min-h-[140px] bg-slate-50/50 text-sm font-medium border-slate-200 focus:border-green-400 focus:bg-white transition-all resize-none leading-relaxed"
+                  className="min-h-[140px] bg-secondary/60 text-sm font-medium border-border focus:border-success/50 focus:bg-card transition-all resize-none leading-relaxed"
                />
             </div>
           </div>
@@ -504,11 +504,11 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
       {teamPlans && teamPlans.length > 0 && (
         <div className="space-y-4 print:hidden pt-8 animate-in slide-in-from-left duration-700">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-lg font-black uppercase tracking-tight text-accent flex items-center gap-2">
+            <h3 className="text-lg font-bold tracking-tight text-accent flex items-center gap-2">
               <Users className="w-5 h-5" />
               Team Blueprints (Admin Shared)
             </h3>
-            <Badge className="bg-accent text-white font-black text-[9px] uppercase">Corporate Strategy</Badge>
+            <Badge className="bg-accent text-white font-semibold text-xs">Corporate Strategy</Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {teamPlans.map((plan) => (
@@ -518,18 +518,18 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 className={`text-left p-5 rounded-2xl border-2 transition-all cursor-pointer group ${
                   selectedPlanId === plan.id 
                     ? 'border-accent bg-accent/5 shadow-lg' 
-                    : 'border-white bg-white hover:border-accent shadow-sm'
+                    : 'border-white bg-card hover:border-accent shadow-sm'
                 }`}
               >
-                <p className="text-[9px] font-black text-accent uppercase mb-2 flex items-center gap-1">
+                <p className="text-xs font-semibold text-accent mb-2 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3" /> Shared Blueprint
                 </p>
-                <p className="text-xs font-black text-primary uppercase mt-2 mb-1">{plan.accountName}</p>
-                <p className="text-[10px] text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
+                <p className="text-xs font-semibold text-primary mt-2 mb-1">{plan.accountName}</p>
+                <p className="text-xs text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
                 {isLeader && plan.userId && plan.userId !== 'TEAM_NODE' && (
                   <div className="flex items-center gap-1.5 mt-2">
                     <UserIcon className="w-3 h-3 text-accent" />
-                    <span className="text-[9px] font-bold text-accent uppercase tracking-wider">{'Unknown User'}</span>
+                    <span className="text-xs font-bold text-accent">{'Unknown User'}</span>
                   </div>
                 )}
               </div>
@@ -543,11 +543,11 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
       {sortedSharedPlans.length > 0 && (
         <div className="space-y-4 print:hidden pt-8">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-lg font-black uppercase tracking-tight text-indigo-700 flex items-center gap-2">
+            <h3 className="text-lg font-bold tracking-tight text-primary flex items-center gap-2">
               <Users className="w-5 h-5" />
               Shared With You
             </h3>
-            <Badge className="bg-indigo-600 text-white font-black text-[9px] uppercase">Full access</Badge>
+            <Badge className="bg-accent text-white font-semibold text-xs">Full access</Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedSharedPlans.map((plan: any) => (
@@ -555,7 +555,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 key={plan.id}
                 onClick={() => handleSelectPlan(plan)}
                 className={`text-left p-5 rounded-2xl border-2 transition-all cursor-pointer ${
-                  selectedPlanId === plan.id ? 'border-indigo-500 bg-indigo-50 shadow-lg' : 'border-white bg-white hover:border-indigo-400 shadow-sm'
+                  selectedPlanId === plan.id ? 'border-accent bg-info-soft shadow-lg' : 'border-white bg-card hover:border-info/50 shadow-sm'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -564,14 +564,14 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                     type="button"
                     title="Delete this shared call plan"
                     onClick={(e) => { e.stopPropagation(); handleDeleteSharedPlan(plan); }}
-                    className="text-red-500 hover:text-red-700 text-[10px] font-black uppercase"
+                    className="text-destructive hover:text-destructive text-xs font-semibold"
                   >
                     Delete
                   </button>
                 </div>
-                <p className="text-xs font-black text-primary uppercase mt-2 mb-1">{plan.accountName}</p>
-                <p className="text-[10px] text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
-                <p className="text-[9px] text-slate-400 font-bold mt-1">
+                <p className="text-xs font-semibold text-primary mt-2 mb-1">{plan.accountName}</p>
+                <p className="text-xs text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
+                <p className="text-xs text-muted-foreground font-bold mt-1">
                   {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : ''}
                 </p>
               </div>
@@ -583,28 +583,28 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
       <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-3xl p-8">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
-               <CheckCircle2 className="w-6 h-6 text-green-600" /> Log Outcome
+            <DialogTitle className="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+               <CheckCircle2 className="w-6 h-6 text-success-ink" /> Log Outcome
             </DialogTitle>
-            <DialogDescription className="font-bold text-[10px] uppercase tracking-widest">
+            <DialogDescription className="font-bold text-xs">
               Close the loop on the {formData.accountName} call.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Strategic Result</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Strategic Result</Label>
                 <Select onValueChange={(val) => setOutcomeData({...outcomeData, outcome: val})}>
                    <SelectTrigger className="h-12 font-bold"><SelectValue placeholder="SELECT OUTCOME..." /></SelectTrigger>
                    <SelectContent>
                       <SelectItem value="APPOINTMENT_BOOKED" className="font-bold">APPOINTMENT BOOKED</SelectItem>
                       <SelectItem value="FOLLOW_UP" className="font-bold">FOLLOW UP REQUIRED</SelectItem>
                       <SelectItem value="NO_ANSWER" className="font-bold">NO ANSWER / GATEKEEPER</SelectItem>
-                      <SelectItem value="LOST" className="font-bold text-red-600">NOT A FIT / LOST</SelectItem>
+                      <SelectItem value="LOST" className="font-bold text-destructive">NOT A FIT / LOST</SelectItem>
                    </SelectContent>
                 </Select>
              </div>
              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Debrief Notes</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Debrief Notes</Label>
                 <Textarea 
                    placeholder="Quick summary of the conversation..."
                    value={outcomeData.notes}
@@ -614,13 +614,13 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
              </div>
           </div>
           <DialogFooter>
-             <Button onClick={handleLogOutcome} className="w-full bg-primary font-black h-12 rounded-xl">SAVE PERFORMANCE DATA</Button>
+             <Button onClick={handleLogOutcome} className="w-full bg-primary font-bold h-12 rounded-xl">SAVE PERFORMANCE DATA</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={spinGuideOpen} onOpenChange={setSpinGuideOpen}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-[#0f0f13] border-slate-800">
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-[#0f0f13] border-primary/80">
           <DialogTitle className="sr-only">Freight SPIN Guide</DialogTitle>
           <FreightSpinGuide />
         </DialogContent>

@@ -218,18 +218,18 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
   return (
     <div className="space-y-6">
       <WeeklyActivitySummary userId={userId} readOnly={readOnly} />
-      <Card className="border-none shadow-2xl overflow-hidden bg-white">
+      <Card className="border-none shadow-2xl overflow-hidden bg-card">
         <CardHeader className="bg-primary/5 p-6 flex flex-row items-center justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+            <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2">
               <ClipboardList className="w-5 h-5 text-accent" /> {filterType === 'accounts' ? 'Accounts Ledger' : 'Strategy Ledger'}
             </CardTitle>
             <div className="flex items-center gap-3">
-              <p className="text-[10px] font-black uppercase text-accent tracking-widest">
+              <p className="text-xs font-semibold text-accent">
                 Wk {currentWeek.split('-')[1]}
               </p>
-              <div className="h-4 w-px bg-slate-300" />
-              <Badge variant={selectedCount > 8 ? "destructive" : "outline"} className={cn("text-[10px] font-black uppercase tracking-widest h-5 px-3 border-accent/30", selectedCount === 8 && "bg-accent text-white")}>
+              <div className="h-4 w-px bg-border" />
+              <Badge variant={selectedCount > 8 ? "destructive" : "outline"} className={cn("text-xs font-semibold h-5 px-3 border-accent/30", selectedCount === 8 && "bg-accent text-white")}>
                  Selection: {selectedCount} / 8
               </Badge>
             </div>
@@ -237,7 +237,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
           {!readOnly && (
             <Button 
               onClick={handleAddRow}
-              className="bg-primary font-black uppercase text-xs h-10 px-6"
+              className="bg-primary font-semibold text-xs h-10 px-6"
             >
               <Plus className="w-4 h-4 mr-2" /> {filterType === 'accounts' ? 'New Account' : 'New Opp'}
             </Button>
@@ -247,8 +247,8 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
           {/* Desktop Table View */}
           <div className="hidden lg:block overflow-x-auto">
             <Table className="min-w-[1400px]">
-              <TableHeader className="bg-white">
-                <TableRow className="uppercase text-[9px] font-black tracking-widest border-b-2">
+              <TableHeader className="bg-card">
+                <TableRow className=" text-xs font-semibold border-b-2">
                   <TableHead className="w-[60px] text-center">MTG</TableHead>
                   <TableHead>Momentum</TableHead>
                   <TableHead className="w-[100px]">Health</TableHead>
@@ -265,7 +265,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                 {isLoading ? (
                   <TableRow><TableCell colSpan={10} className="text-center py-20"><Loader2 className="animate-spin mx-auto text-primary w-10 h-10" /></TableCell></TableRow>
                 ) : reviews?.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center py-20 text-muted-foreground font-bold uppercase tracking-widest bg-slate-50/50">No opportunities identified.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center py-20 text-muted-foreground font-bold bg-secondary/60">No opportunities identified.</TableCell></TableRow>
                 ) : reviews?.map(row => {
                   const momentum = computeMomentum({
                     daysInStage: row.daysInStage || differenceInDays(now, row.createdAt?.toDate?.() || now),
@@ -281,17 +281,17 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                     whitespacePlans || []
                   );
 
-                  let healthColor = "bg-rose-50 border-rose-200 text-rose-700";
+                  let healthColor = "bg-danger-soft border-destructive/25 text-destructive";
                   if (health.score >= 80) {
-                    healthColor = "bg-emerald-50 border-emerald-200 text-emerald-700";
+                    healthColor = "bg-success-soft border-success/25 text-success-ink";
                   } else if (health.score >= 50) {
-                    healthColor = "bg-amber-50 border-amber-200 text-amber-700";
+                    healthColor = "bg-warning-soft border-warning/30 text-warning-ink";
                   }
 
                   return (
-                    <TableRow key={row.id} className={cn("hover:bg-slate-50 transition-colors group", row.isReviewSelected && "bg-accent/5")}>
+                    <TableRow key={row.id} className={cn("hover:bg-secondary/60 transition-colors group", row.isReviewSelected && "bg-accent/5")}>
                       <TableCell className="text-center">
-                        <button onClick={() => toggleSelection(row)} className={`p-2.5 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-white shadow-lg' : 'text-slate-200 hover:text-slate-300'}`}>
+                        <button onClick={() => toggleSelection(row)} className={`p-2.5 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-white shadow-lg' : 'text-border hover:text-muted-foreground/60'}`}>
                           <Star className={`w-5 h-5 ${row.isReviewSelected && "fill-current"}`} />
                         </button>
                       </TableCell>
@@ -301,10 +301,10 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                             <TooltipTrigger asChild>
                               <div className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit border ${momentum.bg}`}>
                                 <Activity className={`w-3 h-3 ${momentum.color}`} />
-                                <span className={`text-[8px] font-black uppercase ${momentum.color}`}>{momentum.score}</span>
+                                <span className={`text-xs font-semibold ${momentum.color}`}>{momentum.score}</span>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent className="bg-slate-900 text-white font-bold text-[10px]">{momentum.reason}</TooltipContent>
+                            <TooltipContent className="bg-primary text-white font-bold text-xs">{momentum.reason}</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
@@ -312,16 +312,16 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className={cn("flex items-center gap-1 px-2.5 py-1 rounded-full w-fit border cursor-help font-black text-[9px] uppercase tracking-wide", healthColor)}>
+                              <div className={cn("flex items-center gap-1 px-2.5 py-1 rounded-full w-fit border cursor-help font-semibold text-xs", healthColor)}>
                                 <span>Health: {health.score}%</span>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent className="bg-slate-950 text-white p-3.5 max-w-[280px] rounded-xl space-y-2.5 border border-slate-800 shadow-xl">
-                              <p className="font-black text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                            <TooltipContent className="bg-primary text-white p-3.5 max-w-[280px] rounded-xl space-y-2.5 border border-primary/80 shadow-xl">
+                              <p className="font-semibold text-xs text-muted-foreground border-b border-primary/80 pb-1.5 flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-accent inline-block animate-pulse" />
                                 Deal Health Diagnosis
                               </p>
-                              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[9px] font-bold text-slate-300">
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs font-bold text-muted-foreground/60">
                                 <span>Activity (25%):</span> <span className="text-right text-white">{health.breakdown.activity}/25</span>
                                 <span>Stage duration (25%):</span> <span className="text-right text-white">{health.breakdown.stage}/25</span>
                                 <span>Fact Finding (20%):</span> <span className="text-right text-white">{health.breakdown.factFinding}/20</span>
@@ -330,17 +330,17 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                               </div>
                               {health.alerts.length > 0 && (
                                 <div className="border-t border-slate-850 pt-2 space-y-1">
-                                  <p className="text-[8px] font-black uppercase tracking-wider text-rose-400">Improvement Areas:</p>
+                                  <p className="text-xs font-semibold text-destructive">Improvement Areas:</p>
                                   {health.alerts.map((a, idx) => (
-                                    <p key={idx} className="text-[9px] leading-relaxed text-slate-400">• {a}</p>
+                                    <p key={idx} className="text-xs leading-relaxed text-muted-foreground">• {a}</p>
                                   ))}
                                 </div>
                               )}
                               {health.positives.length > 0 && (
                                 <div className="border-t border-slate-855 pt-2 space-y-1">
-                                  <p className="text-[8px] font-black uppercase tracking-wider text-emerald-400">Strengths:</p>
+                                  <p className="text-xs font-semibold text-success">Strengths:</p>
                                   {health.positives.map((p, idx) => (
-                                    <p key={idx} className="text-[9px] leading-relaxed text-slate-400">• {p}</p>
+                                    <p key={idx} className="text-xs leading-relaxed text-muted-foreground">• {p}</p>
                                   ))}
                                 </div>
                               )}
@@ -352,9 +352,9 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         <div className="flex items-center gap-2">
                           <div className="flex-1 space-y-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <DebouncedInput className="text-xs font-black uppercase h-9 bg-transparent border-transparent focus:border-primary/20 flex-1" value={row.pipeline || ''} onCommit={val => handleUpdate(row.id, 'pipeline', val)} readOnly={readOnly} />
+                              <DebouncedInput className="text-xs font-semibold h-9 bg-transparent border-transparent focus:border-primary/20 flex-1" value={row.pipeline || ''} onCommit={val => handleUpdate(row.id, 'pipeline', val)} readOnly={readOnly} />
                               {row.creditHold && (
-                                <span className="shrink-0 text-[7px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md border border-red-200">HOLD</span>
+                                <span className="shrink-0 text-xs font-semibold bg-danger-soft text-destructive px-1.5 py-0.5 rounded-md border border-destructive/25">HOLD</span>
                               )}
                             </div>
                             <div className="flex flex-col gap-0.5 px-2">
@@ -362,7 +362,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 <a 
                                   href="#" 
                                   onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.pipeline); }}
-                                  className="text-[8px] text-accent font-black hover:underline tracking-wider uppercase block w-fit"
+                                  className="text-xs text-accent font-semibold hover:underline block w-fit"
                                   title="Open Account in Salesforce"
                                 >
                                   SF Account Link
@@ -372,7 +372,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 <a 
                                   href="#" 
                                   onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName || '', row.salesforceId); }}
-                                  className="text-[9px] text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate block w-fit"
+                                  className="text-xs text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate block w-fit"
                                   title="Open Opportunity in Salesforce"
                                 >
                                   {row.opportunityName}
@@ -389,14 +389,14 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                       }
                                     }));
                                   }}
-                                  className="text-[8px] text-indigo-600 hover:text-indigo-800 font-black hover:underline tracking-wider uppercase block w-fit mt-1"
+                                  className="text-xs text-accent hover:text-primary font-semibold hover:underline block w-fit mt-1"
                                 >
                                   Prepare Call Plan
                                 </button>
                               )}
                             </div>
                             <DebouncedInput
-                              className="text-[9px] font-mono h-6 bg-transparent border-dashed border-slate-200 focus:border-accent/40 px-2 placeholder:text-slate-300 rounded mt-1"
+                              className="text-xs font-mono h-6 bg-transparent border-dashed border-border focus:border-accent/40 px-2 placeholder:text-muted-foreground/60 rounded mt-1"
                               placeholder="Salesforce ID (optional)..."
                               value={row.salesforceId || ''}
                               onCommit={val => handleUpdate(row.id, 'salesforceId', val.trim())}
@@ -405,7 +405,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                           </div>
                           <button
                             onClick={() => openSalesforceSearch(row.pipeline, row.salesforceId)}
-                            className={`shrink-0 transition-colors ${row.salesforceId ? 'text-accent hover:text-accent/80' : 'text-slate-300 hover:text-accent'}`}
+                            className={`shrink-0 transition-colors ${row.salesforceId ? 'text-accent hover:text-accent/80' : 'text-muted-foreground/60 hover:text-accent'}`}
                             title={row.salesforceId ? 'Open Salesforce Record (ID)' : 'Search in Salesforce (by name)'}
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -414,9 +414,9 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span><DebouncedInput type="number" className="text-xs font-black h-9 pl-6 bg-transparent border-transparent focus:border-primary/20" value={row.value || 0} onCommit={val => handleUpdate(row.id, 'value', parseFloat(val) || 0)} readOnly={readOnly} /></div>
+                          <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">$</span><DebouncedInput type="number" className="text-xs font-semibold h-9 pl-6 bg-transparent border-transparent focus:border-primary/20" value={row.value || 0} onCommit={val => handleUpdate(row.id, 'value', parseFloat(val) || 0)} readOnly={readOnly} /></div>
                           {(((row as any).closedWonValue || 0) > 0) && (
-                            <p className="text-[8px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-100 text-center">
+                            <p className="text-xs font-semibold text-success-ink bg-success-soft px-2 py-0.5 rounded border border-success/20 text-center">
                               Won: ${Number((row as any).closedWonValue).toLocaleString()}
                             </p>
                           )}
@@ -426,14 +426,14 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         <div className="space-y-1">
                           <DebouncedInput className="text-xs font-bold h-9 bg-transparent border-transparent focus:border-primary/20" value={row.stage || ''} onCommit={val => handleUpdate(row.id, 'stage', val)} readOnly={readOnly} />
                           {row.lastSalesStageChangeDate && (
-                            <p className="text-[8px] font-bold text-slate-400 px-2 uppercase tracking-wide">
+                            <p className="text-xs font-bold text-muted-foreground px-2">
                               Changed: {row.lastSalesStageChangeDate}
                             </p>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell><DebouncedTextarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.barriers || ''} onCommit={val => handleUpdate(row.id, 'barriers', val)} readOnly={readOnly} /></TableCell>
-                      <TableCell><DebouncedTextarea className="text-[11px] font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.actionsForBen || ''} onCommit={val => handleUpdate(row.id, 'actionsForBen', val)} readOnly={readOnly} placeholder="Enter immediate next steps..." /></TableCell>
+                      <TableCell><DebouncedTextarea className="text-xs font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.barriers || ''} onCommit={val => handleUpdate(row.id, 'barriers', val)} readOnly={readOnly} /></TableCell>
+                      <TableCell><DebouncedTextarea className="text-xs font-medium min-h-[50px] resize-none bg-transparent border-transparent focus:border-primary/20" value={row.actionsForBen || ''} onCommit={val => handleUpdate(row.id, 'actionsForBen', val)} readOnly={readOnly} placeholder="Enter immediate next steps..." /></TableCell>
                       <TableCell className="text-center">
                         <Checkbox disabled={!canPerformFridayActions || readOnly} checked={(row as any).isRolledOver} onCheckedChange={() => handleRollover(row)} />
                       </TableCell>
@@ -444,7 +444,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                             size="icon"
                             disabled={!canPerformFridayActions || readOnly} 
                             onClick={() => triggerWinLossModal(row, 'WON')} 
-                            className="text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 h-8 w-8 rounded-lg shrink-0"
+                            className="text-success hover:text-success-ink hover:bg-success-soft h-8 w-8 rounded-lg shrink-0"
                             title="Mark Closed-Won"
                           >
                             <CheckCircle2 className="w-4 h-4" />
@@ -454,7 +454,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                             size="icon"
                             disabled={!canPerformFridayActions || readOnly} 
                             onClick={() => triggerWinLossModal(row, 'LOST')} 
-                            className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 rounded-lg shrink-0"
+                            className="text-destructive hover:text-destructive hover:bg-danger-soft h-8 w-8 rounded-lg shrink-0"
                             title="Mark Closed-Lost"
                           >
                             <X className="w-4 h-4" />
@@ -473,7 +473,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
             {isLoading ? (
               <div className="text-center py-12"><Loader2 className="animate-spin mx-auto text-primary w-8 h-8" /></div>
             ) : reviews?.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground font-bold uppercase tracking-widest bg-slate-50/50 rounded-2xl border border-slate-100">No opportunities identified.</div>
+              <div className="text-center py-12 text-muted-foreground font-bold bg-secondary/60 rounded-2xl border border-border">No opportunities identified.</div>
             ) : reviews?.map(row => {
               const momentum = computeMomentum({
                 daysInStage: row.daysInStage || differenceInDays(now, row.createdAt?.toDate?.() || now),
@@ -489,26 +489,26 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                 whitespacePlans || []
               );
 
-              let healthColor = "bg-rose-50 border-rose-200 text-rose-700";
+              let healthColor = "bg-danger-soft border-destructive/25 text-destructive";
               if (health.score >= 80) {
-                healthColor = "bg-emerald-50 border-emerald-200 text-emerald-700";
+                healthColor = "bg-success-soft border-success/25 text-success-ink";
               } else if (health.score >= 50) {
-                healthColor = "bg-amber-50 border-amber-200 text-amber-700";
+                healthColor = "bg-warning-soft border-warning/30 text-warning-ink";
               }
 
               return (
-                <div key={row.id} className={cn("p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative transition-all", row.isReviewSelected && "bg-accent/5 border-accent/20")}>
+                <div key={row.id} className={cn("p-4 bg-secondary/60 border border-border rounded-2xl space-y-3 relative transition-all", row.isReviewSelected && "bg-accent/5 border-accent/20")}>
                   {/* Header Actions */}
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => toggleSelection(row)} className={`p-2 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-white shadow-md' : 'bg-white border text-slate-300 hover:text-slate-400'}`}>
+                      <button onClick={() => toggleSelection(row)} className={`p-2 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-white shadow-md' : 'bg-card border text-muted-foreground/60 hover:text-muted-foreground'}`}>
                         <Star className={`w-4 h-4 ${row.isReviewSelected && "fill-current"}`} />
                       </button>
                       <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${momentum.bg}`}>
                         <Activity className={`w-3 h-3 ${momentum.color}`} />
-                        <span className={`text-[8px] font-black uppercase ${momentum.color}`}>{momentum.score}</span>
+                        <span className={`text-xs font-semibold ${momentum.color}`}>{momentum.score}</span>
                       </div>
-                      <div className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full border font-black text-[8px] uppercase tracking-wide", healthColor)}>
+                      <div className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full border font-semibold text-xs", healthColor)}>
                         <span>Health: {health.score}%</span>
                       </div>
                     </div>
@@ -519,7 +519,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         size="icon"
                         disabled={!canPerformFridayActions || readOnly} 
                         onClick={() => triggerWinLossModal(row, 'WON')} 
-                        className="text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 h-7 w-7 rounded-lg"
+                        className="text-success hover:text-success-ink hover:bg-success-soft h-7 w-7 rounded-lg"
                         title="Mark Closed-Won"
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -529,7 +529,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         size="icon"
                         disabled={!canPerformFridayActions || readOnly} 
                         onClick={() => triggerWinLossModal(row, 'LOST')} 
-                        className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 h-7 w-7 rounded-lg"
+                        className="text-destructive hover:text-destructive hover:bg-danger-soft h-7 w-7 rounded-lg"
                         title="Mark Closed-Lost"
                       >
                         <X className="w-4 h-4" />
@@ -540,13 +540,13 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                   {/* Account Name */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <DebouncedInput className="text-xs font-black uppercase h-8 bg-white" value={row.pipeline || ''} onCommit={val => handleUpdate(row.id, 'pipeline', val)} readOnly={readOnly} placeholder="Account Name" />
+                      <DebouncedInput className="text-xs font-semibold h-8 bg-card" value={row.pipeline || ''} onCommit={val => handleUpdate(row.id, 'pipeline', val)} readOnly={readOnly} placeholder="Account Name" />
                       {row.creditHold && (
-                        <span className="shrink-0 text-[7px] font-black uppercase bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md border border-red-200">HOLD</span>
+                        <span className="shrink-0 text-xs font-semibold bg-danger-soft text-destructive px-1.5 py-0.5 rounded-md border border-destructive/25">HOLD</span>
                       )}
                       <button
                         onClick={() => openSalesforceSearch(row.pipeline, row.salesforceId)}
-                        className={`p-1.5 bg-white border rounded-xl shrink-0 transition-colors ${row.salesforceId ? 'text-accent hover:text-accent/80' : 'text-slate-300 hover:text-accent'}`}
+                        className={`p-1.5 bg-card border rounded-xl shrink-0 transition-colors ${row.salesforceId ? 'text-accent hover:text-accent/80' : 'text-muted-foreground/60 hover:text-accent'}`}
                         title={row.salesforceId ? 'Open Salesforce Record (ID)' : 'Search in Salesforce (by name)'}
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -558,7 +558,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         <a 
                           href="#" 
                           onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.pipeline); }}
-                          className="text-[8px] text-accent font-black hover:underline tracking-wider uppercase"
+                          className="text-xs text-accent font-semibold hover:underline"
                         >
                           SF Account
                         </a>
@@ -567,7 +567,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                         <a 
                           href="#" 
                           onClick={(e) => { e.preventDefault(); openSalesforceSearch(row.opportunityName || '', row.salesforceId); }}
-                          className="text-[8px] text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate max-w-[150px]"
+                          className="text-xs text-muted-foreground font-semibold italic hover:text-accent hover:underline truncate max-w-[150px]"
                         >
                           {row.opportunityName}
                         </a>
@@ -580,7 +580,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                               detail: { view: 'CALL_PLANNING', params: { type: 'top8', data: row } }
                             }));
                           }}
-                          className="text-[8px] text-indigo-600 hover:text-indigo-850 font-black hover:underline tracking-wider uppercase"
+                          className="text-xs text-accent hover:text-indigo-850 font-semibold hover:underline"
                         >
                           Plan Call
                         </button>
@@ -591,36 +591,36 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                   {/* Value / Stage */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Value ($)</label>
+                      <label className="text-xs font-semibold text-muted-foreground ml-1">Value ($)</label>
                       <div className="relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400">$</span>
-                        <DebouncedInput type="number" className="text-xs font-black h-8 pl-5 bg-white" value={row.value || 0} onCommit={val => handleUpdate(row.id, 'value', parseFloat(val) || 0)} readOnly={readOnly} />
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">$</span>
+                        <DebouncedInput type="number" className="text-xs font-semibold h-8 pl-5 bg-card" value={row.value || 0} onCommit={val => handleUpdate(row.id, 'value', parseFloat(val) || 0)} readOnly={readOnly} />
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Stage</label>
-                      <DebouncedInput className="text-xs font-bold h-8 bg-white" value={row.stage || ''} onCommit={val => handleUpdate(row.id, 'stage', val)} readOnly={readOnly} />
+                      <label className="text-xs font-semibold text-muted-foreground ml-1">Stage</label>
+                      <DebouncedInput className="text-xs font-bold h-8 bg-card" value={row.stage || ''} onCommit={val => handleUpdate(row.id, 'stage', val)} readOnly={readOnly} />
                     </div>
                   </div>
 
                   {/* Barriers / Next Action */}
                   <div className="space-y-2">
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Barriers & Risks</label>
-                      <DebouncedTextarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.barriers || ''} onCommit={val => handleUpdate(row.id, 'barriers', val)} readOnly={readOnly} placeholder="Risks..." />
+                      <label className="text-xs font-semibold text-muted-foreground ml-1">Barriers & Risks</label>
+                      <DebouncedTextarea className="text-xs font-medium min-h-[40px] resize-none bg-card p-2" value={row.barriers || ''} onCommit={val => handleUpdate(row.id, 'barriers', val)} readOnly={readOnly} placeholder="Risks..." />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Commitment / Next Action</label>
-                      <DebouncedTextarea className="text-[10px] font-medium min-h-[40px] resize-none bg-white p-2" value={row.actionsForBen || ''} onCommit={val => handleUpdate(row.id, 'actionsForBen', val)} readOnly={readOnly} placeholder="Next Action..." />
+                      <label className="text-xs font-semibold text-muted-foreground ml-1">Commitment / Next Action</label>
+                      <DebouncedTextarea className="text-xs font-medium min-h-[40px] resize-none bg-card p-2" value={row.actionsForBen || ''} onCommit={val => handleUpdate(row.id, 'actionsForBen', val)} readOnly={readOnly} placeholder="Next Action..." />
                     </div>
                   </div>
 
                   {/* Rollover Toggle */}
-                  <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                    <span className="text-[9px] font-black uppercase text-slate-400">Rollover to Next Week</span>
+                  <div className="flex justify-between items-center pt-2 border-t border-border">
+                    <span className="text-xs font-semibold text-muted-foreground">Rollover to Next Week</span>
                     <div className="flex items-center gap-2">
                       <Checkbox disabled={!canPerformFridayActions || readOnly} checked={(row as any).isRolledOver} onCheckedChange={() => handleRollover(row)} id={`rollover-${row.id}`} />
-                      <Label htmlFor={`rollover-${row.id}`} className="text-[10px] font-black uppercase text-slate-600">Roll</Label>
+                      <Label htmlFor={`rollover-${row.id}`} className="text-xs font-semibold text-foreground/75">Roll</Label>
                     </div>
                   </div>
                 </div>
@@ -631,20 +631,20 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
       </Card>
 
       <Dialog open={winLossDialogOpen} onOpenChange={setWinLossDialogOpen}>
-        <DialogContent className="max-w-md bg-white rounded-3xl p-6 border-none shadow-2xl">
+        <DialogContent className="max-w-md bg-card rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader className="pb-4 border-b">
-            <DialogTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2 text-primary">
+            <DialogTitle className="text-lg font-bold tracking-tight flex items-center gap-2 text-primary">
               <Sparkles className="w-5 h-5 text-accent" />
               {winLossData.outcome === 'WON' ? 'Log Closed-Won Success' : 'Log Closed-Lost Analysis'}
             </DialogTitle>
-            <DialogDescription className="font-bold text-[10px] uppercase tracking-widest text-slate-400 mt-1">
+            <DialogDescription className="font-bold text-xs text-muted-foreground mt-1">
               Analyze strategic factors for {winLossData.accountName || 'this opportunity'}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Primary Factor</Label>
+              <Label className="text-xs font-semibold text-muted-foreground">Primary Factor</Label>
               <Select value={winLossData.reason} onValueChange={(val) => setWinLossData({ ...winLossData, reason: val })}>
                 <SelectTrigger className="h-10 font-bold text-xs">
                   <SelectValue placeholder="SELECT PRIMARY REASON..." />
@@ -660,7 +660,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Incumbent / Competitor Name</Label>
+              <Label className="text-xs font-semibold text-muted-foreground">Incumbent / Competitor Name</Label>
               <Input 
                 placeholder="Name of competitor..."
                 value={winLossData.competitor}
@@ -670,7 +670,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pricing / Contract Details</Label>
+              <Label className="text-xs font-semibold text-muted-foreground">Pricing / Contract Details</Label>
               <Input 
                 placeholder="Rate details, discount offered, target margin..."
                 value={winLossData.priceDetail}
@@ -680,7 +680,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Debrief Notes</Label>
+              <Label className="text-xs font-semibold text-muted-foreground">Debrief Notes</Label>
               <Textarea 
                 placeholder="Additional strategic context, lessons learned, or follow-up plans..."
                 value={winLossData.notes}
@@ -691,8 +691,8 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
           </div>
 
           <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setWinLossDialogOpen(false)} className="font-black h-11 uppercase text-xs">Cancel</Button>
-            <Button onClick={handleSaveWinLoss} className="bg-primary hover:bg-primary/95 text-white font-black h-11 uppercase text-xs px-6">Save & Close Deal</Button>
+            <Button variant="outline" onClick={() => setWinLossDialogOpen(false)} className="font-semibold h-11 text-xs">Cancel</Button>
+            <Button onClick={handleSaveWinLoss} className="bg-primary hover:bg-primary/95 text-white font-semibold h-11 text-xs px-6">Save & Close Deal</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

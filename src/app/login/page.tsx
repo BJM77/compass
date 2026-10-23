@@ -134,7 +134,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#F7F6F8]">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="bg-primary p-3 rounded-2xl shadow-lg hover:rotate-3 transition-transform cursor-pointer">
@@ -144,14 +144,14 @@ export default function LoginPage() {
           <p className="text-muted-foreground font-medium">Enterprise Performance Visibility Hub</p>
         </div>
 
-        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm">
+        <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm">
           <Tabs defaultValue="corporate" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 rounded-t-xl rounded-b-none h-12 bg-slate-100/50">
-              <TabsTrigger value="corporate" className="text-xs font-bold uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-none rounded-tl-xl rounded-tr-none">Corporate</TabsTrigger>
-              <TabsTrigger value="guest" className="text-xs font-bold uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-none rounded-tr-xl rounded-tl-none">Guest Access</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 rounded-t-xl rounded-b-none h-12 bg-secondary/50">
+              <TabsTrigger value="corporate" className="text-xs font-bold data-[state=active]:bg-card data-[state=active]:shadow-none rounded-tl-xl rounded-tr-none">Corporate</TabsTrigger>
+              <TabsTrigger value="guest" className="text-xs font-bold data-[state=active]:bg-card data-[state=active]:shadow-none rounded-tr-xl rounded-tl-none">Guest Access</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="corporate" className="m-0 border-t border-slate-100">
+            <TabsContent value="corporate" className="m-0 border-t border-border">
               <CardHeader className="space-y-1 pt-6">
                 <CardTitle className="text-2xl font-bold">Secure Access</CardTitle>
                 <CardDescription>
@@ -160,14 +160,14 @@ export default function LoginPage() {
               </CardHeader>
               <CardContent className="grid gap-4">
                 {error && (
-                  <Alert variant="destructive" className="py-3 border-red-200 bg-red-50/50">
+                  <Alert variant="destructive" className="py-3 border-destructive/25 bg-danger-soft/50">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
                   </Alert>
                 )}
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Corporate Email</Label>
+                    <Label htmlFor="email" className="text-xs font-bold text-muted-foreground">Corporate Email</Label>
                     <Input 
                       id="email" 
                       type="email" 
@@ -180,12 +180,12 @@ export default function LoginPage() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" title="Password" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Access Key</Label>
+                      <Label htmlFor="password" title="Password" className="text-xs font-bold text-muted-foreground">Access Key</Label>
                       <Button 
                         variant="link" 
                         type="button" 
                         onClick={handlePasswordReset}
-                        className="p-0 h-auto text-[10px] text-accent font-bold uppercase tracking-widest"
+                        className="p-0 h-auto text-xs text-accent font-bold"
                       >
                         Recovery
                       </Button>
@@ -205,13 +205,13 @@ export default function LoginPage() {
                 </form>
               </CardContent>
               <CardFooter className="flex flex-col gap-2 pb-6">
-                 <div className="text-[10px] text-center text-muted-foreground/60 px-4 leading-relaxed font-medium">
+                 <div className="text-xs text-center text-muted-foreground/60 px-4 leading-relaxed font-medium">
                     PROTECTED SYSTEM. Unauthorized access attempts are flagged for review by the Governance Committee.
                  </div>
               </CardFooter>
             </TabsContent>
 
-            <TabsContent value="guest" className="m-0 border-t border-slate-100">
+            <TabsContent value="guest" className="m-0 border-t border-border">
               <CardHeader className="space-y-1 pt-6">
                 <CardTitle className="text-2xl font-bold">TWTW Guest Portal</CardTitle>
                 <CardDescription>
@@ -220,14 +220,14 @@ export default function LoginPage() {
               </CardHeader>
               <CardContent className="grid gap-4">
                 {error && (
-                  <Alert variant="destructive" className="py-3 border-red-200 bg-red-50/50">
+                  <Alert variant="destructive" className="py-3 border-destructive/25 bg-danger-soft/50">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
                   </Alert>
                 )}
                 <form onSubmit={handleGuestLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="guestEmail" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Corporate Email</Label>
+                    <Label htmlFor="guestEmail" className="text-xs font-bold text-muted-foreground">Corporate Email</Label>
                     <Input 
                       id="guestEmail" 
                       type="email" 
@@ -238,7 +238,7 @@ export default function LoginPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="guestName" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your Name</Label>
+                    <Label htmlFor="guestName" className="text-xs font-bold text-muted-foreground">Your Name</Label>
                     <Input 
                       id="guestName" 
                       type="text" 
@@ -250,7 +250,7 @@ export default function LoginPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="guestState" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Operating State</Label>
+                    <Label htmlFor="guestState" className="text-xs font-bold text-muted-foreground">Operating State</Label>
                     <Select value={guestState} onValueChange={setGuestState} required>
                       <SelectTrigger className="w-full bg-muted/30 border-transparent focus:border-primary/20 transition-all">
                         <SelectValue placeholder="Select your state" />
@@ -269,7 +269,7 @@ export default function LoginPage() {
                 </form>
               </CardContent>
               <CardFooter className="flex flex-col gap-2 pb-6">
-                 <div className="text-[10px] text-center text-muted-foreground/60 px-4 leading-relaxed font-medium">
+                 <div className="text-xs text-center text-muted-foreground/60 px-4 leading-relaxed font-medium">
                     Guest access is restricted to the TWTW module only. Other governance nodes are inaccessible.
                  </div>
               </CardFooter>
@@ -277,8 +277,8 @@ export default function LoginPage() {
           </Tabs>
         </Card>
 
-        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 text-[10px] text-center space-y-1">
-          <p className="font-bold text-primary opacity-60 uppercase tracking-widest">System Security: Active</p>
+        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 text-xs text-center space-y-1">
+          <p className="font-bold text-primary opacity-60">System Security: Active</p>
           <p className="text-muted-foreground font-medium">Encryption: AES-256-GCM • Auth Node: Firebase SSL</p>
         </div>
       </div>

@@ -414,7 +414,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         return (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
             <KPICard title="Rev YTD" value={`${formatEAV(crmSummary.myStats?.custYTDRevenueThisFY || 0)}`} subtitle={`Tgt: ${formatEAV(stats?.target || 0)}`} icon={<DollarSign className="w-4 h-4" />} info="Annual strategic revenue achievement." />
-            <KPICard title="Forecast" value={`${formatEAV(weightedForecast)}`} subtitle="Weighted" icon={<TrendingUp className="w-4 h-4 text-green-500" />} info="Calculated based on stage probability × value." />
+            <KPICard title="Forecast" value={`${formatEAV(weightedForecast)}`} subtitle="Weighted" icon={<TrendingUp className="w-4 h-4 text-success" />} info="Calculated based on stage probability × value." />
             <KPICard title="Strategic Yield" value={`${formatEAV((isAM ? (crmSummary.myStats?.custYTDRevenueThisFY || 0) : pipelineTotal) / (stats?.activityScore || 1))}`} subtitle="Val/Activity" icon={<Gauge className="w-4 h-4" />} info="The 'Professional Multiplier': Revenue generated per unit of activity." />
             <KPICard 
               title="Velocity Pulse" 
@@ -432,25 +432,25 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         return <SmartGoalsView userId={userId || ''} />;
       case 'next-best-actions':
         return (
-          <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden relative h-full">
+          <Card className="border-none shadow-xl bg-primary text-white overflow-hidden relative h-full">
              <div className="absolute top-0 right-0 p-6 opacity-10"><Sparkles className="w-24 h-24 text-accent" /></div>
              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-accent">
+                <CardTitle className="text-xs font-semibold flex items-center gap-2 text-accent">
                    <Sparkles className="w-3.5 h-3.5" /> Next Best Actions
                 </CardTitle>
              </CardHeader>
              <CardContent className="space-y-3">
                 {recommendations.map((rec) => {
-                   let typeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+                   let typeColor = "bg-success-fill/20 text-success border-success/30";
                    if (rec.type === 'WARNING') {
-                      typeColor = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+                      typeColor = "bg-destructive/20 text-destructive border-destructive/30";
                    } else if (rec.type === 'ACTION') {
-                      typeColor = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+                      typeColor = "bg-warning/20 text-warning border-warning/30";
                    }
                    return (
-                      <div key={rec.id} className="p-3 bg-white/5 rounded-xl border border-white/10 flex flex-col gap-2 hover:bg-white/10 transition-all">
+                      <div key={rec.id} className="p-3 bg-card/5 rounded-xl border border-white/10 flex flex-col gap-2 hover:bg-card/10 transition-all">
                          <div className="flex items-center justify-between gap-2">
-                            <span className={cn("text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border", typeColor)}>
+                            <span className={cn("text-xs font-semibold px-1.5 py-0.5 rounded border", typeColor)}>
                                {rec.type}
                             </span>
                             {rec.actionLabel && (
@@ -488,14 +488,14 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                                         }
                                      }
                                   }}
-                                  className="text-[9px] font-black uppercase tracking-wider text-accent hover:underline flex items-center gap-1"
+                                  className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
                                >
                                   {rec.actionLabel} <ArrowRight className="w-2.5 h-2.5" />
                                </button>
                             )}
                          </div>
-                         <p className="text-[11px] font-black uppercase text-white leading-tight">{rec.title}</p>
-                         <p className="text-[10px] font-medium text-slate-300 leading-snug">{rec.description}</p>
+                         <p className="text-xs font-semibold text-white leading-tight">{rec.title}</p>
+                         <p className="text-xs font-medium text-muted-foreground/60 leading-snug">{rec.description}</p>
                       </div>
                    );
                 })}
@@ -504,13 +504,13 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
         );
       case 'strategic-nudge':
         return (
-          <Card className="border-none shadow-xl bg-white overflow-hidden relative h-full border-2 border-accent/20">
+          <Card className="border-none shadow-xl bg-card overflow-hidden relative h-full border-2 border-accent/20">
              <div className="absolute top-0 right-0 p-6 opacity-5"><CalendarClock className="w-24 h-24 text-accent" /></div>
-             <CardHeader className="pb-2"><CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-primary"><CalendarClock className="w-3.5 h-3.5 text-accent" /> Strategic Nudge</CardTitle></CardHeader>
+             <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold flex items-center gap-2 text-primary"><CalendarClock className="w-3.5 h-3.5 text-accent" /> Strategic Nudge</CardTitle></CardHeader>
              <CardContent className="space-y-4">
                 <div>
-                   <p className="text-sm font-black text-primary uppercase">30-60-90 Success Plan</p>
-                   <p className="text-[10px] text-muted-foreground font-bold mt-1 leading-tight">Your individual strategic roadmap requires completion for quarterly governance.</p>
+                   <p className="text-sm font-semibold text-primary">30-60-90 Success Plan</p>
+                   <p className="text-xs text-muted-foreground font-bold mt-1 leading-tight">Your individual strategic roadmap requires completion for quarterly governance.</p>
                 </div>
                 <Button 
                   onClick={() => {
@@ -524,7 +524,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                       }
                     }, 100);
                   }}
-                  className="w-full bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-accent/20 gap-2"
+                  className="w-full bg-accent hover:bg-accent/90 text-white font-semibold h-9 text-xs rounded-xl shadow-lg shadow-accent/20 gap-2"
                 >
                    Update Success Plan <ArrowRight className="w-3 h-3" />
                 </Button>
@@ -582,25 +582,25 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     <div className="w-full p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-xl md:text-3xl font-black font-headline text-primary tracking-tighter uppercase">{isAM ? 'Portfolio Intelligence' : 'Professional Brief'}</h1>
+          <h1 className="text-xl md:text-3xl font-extrabold font-headline text-primary tracking-tighter">{isAM ? 'Portfolio Intelligence' : 'Professional Brief'}</h1>
           <div className="flex items-center gap-2">
-            <Badge className="bg-accent text-white border-none font-black text-[9px] uppercase tracking-widest">{profile?.territory?.replace('_', ' ')}</Badge>
-            <p className="text-muted-foreground text-xs font-bold uppercase tracking-tight">{profile?.name}</p>
+            <Badge className="bg-accent text-white border-none font-semibold text-xs">{profile?.territory?.replace('_', ' ')}</Badge>
+            <p className="text-muted-foreground text-xs font-bold tracking-tight">{profile?.name}</p>
           </div>
         </div>
       </header>
 
       {/* 📍 QUICK NAVIGATION - 5 Core Pages */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl border border-slate-800 space-y-4">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">📍 Quick Navigation - 5 Core Pages</p>
+      <div className="bg-primary text-white rounded-3xl p-6 shadow-xl border border-primary/80 space-y-4">
+        <p className="text-xs font-semibold text-muted-foreground">📍 Quick Navigation - 5 Core Pages</p>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
           >
-            <Gauge className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-wider">Dashboard</span>
-            <Badge className="bg-indigo-500/20 text-indigo-300 border-none font-bold text-[8px] uppercase">Active</Badge>
+            <Gauge className="w-5 h-5 text-accent group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-semibold">Dashboard</span>
+            <Badge className="bg-accent/20 text-info border-none font-bold text-xs">Active</Badge>
           </button>
           
           <button
@@ -615,12 +615,12 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                 }
               }, 100);
             }}
-            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
           >
-            <FileDown className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-wider">TWTW</span>
-            <Badge className={cn("border-none font-bold text-[8px] uppercase", 
-              twtwStatus === 'SUBMITTED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+            <FileDown className="w-5 h-5 text-destructive group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-semibold">TWTW</span>
+            <Badge className={cn("border-none font-bold text-xs", 
+              twtwStatus === 'SUBMITTED' ? 'bg-success-fill/20 text-success' : 'bg-destructive/20 text-destructive'
             )}>
               {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due: Thursday Morning'}
             </Badge>
@@ -638,13 +638,13 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                 }
               }, 100);
             }}
-            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
           >
-            <ListChecks className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-wider">Friday FW</span>
-            <Badge className={cn("border-none font-bold text-[8px] uppercase", 
-              fridayStatus === 'SUBMITTED' ? 'bg-emerald-500/20 text-emerald-300' : 
-              fridayStatus === 'DRAFT' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'
+            <ListChecks className="w-5 h-5 text-warning group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-semibold">Friday FW</span>
+            <Badge className={cn("border-none font-bold text-xs", 
+              fridayStatus === 'SUBMITTED' ? 'bg-success-fill/20 text-success' : 
+              fridayStatus === 'DRAFT' ? 'bg-warning/20 text-warning' : 'bg-destructive/20 text-destructive'
             )}>
               {fridayStatus === 'SUBMITTED' ? 'Done' : fridayStatus === 'DRAFT' ? 'Draft' : 'Due: Friday Morning'}
             </Badge>
@@ -654,29 +654,29 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
             onClick={() => {
               window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'WHITE_SPACE' } }));
             }}
-            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
           >
-            <Compass className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-wider">White Space</span>
-            <Badge className="bg-emerald-500/20 text-emerald-300 border-none font-bold text-[8px] uppercase">Gaps Map</Badge>
+            <Compass className="w-5 h-5 text-success group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-semibold">White Space</span>
+            <Badge className="bg-success-fill/20 text-success border-none font-bold text-xs">Gaps Map</Badge>
           </button>
 
           <button
             onClick={() => {
               window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'CALL_PLANNING' } }));
             }}
-            className="bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center gap-2 transition-all group"
+            className="bg-primary hover:bg-primary/90 p-4 rounded-2xl border border-primary/70 flex flex-col items-center justify-center gap-2 transition-all group"
           >
-            <PhoneCall className="w-5 h-5 text-sky-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-wider">Call Plan</span>
-            <Badge className="bg-sky-500/20 text-sky-300 border-none font-bold text-[8px] uppercase">SPIN prep</Badge>
+            <PhoneCall className="w-5 h-5 text-accent group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-semibold">Call Plan</span>
+            <Badge className="bg-accent/20 text-info border-none font-bold text-xs">SPIN prep</Badge>
           </button>
         </div>
       </div>
 
       <div className="space-y-6">
         {/* Dynamic Sticky Anchor Navigation Bar */}
-        <div className="bg-white border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20 max-w-full">
+        <div className="bg-card border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20 max-w-full">
           {layout.filter(w => w.visible).map(widget => {
             // Map widget IDs to requested shortened names
             const shortNames: Record<string, string> = {
@@ -717,7 +717,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                     }
                   }, 100);
                 }}
-                className="flex-1 text-center rounded-lg px-4 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest text-slate-600 hover:bg-slate-50 hover:text-primary transition-all whitespace-nowrap"
+                className="flex-1 text-center rounded-lg px-4 py-2.5 font-semibold text-xs text-foreground/75 hover:bg-secondary/60 hover:text-primary transition-all whitespace-nowrap"
               >
                 {displayName}
               </button>
@@ -736,14 +736,14 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                 id={`widget-${widget.id}`}
                 className={cn(
                   spanClass,
-                  "flex flex-col gap-4 border border-slate-200 bg-white rounded-3xl p-4 md:p-5 shadow-sm scroll-mt-40 transition-all duration-300 h-fit min-w-0 overflow-hidden"
+                  "flex flex-col gap-4 border border-border bg-card rounded-3xl p-4 md:p-5 shadow-sm scroll-mt-40 transition-all duration-300 h-fit min-w-0 overflow-hidden"
                 )}
               >
                 {/* Header bar with collapse toggle */}
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center justify-between border-b border-border pb-3">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-primary" />
-                    <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                    <h3 className="text-xs font-semibold text-foreground">
                       {widget.name.split(' (')[0].split(' Panel')[0].split(' Tracker')[0].split(' Cards')[0].split(' Table')[0].split(' Recommendation')[0]}
                     </h3>
                   </div>
@@ -757,7 +757,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                         [widget.id]: !prev[widget.id]
                       }));
                     }}
-                    className="h-8 px-3 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-slate-50 flex items-center gap-1.5 rounded-xl uppercase tracking-wider"
+                    className="h-8 px-3 text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-secondary/60 flex items-center gap-1.5 rounded-xl"
                   >
                     {isCollapsed ? (
                       <>
@@ -767,7 +767,7 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
                     ) : (
                       <>
                         <span>Hide Details</span>
-                        <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+                        <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
                       </>
                     )}
                   </Button>

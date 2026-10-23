@@ -250,10 +250,10 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-primary p-2 rounded-xl shadow-lg rotate-3 shrink-0"><ShieldCheck className="w-5 h-5 text-white" /></div>
-          <h1 className="text-xl md:text-4xl font-black font-headline text-primary tracking-tighter uppercase">Governance Command</h1>
+          <h1 className="text-xl md:text-4xl font-extrabold font-headline text-primary tracking-tighter">Governance Command</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleTeamSync} disabled={isSyncing} className="h-10 text-[10px] md:text-xs font-black"><Mail className="w-4 h-4 mr-2" /> TEAM NUDGE</Button>
+          <Button variant="outline" onClick={handleTeamSync} disabled={isSyncing} className="h-10 text-xs font-semibold"><Mail className="w-4 h-4 mr-2" /> TEAM NUDGE</Button>
         </div>
       </header>
 
@@ -274,7 +274,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
               <span className="opacity-75">MTD CRM: {activityTotals.mtd.crmApps} | Manual: {activityTotals.mtd.apps}</span>
             </div>
           }
-          icon={<Calendar className="w-4 h-4 text-blue-500" />} 
+          icon={<Calendar className="w-4 h-4 text-accent" />} 
           onClick={() => setOpenModal('APPS')}
         />
         <KPICard 
@@ -286,29 +286,29 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
               <span className="opacity-75">MTD CRM: {activityTotals.mtd.crmCalls} | Manual: {activityTotals.mtd.calls}</span>
             </div>
           }
-          icon={<Phone className="w-4 h-4 text-green-500" />} 
+          icon={<Phone className="w-4 h-4 text-success" />} 
           onClick={() => setOpenModal('CALLS')}
         />
         <KPICard 
           title="Opportunity Pipeline" 
           value={`$${(aggregates.pipelineAmount || 0).toLocaleString()}`} 
           subtitle={`Total Opportunities: ${aggregates.pipelineCount || 0}`}
-          icon={<Target className="w-4 h-4 text-purple-500" />} 
+          icon={<Target className="w-4 h-4 text-accent" />} 
         />
       </div>
 
 
       <Tabs defaultValue="dashboard" className="w-full space-y-6">
-        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-10 flex overflow-x-auto scrollbar-hide max-w-full">
-          <TabsTrigger value="dashboard" className="font-black uppercase text-[10px] tracking-widest"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
-          <TabsTrigger value="activity-metrics" className="font-black uppercase text-[10px] tracking-widest"><Activity className="w-3.5 h-3.5 mr-1.5" /> Plan Metrics</TabsTrigger>
-          <TabsTrigger value="group-90" className="font-black uppercase text-[10px] tracking-widest">Group 90</TabsTrigger>
-          <TabsTrigger value="bdm-north" className="font-black uppercase text-[10px] tracking-widest">BDM North</TabsTrigger>
-          <TabsTrigger value="bdm-south" className="font-black uppercase text-[10px] tracking-widest">BDM South</TabsTrigger>
-          <TabsTrigger value="am-90" className="font-black uppercase text-[10px] tracking-widest">AM 90</TabsTrigger>
-          <TabsTrigger value="playbooks" className="font-black uppercase text-[10px] tracking-widest">Playbooks</TabsTrigger>
-          <TabsTrigger value="ai-report" className="font-black uppercase text-[10px] tracking-widest bg-accent/10 text-accent">AI Report</TabsTrigger>
-          <TabsTrigger value="users" className="font-black uppercase text-[10px] tracking-widest"><Users className="w-3.5 h-3.5 mr-1.5" /> Users</TabsTrigger>
+        <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-10 flex overflow-x-auto scrollbar-hide max-w-full">
+          <TabsTrigger value="dashboard" className="font-semibold text-xs"><BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Dashboard</TabsTrigger>
+          <TabsTrigger value="activity-metrics" className="font-semibold text-xs"><Activity className="w-3.5 h-3.5 mr-1.5" /> Plan Metrics</TabsTrigger>
+          <TabsTrigger value="group-90" className="font-semibold text-xs">Group 90</TabsTrigger>
+          <TabsTrigger value="bdm-north" className="font-semibold text-xs">BDM North</TabsTrigger>
+          <TabsTrigger value="bdm-south" className="font-semibold text-xs">BDM South</TabsTrigger>
+          <TabsTrigger value="am-90" className="font-semibold text-xs">AM 90</TabsTrigger>
+          <TabsTrigger value="playbooks" className="font-semibold text-xs">Playbooks</TabsTrigger>
+          <TabsTrigger value="ai-report" className="font-semibold text-xs bg-accent/10 text-accent">AI Report</TabsTrigger>
+          <TabsTrigger value="users" className="font-semibold text-xs"><Users className="w-3.5 h-3.5 mr-1.5" /> Users</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
@@ -316,18 +316,18 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
            <AIDealWhisperer deals={allDeals || []} />
            <HistoricalActivity />
            <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
-           <Card className="border-none shadow-2xl bg-white overflow-hidden">
-              <CardHeader className="bg-slate-900 text-white pb-6">
-                <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+           <Card className="border-none shadow-2xl bg-card overflow-hidden">
+              <CardHeader className="bg-primary text-white pb-6">
+                <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2">
                   <Target className="w-5 h-5 text-accent" />
                   Master Strategy Ledger
                 </CardTitle>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aggregate Team "Top 8" selection for Week {currentWeek.split('-')[1]}</p>
+                <p className="text-xs font-bold text-muted-foreground">Aggregate Team "Top 8" selection for Week {currentWeek.split('-')[1]}</p>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                    <table className="w-full text-sm">
-                      <thead className="bg-slate-50 uppercase text-[9px] font-black tracking-widest border-b">
+                      <thead className="bg-secondary/60 text-xs font-semibold border-b">
                          <tr>
                             <th className="px-6 py-3 text-left">BDM Identity</th>
                             <th className="px-4 py-3 text-left">Opportunity / Account</th>
@@ -346,8 +346,8 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
                                lastBarrierText: deal.lastBarrierText || ''
                             });
                             return (
-                               <tr key={i} className="hover:bg-slate-50 transition-colors group">
-                                  <td className="px-6 py-4 font-black uppercase text-[10px] text-primary whitespace-nowrap">
+                               <tr key={i} className="hover:bg-secondary/60 transition-colors group">
+                                  <td className="px-6 py-4 font-semibold text-xs text-primary whitespace-nowrap">
                                      {deal.userName || 'Unknown'}
                                   </td>
                                   <td className="px-4 py-4">
@@ -355,24 +355,24 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
                                        onClick={() => openSalesforceSearch(deal.pipeline, deal.salesforceId)}
                                        className="flex items-center gap-2 hover:text-accent transition-colors group/link text-left"
                                      >
-                                       <span className="text-xs font-bold text-slate-800 uppercase leading-tight truncate max-w-[200px]">{deal.pipeline}</span>
+                                       <span className="text-xs font-bold text-foreground leading-tight truncate max-w-[200px]">{deal.pipeline}</span>
                                        <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover/link:opacity-100 transition-opacity shrink-0" />
                                      </button>
                                   </td>
                                   <td className="px-4 py-4">
-                                     <Badge variant="outline" className={`text-[8px] font-black uppercase ${m.color} ${m.bg}`}>{m.score}</Badge>
+                                     <Badge variant="outline" className={`text-xs font-semibold ${m.color} ${m.bg}`}>{m.score}</Badge>
                                   </td>
-                                  <td className="px-4 py-4 text-right font-black">${(Number(deal.value || 0) / 1000000).toFixed(2)}M</td>
+                                  <td className="px-4 py-4 text-right font-bold">${(Number(deal.value || 0) / 1000000).toFixed(2)}M</td>
                                   <td className="px-4 py-4 text-xs font-bold text-muted-foreground">{deal.stage}</td>
-                                  <td className="px-4 py-4 text-[10px] font-medium text-slate-600 italic">"{deal.actionsForBen || 'TBC'}"</td>
+                                  <td className="px-4 py-4 text-xs font-medium text-foreground/75 italic">"{deal.actionsForBen || 'TBC'}"</td>
                                </tr>
                             );
                          })}
                          {(!allDeals || allDeals.filter(d => d.isReviewSelected).length === 0) && (
                             <tr>
-                               <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground uppercase font-black text-xs tracking-widest">
+                               <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground font-semibold text-xs">
                                   No team priorities selected for review.
-                                  <p className="text-[10px] font-bold mt-1 text-slate-400">Instruct BDMs to select their "Top 8" from their Strategy Ledger.</p>
+                                  <p className="text-xs font-bold mt-1 text-muted-foreground">Instruct BDMs to select their "Top 8" from their Strategy Ledger.</p>
                                </td>
                             </tr>
                          )}
@@ -444,12 +444,12 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
           <div className="flex-1 overflow-y-auto p-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
+                <TableHeader className="bg-secondary/60 sticky top-0 z-10 shadow-sm border-b">
                   <TableRow>
-                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">BDM / AM</TableHead>
-                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Account Name</TableHead>
-                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Code</TableHead>
-                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">YTD Revenue</TableHead>
+                    <TableHead className="font-semibold text-muted-foreground text-xs px-6">BDM / AM</TableHead>
+                    <TableHead className="font-semibold text-muted-foreground text-xs px-6">Account Name</TableHead>
+                    <TableHead className="font-semibold text-muted-foreground text-xs px-6">Code</TableHead>
+                    <TableHead className="font-semibold text-muted-foreground text-xs text-right px-6">YTD Revenue</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -457,13 +457,13 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
                     <TableRow key={i}>
                       <TableCell className="font-medium text-xs text-primary px-6">{userMap.get(r.userId) || r.userName || r.userId}</TableCell>
                       <TableCell className="font-bold text-sm px-6">{r.pipeline || r.accountName || '—'}</TableCell>
-                      <TableCell className="text-xs text-slate-500 px-6">{r.accountMasterCode || '—'}</TableCell>
-                      <TableCell className="text-right font-black px-6">${(Number(r.currentRevenue) || 0).toLocaleString()}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground px-6">{r.accountMasterCode || '—'}</TableCell>
+                      <TableCell className="text-right font-bold px-6">${(Number(r.currentRevenue) || 0).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                   {filteredRevRecords.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-12 font-bold text-slate-400">No matching records found.</TableCell>
+                      <TableCell colSpan={4} className="text-center py-12 font-bold text-muted-foreground">No matching records found.</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -500,24 +500,24 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
           <div className="flex-1 overflow-y-auto p-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm border-b">
+                <TableHeader className="bg-secondary/60 sticky top-0 z-10 shadow-sm border-b">
                   <TableRow>
-                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] px-6">Team Member</TableHead>
-                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">CRM (Live)</TableHead>
-                    <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[10px] text-right px-6">Manual (Live)</TableHead>
+                    <TableHead className="font-semibold text-muted-foreground text-xs px-6">Team Member</TableHead>
+                    <TableHead className="font-semibold text-muted-foreground text-xs text-right px-6">CRM (Live)</TableHead>
+                    <TableHead className="font-semibold text-muted-foreground text-xs text-right px-6">Manual (Live)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredActivityRecords.map((act, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-bold text-sm text-primary px-6">{userMap.get(act.userId) || act.userId}</TableCell>
-                      <TableCell className="text-right font-black text-blue-600 px-6">{openModal === 'APPS' ? (act.crmApps || 0) : (act.crmCalls || 0)}</TableCell>
-                      <TableCell className="text-right font-black text-slate-700 px-6">{openModal === 'APPS' ? (act.apps || 0) : (act.calls || 0)}</TableCell>
+                      <TableCell className="text-right font-bold text-accent px-6">{openModal === 'APPS' ? (act.crmApps || 0) : (act.crmCalls || 0)}</TableCell>
+                      <TableCell className="text-right font-bold text-foreground/85 px-6">{openModal === 'APPS' ? (act.apps || 0) : (act.calls || 0)}</TableCell>
                     </TableRow>
                   ))}
                   {filteredActivityRecords.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-12 font-bold text-slate-400">No matching activity data found.</TableCell>
+                      <TableCell colSpan={3} className="text-center py-12 font-bold text-muted-foreground">No matching activity data found.</TableCell>
                     </TableRow>
                   )}
                 </TableBody>

@@ -118,14 +118,14 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
         </DialogHeader>
         <div className="space-y-6 py-4">
           
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-            <h3 className="text-xs font-black uppercase text-indigo-700 tracking-wider">State Assignment</h3>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-normal">
+          <div className="p-4 bg-secondary/60 border border-border rounded-xl space-y-2">
+            <h3 className="text-xs font-semibold text-primary">State Assignment</h3>
+            <p className="text-xs text-muted-foreground font-bold leading-normal">
               Assign the correct state/region for this submission and user profile. Changing this will update the collation tab and PDF reports.
             </p>
             <div className="flex items-center gap-3">
               <Select value={submissionState} onValueChange={setSubmissionState}>
-                <SelectTrigger className="h-9 font-bold text-xs bg-white w-48 border-slate-200">
+                <SelectTrigger className="h-9 font-bold text-xs bg-card w-48 border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -135,20 +135,20 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
                   <SelectItem value="SME" className="font-bold">SME</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-[10px] font-bold text-slate-500 italic">
-                Current Assigned State: <Badge className="ml-1 bg-indigo-100 text-indigo-800 border-none uppercase text-[9px] font-black">{submission.state || 'WA'}</Badge>
+              <span className="text-xs font-bold text-muted-foreground italic">
+                Current Assigned State: <Badge className="ml-1 bg-info-soft text-primary border-none text-xs font-semibold">{submission.state || 'WA'}</Badge>
               </span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-bold uppercase">Key Wins</h3>
+            <h3 className="text-sm font-bold">Key Wins</h3>
             <div className="space-y-2">
               {wins.map((w, idx) => (
-                <div key={w.id} className="p-3 bg-slate-50 border rounded-lg space-y-2 relative">
+                <div key={w.id} className="p-3 bg-secondary/60 border rounded-lg space-y-2 relative">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold">Win #{idx + 1}</span>
-                    <Button variant="ghost" size="icon" onClick={() => removeRow(setWins, wins, w.id)} className="h-6 w-6 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => removeRow(setWins, wins, w.id)} className="h-6 w-6 text-destructive"><Trash2 className="w-3 h-3" /></Button>
                   </div>
                   <Input value={w.customer} onChange={e => updateField(setWins, wins, w.id, 'customer', e.target.value)} placeholder="Customer" className="h-8 text-xs" />
                   <div className="flex gap-2">
@@ -157,7 +157,7 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {BUSINESS_UNITS.map(bu => (
-                      <Badge key={bu} variant={(w.businessUnits || []).includes(bu) ? 'default' : 'outline'} className="cursor-pointer text-[9px] px-1 py-0" onClick={() => toggleBU(setWins, wins, w.id, bu)}>{bu}</Badge>
+                      <Badge key={bu} variant={(w.businessUnits || []).includes(bu) ? 'default' : 'outline'} className="cursor-pointer text-xs px-1 py-0" onClick={() => toggleBU(setWins, wins, w.id, bu)}>{bu}</Badge>
                     ))}
                   </div>
                   <Input value={w.updateText} onChange={e => updateField(setWins, wins, w.id, 'updateText', e.target.value)} placeholder="Update text" className="h-8 text-xs" maxLength={200} />
@@ -168,19 +168,19 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-bold uppercase">Major Updates</h3>
+            <h3 className="text-sm font-bold">Major Updates</h3>
             {updates && majorUpdates.length === 0 && (
-              <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
-                <p className="text-xs text-amber-800 font-medium mb-1">Legacy Update Format:</p>
+              <div className="p-3 bg-warning-soft border border-warning/20 rounded-lg">
+                <p className="text-xs text-warning-ink font-medium mb-1">Legacy Update Format:</p>
                 <Textarea value={typeof updates === 'string' ? updates : ''} onChange={e => setUpdates(e.target.value)} rows={3} className="text-xs" />
               </div>
             )}
             <div className="space-y-2">
               {majorUpdates.map((m, idx) => (
-                <div key={m.id} className="p-3 bg-slate-50 border rounded-lg space-y-2 relative">
+                <div key={m.id} className="p-3 bg-secondary/60 border rounded-lg space-y-2 relative">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold">Update #{idx + 1}</span>
-                    <Button variant="ghost" size="icon" onClick={() => removeRow(setMajorUpdates, majorUpdates, m.id)} className="h-6 w-6 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => removeRow(setMajorUpdates, majorUpdates, m.id)} className="h-6 w-6 text-destructive"><Trash2 className="w-3 h-3" /></Button>
                   </div>
                   <Input value={m.customer} onChange={e => updateField(setMajorUpdates, majorUpdates, m.id, 'customer', e.target.value)} placeholder="Customer" className="h-8 text-xs" />
                   <div className="flex gap-2">
@@ -189,7 +189,7 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {BUSINESS_UNITS.map(bu => (
-                      <Badge key={bu} variant={(m.businessUnits || []).includes(bu) ? 'default' : 'outline'} className="cursor-pointer text-[9px] px-1 py-0" onClick={() => toggleBU(setMajorUpdates, majorUpdates, m.id, bu)}>{bu}</Badge>
+                      <Badge key={bu} variant={(m.businessUnits || []).includes(bu) ? 'default' : 'outline'} className="cursor-pointer text-xs px-1 py-0" onClick={() => toggleBU(setMajorUpdates, majorUpdates, m.id, bu)}>{bu}</Badge>
                     ))}
                   </div>
                   <Input value={m.updateText} onChange={e => updateField(setMajorUpdates, majorUpdates, m.id, 'updateText', e.target.value)} placeholder="Update text" className="h-8 text-xs" maxLength={200} />
@@ -200,22 +200,22 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-bold uppercase">Churn Risks</h3>
+            <h3 className="text-sm font-bold">Churn Risks</h3>
             <div className="space-y-2">
               {risks.map((r, idx) => (
-                <div key={r.id} className="p-3 bg-slate-50 border rounded-lg space-y-2 relative">
+                <div key={r.id} className="p-3 bg-secondary/60 border rounded-lg space-y-2 relative">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold">Risk #{idx + 1}</span>
-                    <Button variant="ghost" size="icon" onClick={() => removeRow(setRisks, risks, r.id)} className="h-6 w-6 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => removeRow(setRisks, risks, r.id)} className="h-6 w-6 text-destructive"><Trash2 className="w-3 h-3" /></Button>
                   </div>
                   <Input value={r.account} onChange={e => updateField(setRisks, risks, r.id, 'account', e.target.value)} placeholder="Account" className="h-8 text-xs" />
                   <div className="flex gap-2">
                     <Input type="number" value={r.value || ''} onChange={e => updateField(setRisks, risks, r.id, 'value', parseFloat(e.target.value) || 0)} placeholder="Value" className="h-8 text-xs w-1/3" />
                     <Input value={r.salespersonName} onChange={e => updateField(setRisks, risks, r.id, 'salespersonName', e.target.value)} placeholder="Salesperson" className="h-8 text-xs flex-1" />
                   </div>
-                  <div className="flex flex-wrap gap-1 p-1 rounded-xl transition-all border border-slate-100">
+                  <div className="flex flex-wrap gap-1 p-1 rounded-xl transition-all border border-border">
                       {BUSINESS_UNITS.map(bu => (
-                        <Badge key={bu} variant={(r.businessUnits || []).includes(bu) ? 'default' : 'outline'} className="cursor-pointer text-[9px] px-1 py-0" onClick={() => toggleBU(setRisks, risks, r.id, bu)}>{bu}</Badge>
+                        <Badge key={bu} variant={(r.businessUnits || []).includes(bu) ? 'default' : 'outline'} className="cursor-pointer text-xs px-1 py-0" onClick={() => toggleBU(setRisks, risks, r.id, bu)}>{bu}</Badge>
                       ))}
                     </div>
                   <Input value={r.mitigation} onChange={e => updateField(setRisks, risks, r.id, 'mitigation', e.target.value)} placeholder="Mitigation" className="h-8 text-xs" />
@@ -226,16 +226,16 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-bold uppercase">Projected Wins</h3>
+            <h3 className="text-sm font-bold">Projected Wins</h3>
             <div className="space-y-2">
               {projectedWins.map((p, idx) => {
                 const dateParts = p.expectedDate ? p.expectedDate.split('-') : [];
                 const selectedDate = dateParts.length === 3 ? new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])) : undefined;
                 return (
-                <div key={p.id} className="p-3 bg-slate-50 border rounded-lg space-y-2 relative">
+                <div key={p.id} className="p-3 bg-secondary/60 border rounded-lg space-y-2 relative">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold">Projected #{idx + 1}</span>
-                    <Button variant="ghost" size="icon" onClick={() => removeRow(setProjectedWins, projectedWins, p.id)} className="h-6 w-6 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => removeRow(setProjectedWins, projectedWins, p.id)} className="h-6 w-6 text-destructive"><Trash2 className="w-3 h-3" /></Button>
                   </div>
                   <Input value={p.account} onChange={e => updateField(setProjectedWins, projectedWins, p.id, 'account', e.target.value)} placeholder="Account" className="h-8 text-xs" />
                   <div className="flex gap-2">
@@ -245,7 +245,7 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
                   <div className="flex gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className={cn("w-1/3 h-8 px-2 text-left font-normal text-xs bg-white", !p.expectedDate && "text-muted-foreground")}>
+                        <Button variant="outline" className={cn("w-1/3 h-8 px-2 text-left font-normal text-xs bg-card", !p.expectedDate && "text-muted-foreground")}>
                           <CalendarIcon className="mr-2 h-3 w-3" />
                           {p.expectedDate ? p.expectedDate : <span>Pick date</span>}
                         </Button>
@@ -268,13 +268,13 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-bold uppercase">Priorities</h3>
+            <h3 className="text-sm font-bold">Priorities</h3>
             <div className="space-y-2">
               {priorities.map((p, idx) => (
-                <div key={p.id} className="p-3 bg-slate-50 border rounded-lg space-y-2 relative flex gap-2">
+                <div key={p.id} className="p-3 bg-secondary/60 border rounded-lg space-y-2 relative flex gap-2">
                   <Input value={p.text} onChange={e => updateField(setPriorities, priorities, p.id, 'text', e.target.value)} placeholder="Priority" className="h-8 text-xs flex-1" />
                   <Input value={p.salespersonName} onChange={e => updateField(setPriorities, priorities, p.id, 'salespersonName', e.target.value)} placeholder="Salesperson" className="h-8 text-xs w-[30%]" />
-                  <Button variant="ghost" size="icon" onClick={() => removeRow(setPriorities, priorities, p.id)} className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => removeRow(setPriorities, priorities, p.id)} className="h-8 w-8 text-destructive"><Trash2 className="w-3 h-3" /></Button>
                 </div>
               ))}
               <Button onClick={addPriorityRow} variant="outline" size="sm" className="w-full text-xs"><Plus className="w-3 h-3 mr-1" /> Add Priority</Button>
@@ -282,7 +282,7 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
           </div>
 
           <div className="space-y-2 pt-4 border-t">
-            <h3 className="text-sm font-bold uppercase text-indigo-700">Friday Pack Fields</h3>
+            <h3 className="text-sm font-bold text-primary">Friday Pack Fields</h3>
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold">Next Week Actions</label>
@@ -293,7 +293,7 @@ export function TwiwEditDialog({ submission, open, onOpenChange }: { submission:
                       newA[i] = e.target.value;
                       setNextWeekActions(newA);
                     }} className="h-8 text-xs flex-1" />
-                    <Button variant="ghost" size="icon" onClick={() => setNextWeekActions(nextWeekActions.filter((_, idx) => idx !== i))} className="h-8 w-8 text-red-500"><Trash2 className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setNextWeekActions(nextWeekActions.filter((_, idx) => idx !== i))} className="h-8 w-8 text-destructive"><Trash2 className="w-3 h-3" /></Button>
                   </div>
                 ))}
                 <Button onClick={() => setNextWeekActions([...nextWeekActions, ''])} variant="outline" size="sm" className="w-full text-xs"><Plus className="w-3 h-3 mr-1" /> Add Action</Button>

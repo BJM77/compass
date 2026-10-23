@@ -281,7 +281,7 @@ export function FridayPerformanceReview({
         notes: plan.purpose || plan.notes || plan.objective,
         businessUnit: plan.businessUnit,
         type: 'Call Plan Visit',
-        badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
+        badgeColor: 'bg-success-soft text-success-ink border-none',
         salesforceId: plan.salesforceId
       });
     });
@@ -299,7 +299,7 @@ export function FridayPerformanceReview({
         notes: lead.notes || lead.leadTopic || lead.freightProfile,
         businessUnit: lead.businessUnit,
         type: 'Field Visit',
-        badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
+        badgeColor: 'bg-info-soft text-primary border-none',
         salesforceId: lead.salesforceId
       });
     });
@@ -317,7 +317,7 @@ export function FridayPerformanceReview({
           notes: act.subject || act.notes || `${appCount} completed CRM meeting(s) logged`,
           businessUnit: act.businessUnit,
           type: 'CRM Meeting',
-          badgeColor: 'bg-blue-100 text-blue-800 border-none',
+          badgeColor: 'bg-info-soft text-primary border-none',
           salesforceId: act.salesforceId
         });
       }
@@ -331,7 +331,7 @@ export function FridayPerformanceReview({
         dateTime: getFormattedDateTime(ws) || `Whitespace Plan (Week ${currentWeek.split('-')[1]})`,
         notes: ws.notes || ws.strategy || 'Account whitespace review meeting',
         type: 'Whitespace Review',
-        badgeColor: 'bg-purple-100 text-purple-800 border-none',
+        badgeColor: 'bg-info-soft text-primary border-none',
         salesforceId: ws.salesforceId
       });
     });
@@ -350,7 +350,7 @@ export function FridayPerformanceReview({
           notes: opp?.stage ? `Meeting completed · Stage: ${opp.stage} · BU: ${opp.businessUnit || 'General'}` : 'Completed client appointment logged in CRM',
           businessUnit: opp?.businessUnit,
           type: 'Completed Appointment',
-          badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
+          badgeColor: 'bg-success-soft text-success-ink border-none',
           salesforceId: opp?.salesforceId
         });
       }
@@ -427,7 +427,7 @@ export function FridayPerformanceReview({
         notes: plan.notes || plan.purpose || 'Scheduled phone outreach',
         businessUnit: plan.businessUnit,
         type: 'Call Plan',
-        badgeColor: 'bg-blue-100 text-blue-800 border-none',
+        badgeColor: 'bg-info-soft text-primary border-none',
         salesforceId: plan.salesforceId
       });
     });
@@ -443,7 +443,7 @@ export function FridayPerformanceReview({
           contactName: act.contactName || act.contact,
           notes: act.subject || act.notes || `${callCount} phone call interactions logged`,
           type: 'CRM Phone Calls',
-          badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
+          badgeColor: 'bg-info-soft text-primary border-none',
           salesforceId: act.salesforceId
         });
       }
@@ -463,7 +463,7 @@ export function FridayPerformanceReview({
           notes: opp?.stage ? `Phone outreach call · Stage: ${opp.stage} · BU: ${opp.businessUnit || 'General'}` : 'Client phone call logged in CRM',
           businessUnit: opp?.businessUnit,
           type: 'Phone Call Logged',
-          badgeColor: 'bg-blue-100 text-blue-800 border-none',
+          badgeColor: 'bg-info-soft text-primary border-none',
           salesforceId: opp?.salesforceId
         });
       }
@@ -901,7 +901,7 @@ export function FridayPerformanceReview({
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-accent" />
-        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+        <p className="text-xs font-semibold text-muted-foreground">
           Loading your performance data...
         </p>
       </div>
@@ -913,32 +913,32 @@ export function FridayPerformanceReview({
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* Super Admin / Leader Representative Selector */}
       {isSuperAdminOrLeader && (
-        <Card className="border-2 border-indigo-500 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl p-4">
+        <Card className="border-2 border-accent bg-gradient-to-r from-primary via-primary to-primary text-white shadow-xl p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-500 text-slate-950 rounded-xl font-bold shadow-md shrink-0">
+              <div className="p-2.5 bg-success-fill text-foreground rounded-xl font-bold shadow-md shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2">
                   Super Admin 1-on-1 Friday Review Mode
                   {adminReviewedBy && (
-                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
+                    <Badge className="bg-success-fill/20 text-success border-success/40 text-xs">
                       ✓ Reviewed
                     </Badge>
                   )}
                 </h3>
-                <p className="text-xs text-indigo-200 mt-0.5">
-                  Reviewing: <strong className="text-emerald-300 font-bold">{activeUserName}</strong> ({activeUserRole})
+                <p className="text-xs text-info/70 mt-0.5">
+                  Reviewing: <strong className="text-success font-bold">{activeUserName}</strong> ({activeUserRole})
                 </p>
               </div>
             </div>
 
             <div className="w-full sm:w-auto shrink-0 flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-indigo-200">Rep:</span>
+                <span className="text-xs font-bold text-info/70">Rep:</span>
                 <Select value={selectedRepId} onValueChange={(val) => setSelectedRepId(val)}>
-                  <SelectTrigger className="w-[190px] bg-white text-slate-900 font-bold text-xs h-10">
+                  <SelectTrigger className="w-[190px] bg-card text-foreground font-bold text-xs h-10">
                     <SelectValue placeholder="Select BDM / AM" />
                   </SelectTrigger>
                   <SelectContent>
@@ -952,9 +952,9 @@ export function FridayPerformanceReview({
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-indigo-200">Week:</span>
+                <span className="text-xs font-bold text-info/70">Week:</span>
                 <Select value={activeWeek} onValueChange={(val) => setActiveWeek(val)}>
-                  <SelectTrigger className="w-[160px] bg-white text-slate-900 font-bold text-xs h-10">
+                  <SelectTrigger className="w-[160px] bg-card text-foreground font-bold text-xs h-10">
                     <SelectValue placeholder="Select Week" />
                   </SelectTrigger>
                   <SelectContent>
@@ -976,31 +976,31 @@ export function FridayPerformanceReview({
       )}
 
       {/* Header */}
-      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-primary p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-12 opacity-5">
           <TrendingUp className="w-64 h-64" />
         </div>
         <div className="relative z-10 space-y-2">
-          <Badge className="bg-accent text-white font-black text-[9px] uppercase tracking-widest px-3 mb-2">
+          <Badge className="bg-accent text-white font-semibold text-xs px-3 mb-2">
             Friday Performance Review
           </Badge>
-          <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">
+          <h2 className="text-3xl font-extrabold tracking-tighter leading-none">
             Week {currentWeek.split('-')[1]} Review &amp; Week {nextWeek.split('-')[1]} Planning
           </h2>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground">
             {activeUserName} · {activeUserRole} · {activeUserState} Region
           </p>
         </div>
         <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full lg:w-auto justify-end">
           <div className="text-right hidden sm:block mr-2">
-            <p className="text-[10px] font-black text-accent uppercase tracking-widest">Revenue YTD</p>
-            <p className="text-3xl font-black">{formatEAV(currentWeekData.revenue.ytd)}</p>
+            <p className="text-xs font-semibold text-accent">Revenue YTD</p>
+            <p className="text-3xl font-extrabold">{formatEAV(currentWeekData.revenue.ytd)}</p>
           </div>
           <Button 
             variant="outline" 
             onClick={handleSaveDraft} 
             disabled={isSaving || isSubmitting} 
-            className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs w-full sm:w-auto"
+            className="font-semibold h-16 px-6 rounded-2xl shadow-sm gap-2 border-primary/70 bg-primary text-primary-foreground/85 hover:bg-primary/90 hover:text-white text-xs w-full sm:w-auto"
           >
             {isSaving ? <Loader2 className="animate-spin w-5 h-5" /> : <Save className="w-5 h-5" />}
             Save Draft
@@ -1008,7 +1008,7 @@ export function FridayPerformanceReview({
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting || isSaving} 
-            className="bg-accent hover:bg-accent/90 text-white font-black h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto"
+            className="bg-accent hover:bg-accent/90 text-white font-semibold h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto"
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : <Send className="w-5 h-5" />}
             Submit Friday Pack
@@ -1022,7 +1022,7 @@ export function FridayPerformanceReview({
           <CardHeader className="pb-3 border-b border-accent/10">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-black uppercase text-accent tracking-tighter flex items-center gap-2">
+                <CardTitle className="text-lg font-bold text-accent tracking-tighter flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
                   This Week's Active Plan (Submitted Last Week)
                 </CardTitle>
@@ -1033,7 +1033,7 @@ export function FridayPerformanceReview({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-[10px] font-black uppercase tracking-widest border-accent text-accent hover:bg-accent hover:text-white"
+                className="text-xs font-semibold border-accent text-accent hover:bg-accent hover:text-white"
                 onClick={() => setShowPreviousPlan(!showPreviousPlan)}
               >
                 {showPreviousPlan ? (
@@ -1047,44 +1047,44 @@ export function FridayPerformanceReview({
           {showPreviousPlan && (
             <CardContent className="p-6 space-y-6">
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Strategic Focus & Narrative</h4>
-                <p className="text-sm text-slate-700 bg-white p-4 rounded-xl border border-slate-100 italic whitespace-pre-wrap">
+                <h4 className="text-xs font-semibold text-muted-foreground mb-2">Strategic Focus & Narrative</h4>
+                <p className="text-sm text-foreground/85 bg-card p-4 rounded-xl border border-border italic whitespace-pre-wrap">
                   {previousFridayFw.strategicFocus || previousFridayFw.weeklyNotes || 'No narrative provided.'}
                 </p>
               </div>
               
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Key Actions Planned</h4>
-                <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
+                <h4 className="text-xs font-semibold text-muted-foreground mb-2">Key Actions Planned</h4>
+                <div className="bg-card rounded-xl border border-border divide-y divide-border">
                   {previousFridayFw.actionPlan && previousFridayFw.actionPlan.length > 0 ? (
                     previousFridayFw.actionPlan.map((action: string, i: number) => (
                       <div key={i} className="p-3 text-sm flex gap-3">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span className="font-medium text-slate-700">{action}</span>
+                        <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                        <span className="font-medium text-foreground/85">{action}</span>
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 text-xs italic text-slate-400">No actions planned.</div>
+                    <div className="p-4 text-xs italic text-muted-foreground">No actions planned.</div>
                   )}
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Focus Accounts</h4>
+                <h4 className="text-xs font-semibold text-muted-foreground mb-2">Focus Accounts</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {previousFridayFw.focusAccounts && previousFridayFw.focusAccounts.length > 0 ? (
                     previousFridayFw.focusAccounts.map((acc: any, i: number) => (
-                      <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col gap-1">
+                      <div key={i} className="bg-card p-3 rounded-xl border border-border shadow-sm flex flex-col gap-1">
                         <div className="flex justify-between items-start">
-                          <span className="font-black text-sm text-primary">{acc.accountName}</span>
-                          <Badge variant="outline" className="text-[9px] uppercase">{acc.actionType}</Badge>
+                          <span className="font-semibold text-sm text-primary">{acc.accountName}</span>
+                          <Badge variant="outline" className="text-xs">{acc.actionType}</Badge>
                         </div>
                         <span className="text-xs font-bold text-accent">{formatEAV(acc.eav)}</span>
-                        {acc.aboutAccount && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{acc.aboutAccount}</p>}
+                        {acc.aboutAccount && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{acc.aboutAccount}</p>}
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-full p-4 text-xs italic text-slate-400 bg-white rounded-xl border border-slate-100">No focus accounts planned.</div>
+                    <div className="col-span-full p-4 text-xs italic text-muted-foreground bg-card rounded-xl border border-border">No focus accounts planned.</div>
                   )}
                 </div>
               </div>
@@ -1094,19 +1094,19 @@ export function FridayPerformanceReview({
       )}
       
       {/* ─── Section 1: Previous Week Performance (CRM Data) ───────────────── */}
-      <Card className="border-none shadow-xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b py-5">
+      <Card className="border-none shadow-xl bg-card overflow-hidden">
+        <CardHeader className="bg-secondary/60 border-b py-5">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+              <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-accent" />
                 Week {currentWeek.split('-')[1]} Performance Summary
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+              <CardDescription className="text-xs font-bold text-muted-foreground mt-0.5">
                 Combined CRM data and Thursday TWTW submission
               </CardDescription>
             </div>
-            <Badge className="bg-green-100 text-green-700 border-none font-bold text-[9px] uppercase">
+            <Badge className="bg-success-soft text-success-ink border-none font-bold text-xs">
               <CheckCircle2 className="w-3 h-3 mr-1" /> {currentWeekData.wins.length} Wins
             </Badge>
           </div>
@@ -1117,17 +1117,17 @@ export function FridayPerformanceReview({
             {/* 1. Calls Card */}
             <div 
               onClick={() => setKpiModalType('CALLS')}
-              className="bg-blue-50 hover:bg-blue-100/80 p-4 rounded-2xl border border-blue-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-info-soft hover:bg-info-soft/80 p-4 rounded-2xl border border-info/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <Phone className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Calls</p>
+                  <Phone className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
+                  <p className="text-xs font-semibold text-accent">Calls</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-black text-slate-800">{currentWeekData.activity.calls}</p>
-              <p className="text-[9px] font-semibold text-blue-600/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-extrabold text-foreground">{currentWeekData.activity.calls}</p>
+              <p className="text-xs font-semibold text-accent/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1135,17 +1135,17 @@ export function FridayPerformanceReview({
             {/* 2. Appointments Card */}
             <div 
               onClick={() => setKpiModalType('APPOINTMENTS')}
-              className="bg-emerald-50 hover:bg-emerald-100/80 p-4 rounded-2xl border border-emerald-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-success-soft hover:bg-success-soft/80 p-4 rounded-2xl border border-success/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <CalendarCheck className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Appointments</p>
+                  <CalendarCheck className="w-4 h-4 text-success-ink group-hover:scale-110 transition-transform" />
+                  <p className="text-xs font-semibold text-success-ink">Appointments</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-success opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-black text-slate-800">{currentWeekData.activity.apps}</p>
-              <p className="text-[9px] font-semibold text-emerald-600/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-extrabold text-foreground">{currentWeekData.activity.apps}</p>
+              <p className="text-xs font-semibold text-success-ink/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1153,17 +1153,17 @@ export function FridayPerformanceReview({
             {/* 3. Opportunities Card */}
             <div 
               onClick={() => setKpiModalType('OPPORTUNITIES')}
-              className="bg-purple-50 hover:bg-purple-100/80 p-4 rounded-2xl border border-purple-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-info-soft hover:bg-info-soft/80 p-4 rounded-2xl border border-info/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <Briefcase className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest">Opportunities</p>
+                  <Briefcase className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
+                  <p className="text-xs font-semibold text-accent">Opportunities</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-black text-slate-800">{currentWeekData.opportunities.length}</p>
-              <p className="text-[9px] font-semibold text-purple-600/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-extrabold text-foreground">{currentWeekData.opportunities.length}</p>
+              <p className="text-xs font-semibold text-accent/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1171,17 +1171,17 @@ export function FridayPerformanceReview({
             {/* 4. Pipeline Value Card */}
             <div 
               onClick={() => setKpiModalType('PIPELINE_VALUE')}
-              className="bg-amber-50 hover:bg-amber-100/80 p-4 rounded-2xl border border-amber-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-warning-soft hover:bg-warning-soft/80 p-4 rounded-2xl border border-warning/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <DollarSign className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Pipeline Value</p>
+                  <DollarSign className="w-4 h-4 text-warning-ink group-hover:scale-110 transition-transform" />
+                  <p className="text-xs font-semibold text-warning-ink">Pipeline Value</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-warning opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-black text-slate-800">{formatEAV(currentWeekData.revenue.pipeline)}</p>
-              <p className="text-[9px] font-semibold text-amber-600/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-extrabold text-foreground">{formatEAV(currentWeekData.revenue.pipeline)}</p>
+              <p className="text-xs font-semibold text-warning-ink/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1189,17 +1189,17 @@ export function FridayPerformanceReview({
             {/* 5. Canvass Leads Card */}
             <div 
               onClick={() => setKpiModalType('CANVASS_LEADS')}
-              className="bg-indigo-50 hover:bg-indigo-100/80 p-4 rounded-2xl border border-indigo-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-info-soft hover:bg-info-soft/80 p-4 rounded-2xl border border-info/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Canvass Leads</p>
+                  <MapPin className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
+                  <p className="text-xs font-semibold text-accent">Canvass Leads</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-black text-slate-800">{currentWeekCanvassLeadsCount}</p>
-              <p className="text-[9px] font-semibold text-indigo-600/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-extrabold text-foreground">{currentWeekCanvassLeadsCount}</p>
+              <p className="text-xs font-semibold text-accent/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1212,12 +1212,12 @@ export function FridayPerformanceReview({
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   <ExternalLink className="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-[9px] font-black text-teal-600 uppercase tracking-widest">Sent to SF</p>
+                  <p className="text-xs font-semibold text-teal-600">Sent to SF</p>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-black text-slate-800">{currentWeekSalesforceLeadsCount}</p>
-              <p className="text-[9px] font-semibold text-teal-600/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-extrabold text-foreground">{currentWeekSalesforceLeadsCount}</p>
+              <p className="text-xs font-semibold text-teal-600/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1225,15 +1225,15 @@ export function FridayPerformanceReview({
           
           {/* CRM Opportunities Table */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+            <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
               <Target className="w-4 h-4 text-accent" />
               Active Opportunities ({currentWeekData.opportunities.length})
             </h4>
             {currentWeekData.opportunities.length > 0 ? (
               <div className="overflow-x-auto border rounded-xl">
                 <table className="w-full text-xs">
-                  <thead className="bg-slate-50 border-b">
-                    <tr className="text-[8px] font-black uppercase tracking-widest text-slate-500">
+                  <thead className="bg-secondary/60 border-b">
+                    <tr className="text-xs font-semibold text-muted-foreground">
                       <th className="px-4 py-2 text-left">Account</th>
                       <th className="px-4 py-2 text-left">Stage</th>
                       <th className="px-4 py-2 text-right">Value</th>
@@ -1242,14 +1242,14 @@ export function FridayPerformanceReview({
                   </thead>
                   <tbody className="divide-y">
                     {currentWeekData.opportunities.map((opp: any) => (
-                      <tr key={opp.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-2 font-bold text-slate-700">{opp.pipeline}</td>
+                      <tr key={opp.id} className="hover:bg-secondary/60">
+                        <td className="px-4 py-2 font-bold text-foreground/85">{opp.pipeline}</td>
                         <td className="px-4 py-2">
-                          <Badge variant="outline" className="text-[8px] font-black uppercase">
+                          <Badge variant="outline" className="text-xs font-semibold">
                             {opp.stage || 'Discovery'}
                           </Badge>
                         </td>
-                        <td className="px-4 py-2 text-right font-black">{formatEAV(opp.value || 0)}</td>
+                        <td className="px-4 py-2 text-right font-bold">{formatEAV(opp.value || 0)}</td>
                         <td className="px-4 py-2 text-right font-bold">{opp.probability || 0}%</td>
                       </tr>
                     ))}
@@ -1257,162 +1257,162 @@ export function FridayPerformanceReview({
                 </table>
               </div>
             ) : (
-              <p className="text-xs text-slate-400 italic">No active opportunities found in CRM for this week.</p>
+              <p className="text-xs text-muted-foreground italic">No active opportunities found in CRM for this week.</p>
             )}
           </div>
           
           {/* Thursday TWTW Data */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
             <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
-                <Award className="w-4 h-4 text-emerald-500" />
+              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
+                <Award className="w-4 h-4 text-success" />
                 Thursday TWTW Wins ({currentWeekData.wins.length})
               </h4>
               {currentWeekData.wins.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.wins.map((w: any, i: number) => (
-                    <div key={i} className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-                      <p className="font-bold text-slate-800">{w.customer}</p>
-                      <p className="text-sm font-black text-emerald-600">{formatEAV(w.value)}</p>
-                      {w.updateText && <p className="text-xs text-slate-600 mt-1">{w.updateText}</p>}
+                    <div key={i} className="p-3 bg-success-soft border border-success/20 rounded-xl">
+                      <p className="font-bold text-foreground">{w.customer}</p>
+                      <p className="text-sm font-semibold text-success-ink">{formatEAV(w.value)}</p>
+                      {w.updateText && <p className="text-xs text-foreground/75 mt-1">{w.updateText}</p>}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic">No wins logged in Thursday TWTW.</p>
+                <p className="text-xs text-muted-foreground italic">No wins logged in Thursday TWTW.</p>
               )}
             </div>
             
             <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-500" />
+              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
                 Risks & Barriers
               </h4>
               {currentWeekData.risks.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.risks.map((r: any, i: number) => (
-                    <div key={i} className="p-3 bg-rose-50 border border-rose-100 rounded-xl">
-                      <p className="font-bold text-slate-800">{r.account}</p>
-                      <p className="text-sm font-black text-rose-600">{formatEAV(r.value)}</p>
-                      {r.mitigation && <p className="text-xs text-slate-600 mt-1">Mitigation: {r.mitigation}</p>}
+                    <div key={i} className="p-3 bg-danger-soft border border-destructive/20 rounded-xl">
+                      <p className="font-bold text-foreground">{r.account}</p>
+                      <p className="text-sm font-semibold text-destructive">{formatEAV(r.value)}</p>
+                      {r.mitigation && <p className="text-xs text-foreground/75 mt-1">Mitigation: {r.mitigation}</p>}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic">No risks logged in Thursday TWTW.</p>
+                <p className="text-xs text-muted-foreground italic">No risks logged in Thursday TWTW.</p>
               )}
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
             <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-500" />
+              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent" />
                 30 Day Projected Wins ({currentWeekData.projectedWins.length})
               </h4>
               {currentWeekData.projectedWins.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.projectedWins.map((w: any, i: number) => (
-                    <div key={i} className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                      <p className="font-bold text-slate-800">{w.account}</p>
+                    <div key={i} className="p-3 bg-info-soft border border-info/20 rounded-xl">
+                      <p className="font-bold text-foreground">{w.account}</p>
                       <div className="flex justify-between items-center mt-1">
-                        <p className="text-sm font-black text-blue-600">{formatEAV(w.value)}</p>
-                        <Badge variant="outline" className="text-[9px] bg-white text-slate-600">{w.expectedDate}</Badge>
+                        <p className="text-sm font-semibold text-accent">{formatEAV(w.value)}</p>
+                        <Badge variant="outline" className="text-xs bg-card text-foreground/75">{w.expectedDate}</Badge>
                       </div>
-                      {w.updateText && <p className="text-xs text-slate-600 mt-2">{w.updateText}</p>}
+                      {w.updateText && <p className="text-xs text-foreground/75 mt-2">{w.updateText}</p>}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic">No projected wins logged.</p>
+                <p className="text-xs text-muted-foreground italic">No projected wins logged.</p>
               )}
             </div>
             
             <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-purple-500" />
+              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-accent" />
                 Major Pipeline & Customer Updates ({currentWeekData.updates.length})
               </h4>
               {currentWeekData.updates.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.updates.map((u: any, i: number) => (
-                    <div key={i} className="p-3 bg-purple-50 border border-purple-100 rounded-xl">
-                      <p className="font-bold text-slate-800">{u.customer}</p>
-                      {u.value > 0 && <p className="text-sm font-black text-purple-600">{formatEAV(u.value)}</p>}
-                      <p className="text-xs text-slate-700 mt-1">{u.updateText}</p>
+                    <div key={i} className="p-3 bg-info-soft border border-info/20 rounded-xl">
+                      <p className="font-bold text-foreground">{u.customer}</p>
+                      {u.value > 0 && <p className="text-sm font-semibold text-accent">{formatEAV(u.value)}</p>}
+                      <p className="text-xs text-foreground/85 mt-1">{u.updateText}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic">No major updates logged.</p>
+                <p className="text-xs text-muted-foreground italic">No major updates logged.</p>
               )}
             </div>
           </div>
           
           {/* Weekly Compliance Audit */}
           <div className="pt-4 border-t space-y-4">
-            <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-success" />
               Weekly Compliance Audit
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Call Plans */}
               <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
+                <h5 className="text-xs font-semibold text-muted-foreground">📞 Call Plans</h5>
                 {userCallPlans.length > 0 ? (
                   <div className="space-y-2">
                     {userCallPlans.map((plan: any) => (
-                      <div key={plan.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
-                        <div className="font-bold text-slate-800">{plan.customerName || 'Unnamed'}</div>
-                        <div className="text-slate-500 mt-1 flex justify-between">
+                      <div key={plan.id} className="text-xs p-3 bg-card border rounded-xl shadow-sm">
+                        <div className="font-bold text-foreground">{plan.customerName || 'Unnamed'}</div>
+                        <div className="text-muted-foreground mt-1 flex justify-between">
                           <span>{plan.objective || 'No objective'}</span>
-                          <span className="font-black text-emerald-600">{plan.status || 'Draft'}</span>
+                          <span className="font-bold text-success-ink">{plan.status || 'Draft'}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Call Plans Created</p>
+                  <p className="text-xs font-semibold text-destructive bg-danger-soft border border-destructive/20 rounded-xl p-3">No Call Plans Created</p>
                 )}
               </div>
 
               {/* White Space */}
               <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🗺️ White Space Reports</h5>
+                <h5 className="text-xs font-semibold text-muted-foreground">🗺️ White Space Reports</h5>
                 {userWhitespace.length > 0 ? (
                   <div className="space-y-2">
                     {userWhitespace.map((ws: any) => (
-                      <div key={ws.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
-                        <div className="font-bold text-slate-800">{ws.customerName || 'Unnamed'}</div>
-                        <div className="text-slate-500 mt-1 flex justify-between">
+                      <div key={ws.id} className="text-xs p-3 bg-card border rounded-xl shadow-sm">
+                        <div className="font-bold text-foreground">{ws.customerName || 'Unnamed'}</div>
+                        <div className="text-muted-foreground mt-1 flex justify-between">
                           <span>{ws.competitor || 'No competitor listed'}</span>
-                          <span className="font-black text-emerald-600">{formatEAV(ws.estimatedValue || 0)}</span>
+                          <span className="font-bold text-success-ink">{formatEAV(ws.estimatedValue || 0)}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No White Space Reports Created</p>
+                  <p className="text-xs font-semibold text-destructive bg-danger-soft border border-destructive/20 rounded-xl p-3">No White Space Reports Created</p>
                 )}
               </div>
 
               {/* Ops Reports */}
               <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
+                <h5 className="text-xs font-semibold text-muted-foreground">⚠️ Ops Reports</h5>
                 {userOps.length > 0 ? (
                   <div className="space-y-2">
                     {userOps.map((op: any) => (
-                      <div key={op.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
-                        <div className="font-bold text-slate-800">{op.customerName || 'Unnamed'}</div>
-                        <div className="text-slate-500 mt-1 flex justify-between">
+                      <div key={op.id} className="text-xs p-3 bg-card border rounded-xl shadow-sm">
+                        <div className="font-bold text-foreground">{op.customerName || 'Unnamed'}</div>
+                        <div className="text-muted-foreground mt-1 flex justify-between">
                           <span className="truncate pr-2">{op.issueType || 'General'}</span>
-                          <span className={cn("font-black", op.status === 'Resolved' ? 'text-emerald-600' : 'text-amber-600')}>{op.status || 'Open'}</span>
+                          <span className={cn("font-bold", op.status === 'Resolved' ? 'text-success-ink' : 'text-warning-ink')}>{op.status || 'Open'}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl p-3">No Ops Issues Logged</p>
+                  <p className="text-xs font-semibold text-success-ink bg-success-soft border border-success/20 rounded-xl p-3">No Ops Issues Logged</p>
                 )}
               </div>
             </div>
@@ -1420,24 +1420,24 @@ export function FridayPerformanceReview({
           
           {/* User Narrative */}
           {currentWeekData.narrative && (
-            <div className="p-4 bg-slate-50 border rounded-xl">
-              <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">📝 Narrative Summary</p>
-              <p className="text-sm text-slate-700 whitespace-pre-wrap">{currentWeekData.narrative}</p>
+            <div className="p-4 bg-secondary/60 border rounded-xl">
+              <p className="text-xs font-semibold text-muted-foreground mb-2">📝 Narrative Summary</p>
+              <p className="text-sm text-foreground/85 whitespace-pre-wrap">{currentWeekData.narrative}</p>
             </div>
           )}
         </CardContent>
       </Card>
       
       {/* ─── Section 2: Next Week Planning ─────────────────────────────────── */}
-      <Card className="border-none shadow-xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b py-5">
+      <Card className="border-none shadow-xl bg-card overflow-hidden">
+        <CardHeader className="bg-secondary/60 border-b py-5">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+              <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2">
                 <Target className="w-5 h-5 text-accent" />
                 Week {nextWeek.split('-')[1]} Planning
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+              <CardDescription className="text-xs font-bold text-muted-foreground mt-0.5">
                 Set your KPI targets, focus accounts, and actions for the coming week
               </CardDescription>
             </div>
@@ -1446,10 +1446,10 @@ export function FridayPerformanceReview({
         <CardContent className="p-6 space-y-8">
           {/* KPI Targets */}
           <div className="space-y-4">
-            <h4 className="text-xs font-black uppercase text-slate-700">KPI Targets</h4>
+            <h4 className="text-xs font-semibold text-foreground/85">KPI Targets</h4>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="space-y-1">
-                <Label className="text-[8px] font-black uppercase text-slate-400">Calls Target</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Calls Target</Label>
                 <Input 
                   type="number" 
                   value={nextWeekPlan.kpiTargets.callsToMake} 
@@ -1457,11 +1457,11 @@ export function FridayPerformanceReview({
                     ...prev,
                     kpiTargets: { ...prev.kpiTargets, callsToMake: parseInt(e.target.value) || 0 }
                   }))}
-                  className="h-9 text-xs font-black"
+                  className="h-9 text-xs font-semibold"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[8px] font-black uppercase text-slate-400">Appts Target</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Appts Target</Label>
                 <Input 
                   type="number" 
                   value={nextWeekPlan.kpiTargets.appointmentsToSet} 
@@ -1469,11 +1469,11 @@ export function FridayPerformanceReview({
                     ...prev,
                     kpiTargets: { ...prev.kpiTargets, appointmentsToSet: parseInt(e.target.value) || 0 }
                   }))}
-                  className="h-9 text-xs font-black"
+                  className="h-9 text-xs font-semibold"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[8px] font-black uppercase text-slate-400">Proposals Target</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Proposals Target</Label>
                 <Input 
                   type="number" 
                   value={nextWeekPlan.kpiTargets.proposalsToSend} 
@@ -1481,11 +1481,11 @@ export function FridayPerformanceReview({
                     ...prev,
                     kpiTargets: { ...prev.kpiTargets, proposalsToSend: parseInt(e.target.value) || 0 }
                   }))}
-                  className="h-9 text-xs font-black"
+                  className="h-9 text-xs font-semibold"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[8px] font-black uppercase text-slate-400">Deals Target</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Deals Target</Label>
                 <Input 
                   type="number" 
                   value={nextWeekPlan.kpiTargets.dealsToClose} 
@@ -1493,11 +1493,11 @@ export function FridayPerformanceReview({
                     ...prev,
                     kpiTargets: { ...prev.kpiTargets, dealsToClose: parseInt(e.target.value) || 0 }
                   }))}
-                  className="h-9 text-xs font-black"
+                  className="h-9 text-xs font-semibold"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[8px] font-black uppercase text-slate-400">Revenue ($)</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Revenue ($)</Label>
                 <Input 
                   type="number" 
                   value={nextWeekPlan.kpiTargets.revenueTarget} 
@@ -1505,7 +1505,7 @@ export function FridayPerformanceReview({
                     ...prev,
                     kpiTargets: { ...prev.kpiTargets, revenueTarget: parseInt(e.target.value) || 0 }
                   }))}
-                  className="h-9 text-xs font-black"
+                  className="h-9 text-xs font-semibold"
                 />
               </div>
             </div>
@@ -1514,11 +1514,11 @@ export function FridayPerformanceReview({
           {/* Focus Accounts */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-black uppercase text-slate-700">Focus Accounts</h4>
+              <h4 className="text-xs font-semibold text-foreground/85">Focus Accounts</h4>
             </div>
             <div className="space-y-3">
               {nextWeekPlan.focusAccounts.map((acc) => (
-                <div key={acc.id} className="p-4 bg-slate-50 border rounded-xl space-y-3 relative group">
+                <div key={acc.id} className="p-4 bg-secondary/60 border rounded-xl space-y-3 relative group">
                   <div className="flex justify-between items-center gap-2">
                     <Input 
                       placeholder="Account Name..." 
@@ -1534,7 +1534,7 @@ export function FridayPerformanceReview({
                         setSelectorAccountId(acc.id);
                         setIsSelectorOpen(true);
                       }}
-                      className="h-9 w-9 bg-white border-slate-200 text-slate-500 hover:text-accent hover:border-accent shrink-0 rounded-xl"
+                      className="h-9 w-9 bg-card border-border text-muted-foreground hover:text-accent hover:border-accent shrink-0 rounded-xl"
                       title="Select from CRM Upload"
                     >
                       <Search className="w-4 h-4" />
@@ -1543,7 +1543,7 @@ export function FridayPerformanceReview({
                       variant="ghost" 
                       size="icon" 
                       onClick={() => removeFocusAccount(acc.id)}
-                      className="h-8 w-8 text-red-300 hover:text-red-500 shrink-0"
+                      className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -1552,7 +1552,7 @@ export function FridayPerformanceReview({
                     <select 
                       value={acc.actionType} 
                       onChange={e => updateFocusAccount(acc.id, 'actionType', e.target.value)}
-                      className="h-9 text-[10px] font-black uppercase rounded-lg border bg-white px-2"
+                      className="h-9 text-xs font-semibold rounded-lg border bg-card px-2"
                     >
                       {['Prospect', 'Develop', 'Propose', 'Negotiate', 'Finalise', 'Pending Trade', 'Closed - Won'].map(t => (
                         <option key={t} value={t}>{t.toUpperCase()}</option>
@@ -1563,7 +1563,7 @@ export function FridayPerformanceReview({
                       placeholder="EAV ($)" 
                       value={acc.eav || ''} 
                       onChange={e => updateFocusAccount(acc.id, 'eav', parseFloat(e.target.value) || 0)}
-                      className="h-9 text-xs bg-white"
+                      className="h-9 text-xs bg-card"
                     />
                   </div>
                   <Textarea 
@@ -1575,14 +1575,14 @@ export function FridayPerformanceReview({
                 </div>
               ))}
               {nextWeekPlan.focusAccounts.length === 0 && (
-                <p className="text-xs text-slate-400 italic text-center py-4">No focus accounts added yet.</p>
+                <p className="text-xs text-muted-foreground italic text-center py-4">No focus accounts added yet.</p>
               )}
               <div className="pt-1">
                 <Button 
                   onClick={addFocusAccount} 
                   variant="outline" 
                   size="sm" 
-                  className="text-[10px] font-black uppercase tracking-wider h-9 border-dashed border-slate-300 hover:border-slate-400 bg-white shadow-sm hover:bg-slate-50 text-slate-700 flex items-center gap-1.5"
+                  className="text-xs font-semibold h-9 border-dashed border-border hover:border-muted-foreground/40 bg-card shadow-sm hover:bg-secondary/60 text-foreground/85 flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Focus Account
                 </Button>
@@ -1593,12 +1593,12 @@ export function FridayPerformanceReview({
           {/* This Weeks Actions */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-black uppercase text-slate-700">This Weeks Actions</h4>
+              <h4 className="text-xs font-semibold text-foreground/85">This Weeks Actions</h4>
             </div>
             <div className="space-y-2">
               {nextWeekPlan.actionPlan.map((action, index) => (
                 <div key={index} className="flex gap-3 items-center group">
-                  <Badge className="bg-slate-100 text-slate-700 font-black text-[9px] uppercase border shrink-0">
+                  <Badge className="bg-secondary text-foreground/85 font-semibold text-xs border shrink-0">
                     Action {index + 1}
                   </Badge>
                   <Input 
@@ -1612,7 +1612,7 @@ export function FridayPerformanceReview({
                       variant="ghost" 
                       size="icon" 
                       onClick={() => removeAction(index)}
-                      className="h-8 w-8 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -1624,7 +1624,7 @@ export function FridayPerformanceReview({
                   onClick={addAction} 
                   variant="outline" 
                   size="sm" 
-                  className="text-[10px] font-black uppercase tracking-wider h-9 border-dashed border-slate-300 hover:border-slate-400 bg-white shadow-sm hover:bg-slate-50 text-slate-700 flex items-center gap-1.5"
+                  className="text-xs font-semibold h-9 border-dashed border-border hover:border-muted-foreground/40 bg-card shadow-sm hover:bg-secondary/60 text-foreground/85 flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Action Item
                 </Button>
@@ -1635,8 +1635,8 @@ export function FridayPerformanceReview({
           {/* Roadblocks & Support */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-red-600 flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-red-500" /> Anticipated Roadblocks
+              <Label className="text-xs font-semibold text-destructive flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-destructive" /> Anticipated Roadblocks
               </Label>
               <Textarea 
                 placeholder="What roadblocks do you anticipate next week?" 
@@ -1646,8 +1646,8 @@ export function FridayPerformanceReview({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-blue-600 flex items-center gap-1">
-                <LifeBuoy className="w-3.5 h-3.5 text-blue-500" /> Management Support Needed
+              <Label className="text-xs font-semibold text-accent flex items-center gap-1">
+                <LifeBuoy className="w-3.5 h-3.5 text-accent" /> Management Support Needed
               </Label>
               <Textarea 
                 placeholder="What support do you need from leadership?" 
@@ -1660,8 +1660,8 @@ export function FridayPerformanceReview({
           
           {/* Strategic Focus */}
           <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase text-indigo-600 flex items-center gap-1">
-              <Target className="w-3.5 h-3.5 text-indigo-500" /> Strategic Focus for Next Week
+            <Label className="text-xs font-semibold text-accent flex items-center gap-1">
+              <Target className="w-3.5 h-3.5 text-accent" /> Strategic Focus for Next Week
             </Label>
             <Textarea 
               placeholder="What is your primary strategic focus next week?" 
@@ -1673,19 +1673,19 @@ export function FridayPerformanceReview({
 
           {/* Publication Status Panel (uniform with TWTW but full-width) */}
           <div className="mt-8 pt-6 border-t w-full">
-            <Card className="border-slate-800 shadow-xl rounded-3xl overflow-hidden bg-slate-900 text-white w-full">
-              <CardHeader className="border-b border-slate-800 py-4">
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
+            <Card className="border-primary/80 shadow-xl rounded-3xl overflow-hidden bg-primary text-white w-full">
+              <CardHeader className="border-b border-primary/80 py-4">
+                <CardTitle className="text-xs font-semibold text-accent flex items-center gap-2">
                   <ClipboardCheck className="w-4 h-4" /> Publication Status
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex justify-between items-center md:justify-start md:gap-6 bg-white/5 border border-white/10 rounded-2xl p-3 md:flex-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Status</span>
+                <div className="flex justify-between items-center md:justify-start md:gap-6 bg-card/5 border border-white/10 rounded-2xl p-3 md:flex-1">
+                  <span className="text-xs font-semibold text-muted-foreground">Current Status</span>
                   <Badge className={cn(
-                    "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
-                    status === 'SUBMITTED' ? "bg-green-500/20 text-green-300 border-green-500/30" :
-                    status === 'DRAFT' ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-slate-500/20 text-slate-300"
+                    "border-none text-xs font-semibold px-2 py-0.5 rounded-full",
+                    status === 'SUBMITTED' ? "bg-success-fill/20 text-success border-success/30" :
+                    status === 'DRAFT' ? "bg-warning/20 text-warning border-warning/30" : "bg-muted-foreground/20 text-muted-foreground/60"
                   )}>
                     {status === 'SUBMITTED' ? 'Submitted' : status === 'DRAFT' ? 'Draft' : 'Not Started'}
                   </Badge>
@@ -1695,16 +1695,16 @@ export function FridayPerformanceReview({
                   <Button 
                     onClick={handleSaveDraft} 
                     disabled={isSaving || isSubmitting}
-                    className="bg-slate-800 hover:bg-slate-700 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-sm border border-slate-700 w-full sm:w-auto px-6"
+                    className="bg-primary hover:bg-primary/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-sm border border-primary/70 w-full sm:w-auto px-6"
                   >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-slate-300" />}
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-muted-foreground/60" />}
                     Save Draft
                   </Button>
 
                   <Button 
                     onClick={handleSubmit} 
                     disabled={isSaving || isSubmitting}
-                    className="bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20 w-full sm:w-auto px-8"
+                    className="bg-accent hover:bg-accent/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-lg shadow-accent/20 w-full sm:w-auto px-8"
                   >
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     {status === 'SUBMITTED' ? 'Update Submission' : 'Submit Friday Pack'}
@@ -1718,25 +1718,25 @@ export function FridayPerformanceReview({
 
       {/* Super Admin 1-on-1 Review & Approval Panel */}
       {isSuperAdminOrLeader && (
-        <Card className="border-2 border-indigo-500 shadow-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white overflow-hidden rounded-3xl mt-8">
-          <CardHeader className="border-b border-indigo-800/60 pb-4">
+        <Card className="border-2 border-accent shadow-xl bg-gradient-to-br from-primary via-primary to-primary text-white overflow-hidden rounded-3xl mt-8">
+          <CardHeader className="border-b border-primary/60 pb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-emerald-500 text-slate-950 rounded-xl shadow-md font-bold">
+                <div className="p-2 bg-success-fill text-foreground rounded-xl shadow-md font-bold">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-base font-black uppercase tracking-tight text-white flex items-center gap-2">
+                  <CardTitle className="text-base font-bold tracking-tight text-white flex items-center gap-2">
                     Super Admin 1-on-1 Friday Review &amp; Sign-off
                   </CardTitle>
-                  <CardDescription className="text-xs text-indigo-200">
-                    Conducting Friday afternoon review with <strong className="text-emerald-300 font-bold">{activeUserName}</strong> ({activeUserRole})
+                  <CardDescription className="text-xs text-info/70">
+                    Conducting Friday afternoon review with <strong className="text-success font-bold">{activeUserName}</strong> ({activeUserRole})
                   </CardDescription>
                 </div>
               </div>
 
               {adminReviewedBy && (
-                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-xs px-3 py-1 font-bold">
+                <Badge className="bg-success-fill/20 text-success border-success/40 text-xs px-3 py-1 font-bold">
                   ✓ Reviewed by {adminReviewedBy}
                 </Badge>
               )}
@@ -1744,33 +1744,33 @@ export function FridayPerformanceReview({
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-indigo-200 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+              <Label className="text-xs font-bold text-info/70 flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-warning" />
                 Super Admin Coaching Notes &amp; 1-on-1 Discussion Summary
               </Label>
               <Textarea
                 placeholder="Enter 1-on-1 coaching feedback, agreed key actions, or performance notes discussed during Friday afternoon review..."
                 value={adminCoachingNotes}
                 onChange={e => setAdminCoachingNotes(e.target.value)}
-                className="bg-slate-950/80 border-indigo-800 text-white placeholder:text-slate-500 min-h-[100px] text-xs font-medium focus-visible:ring-indigo-400"
+                className="bg-primary/80 border-primary text-white placeholder:text-primary-foreground/60 min-h-[100px] text-xs font-medium focus-visible:ring-info/50"
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-indigo-800/60">
-              <div className="text-xs text-indigo-300 font-medium">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-primary/60">
+              <div className="text-xs text-info font-medium">
                 {status === 'REVIEWED_BY_ADMIN' ? (
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <span className="text-success font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-4 h-4" /> This Friday Review Pack has been signed off and locked by Admin.
                   </span>
                 ) : (
-                  <span>Review status: <strong className="text-amber-400 uppercase">{status}</strong>. Click button to complete 1-on-1 sign-off.</span>
+                  <span>Review status: <strong className="text-warning">{status}</strong>. Click button to complete 1-on-1 sign-off.</span>
                 )}
               </div>
 
               <Button
                 onClick={handleAdminApprove}
                 disabled={isSaving}
-                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-black text-xs h-11 px-6 rounded-xl shadow-lg gap-2"
+                className="w-full sm:w-auto bg-gradient-to-r from-success-fill to-teal-600 hover:from-success-fill hover:to-teal-700 text-foreground font-semibold text-xs h-11 px-6 rounded-xl shadow-lg gap-2"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                 <span>Approve &amp; Mark 1-on-1 Reviewed ✓</span>
@@ -1782,12 +1782,12 @@ export function FridayPerformanceReview({
 
       {/* CRM Account Selector Dialog popup */}
       <Dialog open={isSelectorOpen} onOpenChange={setIsSelectorOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-slate-100 shadow-2xl bg-white">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-border shadow-2xl bg-card">
           <DialogHeader className="pb-4 border-b">
-            <DialogTitle className="text-base font-black uppercase tracking-tight flex items-center gap-2 text-slate-800">
+            <DialogTitle className="text-base font-bold tracking-tight flex items-center gap-2 text-foreground">
               <Building2 className="w-5 h-5 text-accent" /> Select Focus Account
             </DialogTitle>
-            <DialogDescription className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+            <DialogDescription className="text-xs font-bold text-muted-foreground mt-0.5">
               Choose an active opportunity or customer from your CRM uploads to auto-populate fields.
             </DialogDescription>
           </DialogHeader>
@@ -1795,12 +1795,12 @@ export function FridayPerformanceReview({
           {/* Search bar inside popup */}
           <div className="py-4">
             <div className="relative">
-              <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search accounts by name, stage, or business unit..."
                 value={crmSearch}
                 onChange={e => setCrmSearch(e.target.value)}
-                className="pl-10 h-10 text-xs font-medium bg-slate-50 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-accent"
+                className="pl-10 h-10 text-xs font-medium bg-secondary/60 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-accent"
               />
             </div>
           </div>
@@ -1818,20 +1818,20 @@ export function FridayPerformanceReview({
                     className="p-4 border rounded-2xl hover:border-accent hover:bg-accent/5 cursor-pointer transition-all flex items-center justify-between group"
                   >
                     <div className="space-y-1">
-                      <p className="text-xs font-black text-slate-800 group-hover:text-accent transition-colors">
+                      <p className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">
                         {crmAcc.pipeline || crmAcc.opportunityName || 'Unnamed Account'}
                       </p>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className="bg-slate-100 text-slate-600 font-bold border-none text-[8px] uppercase tracking-wide px-2 py-0.5 rounded-full">
+                        <Badge className="bg-secondary text-foreground/75 font-bold border-none text-xs px-2 py-0.5 rounded-full">
                           {isOpp ? 'Opportunity' : 'Customer'}
                         </Badge>
                         {crmAcc.stage && (
-                          <Badge className="bg-blue-50 text-blue-600 font-bold border-none text-[8px] uppercase tracking-wide px-2 py-0.5 rounded-full">
+                          <Badge className="bg-info-soft text-accent font-bold border-none text-xs px-2 py-0.5 rounded-full">
                             {crmAcc.stage}
                           </Badge>
                         )}
                         {crmAcc.businessUnit && (
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">
+                          <span className="text-xs text-muted-foreground font-bold">
                             BU: {crmAcc.businessUnit}
                           </span>
                         )}
@@ -1839,8 +1839,8 @@ export function FridayPerformanceReview({
                     </div>
                     
                     <div className="text-right">
-                      <p className="text-xs font-black text-slate-900">{formatEAV(value)}</p>
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                      <p className="text-xs font-semibold text-foreground">{formatEAV(value)}</p>
+                      <p className="text-xs font-semibold text-muted-foreground">
                         {isOpp ? 'Expected Value' : 'YTD Revenue'}
                       </p>
                     </div>
@@ -1849,8 +1849,8 @@ export function FridayPerformanceReview({
               })
             ) : (
               <div className="py-20 text-center">
-                <Building2 className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                <p className="text-xs text-slate-400 font-medium">No uploaded accounts found matching search.</p>
+                <Building2 className="w-12 h-12 text-border mx-auto mb-3" />
+                <p className="text-xs text-muted-foreground font-medium">No uploaded accounts found matching search.</p>
               </div>
             )}
           </div>
@@ -1859,16 +1859,16 @@ export function FridayPerformanceReview({
 
       {/* ─── KPI Detail Breakdown Dialog Popup ────────────────────────────────── */}
       <Dialog open={!!kpiModalType} onOpenChange={(open) => { if (!open) setKpiModalType(null); }}>
-        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-slate-100 shadow-2xl bg-white">
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-border shadow-2xl bg-card">
           <DialogHeader className="pb-4 border-b">
             <div className="flex items-center gap-3">
               <div className={cn(
                 "p-2.5 rounded-2xl font-bold text-white shadow-md",
-                kpiModalType === 'CALLS' ? "bg-blue-600" :
-                kpiModalType === 'APPOINTMENTS' ? "bg-emerald-600" :
-                kpiModalType === 'OPPORTUNITIES' ? "bg-purple-600" :
-                kpiModalType === 'PIPELINE_VALUE' ? "bg-amber-600" :
-                kpiModalType === 'CANVASS_LEADS' ? "bg-indigo-600" : "bg-teal-600"
+                kpiModalType === 'CALLS' ? "bg-accent" :
+                kpiModalType === 'APPOINTMENTS' ? "bg-success-fill" :
+                kpiModalType === 'OPPORTUNITIES' ? "bg-accent" :
+                kpiModalType === 'PIPELINE_VALUE' ? "bg-warning" :
+                kpiModalType === 'CANVASS_LEADS' ? "bg-accent" : "bg-teal-600"
               )}>
                 {kpiModalType === 'CALLS' && <Phone className="w-5 h-5" />}
                 {kpiModalType === 'APPOINTMENTS' && <CalendarCheck className="w-5 h-5" />}
@@ -1878,7 +1878,7 @@ export function FridayPerformanceReview({
                 {kpiModalType === 'SENT_TO_SF' && <ExternalLink className="w-5 h-5" />}
               </div>
               <div>
-                <DialogTitle className="text-lg font-black uppercase tracking-tight text-slate-900">
+                <DialogTitle className="text-lg font-bold tracking-tight text-foreground">
                   {kpiModalType === 'CALLS' && `Phone Calls Breakdown · Week ${currentWeek.split('-')[1]}`}
                   {kpiModalType === 'APPOINTMENTS' && `Appointments & Meetings Breakdown · Week ${currentWeek.split('-')[1]}`}
                   {kpiModalType === 'OPPORTUNITIES' && `Active Opportunities · Week ${currentWeek.split('-')[1]}`}
@@ -1886,8 +1886,8 @@ export function FridayPerformanceReview({
                   {kpiModalType === 'CANVASS_LEADS' && `Canvassed Field Leads · Week ${currentWeek.split('-')[1]}`}
                   {kpiModalType === 'SENT_TO_SF' && `Salesforce Submitted Leads · Week ${currentWeek.split('-')[1]}`}
                 </DialogTitle>
-                <DialogDescription className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
-                  Representative: <strong className="text-slate-900 font-black">{activeUserName}</strong> · Week {currentWeek.split('-')[1]}
+                <DialogDescription className="text-xs font-bold text-muted-foreground mt-0.5">
+                  Representative: <strong className="text-foreground font-bold">{activeUserName}</strong> · Week {currentWeek.split('-')[1]}
                 </DialogDescription>
               </div>
             </div>
@@ -1898,86 +1898,86 @@ export function FridayPerformanceReview({
             {/* CALLS DETAIL */}
             {kpiModalType === 'CALLS' && (
               <div className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center justify-between">
+                <div className="bg-info-soft p-4 rounded-2xl border border-info/20 flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-blue-900 uppercase tracking-wide">Total Calls Logged</span>
-                    <p className="text-[10px] text-blue-700 font-medium">Phone calls and outreach logged for Week {currentWeek.split('-')[1]}</p>
+                    <span className="text-xs font-bold text-primary">Total Calls Logged</span>
+                    <p className="text-xs text-primary font-medium">Phone calls and outreach logged for Week {currentWeek.split('-')[1]}</p>
                   </div>
-                  <Badge className="bg-blue-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.calls}</Badge>
+                  <Badge className="bg-accent text-white font-semibold text-sm px-3 py-1">{currentWeekData.activity.calls}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden divide-y divide-slate-100">
+                <div className="border rounded-2xl overflow-hidden divide-y divide-border">
                   {callsList.length > 0 ? (
                     callsList.map((item, i) => (
-                      <div key={item.id || i} className="p-4 bg-white hover:bg-slate-50 transition-colors space-y-2">
+                      <div key={item.id || i} className="p-4 bg-card hover:bg-secondary/60 transition-colors space-y-2">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h4 className="font-black text-slate-900 text-sm flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                            <h4 className="font-semibold text-foreground text-sm flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
                               {item.title}
                             </h4>
                             {item.dateTime && (
-                              <p className="text-xs font-bold text-blue-700 mt-0.5 flex items-center gap-1.5">
-                                <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                              <p className="text-xs font-bold text-primary mt-0.5 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-accent" />
                                 {item.dateTime}
                               </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Badge className={`text-[10px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
+                            <Badge className={`text-xs font-semibold px-2.5 py-1 ${item.badgeColor}`}>
                               {item.type}
                             </Badge>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs font-bold gap-1 text-slate-700 border-slate-200 hover:bg-slate-100"
+                              className="h-7 text-xs font-bold gap-1 text-foreground/85 border-border hover:bg-secondary"
                               onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
                             >
-                              Salesforce <ExternalLink className="w-3 h-3 text-slate-400" />
+                              Salesforce <ExternalLink className="w-3 h-3 text-muted-foreground" />
                             </Button>
                           </div>
                         </div>
 
                         {/* Details Metadata */}
-                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium pt-1 border-t border-slate-50">
+                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-foreground/75 font-medium pt-1 border-t border-border">
                           {item.contactName && (
                             <span className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 text-slate-400" />
+                              <Users className="w-3.5 h-3.5 text-muted-foreground" />
                               <strong>Contact:</strong> {item.contactName}
                             </span>
                           )}
                           {item.contactPhone && (
                             <span className="flex items-center gap-1">
-                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              <Phone className="w-3.5 h-3.5 text-muted-foreground" />
                               {item.contactPhone}
                             </span>
                           )}
                           {item.contactEmail && (
-                            <span className="flex items-center gap-1 text-slate-500">
+                            <span className="flex items-center gap-1 text-muted-foreground">
                               ✉ {item.contactEmail}
                             </span>
                           )}
                           {item.location && (
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                               {item.location}
                             </span>
                           )}
                           {item.businessUnit && (
-                            <span className="font-bold text-indigo-600 uppercase text-[10px]">
+                            <span className="font-bold text-accent text-xs">
                               BU: {item.businessUnit}
                             </span>
                           )}
                         </div>
 
                         {item.notes && (
-                          <p className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                          <p className="text-xs text-foreground/75 italic bg-secondary/60 p-2.5 rounded-xl border border-border">
                             "{item.notes}"
                           </p>
                         )}
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No detailed call logs found for this week.</div>
+                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No detailed call logs found for this week.</div>
                   )}
                 </div>
               </div>
@@ -1986,86 +1986,86 @@ export function FridayPerformanceReview({
             {/* APPOINTMENTS DETAIL */}
             {kpiModalType === 'APPOINTMENTS' && (
               <div className="space-y-4">
-                <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                <div className="bg-success-soft p-4 rounded-2xl border border-success/20 flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Total Appointments &amp; Meetings</span>
-                    <p className="text-[10px] text-emerald-700 font-medium">Client visits, meetings &amp; appointments for Week {currentWeek.split('-')[1]}</p>
+                    <span className="text-xs font-bold text-success-ink">Total Appointments &amp; Meetings</span>
+                    <p className="text-xs text-success-ink font-medium">Client visits, meetings &amp; appointments for Week {currentWeek.split('-')[1]}</p>
                   </div>
-                  <Badge className="bg-emerald-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.apps}</Badge>
+                  <Badge className="bg-success-fill text-white font-semibold text-sm px-3 py-1">{currentWeekData.activity.apps}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden divide-y divide-slate-100">
+                <div className="border rounded-2xl overflow-hidden divide-y divide-border">
                   {appointmentList.length > 0 ? (
                     appointmentList.map((item, i) => (
-                      <div key={item.id || i} className="p-4 bg-white hover:bg-slate-50 transition-colors space-y-2">
+                      <div key={item.id || i} className="p-4 bg-card hover:bg-secondary/60 transition-colors space-y-2">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h4 className="font-black text-slate-900 text-sm flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                            <h4 className="font-semibold text-foreground text-sm flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
                               {item.title}
                             </h4>
                             {item.dateTime && (
-                              <p className="text-xs font-bold text-emerald-700 mt-0.5 flex items-center gap-1.5">
-                                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                              <p className="text-xs font-bold text-success-ink mt-0.5 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-success-ink" />
                                 {item.dateTime}
                               </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Badge className={`text-[10px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
+                            <Badge className={`text-xs font-semibold px-2.5 py-1 ${item.badgeColor}`}>
                               {item.type}
                             </Badge>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs font-bold gap-1 text-slate-700 border-slate-200 hover:bg-slate-100"
+                              className="h-7 text-xs font-bold gap-1 text-foreground/85 border-border hover:bg-secondary"
                               onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
                             >
-                              Salesforce <ExternalLink className="w-3 h-3 text-slate-400" />
+                              Salesforce <ExternalLink className="w-3 h-3 text-muted-foreground" />
                             </Button>
                           </div>
                         </div>
 
                         {/* Details Metadata */}
-                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium pt-1 border-t border-slate-50">
+                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-foreground/75 font-medium pt-1 border-t border-border">
                           {item.contactName && (
                             <span className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 text-slate-400" />
+                              <Users className="w-3.5 h-3.5 text-muted-foreground" />
                               <strong>Contact:</strong> {item.contactName}
                             </span>
                           )}
                           {item.contactPhone && (
                             <span className="flex items-center gap-1">
-                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              <Phone className="w-3.5 h-3.5 text-muted-foreground" />
                               {item.contactPhone}
                             </span>
                           )}
                           {item.contactEmail && (
-                            <span className="flex items-center gap-1 text-slate-500">
+                            <span className="flex items-center gap-1 text-muted-foreground">
                               ✉ {item.contactEmail}
                             </span>
                           )}
                           {item.location && (
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                               {item.location}
                             </span>
                           )}
                           {item.businessUnit && (
-                            <span className="font-bold text-indigo-600 uppercase text-[10px]">
+                            <span className="font-bold text-accent text-xs">
                               BU: {item.businessUnit}
                             </span>
                           )}
                         </div>
 
                         {item.notes && (
-                          <p className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                          <p className="text-xs text-foreground/75 italic bg-secondary/60 p-2.5 rounded-xl border border-border">
                             "{item.notes}"
                           </p>
                         )}
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No appointment entries found for this week.</div>
+                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No appointment entries found for this week.</div>
                   )}
                 </div>
               </div>
@@ -2074,27 +2074,27 @@ export function FridayPerformanceReview({
             {/* OPPORTUNITIES DETAIL */}
             {kpiModalType === 'OPPORTUNITIES' && (
               <div className="space-y-4">
-                <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">Active Opportunities Count</span>
-                  <Badge className="bg-purple-600 text-white font-black text-sm px-3 py-1">{currentWeekData.opportunities.length}</Badge>
+                <div className="bg-info-soft p-4 rounded-2xl border border-info/20 flex items-center justify-between">
+                  <span className="text-xs font-bold text-primary">Active Opportunities Count</span>
+                  <Badge className="bg-accent text-white font-semibold text-sm px-3 py-1">{currentWeekData.opportunities.length}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekData.opportunities.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-slate-50">
+                      <TableHeader className="bg-secondary/60">
                         <TableRow>
-                          <TableHead className="text-xs font-black">Opportunity / Pipeline</TableHead>
-                          <TableHead className="text-xs font-black">Stage</TableHead>
-                          <TableHead className="text-xs font-black text-right">Expected EAV</TableHead>
-                          <TableHead className="text-xs font-black text-center">Salesforce</TableHead>
+                          <TableHead className="text-xs font-semibold">Opportunity / Pipeline</TableHead>
+                          <TableHead className="text-xs font-semibold">Stage</TableHead>
+                          <TableHead className="text-xs font-semibold text-right">Expected EAV</TableHead>
+                          <TableHead className="text-xs font-semibold text-center">Salesforce</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekData.opportunities.map((opp: any) => (
-                          <TableRow key={opp.id} className="hover:bg-slate-50">
-                            <TableCell className="font-bold text-xs text-slate-900">{opp.pipeline || opp.opportunityName}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-[9px] uppercase">{opp.stage || 'Discovery'}</Badge></TableCell>
-                            <TableCell className="text-right font-black text-emerald-600">{formatEAV(opp.value || 0)}</TableCell>
+                          <TableRow key={opp.id} className="hover:bg-secondary/60">
+                            <TableCell className="font-bold text-xs text-foreground">{opp.pipeline || opp.opportunityName}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{opp.stage || 'Discovery'}</Badge></TableCell>
+                            <TableCell className="text-right font-bold text-success-ink">{formatEAV(opp.value || 0)}</TableCell>
                             <TableCell className="text-center">
                               <Button 
                                 size="sm" 
@@ -2110,7 +2110,7 @@ export function FridayPerformanceReview({
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No active opportunities found for this week.</div>
+                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No active opportunities found for this week.</div>
                   )}
                 </div>
               </div>
@@ -2119,34 +2119,34 @@ export function FridayPerformanceReview({
             {/* PIPELINE VALUE DETAIL */}
             {kpiModalType === 'PIPELINE_VALUE' && (
               <div className="space-y-4">
-                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Total Pipeline Value</span>
-                  <Badge className="bg-amber-600 text-white font-black text-base px-4 py-1">{formatEAV(currentWeekData.revenue.pipeline)}</Badge>
+                <div className="bg-warning-soft p-4 rounded-2xl border border-warning/20 flex items-center justify-between">
+                  <span className="text-xs font-bold text-warning-ink">Total Pipeline Value</span>
+                  <Badge className="bg-warning text-white font-bold text-base px-4 py-1">{formatEAV(currentWeekData.revenue.pipeline)}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekData.opportunities.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-slate-50">
+                      <TableHeader className="bg-secondary/60">
                         <TableRow>
-                          <TableHead className="text-xs font-black">Deal / Account</TableHead>
-                          <TableHead className="text-xs font-black">Stage</TableHead>
-                          <TableHead className="text-xs font-black">Business Unit</TableHead>
-                          <TableHead className="text-xs font-black text-right">Value</TableHead>
+                          <TableHead className="text-xs font-semibold">Deal / Account</TableHead>
+                          <TableHead className="text-xs font-semibold">Stage</TableHead>
+                          <TableHead className="text-xs font-semibold">Business Unit</TableHead>
+                          <TableHead className="text-xs font-semibold text-right">Value</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekData.opportunities.map((opp: any) => (
-                          <TableRow key={opp.id} className="hover:bg-slate-50">
-                            <TableCell className="font-bold text-xs text-slate-900">{opp.pipeline}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-[9px] uppercase">{opp.stage}</Badge></TableCell>
-                            <TableCell className="text-xs font-semibold text-slate-500">{opp.businessUnit || 'General'}</TableCell>
-                            <TableCell className="text-right font-black text-amber-700">{formatEAV(opp.value || 0)}</TableCell>
+                          <TableRow key={opp.id} className="hover:bg-secondary/60">
+                            <TableCell className="font-bold text-xs text-foreground">{opp.pipeline}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{opp.stage}</Badge></TableCell>
+                            <TableCell className="text-xs font-semibold text-muted-foreground">{opp.businessUnit || 'General'}</TableCell>
+                            <TableCell className="text-right font-bold text-warning-ink">{formatEAV(opp.value || 0)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No pipeline deals found for this week.</div>
+                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No pipeline deals found for this week.</div>
                   )}
                 </div>
               </div>
@@ -2155,34 +2155,34 @@ export function FridayPerformanceReview({
             {/* CANVASS LEADS DETAIL */}
             {kpiModalType === 'CANVASS_LEADS' && (
               <div className="space-y-4">
-                <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">Canvassed Field Leads</span>
-                  <Badge className="bg-indigo-600 text-white font-black text-sm px-3 py-1">{currentWeekCanvassLeadsCount}</Badge>
+                <div className="bg-info-soft p-4 rounded-2xl border border-info/20 flex items-center justify-between">
+                  <span className="text-xs font-bold text-primary">Canvassed Field Leads</span>
+                  <Badge className="bg-accent text-white font-semibold text-sm px-3 py-1">{currentWeekCanvassLeadsCount}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekCanvassLeads.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-slate-50">
+                      <TableHeader className="bg-secondary/60">
                         <TableRow>
-                          <TableHead className="text-xs font-black">Company Name</TableHead>
-                          <TableHead className="text-xs font-black">Contact Person</TableHead>
-                          <TableHead className="text-xs font-black">Phone / Email</TableHead>
-                          <TableHead className="text-xs font-black">Location</TableHead>
-                          <TableHead className="text-xs font-black text-center">Status</TableHead>
+                          <TableHead className="text-xs font-semibold">Company Name</TableHead>
+                          <TableHead className="text-xs font-semibold">Contact Person</TableHead>
+                          <TableHead className="text-xs font-semibold">Phone / Email</TableHead>
+                          <TableHead className="text-xs font-semibold">Location</TableHead>
+                          <TableHead className="text-xs font-semibold text-center">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekCanvassLeads.map((lead: any) => (
-                          <TableRow key={lead.id} className="hover:bg-slate-50">
-                            <TableCell className="font-bold text-xs text-slate-900">{lead.companyName}</TableCell>
+                          <TableRow key={lead.id} className="hover:bg-secondary/60">
+                            <TableCell className="font-bold text-xs text-foreground">{lead.companyName}</TableCell>
                             <TableCell className="text-xs font-medium">{lead.firstName ? `${lead.firstName} ${lead.lastName}` : lead.lastName}</TableCell>
-                            <TableCell className="text-xs text-slate-500">{lead.phone} · {lead.email || 'No email'}</TableCell>
-                            <TableCell className="text-xs text-slate-500">{lead.suburb || lead.addressLine1 || 'Perth Metro'}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{lead.phone} · {lead.email || 'No email'}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{lead.suburb || lead.addressLine1 || 'Perth Metro'}</TableCell>
                             <TableCell className="text-center">
                               {lead.inSalesforce ? (
-                                <Badge className="bg-teal-100 text-teal-800 border-none text-[9px] uppercase font-bold">In Salesforce</Badge>
+                                <Badge className="bg-teal-100 text-teal-800 border-none text-xs font-bold">In Salesforce</Badge>
                               ) : (
-                                <Badge variant="outline" className="text-[9px] uppercase font-bold">Captured</Badge>
+                                <Badge variant="outline" className="text-xs font-bold">Captured</Badge>
                               )}
                             </TableCell>
                           </TableRow>
@@ -2190,7 +2190,7 @@ export function FridayPerformanceReview({
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No canvassing leads logged for this week.</div>
+                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No canvassing leads logged for this week.</div>
                   )}
                 </div>
               </div>
@@ -2200,26 +2200,26 @@ export function FridayPerformanceReview({
             {kpiModalType === 'SENT_TO_SF' && (
               <div className="space-y-4">
                 <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-teal-900 uppercase tracking-wide">Leads Submitted to Salesforce</span>
-                  <Badge className="bg-teal-600 text-white font-black text-sm px-3 py-1">{currentWeekSalesforceLeadsCount}</Badge>
+                  <span className="text-xs font-bold text-teal-900">Leads Submitted to Salesforce</span>
+                  <Badge className="bg-teal-600 text-white font-semibold text-sm px-3 py-1">{currentWeekSalesforceLeadsCount}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekSalesforceLeads.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-slate-50">
+                      <TableHeader className="bg-secondary/60">
                         <TableRow>
-                          <TableHead className="text-xs font-black">Company Name</TableHead>
-                          <TableHead className="text-xs font-black">Contact Name</TableHead>
-                          <TableHead className="text-xs font-black">Salesforce ID</TableHead>
-                          <TableHead className="text-xs font-black text-center">Action</TableHead>
+                          <TableHead className="text-xs font-semibold">Company Name</TableHead>
+                          <TableHead className="text-xs font-semibold">Contact Name</TableHead>
+                          <TableHead className="text-xs font-semibold">Salesforce ID</TableHead>
+                          <TableHead className="text-xs font-semibold text-center">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekSalesforceLeads.map((lead: any) => (
-                          <TableRow key={lead.id} className="hover:bg-slate-50">
-                            <TableCell className="font-bold text-xs text-slate-900">{lead.companyName}</TableCell>
+                          <TableRow key={lead.id} className="hover:bg-secondary/60">
+                            <TableCell className="font-bold text-xs text-foreground">{lead.companyName}</TableCell>
                             <TableCell className="text-xs font-medium">{lead.firstName ? `${lead.firstName} ${lead.lastName}` : lead.lastName}</TableCell>
-                            <TableCell className="text-xs font-mono text-slate-500">{lead.salesforceId || 'Submitted'}</TableCell>
+                            <TableCell className="text-xs font-mono text-muted-foreground">{lead.salesforceId || 'Submitted'}</TableCell>
                             <TableCell className="text-center">
                               <Button
                                 size="sm"
@@ -2235,7 +2235,7 @@ export function FridayPerformanceReview({
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No leads submitted to Salesforce for this week yet.</div>
+                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No leads submitted to Salesforce for this week yet.</div>
                   )}
                 </div>
               </div>

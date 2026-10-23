@@ -32,7 +32,7 @@ function yoyBadge(thisFY: number, lastFY: number) {
   const pct = ((thisFY - lastFY) / lastFY) * 100;
   const positive = pct >= 0;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[8px] font-black px-1.5 py-0.5 rounded-full ${positive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+    <span className={`inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-full ${positive ? 'bg-success-soft text-success-ink' : 'bg-danger-soft text-destructive'}`}>
       {positive ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
       {positive ? '+' : ''}{pct.toFixed(1)}%
     </span>
@@ -110,30 +110,30 @@ function RecordsModal({
 
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="w-3 h-3 ml-1 inline opacity-30 group-hover:opacity-100 transition-opacity" />;
-    return sortAsc ? <ArrowUp className="w-3 h-3 ml-1 inline text-accent font-black" /> : <ArrowDown className="w-3 h-3 ml-1 inline text-accent font-black" />;
+    return sortAsc ? <ArrowUp className="w-3 h-3 ml-1 inline text-accent font-bold" /> : <ArrowDown className="w-3 h-3 ml-1 inline text-accent font-bold" />;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-white border-slate-200 shadow-2xl rounded-3xl h-[80vh] max-h-[80vh] flex flex-col p-6 overflow-hidden">
+      <DialogContent className="max-w-4xl bg-card border-border shadow-2xl rounded-3xl h-[80vh] max-h-[80vh] flex flex-col p-6 overflow-hidden">
         <DialogHeader className="border-b pb-4 shrink-0 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
-              <DialogTitle className="text-xl font-black text-primary tracking-tight flex items-center gap-2 uppercase">
-                {type === 'OPP' ? <Briefcase className="w-5 h-5 text-accent" /> : <Users className="w-5 h-5 text-blue-500" />}
+              <DialogTitle className="text-xl font-bold text-primary tracking-tight flex items-center gap-2">
+                {type === 'OPP' ? <Briefcase className="w-5 h-5 text-accent" /> : <Users className="w-5 h-5 text-accent" />}
                 {title} ({filteredRecords.length}{filteredRecords.length !== records.length ? ` of ${records.length}` : ''})
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">
+              <DialogDescription className="text-xs text-muted-foreground font-bold mt-0.5">
                 {subtitle}
               </DialogDescription>
             </div>
             <div className="relative w-64">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Filter by account, owner, stage..."
-                className="pl-8 h-8 text-xs font-medium rounded-full bg-slate-50 border-slate-200 focus-visible:ring-primary"
+                className="pl-8 h-8 text-xs font-medium rounded-full bg-secondary/60 border-border focus-visible:ring-primary"
               />
             </div>
           </div>
@@ -144,57 +144,57 @@ function RecordsModal({
             <div className="overflow-x-auto">
               <UiTable className="text-xs">
                 <TableHeader>
-                  <TableRow className="uppercase text-[9px] font-black tracking-widest bg-slate-50 sticky top-0 z-10 select-none">
-                    <TableHead onClick={() => handleSort('account')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                  <TableRow className=" text-xs font-semibold bg-secondary/60 sticky top-0 z-10 select-none">
+                    <TableHead onClick={() => handleSort('account')} className="cursor-pointer group hover:bg-secondary/80 transition-colors">
                       Account / Customer {renderSortIcon('account')}
                     </TableHead>
-                    <TableHead onClick={() => handleSort('owner')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                    <TableHead onClick={() => handleSort('owner')} className="cursor-pointer group hover:bg-secondary/80 transition-colors">
                       Owner {renderSortIcon('owner')}
                     </TableHead>
                     {type !== 'CUST' && (
-                      <TableHead onClick={() => handleSort('stage')} className="cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      <TableHead onClick={() => handleSort('stage')} className="cursor-pointer group hover:bg-secondary/80 transition-colors">
                         Opportunity / Stage {renderSortIcon('stage')}
                       </TableHead>
                     )}
                     {type !== 'CUST' && (
-                      <TableHead onClick={() => handleSort('pipeline')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                      <TableHead onClick={() => handleSort('pipeline')} className="text-right cursor-pointer group hover:bg-secondary/80 transition-colors">
                         Pipeline $ {renderSortIcon('pipeline')}
                       </TableHead>
                     )}
-                    <TableHead onClick={() => handleSort('revFY')} className="text-right cursor-pointer group hover:bg-slate-100/80 transition-colors">
+                    <TableHead onClick={() => handleSort('revFY')} className="text-right cursor-pointer group hover:bg-secondary/80 transition-colors">
                       YTD Rev FY {renderSortIcon('revFY')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRecords.map((r, idx) => (
-                    <TableRow key={r.id || idx} className="hover:bg-slate-50/80 transition-colors font-medium">
-                      <TableCell className="font-black text-primary">
+                    <TableRow key={r.id || idx} className="hover:bg-secondary/60 transition-colors font-medium">
+                      <TableCell className="font-bold text-primary">
                         <div>{r.pipeline || r.accountName || r.accountMasterCode}</div>
-                        <div className="text-[10px] text-muted-foreground font-medium">{r.businessUnit || r.accountMasterCode}</div>
+                        <div className="text-xs text-muted-foreground font-medium">{r.businessUnit || r.accountMasterCode}</div>
                       </TableCell>
-                      <TableCell className="font-bold text-slate-600">{r.userName || r.userId}</TableCell>
+                      <TableCell className="font-bold text-foreground/75">{r.userName || r.userId}</TableCell>
                       {type !== 'CUST' && (
                         <TableCell>
-                          <div className="font-bold text-slate-800 truncate max-w-[200px]">{r.opportunityName || '—'}</div>
-                          <Badge variant="outline" className="text-[8px] uppercase font-black bg-slate-100 text-slate-700 mt-0.5">
+                          <div className="font-bold text-foreground truncate max-w-[200px]">{r.opportunityName || '—'}</div>
+                          <Badge variant="outline" className="text-xs font-semibold bg-secondary text-foreground/85 mt-0.5">
                             {r.stage || '—'}
                           </Badge>
                         </TableCell>
                       )}
                       {type !== 'CUST' && (
-                        <TableCell className="text-right font-black text-accent">
+                        <TableCell className="text-right font-bold text-accent">
                           {fmt(Number(r.value) || 0)}
                         </TableCell>
                       )}
-                      <TableCell className="text-right font-black text-emerald-600">
+                      <TableCell className="text-right font-bold text-success-ink">
                         {fmt(Number(r.currentRevenue) || 0)}
                       </TableCell>
                     </TableRow>
                   ))}
                   {filteredRecords.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={type === 'CUST' ? 4 : 6} className="text-center py-16 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                      <TableCell colSpan={type === 'CUST' ? 4 : 6} className="text-center py-16 text-muted-foreground font-bold text-xs">
                         {records.length > 0 ? 'No matching records found for filter criteria.' : 'No matching records available for inspection.'}
                       </TableCell>
                     </TableRow>
@@ -220,8 +220,8 @@ function SummaryColumn({
   large?: boolean;
 }) {
   return (
-    <div className={`flex-1 rounded-2xl ${large ? 'p-6' : 'p-4'} space-y-4 ${accent ? 'bg-primary/5 border border-primary/10' : 'bg-slate-50 border border-slate-100'}`}>
-      <p className={`font-black uppercase tracking-widest ${large ? 'text-xs mb-4' : 'text-[9px]'} ${accent ? 'text-primary' : 'text-slate-500'}`}>{label}</p>
+    <div className={`flex-1 rounded-2xl ${large ? 'p-6' : 'p-4'} space-y-4 ${accent ? 'bg-primary/5 border border-primary/10' : 'bg-secondary/60 border border-border'}`}>
+      <p className={`font-semibold ${large ? 'text-xs mb-4' : 'text-xs'} ${accent ? 'text-primary' : 'text-muted-foreground'}`}>{label}</p>
 
       <div className={large ? "grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8" : ""}>
       {/* Opportunities */}
@@ -229,57 +229,57 @@ function SummaryColumn({
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
             <Briefcase className="w-3 h-3 text-accent" />
-            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Opportunities</span>
+            <span className="text-xs font-semibold text-muted-foreground">Opportunities</span>
           </div>
           <button
             onClick={() => onInspect('OPP', `${label} Opportunities`, 'Active Sales Stages', data.oppRecords)}
-            className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-accent hover:underline bg-accent/10 px-2 py-0.5 rounded-md transition-all"
+            className="flex items-center gap-1 text-xs font-semibold text-accent hover:underline bg-accent/10 px-2 py-0.5 rounded-md transition-all"
           >
             <Eye className="w-2.5 h-2.5" /> Inspect
           </button>
         </div>
         <div
           onClick={() => onInspect('OPP', `${label} Opportunities`, 'Active Sales Stages', data.oppRecords)}
-          className="flex justify-between items-center group cursor-pointer p-1 rounded-lg hover:bg-white transition-all shadow-sm bg-white/50"
+          className="flex justify-between items-center group cursor-pointer p-1 rounded-lg hover:bg-card transition-all shadow-sm bg-card/50"
         >
-          <span className="text-[10px] text-slate-500 font-bold group-hover:text-accent transition-colors">Count</span>
-          <span className="text-sm font-black text-primary group-hover:text-accent transition-colors flex items-center gap-1">
+          <span className="text-xs text-muted-foreground font-bold group-hover:text-accent transition-colors">Count</span>
+          <span className="text-sm font-semibold text-primary group-hover:text-accent transition-colors flex items-center gap-1">
             {data.opportunityCount} <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </span>
         </div>
         <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] text-slate-500 font-bold">Pipeline Value</span>
-          <span className="text-sm font-black text-primary">{fmt(data.opportunityValue)}</span>
+          <span className="text-xs text-muted-foreground font-bold">Pipeline Value</span>
+          <span className="text-sm font-semibold text-primary">{fmt(data.opportunityValue)}</span>
         </div>
       </div>
 
       {/* Accounts */}
-      <div className={`${!large ? 'border-t border-slate-200 pt-3' : ''} space-y-3`}>
+      <div className={`${!large ? 'border-t border-border pt-3' : ''} space-y-3`}>
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
-            <Users className="w-3 h-3 text-blue-500" />
-            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Accounts</span>
+            <Users className="w-3 h-3 text-accent" />
+            <span className="text-xs font-semibold text-muted-foreground">Accounts</span>
           </div>
           <button
             onClick={() => onInspect('CUST', `${label} Accounts`, 'Unique Customer Accounts', data.custRecords)}
-            className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-blue-600 hover:underline bg-blue-50 px-2 py-0.5 rounded-md transition-all"
+            className="flex items-center gap-1 text-xs font-semibold text-accent hover:underline bg-info-soft px-2 py-0.5 rounded-md transition-all"
           >
             <Eye className="w-2.5 h-2.5" /> Inspect
           </button>
         </div>
         <div
           onClick={() => onInspect('CUST', `${label} Accounts`, 'Unique Customer Accounts', data.custRecords)}
-          className="flex justify-between items-center group cursor-pointer p-1 rounded-lg hover:bg-white transition-all shadow-sm bg-white/50"
+          className="flex justify-between items-center group cursor-pointer p-1 rounded-lg hover:bg-card transition-all shadow-sm bg-card/50"
         >
-          <span className="text-[10px] text-slate-500 font-bold group-hover:text-blue-600 transition-colors">Total Accounts</span>
-          <span className="text-sm font-black text-primary group-hover:text-blue-600 transition-colors flex items-center gap-1">
+          <span className="text-xs text-muted-foreground font-bold group-hover:text-accent transition-colors">Total Accounts</span>
+          <span className="text-sm font-semibold text-primary group-hover:text-accent transition-colors flex items-center gap-1">
             {data.customerCount} <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </span>
         </div>
         <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] text-slate-500 font-bold">YTD Rev FY</span>
+          <span className="text-xs text-muted-foreground font-bold">YTD Rev FY</span>
           <div className="flex items-center gap-1">
-            <span className="text-xs font-black">{fmt(data.custYTDRevenueThisFY)}</span>
+            <span className="text-xs font-semibold">{fmt(data.custYTDRevenueThisFY)}</span>
           </div>
         </div>
       </div>
@@ -293,16 +293,16 @@ function UserRow({ u, onInspectUser }: { u: CRMUserSummary; onInspectUser: (u: C
   return (
     <tr
       onClick={() => onInspectUser(u)}
-      className="border-b border-slate-100 hover:bg-accent/5 transition-all cursor-pointer group"
+      className="border-b border-border hover:bg-accent/5 transition-all cursor-pointer group"
     >
-      <td className="px-4 py-3 font-black text-[10px] uppercase text-primary whitespace-nowrap group-hover:text-accent flex items-center gap-1.5 transition-colors">
+      <td className="px-4 py-3 font-semibold text-xs text-primary whitespace-nowrap group-hover:text-accent flex items-center gap-1.5 transition-colors">
         <Eye className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-accent shrink-0" />
         {u.userName}
       </td>
       <td className="px-4 py-3 text-center text-xs font-bold group-hover:text-accent transition-colors">{u.opportunityCount}</td>
-      <td className="px-4 py-3 text-right text-xs font-black group-hover:text-accent transition-colors">{fmt(u.opportunityValue)}</td>
+      <td className="px-4 py-3 text-right text-xs font-semibold group-hover:text-accent transition-colors">{fmt(u.opportunityValue)}</td>
       <td className="px-4 py-3 text-center text-xs font-bold group-hover:text-accent transition-colors">{u.customerCount}</td>
-      <td className="px-4 py-3 text-right text-xs font-black text-emerald-600">{fmt(u.custYTDRevenueThisFY)}</td>
+      <td className="px-4 py-3 text-right text-xs font-semibold text-success-ink">{fmt(u.custYTDRevenueThisFY)}</td>
     </tr>
   );
 }
@@ -331,7 +331,7 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
 
   if (summary.isLoading) {
     return (
-      <Card className="border-none shadow-xl bg-white">
+      <Card className="border-none shadow-xl bg-card">
         <CardContent className="flex items-center justify-center py-12">
           <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
         </CardContent>
@@ -381,22 +381,22 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
         type={modalState.type}
       />
 
-      <Card className="border-none shadow-xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-900 text-white pb-4 pt-5">
+      <Card className="border-none shadow-xl bg-card overflow-hidden">
+        <CardHeader className="bg-primary text-white pb-4 pt-5">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-accent/20 rounded-xl">
                 <BarChart3 className="w-4 h-4 text-accent" />
               </div>
               <div>
-                <CardTitle className="text-base font-black tracking-tight">CRM Performance Summary</CardTitle>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <CardTitle className="text-base font-bold tracking-tight">CRM Performance Summary</CardTitle>
+                <p className="text-xs font-bold text-muted-foreground mt-0.5">
                   Opportunities &amp; Account Management · Week {currentWeek.split('-')[1]}
                 </p>
               </div>
             </div>
             {!hasData && (
-              <Badge className="bg-amber-500/20 text-amber-400 border-none text-[9px] font-black">
+              <Badge className="bg-warning/20 text-warning border-none text-xs font-semibold">
                 No CRM data imported yet
               </Badge>
             )}
@@ -417,12 +417,12 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ChevronRight className="w-3.5 h-3.5 text-accent" />
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Individual Breakdown (Click row to inspect accounts)</p>
+                  <p className="text-xs font-semibold text-muted-foreground">Individual Breakdown (Click row to inspect accounts)</p>
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-100 overflow-x-auto overflow-y-auto max-h-72 shadow-inner">
+              <div className="rounded-2xl border border-border overflow-x-auto overflow-y-auto max-h-72 shadow-inner">
                   <table className="w-full text-sm min-w-[700px]">
-                    <thead className="bg-slate-50 text-[8px] font-black uppercase tracking-widest border-b border-slate-100 sticky top-0 z-10">
+                    <thead className="bg-secondary/60 text-xs font-semibold border-b border-border sticky top-0 z-10">
                       <tr>
                         <th className="px-4 py-2.5 text-left">BDM / AM</th>
                         <th className="px-4 py-2.5 text-center">Opps</th>
@@ -435,13 +435,13 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                       {summary.byUser.map(u => <UserRow key={u.userId} u={u} onInspectUser={handleInspectUser} />)}
                     </tbody>
                     {/* Team total footer */}
-                    <tfoot className="bg-slate-900 text-white text-[9px] font-black uppercase">
+                    <tfoot className="bg-primary text-white text-xs font-semibold">
                       <tr>
-                        <td className="px-4 py-3 sticky left-0 bg-slate-900">TEAM TOTAL</td>
+                        <td className="px-4 py-3 sticky left-0 bg-primary">TEAM TOTAL</td>
                         <td className="px-4 py-3 text-center">{summary.team.opportunityCount}</td>
                         <td className="px-4 py-3 text-right">{fmt(summary.team.opportunityValue)}</td>
                         <td className="px-4 py-3 text-center">{summary.team.customerCount}</td>
-                        <td className="px-4 py-3 text-right text-emerald-400">{fmt(summary.team.custYTDRevenueThisFY)}</td>
+                        <td className="px-4 py-3 text-right text-success">{fmt(summary.team.custYTDRevenueThisFY)}</td>
                       </tr>
                     </tfoot>
                   </table>

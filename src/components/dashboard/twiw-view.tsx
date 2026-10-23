@@ -2207,18 +2207,18 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     <div className="space-y-6 w-full max-w-[1400px] mx-auto pb-12">
 
       {/* Header Bar */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
         <div className="space-y-1">
-          <h1 className="text-xl md:text-3xl font-black font-headline text-primary tracking-tighter uppercase">TWTW: The Week That Was</h1>
-          <p className="text-muted-foreground text-xs font-bold uppercase tracking-tight">Standardized Team Performance Reporting</p>
+          <h1 className="text-xl md:text-3xl font-extrabold font-headline text-primary tracking-tighter">TWTW: The Week That Was</h1>
+          <p className="text-muted-foreground text-xs font-bold tracking-tight">Standardized Team Performance Reporting</p>
         </div>
 
         <div className="flex items-center gap-3">
-          <Calendar className="w-4 h-4 text-slate-400" />
+          <Calendar className="w-4 h-4 text-muted-foreground" />
           <select 
             value={selectedWeek} 
             onChange={(e) => setSelectedWeek(e.target.value)}
-            className="flex h-10 w-full sm:w-[180px] items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm font-bold shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            className="flex h-10 w-full sm:w-[180px] items-center justify-between rounded-xl border border-border bg-card px-3 py-1 text-sm font-bold shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
           >
             {salesWeeks.map(wk => (
               <option key={wk} value={wk}>Week {wk.split('-')[1]} ({wk.split('-')[0]})</option>
@@ -2229,12 +2229,12 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
       {isLeader ? (
         <Tabs key={defaultTab} defaultValue={defaultTab} className="w-full">
-          <TabsList className="bg-slate-100/60 p-1 rounded-2xl grid grid-cols-5 max-w-4xl mb-8 h-12 border">
-            <TabsTrigger value="my-report" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">My Report</TabsTrigger>
-            <TabsTrigger value="collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Collation Hub</TabsTrigger>
-            <TabsTrigger value="new-collation" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">New Collation</TabsTrigger>
-            <TabsTrigger value="standouts" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Key Standouts</TabsTrigger>
-            <TabsTrigger value="monthly-standouts" className="rounded-xl font-black text-xs uppercase tracking-widest h-10">Monthly Standouts</TabsTrigger>
+          <TabsList className="bg-secondary/60 p-1 rounded-2xl grid grid-cols-5 max-w-4xl mb-8 h-12 border">
+            <TabsTrigger value="my-report" className="rounded-xl font-semibold text-xs h-10">My Report</TabsTrigger>
+            <TabsTrigger value="collation" className="rounded-xl font-semibold text-xs h-10">Collation Hub</TabsTrigger>
+            <TabsTrigger value="new-collation" className="rounded-xl font-semibold text-xs h-10">New Collation</TabsTrigger>
+            <TabsTrigger value="standouts" className="rounded-xl font-semibold text-xs h-10">Key Standouts</TabsTrigger>
+            <TabsTrigger value="monthly-standouts" className="rounded-xl font-semibold text-xs h-10">Monthly Standouts</TabsTrigger>
           </TabsList>
 
           <TabsContent value="my-report">
@@ -2300,44 +2300,44 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
   function renderKPIReview() {
     if (!isRegisteredUser) return null;
     return (
-      <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white mb-6">
-        <CardHeader className="bg-slate-50/50 border-b py-4">
+      <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card mb-6">
+        <CardHeader className="bg-secondary/60 border-b py-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                <Target className="w-4 h-4 text-emerald-600" /> Weekly KPI Review (vs Previous Friday's Plan)
+              <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Target className="w-4 h-4 text-success-ink" /> Weekly KPI Review (vs Previous Friday's Plan)
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <CardDescription className="text-xs font-bold text-muted-foreground">
                 Review your performance against the KPI targets set last Friday
               </CardDescription>
             </div>
-            <Badge className="bg-slate-100 text-slate-600 font-black text-[9px] uppercase">Week {previousWeek.split('-')[1]} Targets</Badge>
+            <Badge className="bg-secondary text-foreground/75 font-semibold text-xs">Week {previousWeek.split('-')[1]} Targets</Badge>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-blue-500" /><div className="text-[9px] font-black uppercase text-slate-500">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-purple-500" /><div className="text-[9px] font-black uppercase text-slate-500">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-amber-500" /><div className="text-[9px] font-black uppercase text-slate-500">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Revenue</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-lg font-black text-slate-800">${(kpiReview.revenueTarget / 1000).toFixed(0)}K</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.revenueActual || ''} onChange={(e) => updateKPI('revenueActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-black w-full", (kpiReview.revenueActual === undefined || isNaN(kpiReview.revenueActual) || kpiReview.revenueActual < 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-accent" /><div className="text-xs font-semibold text-muted-foreground">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-success" /><div className="text-xs font-semibold text-muted-foreground">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-accent" /><div className="text-xs font-semibold text-muted-foreground">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-warning" /><div className="text-xs font-semibold text-muted-foreground">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-success" /><div className="text-xs font-semibold text-muted-foreground">Revenue</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-lg font-semibold text-foreground">${(kpiReview.revenueTarget / 1000).toFixed(0)}K</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.revenueActual || ''} onChange={(e) => updateKPI('revenueActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.revenueActual === undefined || isNaN(kpiReview.revenueActual) || kpiReview.revenueActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
           </div>
           <div className="space-y-2">
-            <div className="text-[10px] font-black uppercase text-slate-500">Weekly KPI Notes & Commentary</div>
-            <Textarea placeholder="Provide notes on your KPI performance this week..." value={kpiReview.kpiNotes} onChange={(e) => setKpiReview(prev => ({ ...prev, kpiNotes: e.target.value }))} className={cn("min-h-[80px] text-xs font-medium rounded-xl", !kpiReview.kpiNotes?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")} />
+            <div className="text-xs font-semibold text-muted-foreground">Weekly KPI Notes & Commentary</div>
+            <Textarea placeholder="Provide notes on your KPI performance this week..." value={kpiReview.kpiNotes} onChange={(e) => setKpiReview(prev => ({ ...prev, kpiNotes: e.target.value }))} className={cn("min-h-[80px] text-xs font-medium rounded-xl", !kpiReview.kpiNotes?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} />
           </div>
           {previousFocusAccounts.length > 0 && (
             <div className="space-y-3 pt-4 border-t">
-              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-accent" /> Previous Week's Focus Accounts (from Friday Plan)</h4>
+              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-accent" /> Previous Week's Focus Accounts (from Friday Plan)</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {previousFocusAccounts.map((acc: any, idx: number) => (
-                  <div key={idx} className="p-3 bg-slate-50 border rounded-xl">
-                    <p className="font-bold text-slate-800">{acc.accountName}</p>
-                    <div className="flex gap-2 mt-1 text-[10px] text-slate-500">
-                      <Badge variant="outline" className="text-[7px] font-black uppercase">{acc.actionType}</Badge>
-                      <span className="font-black">${(acc.eav || 0).toLocaleString()}</span>
+                  <div key={idx} className="p-3 bg-secondary/60 border rounded-xl">
+                    <p className="font-bold text-foreground">{acc.accountName}</p>
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <Badge variant="outline" className="text-xs font-semibold">{acc.actionType}</Badge>
+                      <span className="font-bold">${(acc.eav || 0).toLocaleString()}</span>
                     </div>
-                    {acc.aboutAccount && <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">{acc.aboutAccount}</p>}
+                    {acc.aboutAccount && <p className="text-xs text-foreground/75 mt-1 line-clamp-2">{acc.aboutAccount}</p>}
                   </div>
                 ))}
               </div>
@@ -2350,20 +2350,20 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
   function renderGuestView() { return (
     <div className="space-y-6">
-      <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white mb-6">
-        <CardHeader className="bg-slate-50/50 border-b py-4">
+      <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card mb-6">
+        <CardHeader className="bg-secondary/60 border-b py-4">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-slate-400" />
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-600">Guest Access</CardTitle>
+            <Shield className="w-5 h-5 text-muted-foreground" />
+            <CardTitle className="text-sm font-semibold text-foreground/75">Guest Access</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-6 text-center">
           <div className="flex flex-col items-center gap-4 py-8">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><Shield className="w-8 h-8 text-slate-400" /></div>
+            <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center"><Shield className="w-8 h-8 text-muted-foreground" /></div>
             <div className="space-y-2 max-w-md">
-              <h3 className="text-lg font-black text-slate-700">TWTW Report</h3>
-              <p className="text-sm text-slate-500">As a guest user, you can submit your weekly TWTW report. KPI tracking and advanced features are available for registered BDM and AM users.</p>
-              <Badge className="bg-emerald-500/10 text-emerald-600 font-black text-[9px] uppercase mt-2">Submit your weekly update below</Badge>
+              <h3 className="text-lg font-bold text-foreground/85">TWTW Report</h3>
+              <p className="text-sm text-muted-foreground">As a guest user, you can submit your weekly TWTW report. KPI tracking and advanced features are available for registered BDM and AM users.</p>
+              <Badge className="bg-success-fill/10 text-success-ink font-semibold text-xs mt-2">Submit your weekly update below</Badge>
             </div>
           </div>
         </CardContent>
@@ -2378,13 +2378,13 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       <div className="space-y-6">
           
           {/* Key Wins */}
-          <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
+          <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card">
+            <CardHeader className="bg-secondary/60 border-b flex flex-row items-center justify-between py-4">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <Award className="w-4 h-4 text-emerald-500" /> Key Wins
+                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Award className="w-4 h-4 text-success" /> Key Wins
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <CardDescription className="text-xs font-bold text-muted-foreground">
                   Significant closed business during the week
                 </CardDescription>
               </div>
@@ -2394,7 +2394,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                    <tr className=" text-xs font-semibold border-b border-border text-muted-foreground">
                       <th className="text-left pb-2 w-[25%]">Customer</th>
                       <th className="text-right pb-2 w-[15%]">EAV ($)</th>
                       <th className="text-left pb-2 w-[20%]">Business Unit</th>
@@ -2403,7 +2403,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-border">
                     {wins.map((w) => (
                       <tr key={w.id}>
                         <td className="py-2 pr-2">
@@ -2411,7 +2411,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={w.customer} 
                             onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className={cn("h-8 text-xs font-semibold", !w.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold", !w.customer?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2420,16 +2420,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={w.value || ''} 
                             onChange={(e) => updateWinField(w.id, 'value', parseFloat(e.target.value) || 0)} 
                             placeholder="Value" 
-                            className={cn("h-8 text-xs font-black text-right text-emerald-600", (!w.value || w.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold text-right text-success-ink", (!w.value || w.value <= 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
-                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (w.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
+                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (w.businessUnits || []).length === 0 && "border border-destructive bg-danger-soft/10")}>
                             {BUSINESS_UNITS.map(bu => (
                               <Badge 
                                 key={bu} 
                                 variant={(w.businessUnits || []).includes(bu) ? 'default' : 'outline'}
-                                className="cursor-pointer text-[9px] px-1 py-0"
+                                className="cursor-pointer text-xs px-1 py-0"
                                 onClick={() => toggleBusinessUnit(w.id, bu)}
                               >
                                 {bu}
@@ -2443,10 +2443,10 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                               value={w.updateText || ''} 
                               onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
                               placeholder="e.g. Signed contract win" 
-                              className={cn("h-8 text-xs", !w.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                              className={cn("h-8 text-xs", !w.updateText?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                               maxLength={200}
                             />
-                            <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(w.updateText || '').length}/200</div>
+                            <div className="absolute -bottom-3 right-0 text-xs text-muted-foreground font-bold">{(w.updateText || '').length}/200</div>
                           </div>
                         </td>
                         <td className="py-2 pr-2">
@@ -2454,11 +2454,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={w.salespersonName} 
                             onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className={cn("h-8 text-xs", !w.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs", !w.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
-                          <Button variant="ghost" size="icon" onClick={() => removeWinRow(w.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                          <Button variant="ghost" size="icon" onClick={() => removeWinRow(w.id)} className="h-8 w-8 text-destructive rounded-xl">
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </td>
@@ -2466,7 +2466,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     ))}
                     {wins.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                        <td colSpan={4} className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                           No Wins reported yet. Add a custom row.
                         </td>
                       </tr>
@@ -2478,30 +2478,30 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               {/* Mobile Stacked View */}
               <div className="block sm:hidden space-y-4">
                 {wins.map((w, idx) => (
-                  <div key={w.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
+                  <div key={w.id} className="p-3 bg-secondary/60 border border-border rounded-2xl space-y-2 relative">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black uppercase text-slate-400">Win #{idx + 1}</span>
-                      <Button variant="ghost" size="icon" onClick={() => removeWinRow(w.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                      <span className="text-xs font-semibold text-muted-foreground">Win #{idx + 1}</span>
+                      <Button variant="ghost" size="icon" onClick={() => removeWinRow(w.id)} className="h-6 w-6 text-destructive rounded-lg">
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Customer</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Customer</label>
                       <Input 
                         value={w.customer} 
                         onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
                         placeholder="e.g. Acme Corp" 
-                        className="h-8 text-xs font-semibold bg-white"
+                        className="h-8 text-xs font-semibold bg-card"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Business Unit</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Business Unit</label>
                       <div className="flex flex-wrap gap-1">
                         {BUSINESS_UNITS.map(bu => (
                           <Badge 
                             key={bu} 
                             variant={(w.businessUnits || []).includes(bu) ? 'default' : 'outline'}
-                            className="cursor-pointer text-[10px] px-2 py-0.5 bg-white shadow-sm hover:bg-slate-100 text-slate-600"
+                            className="cursor-pointer text-xs px-2 py-0.5 bg-card shadow-sm hover:bg-secondary text-foreground/75"
                             style={(w.businessUnits || []).includes(bu) ? { backgroundColor: '#1e293b', color: 'white', borderColor: 'transparent' } : {}}
                             onClick={() => toggleBusinessUnit(w.id, bu)}
                           >
@@ -2512,59 +2512,59 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">EAV ($)</label>
+                        <label className="text-xs font-semibold text-muted-foreground">EAV ($)</label>
                         <Input 
                           type="number"
                           value={w.value || ''} 
                           onChange={(e) => updateWinField(w.id, 'value', parseFloat(e.target.value) || 0)} 
                           placeholder="Value" 
-                          className="h-8 text-xs font-black text-emerald-600 bg-white"
+                          className="h-8 text-xs font-semibold text-success-ink bg-card"
                         />
                       </div>
                       <div className="space-y-1 relative">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Update</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Update</label>
                         <Input 
                           value={w.updateText || ''} 
                           onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
                           placeholder="Update text" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                           maxLength={200}
                         />
-                        <div className="text-right text-[8px] text-slate-400 font-bold mt-0.5">{(w.updateText || '').length}/200</div>
+                        <div className="text-right text-xs text-muted-foreground font-bold mt-0.5">{(w.updateText || '').length}/200</div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Salesperson</label>
                         <Input 
                           value={w.salespersonName} 
                           onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
                           placeholder="Name" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                         />
                       </div>
                     </div>
                   </div>
                 ))}
                 {wins.length === 0 && (
-                  <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                  <div className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                     No Wins reported yet. Add a custom row.
                   </div>
                 )}
               </div>
 
-              <Button onClick={addWinRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+              <Button onClick={addWinRow} variant="outline" size="sm" className="w-full text-xs font-semibold rounded-xl border-border">
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Win
               </Button>
             </CardContent>
           </Card>
 
           {/* Churn Risk Flags */}
-          <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
+          <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card">
+            <CardHeader className="bg-secondary/60 border-b flex flex-row items-center justify-between py-4">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-500" /> Churn Risk Flags
+                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-destructive" /> Churn Risk Flags
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <CardDescription className="text-xs font-bold text-muted-foreground">
                   Key accounts at risk of churning or revenue loss
                 </CardDescription>
               </div>
@@ -2574,7 +2574,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                    <tr className=" text-xs font-semibold border-b border-border text-muted-foreground">
                       <th className="text-left pb-2 w-[35%]">Account / Cust</th>
                       <th className="text-right pb-2 w-[20%]">Value at Risk ($)</th>
                       <th className="text-left pb-2 w-[20%]">Mitigation</th>
@@ -2582,7 +2582,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-border">
                     {risks.map((r) => (
                       <tr key={r.id}>
                         <td className="py-2 pr-2">
@@ -2590,7 +2590,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.account} 
                             onChange={(e) => updateRiskField(r.id, 'account', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className={cn("h-8 text-xs font-semibold", !r.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold", !r.account?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2599,7 +2599,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.value || ''} 
                             onChange={(e) => updateRiskField(r.id, 'value', parseFloat(e.target.value) || 0)} 
                             placeholder="Value" 
-                            className={cn("h-8 text-xs font-black text-right text-rose-600", (!r.value || r.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold text-right text-destructive", (!r.value || r.value <= 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2607,7 +2607,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.mitigation} 
                             onChange={(e) => updateRiskField(r.id, 'mitigation', e.target.value)} 
                             placeholder="e.g. Setup review meeting" 
-                            className={cn("h-8 text-xs", !r.mitigation?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs", !r.mitigation?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2615,11 +2615,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={r.salespersonName} 
                             onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className={cn("h-8 text-xs", !r.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs", !r.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
-                          <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                          <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-8 w-8 text-destructive rounded-xl">
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </td>
@@ -2627,7 +2627,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     ))}
                     {risks.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                        <td colSpan={5} className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                           No Risks flagged yet. Add a custom row.
                         </td>
                       </tr>
@@ -2639,89 +2639,89 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               {/* Mobile Stacked View */}
               <div className="block sm:hidden space-y-4">
                 {risks.map((r, idx) => (
-                  <div key={r.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
+                  <div key={r.id} className="p-3 bg-secondary/60 border border-border rounded-2xl space-y-2 relative">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black uppercase text-slate-400">Risk #{idx + 1}</span>
-                      <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                      <span className="text-xs font-semibold text-muted-foreground">Risk #{idx + 1}</span>
+                      <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-6 w-6 text-destructive rounded-lg">
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Account / Cust</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Account / Cust</label>
                       <Input 
                         value={r.account} 
                         onChange={(e) => updateRiskField(r.id, 'account', e.target.value)} 
                         placeholder="e.g. Acme Corp" 
-                        className="h-8 text-xs font-semibold bg-white"
+                        className="h-8 text-xs font-semibold bg-card"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Value at Risk ($)</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Value at Risk ($)</label>
                         <Input 
                           type="number"
                           value={r.value || ''} 
                           onChange={(e) => updateRiskField(r.id, 'value', parseFloat(e.target.value) || 0)} 
                           placeholder="Value" 
-                          className="h-8 text-xs font-black text-rose-600 bg-white"
+                          className="h-8 text-xs font-semibold text-destructive bg-card"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Mitigation</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Mitigation</label>
                         <Input 
                           value={r.mitigation} 
                           onChange={(e) => updateRiskField(r.id, 'mitigation', e.target.value)} 
                           placeholder="Mitigation" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                         />
                       </div>
                       <div className="space-y-1 col-span-2">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Salesperson</label>
                         <Input 
                           value={r.salespersonName} 
                           onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
                           placeholder="Name" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                         />
                       </div>
                     </div>
                   </div>
                 ))}
                 {risks.length === 0 && (
-                  <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                  <div className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                     No Risks flagged yet. Add a custom row.
                   </div>
                 )}
               </div>
 
-              <Button onClick={addRiskRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+              <Button onClick={addRiskRow} variant="outline" size="sm" className="w-full text-xs font-semibold rounded-xl border-border">
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Risk
               </Button>
             </CardContent>
           </Card>
 
           {/* Major Pipeline & Customer Updates */}
-          <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50/50 border-b py-4">
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800">
+          <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card">
+            <CardHeader className="bg-secondary/60 border-b py-4">
+              <CardTitle className="text-sm font-semibold text-foreground">
                 Major Pipeline &amp; Customer Updates
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <CardDescription className="text-xs font-bold text-muted-foreground">
                 Key updates on deal stages, client milestones, and territory status
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4">
               
               {updates && majorUpdates.length === 0 && (
-                <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                  <p className="text-xs text-amber-800 font-medium mb-1">Legacy Update Format (Read-Only):</p>
-                  <p className="text-xs text-amber-700 whitespace-pre-wrap">{typeof updates === 'string' ? updates : JSON.stringify(updates)}</p>
+                <div className="mb-4 p-3 bg-warning-soft border border-warning/20 rounded-xl">
+                  <p className="text-xs text-warning-ink font-medium mb-1">Legacy Update Format (Read-Only):</p>
+                  <p className="text-xs text-warning-ink whitespace-pre-wrap">{typeof updates === 'string' ? updates : JSON.stringify(updates)}</p>
                 </div>
               )}
 <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                    <tr className=" text-xs font-semibold border-b border-border text-muted-foreground">
                       <th className="text-left pb-2 w-[25%]">Customer</th>
                       <th className="text-right pb-2 w-[15%]">EAV ($)</th>
                       <th className="text-left pb-2 w-[20%]">Business Unit</th>
@@ -2730,7 +2730,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-border">
                     {majorUpdates.map((m) => (
                       <tr key={m.id}>
                         <td className="py-2 pr-2">
@@ -2738,7 +2738,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={m.customer} 
                             onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className={cn("h-8 text-xs font-semibold", !m.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold", !m.customer?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2747,16 +2747,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={m.value || ''} 
                             onChange={(e) => updateMajorUpdateField(m.id, 'value', parseFloat(e.target.value) || 0)} 
                             placeholder="Value" 
-                            className="h-8 text-xs font-black text-right text-emerald-600"
+                            className="h-8 text-xs font-semibold text-right text-success-ink"
                           />
                         </td>
                         <td className="py-2 pr-2">
-                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (m.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
+                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (m.businessUnits || []).length === 0 && "border border-destructive bg-danger-soft/10")}>
                             {BUSINESS_UNITS.map(bu => (
                               <Badge 
                                 key={bu} 
                                 variant={(m.businessUnits || []).includes(bu) ? 'default' : 'outline'}
-                                className="cursor-pointer text-[9px] px-1 py-0"
+                                className="cursor-pointer text-xs px-1 py-0"
                                 onClick={() => toggleMajorUpdateBU(m.id, bu)}
                               >
                                 {bu}
@@ -2770,10 +2770,10 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                               value={m.updateText || ''} 
                               onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
                               placeholder="e.g. Signed contract win" 
-                              className={cn("h-8 text-xs", !m.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                              className={cn("h-8 text-xs", !m.updateText?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                               maxLength={200}
                             />
-                            <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(m.updateText || '').length}/200</div>
+                            <div className="absolute -bottom-3 right-0 text-xs text-muted-foreground font-bold">{(m.updateText || '').length}/200</div>
                           </div>
                         </td>
                         <td className="py-2 pr-2">
@@ -2781,11 +2781,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={m.salespersonName} 
                             onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className={cn("h-8 text-xs", !m.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs", !m.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
-                          <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                          <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-8 w-8 text-destructive rounded-xl">
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </td>
@@ -2793,7 +2793,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     ))}
                     {majorUpdates.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                        <td colSpan={4} className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                           No Wins reported yet. Add a custom rom.
                         </td>
                       </tr>
@@ -2805,30 +2805,30 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               {/* Mobile Stacked View */}
               <div className="block sm:hidden space-y-4">
                 {majorUpdates.map((m, idx) => (
-                  <div key={m.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
+                  <div key={m.id} className="p-3 bg-secondary/60 border border-border rounded-2xl space-y-2 relative">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black uppercase text-slate-400">Update #{idx + 1}</span>
-                      <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                      <span className="text-xs font-semibold text-muted-foreground">Update #{idx + 1}</span>
+                      <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-6 w-6 text-destructive rounded-lg">
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Customer</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Customer</label>
                       <Input 
                         value={m.customer} 
                         onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
                         placeholder="e.g. Acme Corp" 
-                        className="h-8 text-xs font-semibold bg-white"
+                        className="h-8 text-xs font-semibold bg-card"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Business Unit</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Business Unit</label>
                       <div className="flex flex-wrap gap-1">
                         {BUSINESS_UNITS.map(bu => (
                           <Badge 
                             key={bu} 
                             variant={(m.businessUnits || []).includes(bu) ? 'default' : 'outline'}
-                            className="cursor-pointer text-[10px] px-2 py-0.5 bg-white shadow-sm hover:bg-slate-100 text-slate-600"
+                            className="cursor-pointer text-xs px-2 py-0.5 bg-card shadow-sm hover:bg-secondary text-foreground/75"
                             style={(m.businessUnits || []).includes(bu) ? { backgroundColor: '#1e293b', color: 'white', borderColor: 'transparent' } : {}}
                             onClick={() => toggleMajorUpdateBU(m.id, bu)}
                           >
@@ -2839,59 +2839,59 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">EAV ($)</label>
+                        <label className="text-xs font-semibold text-muted-foreground">EAV ($)</label>
                         <Input 
                           type="number"
                           value={m.value || ''} 
                           onChange={(e) => updateMajorUpdateField(m.id, 'value', parseFloat(e.target.value) || 0)} 
                           placeholder="Value" 
-                          className="h-8 text-xs font-black text-emerald-600 bg-white"
+                          className="h-8 text-xs font-semibold text-success-ink bg-card"
                         />
                       </div>
                       <div className="space-y-1 relative">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Update</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Update</label>
                         <Input 
                           value={m.updateText || ''} 
                           onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
                           placeholder="Update text" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                           maxLength={200}
                         />
-                        <div className="text-right text-[8px] text-slate-400 font-bold mt-0.5">{(m.updateText || '').length}/200</div>
+                        <div className="text-right text-xs text-muted-foreground font-bold mt-0.5">{(m.updateText || '').length}/200</div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Salesperson</label>
                         <Input 
                           value={m.salespersonName} 
                           onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
                           placeholder="Name" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                         />
                       </div>
                     </div>
                   </div>
                 ))}
                 {majorUpdates.length === 0 && (
-                  <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                  <div className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                     No Wins reported yet. Add a custom rom.
                   </div>
                 )}
               </div>
 
-              <Button onClick={addMajorUpdateRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+              <Button onClick={addMajorUpdateRow} variant="outline" size="sm" className="w-full text-xs font-semibold rounded-xl border-border">
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Update
               </Button>
             </CardContent>
           </Card>
 
           {/* 30 Day Projected Wins >$200k */}
-          <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
+          <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card">
+            <CardHeader className="bg-secondary/60 border-b flex flex-row items-center justify-between py-4">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-500" /> 30 Day Projected Wins
+                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-accent" /> 30 Day Projected Wins
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <CardDescription className="text-xs font-bold text-muted-foreground">
                   High-value closures expected within the next 30 days
                 </CardDescription>
               </div>
@@ -2901,7 +2901,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                    <tr className=" text-xs font-semibold border-b border-border text-muted-foreground">
                       <th className="text-left pb-2 w-[30%]">Account / Cust</th>
                       <th className="text-right pb-2 w-[15%]">EAV ($)</th>
                       <th className="text-left pb-2 pl-2 w-[15%]">BU</th>
@@ -2910,7 +2910,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-border">
                     {projectedWins.map((p) => {
                       return (
                       <tr key={p.id}>
@@ -2919,7 +2919,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.account} 
                             onChange={(e) => updateProjectedField(p.id, 'account', e.target.value)} 
                             placeholder="e.g. Acme Corp" 
-                            className={cn("h-8 text-xs font-semibold", !p.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold", !p.account?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -2928,16 +2928,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.value || ''} 
                             onChange={(e) => updateProjectedField(p.id, 'value', parseFloat(e.target.value) || 0)} 
                             placeholder="Value" 
-                            className={cn("h-8 text-xs font-black text-right text-blue-600", (!p.value || p.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold text-right text-accent", (!p.value || p.value <= 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pl-2 pr-2">
-                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (p.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
+                          <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (p.businessUnits || []).length === 0 && "border border-destructive bg-danger-soft/10")}>
                             {BUSINESS_UNITS.map(bu => (
                               <Badge 
                                 key={bu} 
                                 variant={(p.businessUnits || []).includes(bu) ? 'default' : 'outline'}
-                                className="cursor-pointer text-[9px] px-1 py-0"
+                                className="cursor-pointer text-xs px-1 py-0"
                                 onClick={() => toggleProjectedWinBU(p.id, bu)}
                               >
                                 {bu}
@@ -2951,10 +2951,10 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                               value={p.updateText || ''} 
                               onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
                               placeholder="Update" 
-                              className={cn("h-8 text-xs", !p.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                              className={cn("h-8 text-xs", !p.updateText?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                               maxLength={200}
                             />
-                            <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(p.updateText || '').length}/200</div>
+                            <div className="absolute -bottom-3 right-0 text-xs text-muted-foreground font-bold">{(p.updateText || '').length}/200</div>
                           </div>
                         </td>
                         <td className="py-2 pr-2">
@@ -2962,11 +2962,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.salespersonName} 
                             onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
-                          <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                          <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-8 w-8 text-destructive rounded-xl">
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </td>
@@ -2974,7 +2974,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     )})}
                     {projectedWins.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                        <td colSpan={6} className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                           No projected wins &gt;$200k found. Add a custom row.
                         </td>
                       </tr>
@@ -2987,41 +2987,41 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <div className="block sm:hidden space-y-4">
                 {projectedWins.map((p, idx) => {
                   return (
-                  <div key={p.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
+                  <div key={p.id} className="p-3 bg-secondary/60 border border-border rounded-2xl space-y-2 relative">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black uppercase text-slate-400">Projected Win #{idx + 1}</span>
-                      <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                      <span className="text-xs font-semibold text-muted-foreground">Projected Win #{idx + 1}</span>
+                      <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-6 w-6 text-destructive rounded-lg">
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Account / Cust</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Account / Cust</label>
                       <Input 
                         value={p.account} 
                         onChange={(e) => updateProjectedField(p.id, 'account', e.target.value)} 
                         placeholder="e.g. Acme Corp" 
-                        className="h-8 text-xs font-semibold bg-white"
+                        className="h-8 text-xs font-semibold bg-card"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">EAV ($)</label>
+                        <label className="text-xs font-semibold text-muted-foreground">EAV ($)</label>
                         <Input 
                           type="number"
                           value={p.value || ''} 
                           onChange={(e) => updateProjectedField(p.id, 'value', parseFloat(e.target.value) || 0)} 
                           placeholder="Value" 
-                          className="h-8 text-xs font-black text-blue-600 bg-white"
+                          className="h-8 text-xs font-semibold text-accent bg-card"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Business Unit</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Business Unit</label>
                         <div className="flex flex-wrap gap-1">
                           {BUSINESS_UNITS.map(bu => (
                             <Badge 
                               key={bu} 
                               variant={(p.businessUnits || []).includes(bu) ? 'default' : 'outline'}
-                              className="cursor-pointer text-[10px] px-2 py-0.5 bg-white shadow-sm hover:bg-slate-100 text-slate-600"
+                              className="cursor-pointer text-xs px-2 py-0.5 bg-card shadow-sm hover:bg-secondary text-foreground/75"
                               style={(p.businessUnits || []).includes(bu) ? { backgroundColor: '#1e293b', color: 'white', borderColor: 'transparent' } : {}}
                               onClick={() => toggleProjectedWinBU(p.id, bu)}
                             >
@@ -3033,48 +3033,48 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1 relative">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Update</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Update</label>
                         <Input 
                           value={p.updateText || ''} 
                           onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
                           placeholder="Update" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                           maxLength={200}
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Salesperson</label>
                         <Input 
                           value={p.salespersonName} 
                           onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
                           placeholder="Name" 
-                          className="h-8 text-xs bg-white"
+                          className="h-8 text-xs bg-card"
                         />
                       </div>
                     </div>
                   </div>
                 )})}
                 {projectedWins.length === 0 && (
-                  <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                  <div className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                     No projected wins &gt;$200k found. Add a custom row.
                   </div>
                 )}
               </div>
 
-              <Button onClick={addProjectedRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+              <Button onClick={addProjectedRow} variant="outline" size="sm" className="w-full text-xs font-semibold rounded-xl border-border">
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom projected win
               </Button>
             </CardContent>
           </Card>
         {/* Bottom Cards: Priorities and Submission Actions */}
           {/* Priorities */}
-          <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
+          <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card">
+            <CardHeader className="bg-secondary/60 border-b flex flex-row items-center justify-between py-4">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Target className="w-4 h-4 text-accent" /> Priorities for Week Ahead
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <CardDescription className="text-xs font-bold text-muted-foreground">
                   Key areas of focus for the next 7 days
                 </CardDescription>
               </div>
@@ -3084,13 +3084,13 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                    <tr className=" text-xs font-semibold border-b border-border text-muted-foreground">
                       <th className="text-left pb-2 w-[70%]">Priority / Focus Area</th>
                       <th className="text-left pb-2 w-[25%]">Salesperson</th>
                       <th className="text-center pb-2 w-[5%]">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-border">
                     {priorities.map((p) => (
                       <tr key={p.id}>
                         <td className="py-2 pr-2">
@@ -3098,7 +3098,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.text || ''} 
                             onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
                             placeholder="e.g. Focus on Neerabup zone wins" 
-                            className={cn("h-8 text-xs font-semibold", !p.text?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs font-semibold", !p.text?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 pr-2">
@@ -3106,11 +3106,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                             value={p.salespersonName} 
                             onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
                             placeholder="Name" 
-                            className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                            className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                           />
                         </td>
                         <td className="py-2 text-center">
-                          <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                          <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-8 w-8 text-destructive rounded-xl">
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </td>
@@ -3118,7 +3118,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     ))}
                     {priorities.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                        <td colSpan={3} className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                           No priorities added yet. Add a row below.
                         </td>
                       </tr>
@@ -3130,38 +3130,38 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               {/* Mobile Card List View */}
               <div className="block sm:hidden space-y-3">
                 {priorities.map((p) => (
-                  <div key={p.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 relative">
-                    <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="absolute top-2 right-2 h-6 w-6 text-red-500 rounded-lg">
+                  <div key={p.id} className="p-3 bg-secondary/60 border border-border rounded-xl space-y-2 relative">
+                    <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="absolute top-2 right-2 h-6 w-6 text-destructive rounded-lg">
                       <Trash2 className="w-3 h-3" />
                     </Button>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Priority / Focus Area</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Priority / Focus Area</label>
                       <Input 
                         value={p.text || ''} 
                         onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
                         placeholder="e.g. Focus on Neerabup zone wins" 
-                        className="h-8 text-xs bg-white"
+                        className="h-8 text-xs bg-card"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                      <label className="text-xs font-semibold text-muted-foreground">Salesperson</label>
                       <Input 
                         value={p.salespersonName} 
                         onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
                         placeholder="Name" 
-                        className="h-8 text-xs bg-white"
+                        className="h-8 text-xs bg-card"
                       />
                     </div>
                   </div>
                 ))}
                 {priorities.length === 0 && (
-                  <div className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                  <div className="text-center py-6 text-xs font-semibold text-muted-foreground bg-secondary/60 rounded-xl">
                     No priorities added yet. Add a row below.
                   </div>
                 )}
               </div>
 
-              <Button onClick={addPriority} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+              <Button onClick={addPriority} variant="outline" size="sm" className="w-full text-xs font-semibold rounded-xl border-border">
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add Priority Focus
               </Button>
             </CardContent>
@@ -3169,16 +3169,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Strategy Document Compliance Check */}
           {profile?.role !== 'GUEST' && (
-            <Card className="border-slate-200 shadow-lg rounded-3xl overflow-hidden bg-white">
-              <CardHeader className="bg-slate-50 border-b border-slate-200 py-4">
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> Weekly Compliance Audit
+            <Card className="border-border shadow-lg rounded-3xl overflow-hidden bg-card">
+              <CardHeader className="bg-secondary/60 border-b border-border py-4">
+                <CardTitle className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-success" /> Weekly Compliance Audit
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-6">
                 {/* Call Plans */}
                 <div className="space-y-2">
-                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
+                  <h5 className="text-xs font-semibold text-muted-foreground">📞 Call Plans</h5>
                   {cpPlans && cpPlans.filter((cp: any) => isCreatedThisWeek(cp.createdAt)).length > 0 ? (
                     <div className="space-y-2">
                       {cpPlans.filter((cp: any) => isCreatedThisWeek(cp.createdAt)).map((cp: any, idx: number) => {
@@ -3187,9 +3187,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                         const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
                         return (
-                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
-                            <span className="text-xs font-bold text-slate-700">{cp.accountName || cp.dealName || 'Unnamed Plan'}</span>
-                            <div className="flex flex-col items-end text-[10px] text-slate-400 font-medium">
+                          <div key={idx} className="flex justify-between items-center bg-secondary/60 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-foreground/85">{cp.accountName || cp.dealName || 'Unnamed Plan'}</span>
+                            <div className="flex flex-col items-end text-xs text-muted-foreground font-medium">
                               <span>Created: {timeStr}</span>
                               <span>Edited: {updateStr}</span>
                             </div>
@@ -3198,13 +3198,13 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       })}
                     </div>
                   ) : (
-                    <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Call Plans Created</p>
+                    <p className="text-xs font-semibold text-destructive bg-danger-soft border border-destructive/20 rounded-xl p-3">No Call Plans Created</p>
                   )}
                 </div>
 
                 {/* White Space */}
                 <div className="space-y-2">
-                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🗺️ White Space Reports</h5>
+                  <h5 className="text-xs font-semibold text-muted-foreground">🗺️ White Space Reports</h5>
                   {wsPlans && wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).length > 0 ? (
                     <div className="space-y-2">
                       {wsPlans.filter((ws: any) => isCreatedThisWeek(ws.createdAt)).map((ws: any, idx: number) => {
@@ -3213,9 +3213,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                         const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
                         return (
-                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
-                            <span className="text-xs font-bold text-slate-700">{ws.accountName || 'Unnamed Diagnostic'}</span>
-                            <div className="flex flex-col items-end text-[10px] text-slate-400 font-medium">
+                          <div key={idx} className="flex justify-between items-center bg-secondary/60 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-foreground/85">{ws.accountName || 'Unnamed Diagnostic'}</span>
+                            <div className="flex flex-col items-end text-xs text-muted-foreground font-medium">
                               <span>Created: {timeStr}</span>
                               <span>Edited: {updateStr}</span>
                             </div>
@@ -3224,13 +3224,13 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       })}
                     </div>
                   ) : (
-                    <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No White Space Reports Created</p>
+                    <p className="text-xs font-semibold text-destructive bg-danger-soft border border-destructive/20 rounded-xl p-3">No White Space Reports Created</p>
                   )}
                 </div>
 
                 {/* Fact Finding */}
                 <div className="space-y-2">
-                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🔍 Fact Finding Reports</h5>
+                  <h5 className="text-xs font-semibold text-muted-foreground">🔍 Fact Finding Reports</h5>
                   {ffDocs && ffDocs.filter((ff: any) => isCreatedThisWeek(ff.createdAt)).length > 0 ? (
                     <div className="space-y-2">
                       {ffDocs.filter((ff: any) => isCreatedThisWeek(ff.createdAt)).map((ff: any, idx: number) => {
@@ -3239,9 +3239,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                         const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
                         return (
-                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
-                            <span className="text-xs font-bold text-slate-700">{ff.companyName || ff.customerName || 'Unnamed Doc'}</span>
-                            <div className="flex flex-col items-end text-[10px] text-slate-400 font-medium">
+                          <div key={idx} className="flex justify-between items-center bg-secondary/60 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-foreground/85">{ff.companyName || ff.customerName || 'Unnamed Doc'}</span>
+                            <div className="flex flex-col items-end text-xs text-muted-foreground font-medium">
                               <span>Created: {timeStr}</span>
                               <span>Edited: {updateStr}</span>
                             </div>
@@ -3250,13 +3250,13 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       })}
                     </div>
                   ) : (
-                    <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Fact Finding Sessions Completed</p>
+                    <p className="text-xs font-semibold text-destructive bg-danger-soft border border-destructive/20 rounded-xl p-3">No Fact Finding Sessions Completed</p>
                   )}
                 </div>
 
                 {/* Fact Finding Notes */}
                 <div className="space-y-2 mt-4">
-                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📝 Fact Finding Notes</h5>
+                  <h5 className="text-xs font-semibold text-muted-foreground">📝 Fact Finding Notes</h5>
                   {weeklyFFNotes.length > 0 ? (
                     <div className="space-y-2">
                       {weeklyFFNotes.map((n: any, idx: number) => {
@@ -3265,29 +3265,29 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                         const updateStr = updateDt ? updateDt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : timeStr;
                         return (
-                          <div key={idx} className="bg-slate-50 border rounded-xl p-3 text-xs text-slate-700">
-                            <strong>{n.companyName}</strong>, <span className="text-[10px] text-slate-500">Created: {timeStr} | Edited: {updateStr}</span>: {n.note}
+                          <div key={idx} className="bg-secondary/60 border rounded-xl p-3 text-xs text-foreground/85">
+                            <strong>{n.companyName}</strong>, <span className="text-xs text-muted-foreground">Created: {timeStr} | Edited: {updateStr}</span>: {n.note}
                           </div>
                         );
                       })}
                     </div>
                   ) : (
-                    <p className="text-xs font-black text-slate-400 bg-slate-50 border border-slate-100 rounded-xl p-3">No Notes Added This Week</p>
+                    <p className="text-xs font-semibold text-muted-foreground bg-secondary/60 border border-border rounded-xl p-3">No Notes Added This Week</p>
                   )}
                 </div>
 
                 {/* Ops Reports */}
                 <div className="space-y-2">
-                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
+                  <h5 className="text-xs font-semibold text-muted-foreground">⚠️ Ops Reports</h5>
                   {opsReps && opsReps.length > 0 ? (
                     <div className="space-y-2">
                       {opsReps.map((ops: any, idx: number) => {
                         const dt = ops.createdAt?.toDate ? ops.createdAt.toDate() : (ops.createdAt ? new Date(ops.createdAt) : null);
                         const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                         return (
-                          <div key={idx} className="flex justify-between items-center bg-slate-50 border rounded-xl p-3">
-                            <span className="text-xs font-bold text-slate-700">{ops.customerName || 'Ops Issue'}</span>
-                            <span className="text-[10px] text-slate-400 font-medium">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
+                          <div key={idx} className="flex justify-between items-center bg-secondary/60 border rounded-xl p-3">
+                            <span className="text-xs font-bold text-foreground/85">{ops.customerName || 'Ops Issue'}</span>
+                            <span className="text-xs text-muted-foreground font-medium">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
                           </div>
                         );
                       })}
@@ -3299,19 +3299,19 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           )}
 
           {/* Submission Panel */}
-          <Card className="border-slate-200 shadow-lg rounded-3xl overflow-hidden bg-slate-900 text-white">
-            <CardHeader className="border-b border-slate-800 py-4">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
+          <Card className="border-border shadow-lg rounded-3xl overflow-hidden bg-primary text-white">
+            <CardHeader className="border-b border-primary/80 py-4">
+              <CardTitle className="text-xs font-semibold text-accent flex items-center gap-2">
                 <ClipboardCheck className="w-4 h-4" /> Publication Status
               </CardTitle>
             </CardHeader>
             <CardContent className="p-5 space-y-4">
-              <div className="flex justify-between items-center bg-white/5 border border-white/10 rounded-2xl p-3">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Status</span>
+              <div className="flex justify-between items-center bg-card/5 border border-white/10 rounded-2xl p-3">
+                <span className="text-xs font-semibold text-muted-foreground">Current Status</span>
                 <Badge className={cn(
-                  "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
-                  status === 'SUBMITTED' ? "bg-green-500/20 text-green-300 border-green-500/30" :
-                  status === 'DRAFT' ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-slate-500/20 text-slate-300"
+                  "border-none text-xs font-semibold px-2 py-0.5 rounded-full",
+                  status === 'SUBMITTED' ? "bg-success-fill/20 text-success border-success/30" :
+                  status === 'DRAFT' ? "bg-warning/20 text-warning border-warning/30" : "bg-muted-foreground/20 text-muted-foreground/60"
                 )}>
                   {status === 'SUBMITTED' ? 'Submitted' : status === 'DRAFT' ? 'Draft' : 'Not Started'}
                 </Badge>
@@ -3321,24 +3321,24 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleSave('DRAFT')} 
                   disabled={isSaving || isSubmitting}
-                  className="w-full bg-slate-800 hover:bg-slate-700 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-sm border border-slate-700"
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-sm border border-primary/70"
                 >
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-slate-300" />}
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-muted-foreground/60" />}
                   Save Draft
                 </Button>
                 <Button 
                   onClick={() => handleSave('SUBMITTED')} 
                   disabled={isSaving || isSubmitting || !isFormComplete}
-                  className="w-full bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20 disabled:opacity-40"
+                  className="w-full bg-accent hover:bg-accent/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-lg shadow-accent/20 disabled:opacity-40"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {status === 'SUBMITTED' ? 'Update Submission' : 'Submit to Leadership'}
                 </Button>
 
                 {!isFormComplete && (
-                  <div className="p-3 bg-red-950/40 border border-red-500/20 rounded-xl space-y-1 mt-2">
-                    <p className="text-[10px] font-black uppercase text-red-400 tracking-wider text-left">Required to Submit:</p>
-                    <ul className="text-[9px] text-slate-300 space-y-0.5 list-disc pl-3 text-left">
+                  <div className="p-3 bg-destructive/40 border border-destructive/20 rounded-xl space-y-1 mt-2">
+                    <p className="text-xs font-semibold text-destructive text-left">Required to Submit:</p>
+                    <ul className="text-xs text-muted-foreground/60 space-y-0.5 list-disc pl-3 text-left">
                       {!wins.every(w => w.customer?.trim() && (w.value || 0) > 0 && w.businessUnits?.length > 0 && w.updateText?.trim() && w.salespersonName?.trim()) && <li>Complete all fields in added Key Wins rows</li>}
                       {!risks.every(r => r.account?.trim() && (r.value || 0) > 0 && r.mitigation?.trim() && r.salespersonName?.trim()) && <li>Complete all fields in added Churn Risks rows</li>}
                       {!majorUpdates.every(m => m.customer?.trim() && m.businessUnits?.length > 0 && m.updateText?.trim() && m.salespersonName?.trim()) && <li>Complete all fields in added Major Updates rows</li>}
@@ -3362,25 +3362,25 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           </Card>
 
       <Dialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 bg-white">
+        <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 bg-card">
           <DialogHeader className="flex flex-col items-center text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
-              <Check className="w-8 h-8 text-emerald-600" />
+            <div className="w-16 h-16 bg-success-soft rounded-full flex items-center justify-center mb-2">
+              <Check className="w-8 h-8 text-success-ink" />
             </div>
-            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900">
+            <DialogTitle className="text-2xl font-extrabold tracking-tight text-foreground">
               Thank You!
             </DialogTitle>
-            <DialogDescription className="text-sm font-bold text-slate-500">
+            <DialogDescription className="text-sm font-bold text-muted-foreground">
               Your "The Week That Was" report has been successfully submitted.
             </DialogDescription>
           </DialogHeader>
-          <div className="text-center text-xs font-semibold text-slate-400 mt-2 mb-6">
+          <div className="text-center text-xs font-semibold text-muted-foreground mt-2 mb-6">
             You can still edit and update your information at any time. Simply make your changes and click "Update Submission".
           </div>
           <DialogFooter className="sm:justify-center">
             <Button 
               onClick={() => setSuccessDialogOpen(false)} 
-              className="bg-primary text-white font-black h-12 px-8 uppercase tracking-widest rounded-xl"
+              className="bg-primary text-white font-bold h-12 px-8 rounded-xl"
             >
               Continue
             </Button>
@@ -3412,18 +3412,18 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       if (item.isHidden && !showHiddenItems) return null;
       return (
         <div key={`${subId}-${type}-${item.id}`} className={cn(
-          "relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all",
-          item.isHidden && "opacity-50 border-dashed bg-slate-100/50"
+          "relative group p-2 mb-2 bg-secondary/60 border border-border rounded-lg hover:border-border transition-all",
+          item.isHidden && "opacity-50 border-dashed bg-secondary/50"
         )}>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-10">
-            <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-white", item.isStarred ? "border-amber-400 text-amber-500" : "border-slate-200 text-slate-400 hover:text-amber-500")} onClick={() => toggleItemState(subId, type as any, item.id, 'isStarred')}>
+            <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-card", item.isStarred ? "border-warning/50 text-warning" : "border-border text-muted-foreground hover:text-warning")} onClick={() => toggleItemState(subId, type as any, item.id, 'isStarred')}>
               <Star className={cn("w-3 h-3", item.isStarred && "fill-current")} />
             </Button>
-            <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-white hover:text-slate-600", item.isHidden ? "border-red-400 text-red-500" : "border-slate-200 text-slate-400")} onClick={() => toggleItemState(subId, type as any, item.id, 'isHidden')}>
+            <Button size="icon" variant="secondary" className={cn("w-6 h-6 shadow-sm border bg-card hover:text-foreground/75", item.isHidden ? "border-destructive/50 text-destructive" : "border-border text-muted-foreground")} onClick={() => toggleItemState(subId, type as any, item.id, 'isHidden')}>
               {item.isHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
             </Button>
           </div>
-          <div className={cn("pr-8", item.isHidden && "line-through text-slate-400")}>
+          <div className={cn("pr-8", item.isHidden && "line-through text-muted-foreground")}>
             {content}
           </div>
         </div>
@@ -3440,30 +3440,30 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column: Team status overview */}
         <div className="space-y-6 col-span-1">
-          <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50/50 border-b py-4">
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800">
+          <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card">
+            <CardHeader className="bg-secondary/60 border-b py-4">
+              <CardTitle className="text-sm font-semibold text-foreground">
                 {customTitle || "Team Submission Status"}
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <CardDescription className="text-xs font-bold text-muted-foreground">
                 {customSubtitle || `Active BDM & AM submissions for Week ${selectedWeek.split('-')[1]}`}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-border">
                 {teamUsers.map(u => {
                   const sub = targetSubmissions?.find(s => isUserSubmissionMatch(u, s));
                   const subStatus = sub ? (sub.status || (sub.submitted ? 'SUBMITTED' : 'DRAFT')) : 'NONE';
                   return (
                     <div key={u.id} className="flex justify-between items-center py-3">
                       <div>
-                        <p className="text-xs font-black text-slate-800">{normalizeBdmName(u.name, u.id)}</p>
-                        <p className="text-[9px] text-muted-foreground font-bold uppercase mt-0.5">{u.role?.replace('_', ' ')}</p>
+                        <p className="text-xs font-semibold text-foreground">{normalizeBdmName(u.name, u.id)}</p>
+                        <p className="text-xs text-muted-foreground font-bold mt-0.5">{u.role?.replace('_', ' ')}</p>
                       </div>
                       <Badge className={cn(
-                        "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
-                        subStatus === 'SUBMITTED' ? "bg-green-100 text-green-700" :
-                        subStatus === 'DRAFT' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"
+                        "border-none text-xs font-semibold px-2 py-0.5 rounded-full",
+                        subStatus === 'SUBMITTED' ? "bg-success-soft text-success-ink" :
+                        subStatus === 'DRAFT' ? "bg-warning-soft text-warning-ink" : "bg-secondary text-muted-foreground"
                       )}>
                         {subStatus === 'SUBMITTED' ? 'Submitted' : subStatus === 'DRAFT' ? 'Draft' : 'Pending'}
                       </Badge>
@@ -3477,33 +3477,33 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
         {/* Right 2 Columns: Collated Output */}
         <div className="md:col-span-2 space-y-6">
-          <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between py-4">
+          <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card">
+            <CardHeader className="bg-secondary/60 border-b flex flex-row items-center justify-between py-4">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <ClipboardCheck className="w-4 h-4 text-accent" /> Master TWTW Collation
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <CardDescription className="text-xs font-bold text-muted-foreground">
                   Aggregated team performance data for executive reporting
                 </CardDescription>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
-                <div className="flex items-center gap-2 mr-4 bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 shadow-sm">
+                <div className="flex items-center gap-2 mr-4 bg-secondary/60 border border-border rounded-xl px-3 py-1.5 shadow-sm">
                   <input
                     type="checkbox"
                     id="show-hidden-toggle"
                     checked={showHiddenItems}
                     onChange={(e) => setShowHiddenItems(e.target.checked)}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                    className="h-3.5 w-3.5 rounded border-border text-accent focus:ring-accent cursor-pointer"
                   />
-                  <label htmlFor="show-hidden-toggle" className="text-[9px] font-black text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                  <label htmlFor="show-hidden-toggle" className="text-xs font-semibold text-muted-foreground cursor-pointer select-none">
                     Show Hidden
                   </label>
                 </div>
                 <Button 
                   onClick={() => handleExportPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
-                  className="bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+                  className="bg-accent hover:bg-accent/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
                 >
                   {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
                   Export to Landscape PDF
@@ -3511,7 +3511,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleExportOversizedPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+                  className="bg-accent hover:bg-primary text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
                 >
                   {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
                   Export PDF
@@ -3519,7 +3519,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleExportCondensedPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
-                  className="bg-primary hover:bg-primary/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+                  className="bg-primary hover:bg-primary/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
                 >
                   {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
                   Export to Condensed PDF
@@ -3529,7 +3529,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <CardContent className="p-0">
               <div className="p-6 space-y-12 max-h-[800px] overflow-y-auto">
                 {Object.entries(submissionsByState).length === 0 ? (
-                   <div className="text-center py-24 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                   <div className="text-center py-24 text-muted-foreground text-xs font-bold">
                      No submissions available to collate yet.
                    </div>
                 ) : (
@@ -3537,14 +3537,14 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                     const subs = subsArray as any[];
                     return (
                     <div key={state} className="space-y-4">
-                      <h3 className="text-lg font-black uppercase text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
-                        {state} Region <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-500 font-black">{subs.length} Reps</Badge>
+                      <h3 className="text-lg font-bold text-foreground border-b border-border pb-2 flex items-center gap-2">
+                        {state} Region <Badge variant="secondary" className="ml-2 bg-secondary text-muted-foreground font-bold">{subs.length} Reps</Badge>
                       </h3>
                       
-                      <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                      <div className="overflow-x-auto border border-border rounded-xl">
                         <table className="w-full text-xs text-left">
-                          <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
+                          <thead className="bg-secondary/60 border-b border-border">
+                            <tr className=" text-xs font-semibold text-muted-foreground">
                               <th className="p-3 w-[16%]">Key Wins</th>
                               <th className="p-3 w-[16%]">Churn Risk</th>
                               <th className="p-3 w-[16%]">Major Updates</th>
@@ -3553,7 +3553,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                               <th className="p-3 w-[20%]">Governance Verification</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 bg-white">
+                          <tbody className="divide-y divide-border bg-card">
                             {subs.map((sub: any, idx: number) => {
                               const subWins = sub.wins || [];
                               const subRisks = sub.risks || [];
@@ -3564,133 +3564,133 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
                               return (
                                 <tr key={idx} className="align-top relative group">
-                                  <td className="p-3 text-slate-600">
+                                  <td className="p-3 text-foreground/75">
                                     {(sub.wins || []).map((w: any) => renderItem(w, 'wins', sub.id, (
                                       <>
-                                        <div className="font-bold text-slate-800">{w.customer}</div>
-                                        <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
-                                        <div className="text-[10px] text-slate-500 mt-1">{w.salespersonName || 'N/A'}</div>
-                                        {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {w.businessUnits.join(', ')}</div>}
+                                        <div className="font-bold text-foreground">{w.customer}</div>
+                                        <div className="text-success-ink font-semibold">{formatEAV(w.value)}</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{w.salespersonName || 'N/A'}</div>
+                                        {w.businessUnits && w.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-1">BU: {w.businessUnits.join(', ')}</div>}
                                         {w.updateText && <div className="mt-1">{w.updateText}</div>}
                                       </>
                                     )))}
                                   </td>
-                                  <td className="p-3 text-slate-600">
+                                  <td className="p-3 text-foreground/75">
                                     {(sub.risks || []).map((r: any) => renderItem(r, 'risks', sub.id, (
                                       <>
-                                        <div className="font-bold text-slate-800">{r.account}</div>
-                                        <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
-                                        <div className="text-[10px] text-slate-500 mt-1">{r.salespersonName || 'N/A'}</div>
-                                        <div className="mt-1 text-slate-500">Mitigation: {r.mitigation}</div>
+                                        <div className="font-bold text-foreground">{r.account}</div>
+                                        <div className="text-destructive font-semibold">{formatEAV(r.value)}</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{r.salespersonName || 'N/A'}</div>
+                                        <div className="mt-1 text-muted-foreground">Mitigation: {r.mitigation}</div>
                                       </>
                                     )))}
                                   </td>
-                                  <td className="p-3 text-slate-600">
+                                  <td className="p-3 text-foreground/75">
                                     {sub.updates && (
-                                      <div className="p-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
+                                      <div className="p-2 mb-2 bg-warning-soft border border-warning/20 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
                                     )}
                                     {(sub.majorUpdates || []).map((m: any) => renderItem(m, 'majorUpdates', sub.id, (
                                       <>
-                                        <div className="font-bold text-slate-800">{m.customer}</div>
-                                        {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
-                                        <div className="text-[10px] text-slate-500 mt-1">{m.salespersonName || 'N/A'}</div>
-                                        {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {m.businessUnits.join(', ')}</div>}
+                                        <div className="font-bold text-foreground">{m.customer}</div>
+                                        {m.value > 0 && <div className="text-accent font-semibold">{formatEAV(m.value)}</div>}
+                                        <div className="text-xs text-muted-foreground mt-1">{m.salespersonName || 'N/A'}</div>
+                                        {m.businessUnits && m.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-1">BU: {m.businessUnits.join(', ')}</div>}
                                         {m.updateText && <div className="mt-1">{m.updateText}</div>}
                                       </>
                                     )))}
                                   </td>
-                                  <td className="p-3 text-slate-600">
+                                  <td className="p-3 text-foreground/75">
                                     {(sub.projectedWins || []).map((p: any) => renderItem(p, 'projectedWins', sub.id, (
                                       <>
-                                        <div className="font-bold text-slate-800">{p.account}</div>
-                                        <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
-                                        <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
-                                        {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {p.businessUnits.join(', ')}</div>}
-                                        {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
+                                        <div className="font-bold text-foreground">{p.account}</div>
+                                        <div className="text-accent font-semibold">{formatEAV(p.value)}</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{p.salespersonName || 'N/A'}</div>
+                                        {p.businessUnits && p.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-1">BU: {p.businessUnits.join(', ')}</div>}
+                                        {p.updateText && <div className="mt-1 text-xs">{p.updateText}</div>}
                                       </>
                                     )))}
                                   </td>
-                                  <td className="p-3 text-slate-600">
+                                  <td className="p-3 text-foreground/75">
                                     {(sub.priorities || []).map((p: any) => renderItem(p, 'priorities', sub.id, (
                                       <>
                                         <div>{p.text}</div>
-                                        <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{p.salespersonName || 'N/A'}</div>
                                       </>
                                     )))}
                                     <div className="mt-4 flex gap-2">
-                                      <Button size="sm" variant="outline" className="w-full text-[10px] uppercase font-black" onClick={() => handleEditSubmission(sub)}><Edit3 className="w-3.5 h-3.5 mr-1" /> Edit</Button>
-                                      <Button size="sm" variant="destructive" className="w-full text-[10px] uppercase font-black" onClick={() => handleDeleteSubmission(sub.id)}><Trash2 className="w-3.5 h-3.5 mr-1" /> Delete</Button>
+                                      <Button size="sm" variant="outline" className="w-full text-xs font-semibold" onClick={() => handleEditSubmission(sub)}><Edit3 className="w-3.5 h-3.5 mr-1" /> Edit</Button>
+                                      <Button size="sm" variant="destructive" className="w-full text-xs font-semibold" onClick={() => handleDeleteSubmission(sub.id)}><Trash2 className="w-3.5 h-3.5 mr-1" /> Delete</Button>
                                     </div>
                                   </td>
-                                  <td className="p-3 text-slate-600 space-y-3 bg-slate-50/50">
+                                  <td className="p-3 text-foreground/75 space-y-3 bg-secondary/60">
                                     {/* Call Plans */}
                                     <div className="space-y-1">
-                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">📞 Call Plans</div>
+                                      <div className="text-xs font-semibold text-muted-foreground">📞 Call Plans</div>
                                       {subCP.length > 0 ? (
                                         subCP.map((cp: any, i: number) => {
                                           const dt = cp.createdAt?.toDate ? cp.createdAt.toDate() : (cp.createdAt ? new Date(cp.createdAt) : null);
                                           const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                                           return (
-                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                            <div key={i} className="text-xs text-foreground/85 bg-card p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
                                               <span className="font-bold truncate">{cp.accountName || cp.dealName}</span>
-                                              <span className="text-[8px] text-slate-400">Created: {timeStr}</span>
+                                              <span className="text-xs text-muted-foreground">Created: {timeStr}</span>
                                             </div>
                                           );
                                         })
                                       ) : (
-                                        <span className="text-[10px] font-black text-red-600 bg-red-50 p-2 rounded-xl border border-red-100 block">No Call Plans Created</span>
+                                        <span className="text-xs font-semibold text-destructive bg-danger-soft p-2 rounded-xl border border-destructive/20 block">No Call Plans Created</span>
                                       )}
                                     </div>
 
                                     {/* Whitespace */}
                                     <div className="space-y-1">
-                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">🗺️ Whitespace</div>
+                                      <div className="text-xs font-semibold text-muted-foreground">🗺️ Whitespace</div>
                                       {subWS.length > 0 ? (
                                         subWS.map((ws: any, i: number) => {
                                           const dt = ws.createdAt?.toDate ? ws.createdAt.toDate() : (ws.createdAt ? new Date(ws.createdAt) : null);
                                           const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                                           return (
-                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                            <div key={i} className="text-xs text-foreground/85 bg-card p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
                                               <span className="font-bold truncate">{ws.accountName}</span>
-                                              <span className="text-[8px] text-slate-400">Created: {timeStr}</span>
+                                              <span className="text-xs text-muted-foreground">Created: {timeStr}</span>
                                             </div>
                                           );
                                         })
                                       ) : (
-                                        <span className="text-[10px] font-black text-red-600 bg-red-50 p-2 rounded-xl border border-red-100 block">No White Space Reports Created</span>
+                                        <span className="text-xs font-semibold text-destructive bg-danger-soft p-2 rounded-xl border border-destructive/20 block">No White Space Reports Created</span>
                                       )}
                                     </div>
 
                                     {/* Fact Finding */}
                                     <div className="space-y-1">
-                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">🔍 Fact Finding</div>
+                                      <div className="text-xs font-semibold text-muted-foreground">🔍 Fact Finding</div>
                                       {subFF.length > 0 ? (
                                         subFF.map((ff: any, i: number) => {
                                           const dt = ff.createdAt?.toDate ? ff.createdAt.toDate() : (ff.createdAt ? new Date(ff.createdAt) : null);
                                           const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                                           return (
-                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                            <div key={i} className="text-xs text-foreground/85 bg-card p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
                                               <span className="font-bold truncate">{ff.companyName || ff.customerName}</span>
-                                              <span className="text-[8px] text-slate-400">Created: {timeStr}</span>
+                                              <span className="text-xs text-muted-foreground">Created: {timeStr}</span>
                                             </div>
                                           );
                                         })
                                       ) : (
-                                        <span className="text-[10px] font-black text-red-600 bg-red-50 p-2 rounded-xl border border-red-100 block">No Fact Finding Sessions Completed</span>
+                                        <span className="text-xs font-semibold text-destructive bg-danger-soft p-2 rounded-xl border border-destructive/20 block">No Fact Finding Sessions Completed</span>
                                       )}
                                     </div>
 
                                     {/* Ops Reports */}
                                     <div className="space-y-1">
-                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-wider">⚠️ Ops Reports</div>
+                                      <div className="text-xs font-semibold text-muted-foreground">⚠️ Ops Reports</div>
                                       {subOps.length > 0 ? (
                                         subOps.map((ops: any, i: number) => {
                                           const dt = ops.createdAt?.toDate ? ops.createdAt.toDate() : (ops.createdAt ? new Date(ops.createdAt) : null);
                                           const timeStr = dt ? dt.toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
                                           return (
-                                            <div key={i} className="text-[10px] text-slate-700 bg-white p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
+                                            <div key={i} className="text-xs text-foreground/85 bg-card p-2 border rounded-xl flex flex-col gap-0.5 shadow-sm">
                                               <span className="font-bold truncate">{ops.customerName}</span>
-                                              <span className="text-[8px] text-slate-400">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
+                                              <span className="text-xs text-muted-foreground">Status: {ops.status || 'SUBMITTED'} | {timeStr}</span>
                                             </div>
                                           );
                                         })
@@ -3737,19 +3737,19 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {/* Wins Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Key Wins <Badge>{starredWins.length}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Key Wins <Badge>{starredWins.length}</Badge></h3>
             {starredWins.map((w: any) => (
-              <Card key={w.id} className="border-amber-200 bg-amber-50 shadow-sm relative group">
-                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(w.subId, 'wins', w.id, 'isStarred')}>
+              <Card key={w.id} className="border-warning/30 bg-warning-soft shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(w.subId, 'wins', w.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
                 </Button>
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{w.state}</Badge>
-                  <div className="font-bold text-slate-800">{w.customer}</div>
-                  <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
-                  <div className="text-[10px] text-slate-500">{w.salespersonName || 'N/A'}</div>
-                  {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
-                  {w.updateText && <div className="text-xs text-slate-600 mt-2">{w.updateText}</div>}
+                  <Badge variant="outline" className="text-xs bg-card">{w.state}</Badge>
+                  <div className="font-bold text-foreground">{w.customer}</div>
+                  <div className="text-success-ink font-semibold">{formatEAV(w.value)}</div>
+                  <div className="text-xs text-muted-foreground">{w.salespersonName || 'N/A'}</div>
+                  {w.businessUnits && w.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
+                  {w.updateText && <div className="text-xs text-foreground/75 mt-2">{w.updateText}</div>}
                 </CardContent>
               </Card>
             ))}
@@ -3757,19 +3757,19 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Risks Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Churn Risks <Badge>{starredRisks.length}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Churn Risks <Badge>{starredRisks.length}</Badge></h3>
             {starredRisks.map((r: any) => (
-              <Card key={r.id} className="border-rose-200 bg-rose-50 shadow-sm relative group">
-                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(r.subId, 'risks', r.id, 'isStarred')}>
+              <Card key={r.id} className="border-destructive/25 bg-danger-soft shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(r.subId, 'risks', r.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
                 </Button>
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{r.state}</Badge>
-                  <div className="font-bold text-slate-800">{r.account}</div>
-                  <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
-                  <div className="text-[10px] text-slate-500">{r.salespersonName || 'N/A'}</div>
-                  {r.businessUnits && r.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
-                  <div className="text-xs text-slate-600 mt-2">Mitigation: {r.mitigation}</div>
+                  <Badge variant="outline" className="text-xs bg-card">{r.state}</Badge>
+                  <div className="font-bold text-foreground">{r.account}</div>
+                  <div className="text-destructive font-semibold">{formatEAV(r.value)}</div>
+                  <div className="text-xs text-muted-foreground">{r.salespersonName || 'N/A'}</div>
+                  {r.businessUnits && r.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
+                  <div className="text-xs text-foreground/75 mt-2">Mitigation: {r.mitigation}</div>
                 </CardContent>
               </Card>
             ))}
@@ -3777,19 +3777,19 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Updates Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Major Updates <Badge>{starredUpdates.length}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Major Updates <Badge>{starredUpdates.length}</Badge></h3>
             {starredUpdates.map((m: any) => (
-              <Card key={m.id} className="border-blue-200 bg-blue-50 shadow-sm relative group">
-                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(m.subId, 'majorUpdates', m.id, 'isStarred')}>
+              <Card key={m.id} className="border-info/30 bg-info-soft shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(m.subId, 'majorUpdates', m.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
                 </Button>
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{m.state}</Badge>
-                  <div className="font-bold text-slate-800">{m.customer}</div>
-                  {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
-                  <div className="text-[10px] text-slate-500">{m.salespersonName || 'N/A'}</div>
-                  {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
-                  {m.updateText && <div className="text-xs text-slate-600 mt-2">{m.updateText}</div>}
+                  <Badge variant="outline" className="text-xs bg-card">{m.state}</Badge>
+                  <div className="font-bold text-foreground">{m.customer}</div>
+                  {m.value > 0 && <div className="text-accent font-semibold">{formatEAV(m.value)}</div>}
+                  <div className="text-xs text-muted-foreground">{m.salespersonName || 'N/A'}</div>
+                  {m.businessUnits && m.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
+                  {m.updateText && <div className="text-xs text-foreground/75 mt-2">{m.updateText}</div>}
                 </CardContent>
               </Card>
             ))}
@@ -3797,19 +3797,19 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Projected Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">30 Day Projected <Badge>{starredProjected.length}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">30 Day Projected <Badge>{starredProjected.length}</Badge></h3>
             {starredProjected.map((p: any) => (
-              <Card key={p.id} className="border-purple-200 bg-purple-50 shadow-sm relative group">
-                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'projectedWins', p.id, 'isStarred')}>
+              <Card key={p.id} className="border-info/30 bg-info-soft shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'projectedWins', p.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
                 </Button>
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
-                  <div className="font-bold text-slate-800">{p.account}</div>
-                  <div className="text-purple-600 font-semibold">{formatEAV(p.value)}</div>
-                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
-                  {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
-                  {p.updateText && <div className="text-xs text-slate-600 mt-1">{p.updateText}</div>}
+                  <Badge variant="outline" className="text-xs bg-card">{p.state}</Badge>
+                  <div className="font-bold text-foreground">{p.account}</div>
+                  <div className="text-accent font-semibold">{formatEAV(p.value)}</div>
+                  <div className="text-xs text-muted-foreground">{p.salespersonName || 'N/A'}</div>
+                  {p.businessUnits && p.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
+                  {p.updateText && <div className="text-xs text-foreground/75 mt-1">{p.updateText}</div>}
                 </CardContent>
               </Card>
             ))}
@@ -3817,16 +3817,16 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Priorities Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Priorities <Badge>{starredPriorities.length}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Priorities <Badge>{starredPriorities.length}</Badge></h3>
             {starredPriorities.map(p => (
-              <Card key={p.id} className="border-indigo-200 bg-indigo-50 shadow-sm relative group">
-                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'priorities', p.id, 'isStarred')}>
+              <Card key={p.id} className="border-info/30 bg-info-soft shadow-sm relative group">
+                <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => toggleItemState(p.subId, 'priorities', p.id, 'isStarred')}>
                   <Trash2 className="w-3 h-3" />
                 </Button>
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
-                  <div className="font-bold text-slate-800 text-sm">{p.text}</div>
-                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                  <Badge variant="outline" className="text-xs bg-card">{p.state}</Badge>
+                  <div className="font-bold text-foreground text-sm">{p.text}</div>
+                  <div className="text-xs text-muted-foreground">{p.salespersonName || 'N/A'}</div>
                 </CardContent>
               </Card>
             ))}
@@ -3866,14 +3866,14 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50 p-4 rounded-2xl border">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-secondary/60 p-4 rounded-2xl border">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-slate-500" />
+              <CalendarIcon className="w-4 h-4 text-muted-foreground" />
               <select
                 value={monthlySelectedMonth}
                 onChange={(e) => setMonthlySelectedMonth(e.target.value)}
-                className="h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm font-bold shadow-sm focus:outline-none"
+                className="h-9 rounded-xl border border-border bg-card px-3 py-1 text-sm font-bold shadow-sm focus:outline-none"
               >
                 {availableMonths.map(m => (
                   <option key={m} value={m}>{format(new Date(m + '-01'), 'MMMM yyyy')}</option>
@@ -3881,11 +3881,11 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               </select>
             </div>
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-slate-500" />
+              <Shield className="w-4 h-4 text-muted-foreground" />
               <select
                 value={monthlySelectedState}
                 onChange={(e) => setMonthlySelectedState(e.target.value)}
-                className="h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm font-bold shadow-sm focus:outline-none"
+                className="h-9 rounded-xl border border-border bg-card px-3 py-1 text-sm font-bold shadow-sm focus:outline-none"
               >
                 <option value="ALL">All States</option>
                 {['WA', 'SA', 'VIC', 'NSW', 'QLD', 'NT', 'TAS', 'ACT'].map(s => (
@@ -3899,7 +3899,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <Button 
                 onClick={handleUndoHide}
                 variant="outline"
-                className="h-9 text-[10px] uppercase tracking-widest rounded-xl shadow-sm text-slate-500 border-slate-200"
+                className="h-9 text-xs rounded-xl shadow-sm text-muted-foreground border-border"
               >
                 Undo Last Hide
               </Button>
@@ -3908,7 +3908,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
               <Button 
                 onClick={handleResetHidden}
                 variant="outline"
-                className="h-9 text-[10px] uppercase tracking-widest rounded-xl shadow-sm text-slate-500 border-slate-200"
+                className="h-9 text-xs rounded-xl shadow-sm text-muted-foreground border-border"
               >
                 Reset All Hidden
               </Button>
@@ -3916,7 +3916,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={handleExportCsv}
               disabled={mappedMonthlySubmissions?.length === 0}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+              className="bg-success-fill hover:bg-success text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               Export to CSV
@@ -3924,7 +3924,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={() => handleExportPdf(true)}
               disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
-              className="bg-accent hover:bg-accent/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+              className="bg-accent hover:bg-accent/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
               Export to Landscape PDF
@@ -3932,7 +3932,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={() => handleExportOversizedPdf(true)}
               disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+              className="bg-accent hover:bg-primary text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
               Export PDF
@@ -3940,7 +3940,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={() => handleExportCondensedPdf(true)}
               disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
-              className="bg-primary hover:bg-primary/90 text-white font-black h-9 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-sm"
+              className="bg-primary hover:bg-primary/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
               Export to Condensed PDF
@@ -3951,21 +3951,21 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {/* Wins Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Key Wins <Badge>{winsCount}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Key Wins <Badge>{winsCount}</Badge></h3>
             {monthlyWins.map((w: any) => (
-              <Card key={w.id + w.subId} className="border-amber-200 bg-amber-50 shadow-sm relative group">
+              <Card key={w.id + w.subId} className="border-warning/30 bg-warning-soft shadow-sm relative group">
                 {(isLeader) && (
-                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(w.id)}>
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(w.id)}>
                     <EyeOff className="w-3 h-3" />
                   </Button>
                 )}
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{w.state}</Badge>
-                  <div className="font-bold text-slate-800">{w.customer}</div>
-                  <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
-                  <div className="text-[10px] text-slate-500">{w.salespersonName || 'N/A'}</div>
-                  {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
-                  {w.updateText && <div className="text-xs text-slate-600 mt-2">{w.updateText}</div>}
+                  <Badge variant="outline" className="text-xs bg-card">{w.state}</Badge>
+                  <div className="font-bold text-foreground">{w.customer}</div>
+                  <div className="text-success-ink font-semibold">{formatEAV(w.value)}</div>
+                  <div className="text-xs text-muted-foreground">{w.salespersonName || 'N/A'}</div>
+                  {w.businessUnits && w.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
+                  {w.updateText && <div className="text-xs text-foreground/75 mt-2">{w.updateText}</div>}
                 </CardContent>
               </Card>
             ))}
@@ -3973,21 +3973,21 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Risks Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Churn Risks <Badge>{risksCount}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Churn Risks <Badge>{risksCount}</Badge></h3>
             {monthlyRisks.map((r: any) => (
-              <Card key={r.id + r.subId} className="border-rose-200 bg-rose-50 shadow-sm relative group">
+              <Card key={r.id + r.subId} className="border-destructive/25 bg-danger-soft shadow-sm relative group">
                 {(isLeader) && (
-                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(r.id)}>
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(r.id)}>
                     <EyeOff className="w-3 h-3" />
                   </Button>
                 )}
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{r.state}</Badge>
-                  <div className="font-bold text-slate-800">{r.account}</div>
-                  <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
-                  <div className="text-[10px] text-slate-500">{r.salespersonName || 'N/A'}</div>
-                  {r.businessUnits && r.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
-                  <div className="text-xs text-slate-600 mt-2">Mitigation: {r.mitigation}</div>
+                  <Badge variant="outline" className="text-xs bg-card">{r.state}</Badge>
+                  <div className="font-bold text-foreground">{r.account}</div>
+                  <div className="text-destructive font-semibold">{formatEAV(r.value)}</div>
+                  <div className="text-xs text-muted-foreground">{r.salespersonName || 'N/A'}</div>
+                  {r.businessUnits && r.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
+                  <div className="text-xs text-foreground/75 mt-2">Mitigation: {r.mitigation}</div>
                 </CardContent>
               </Card>
             ))}
@@ -3995,21 +3995,21 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Updates Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Major Updates <Badge>{updatesCount}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Major Updates <Badge>{updatesCount}</Badge></h3>
             {monthlyUpdates.map((m: any) => (
-              <Card key={m.id + m.subId} className="border-blue-200 bg-blue-50 shadow-sm relative group">
+              <Card key={m.id + m.subId} className="border-info/30 bg-info-soft shadow-sm relative group">
                 {(isLeader) && (
-                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(m.id)}>
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(m.id)}>
                     <EyeOff className="w-3 h-3" />
                   </Button>
                 )}
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{m.state}</Badge>
-                  <div className="font-bold text-slate-800">{m.customer}</div>
-                  {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
-                  <div className="text-[10px] text-slate-500">{m.salespersonName || 'N/A'}</div>
-                  {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
-                  {m.updateText && <div className="text-xs text-slate-600 mt-2">{m.updateText}</div>}
+                  <Badge variant="outline" className="text-xs bg-card">{m.state}</Badge>
+                  <div className="font-bold text-foreground">{m.customer}</div>
+                  {m.value > 0 && <div className="text-accent font-semibold">{formatEAV(m.value)}</div>}
+                  <div className="text-xs text-muted-foreground">{m.salespersonName || 'N/A'}</div>
+                  {m.businessUnits && m.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
+                  {m.updateText && <div className="text-xs text-foreground/75 mt-2">{m.updateText}</div>}
                 </CardContent>
               </Card>
             ))}
@@ -4017,21 +4017,21 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Projected Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">30 Day Projected <Badge>{projectedCount}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">30 Day Projected <Badge>{projectedCount}</Badge></h3>
             {monthlyProjected.map((p: any) => (
-              <Card key={p.id + p.subId} className="border-purple-200 bg-purple-50 shadow-sm relative group">
+              <Card key={p.id + p.subId} className="border-info/30 bg-info-soft shadow-sm relative group">
                 {(isLeader) && (
-                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(p.id)}>
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(p.id)}>
                     <EyeOff className="w-3 h-3" />
                   </Button>
                 )}
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
-                  <div className="font-bold text-slate-800">{p.account}</div>
-                  <div className="text-purple-600 font-semibold">{formatEAV(p.value)}</div>
-                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
-                  {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
-                  {p.updateText && <div className="text-xs text-slate-600 mt-1">{p.updateText}</div>}
+                  <Badge variant="outline" className="text-xs bg-card">{p.state}</Badge>
+                  <div className="font-bold text-foreground">{p.account}</div>
+                  <div className="text-accent font-semibold">{formatEAV(p.value)}</div>
+                  <div className="text-xs text-muted-foreground">{p.salespersonName || 'N/A'}</div>
+                  {p.businessUnits && p.businessUnits.length > 0 && <div className="text-xs text-muted-foreground mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
+                  {p.updateText && <div className="text-xs text-foreground/75 mt-1">{p.updateText}</div>}
                 </CardContent>
               </Card>
             ))}
@@ -4039,18 +4039,18 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
 
           {/* Priorities Column */}
           <div className="space-y-4">
-            <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">Priorities <Badge>{prioritiesCount}</Badge></h3>
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center justify-between">Priorities <Badge>{prioritiesCount}</Badge></h3>
             {monthlyPriorities.map((p: any) => (
-              <Card key={p.id + p.subId} className="border-indigo-200 bg-indigo-50 shadow-sm relative group">
+              <Card key={p.id + p.subId} className="border-info/30 bg-info-soft shadow-sm relative group">
                 {(isLeader) && (
-                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(p.id)}>
+                  <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleHideItem(p.id)}>
                     <EyeOff className="w-3 h-3" />
                   </Button>
                 )}
                 <CardContent className="p-4 space-y-2">
-                  <Badge variant="outline" className="text-[8px] bg-white">{p.state}</Badge>
-                  <div className="font-bold text-slate-800 text-sm">{p.text}</div>
-                  <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                  <Badge variant="outline" className="text-xs bg-card">{p.state}</Badge>
+                  <div className="font-bold text-foreground text-sm">{p.text}</div>
+                  <div className="text-xs text-muted-foreground">{p.salespersonName || 'N/A'}</div>
                 </CardContent>
               </Card>
             ))}
