@@ -339,8 +339,9 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
     const finalServices = services.length > 0 ? services : ['Road Express (1-8 Days)'];
 
     return {
-      userId: user?.uid || '',
-      userName: profile?.name || user?.displayName || 'Sales Rep',
+      // Editing keeps the original owner (needed for shared leads, and so edits never reassign a lead)
+      userId: initialLead?.userId || user?.uid || '',
+      userName: initialLead?.userName || profile?.name || user?.displayName || 'Sales Rep',
       companyName: companyName.trim(),
       leadTopic: leadTopic.trim(),
       firstName: firstName.trim(),

@@ -17,6 +17,8 @@ import { cn, openSalesforceSearch, normalizeBdmName, formatCurrency } from '@/li
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigation } from '@/contexts/navigation-context';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
+import { useSharedOwnerDocs } from '@/hooks/use-data-shares';
+import { SharedBadge } from './shared-badge';
 
 function getSalesforceSearchUrl(companyName: string) {
   if (!companyName) return '#';
@@ -94,7 +96,16 @@ export function FactFindingHub() {
     }
   }, [db, user, isLeader]);
 
-  const { data: docs, isLoading: loading } = useCollection<FactFindingDoc>(docsQuery);
+  const { data: ownDocs, isLoading: ownLoading } = useCollection<FactFindingDoc>(docsQuery);
+  // Records other users have shared with me via the Access page (full access)
+  const { data: sharedDocs, isLoading: sharedLoading } = useSharedOwnerDocs<FactFindingDoc>('factFinding', 'factFindingDocs', { max: 500 });
+  const docs = useMemo(() => {
+    if (!ownDocs) return ownDocs;
+    if (sharedDocs.length === 0) return ownDocs;
+    const seen = new Set(ownDocs.map(d => d.id));
+    return [...ownDocs, ...sharedDocs.filter(d => !seen.has(d.id))] as (FactFindingDoc & { sharedByName?: string })[];
+  }, [ownDocs, sharedDocs]);
+  const loading = ownLoading || sharedLoading;
 
   // Fetch users to resolve names for Leaders
   const usersQuery = useMemoFirebase(() => {
@@ -252,7 +263,7 @@ export function FactFindingHub() {
 
   const handleSelectDoc = async (docObj: FactFindingDoc) => {
     setSelectedDoc(docObj);
-    if (user && docObj.userId === user.uid && docObj.id && db) {
+    if (user && docObj.userId === user.uid && docObj.id && db) { // own docs only; shared docs are opened without stamping the owner's lastViewedAt
       try {
         await updateDoc(doc(db, 'factFindingDocs', docObj.id), {
           lastViewedAt: serverTimestamp()
@@ -453,7 +464,7 @@ export function FactFindingHub() {
               {filteredAndSortedDocs.map(doc => {
                 const created = doc.createdAt?.toDate ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently';
                 const modified = doc.lastModifiedAt?.toDate ? format(doc.lastModifiedAt.toDate(), 'MMM d, yyyy') : '-';
-                const owner = userMap[doc.userId] || (isLeader ? 'Loading...' : 'Me');
+                const owner = userMap[doc.userId] || (isLeader ? 'Loading...' : ((doc as any).sharedByName || 'Me'));
                 const stage = doc.stage || 'New';
                 return (
                   <div
@@ -477,6 +488,7 @@ export function FactFindingHub() {
                         >
                           {doc.companyName || 'Unnamed'}
                         </a>
+                        <SharedBadge name={(doc as any).sharedByName} />
                         {doc.inSalesforce && (
                           <span title="In Salesforce" className="shrink-0">
                             <Star className="w-4 h-4 text-amber-400 fill-amber-400" />

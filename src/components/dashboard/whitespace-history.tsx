@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import { openSalesforceSearch } from '@/lib/utils';
+import { useSharedOwnerDocs } from '@/hooks/use-data-shares';
+import { SharedBadge } from './shared-badge';
 import { jsPDF } from 'jspdf';
 import {
   Dialog,
@@ -82,7 +84,16 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     }
   }, [db, effectiveUserId, isElevated]);
 
-  const { data: plans, isLoading } = useCollection(plansQuery);
+  const { data: ownPlans, isLoading: ownLoading } = useCollection(plansQuery);
+  // Plans other users have shared with me via the Access page (full access)
+  const { data: sharedPlans, isLoading: sharedLoading } = useSharedOwnerDocs('whiteSpace', 'whitespacePlans', { max: 500 });
+  const plans = useMemo(() => {
+    if (!ownPlans) return ownPlans;
+    if (isElevated || sharedPlans.length === 0) return ownPlans;
+    const seen = new Set(ownPlans.map((p: any) => p.id));
+    return [...ownPlans, ...sharedPlans.filter((p: any) => !seen.has(p.id))] as any[];
+  }, [ownPlans, sharedPlans, isElevated]);
+  const isLoading = ownLoading || sharedLoading;
 
   const usersQuery = useMemoFirebase(() => {
     if (!db || !isElevated) return null;
@@ -103,7 +114,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
   const activePlans = useMemo(() => {
     if (!plans) return [];
     if (isElevated) return plans;
-    return plans.filter(p => p.userId === effectiveUserId);
+    return plans.filter(p => p.userId === effectiveUserId || !!p.sharedByName);
   }, [plans, isElevated, effectiveUserId]);
 
   // Search filter by Company Name or User Name
@@ -279,8 +290,8 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
     }
   };
 
-  const canEdit = selectedPlan && (isElevated || (user && selectedPlan.userId === user.uid) || (profile && selectedPlan.userId === profile.uid));
-  const canDelete = selectedPlan && (isElevated || (user && selectedPlan.userId === user.uid) || (profile && selectedPlan.userId === profile.uid));
+  const canEdit = selectedPlan && (isElevated || !!selectedPlan.sharedByName || (user && selectedPlan.userId === user.uid) || (profile && selectedPlan.userId === profile.uid));
+  const canDelete = selectedPlan && (isElevated || !!selectedPlan.sharedByName || (user && selectedPlan.userId === user.uid) || (profile && selectedPlan.userId === profile.uid));
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -349,7 +360,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                 <TableBody>
                   {filteredPlans.map((plan) => {
                     const isPlanOwner = (user && plan.userId === user.uid) || (profile && plan.userId === profile.uid);
-                    const canDeleteThisPlan = isElevated || isPlanOwner;
+                    const canDeleteThisPlan = isElevated || isPlanOwner || !!plan.sharedByName;
                     const isSelected = selectedPlanId === plan.id;
                     return (
                       <TableRow
@@ -367,6 +378,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                             <span className="text-[9px] font-bold text-slate-400">
                               {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d') : ''}
                             </span>
+                            <SharedBadge name={plan.sharedByName} />
                             {isElevated && plan.userId && (
                               <span className="text-[9px] font-bold text-accent truncate max-w-[90px]">
                                 • {userMap[plan.userId] || 'Unknown'}
@@ -409,7 +421,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
             <div className="grid gap-3">
               {filteredPlans.map((plan) => {
                 const isPlanOwner = (user && plan.userId === user.uid) || (profile && plan.userId === profile.uid);
-                const canDeleteThisPlan = isElevated || isPlanOwner;
+                const canDeleteThisPlan = isElevated || isPlanOwner || !!plan.sharedByName;
                 return (
                   <div
                     key={plan.id}
@@ -452,6 +464,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                       </div>
                     </div>
                     <p className="text-sm font-black text-primary uppercase leading-tight truncate pr-2">{plan.accountName}</p>
+                    <SharedBadge name={plan.sharedByName} className="mt-1" />
                     {isElevated && plan.userId && (
                       <div className="flex items-center gap-1.5 mt-1.5">
                         <UserIcon className="w-3 h-3 text-accent" />

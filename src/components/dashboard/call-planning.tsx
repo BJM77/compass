@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, setDoc, increment, limit } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, setDoc, updateDoc, increment, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea as UITextarea } from "@/components/ui/textarea";
@@ -24,6 +24,8 @@ import { openSalesforceSearch, getCurrentWeek } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import FreightSpinGuide from './freight-spin-guide';
+import { useSharedOwnerDocs } from '@/hooks/use-data-shares';
+import { SharedBadge } from './shared-badge';
 
 import { useEffect, useMemo } from 'react';
 
@@ -140,8 +142,28 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
   
   const { data: teamPlans } = useCollection(teamPlansQuery);
 
+  // Call plans other users have shared with me via the Access page (full access: open, update, delete)
+  const { data: sharedPlans } = useSharedOwnerDocs('callPlans', 'callPlans', { max: 500 });
+  const [loadedSharedPlan, setLoadedSharedPlan] = useState<any | null>(null);
+  const sortedSharedPlans = useMemo(
+    () => [...sharedPlans].sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)),
+    [sharedPlans]
+  );
+  const handleDeleteSharedPlan = async (plan: any) => {
+    if (!db) return;
+    if (!confirm(`Delete the call plan for ${plan.accountName || 'this account'} (shared by ${plan.sharedByName})?`)) return;
+    try {
+      await deleteDoc(doc(db, 'callPlans', plan.id));
+      if (selectedPlanId === plan.id) { setLoadedSharedPlan(null); setSelectedBPlanId(null); }
+      toast({ title: 'Call plan deleted' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Delete failed' });
+    }
+  };
+
   const handleSelectPlan = (plan: any) => {
     setSelectedBPlanId(plan.id);
+    setLoadedSharedPlan(plan.sharedByName ? plan : null);
     setFormData({
       accountName: plan.accountName || '',
       objective: plan.objective || '',
@@ -161,6 +183,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
 
   const handleNewPlan = () => {
     setSelectedBPlanId(null);
+    setLoadedSharedPlan(null);
     setFormData({
       accountName: '',
       objective: '',
@@ -194,6 +217,15 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
 
     setIsSaving(true);
     try {
+      // A plan shared with me: update it in place (owner stays the same)
+      if (loadedSharedPlan && selectedPlanId === loadedSharedPlan.id) {
+        await updateDoc(doc(db, 'callPlans', loadedSharedPlan.id), {
+          ...formData,
+          lastModifiedAt: serverTimestamp()
+        });
+        toast({ title: "Shared plan updated", description: `Saved to ${loadedSharedPlan.sharedByName}'s call plan.` });
+        return;
+      }
       const planRef = await addDoc(collection(db, 'callPlans'), {
         ...formData,
         userId,
@@ -507,6 +539,46 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
       )}
 
 
+
+      {sortedSharedPlans.length > 0 && (
+        <div className="space-y-4 print:hidden pt-8">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-lg font-black uppercase tracking-tight text-indigo-700 flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Shared With You
+            </h3>
+            <Badge className="bg-indigo-600 text-white font-black text-[9px] uppercase">Full access</Badge>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedSharedPlans.map((plan: any) => (
+              <div
+                key={plan.id}
+                onClick={() => handleSelectPlan(plan)}
+                className={`text-left p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+                  selectedPlanId === plan.id ? 'border-indigo-500 bg-indigo-50 shadow-lg' : 'border-white bg-white hover:border-indigo-400 shadow-sm'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <SharedBadge name={plan.sharedByName} />
+                  <button
+                    type="button"
+                    title="Delete this shared call plan"
+                    onClick={(e) => { e.stopPropagation(); handleDeleteSharedPlan(plan); }}
+                    className="text-red-500 hover:text-red-700 text-[10px] font-black uppercase"
+                  >
+                    Delete
+                  </button>
+                </div>
+                <p className="text-xs font-black text-primary uppercase mt-2 mb-1">{plan.accountName}</p>
+                <p className="text-[10px] text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
+                <p className="text-[9px] text-slate-400 font-bold mt-1">
+                  {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-3xl p-8">

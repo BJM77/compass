@@ -42,6 +42,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { openSalesforceCreateLead, openSalesforceSearch, deduplicateUsers } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
+import { useSharedOwnerDocs } from '@/hooks/use-data-shares';
+import { SharedBadge } from './shared-badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,7 +83,17 @@ export function CanvassingHub() {
     return query(collection(db, 'canvass_leads'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
   }, [db, isLeader, user?.uid, scopeFilter]);
 
-  const { data: rawLeads, isLoading } = useCollection<CanvassLead>(leadsQuery);
+  const { data: ownLeads, isLoading: ownLoading } = useCollection<CanvassLead>(leadsQuery);
+  // Leads other users have shared with me via the Access page (full access). Admins already see everything.
+  const { data: sharedLeads, isLoading: sharedLoading } = useSharedOwnerDocs<CanvassLead>('canvassing', 'canvass_leads', { orderByCreatedDesc: true });
+  const rawLeads = useMemo(() => {
+    if (!ownLeads) return ownLeads;
+    if (isLeader || sharedLeads.length === 0) return ownLeads;
+    const seen = new Set(ownLeads.map(l => l.id));
+    return [...ownLeads, ...sharedLeads.filter(l => !seen.has(l.id))]
+      .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)) as (CanvassLead & { sharedByName?: string })[];
+  }, [ownLeads, sharedLeads, isLeader]);
+  const isLoading = ownLoading || sharedLoading;
 
   // Query all users for reassignment (only for super admin)
   const usersQuery = useMemoFirebase(() => {
@@ -520,6 +532,7 @@ export function CanvassingHub() {
                         <span className="font-bold text-sm line-clamp-1 group-hover:text-primary transition-colors">
                           {lead.companyName}
                         </span>
+                        <SharedBadge name={(lead as any).sharedByName} />
                       </div>
                       <div className="text-xs text-muted-foreground font-medium">
                         {lead.firstName ? `${lead.firstName} ` : ''}{lead.lastName}
