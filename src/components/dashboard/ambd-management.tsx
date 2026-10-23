@@ -56,7 +56,7 @@ export function AMBDManagement() {
   // Fetch all users to target
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'users'));
+    return query(collection(db, 'users'), where('role', 'in', ['BDM', 'ACCOUNT_MANAGER', 'AM']));
   }, [db]);
   const { data: allUsers } = useCollection(usersQuery);
 

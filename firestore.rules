@@ -53,6 +53,37 @@ service cloud.firestore {
     function ownerDelete() { return isAdmin() || (isStaff() && ownsExisting()); }
     function staffCreatesOwn() { return isAdmin() || (isStaff() && createsOwn()); }
 
+    // ─── Data sharing (Access page) ─────────────────────────────────────────────
+    // An admin shares an owner's data with a viewer (one-way, owner -> viewer) via
+    // dataShares/{ownerId}_{viewerId} = { ownerId, viewerId, areas: { factFinding, whiteSpace,
+    // callPlans, canvassing } }. A share grants FULL access (read, edit, delete) to the owner's
+    // docs in that area. Fact Finding also covers the linked White Space + Call Plans.
+    // Cost: one get() per evaluated request. Queries MUST constrain userId == ownerId.
+    function hasShare(ownerId, areaA, areaB) {
+      return isStaff()
+        && ownerId is string
+        && ownerId != request.auth.uid
+        && exists(/databases/$(database)/documents/dataShares/$(ownerId + '_' + request.auth.uid))
+        && (
+          get(/databases/$(database)/documents/dataShares/$(ownerId + '_' + request.auth.uid)).data.areas.get(areaA, false) == true
+          || get(/databases/$(database)/documents/dataShares/$(ownerId + '_' + request.auth.uid)).data.areas.get(areaB, false) == true
+        );
+    }
+    function sharedWith(areaA, areaB) { return hasShare(resource.data.get('userId', null), areaA, areaB); }
+
+    match /dataShares/{shareId} {
+      // Admins manage shares; a viewer can read only the shares made TO them.
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.get('viewerId', '') == request.auth.uid);
+      allow create, update: if isAdmin()
+        && request.resource.data.ownerId is string
+        && request.resource.data.viewerId is string
+        && request.resource.data.ownerId != request.resource.data.viewerId
+        && shareId == request.resource.data.ownerId + '_' + request.resource.data.viewerId
+        && request.resource.data.areas is map;
+      allow delete: if isAdmin();
+    }
+
     // ─── Users ──────────────────────────────────────────────────────────────────
     // Staff can read the team list; guests only their own doc.
     // Owners may update their own doc but never privilege fields.
@@ -110,10 +141,11 @@ service cloud.firestore {
 
     // ─── Strategy Documents ─────────────────────────────────────────────────────
     match /callPlans/{planId} {
-      allow read: if isAdmin() || (isStaff() && (ownsExisting() || resource.data.get('userId', null) == 'TEAM_NODE'));
+      allow read: if isAdmin() || (isStaff() && (ownsExisting() || resource.data.get('userId', null) == 'TEAM_NODE'))
+        || sharedWith('callPlans', 'factFinding');
       allow create: if staffCreatesOwn();
-      allow update: if ownerUpdate();
-      allow delete: if ownerDelete();
+      allow update: if ownerUpdate() || (sharedWith('callPlans', 'factFinding') && keepsOwner());
+      allow delete: if ownerDelete() || sharedWith('callPlans', 'factFinding');
     }
 
     match /callOutcomes/{outcomeId} {
@@ -123,10 +155,11 @@ service cloud.firestore {
     }
 
     match /whitespacePlans/{planId} {
-      allow read: if isAdmin() || (isStaff() && (ownsExisting() || resource.data.get('userId', null) == 'TEAM_NODE'));
+      allow read: if isAdmin() || (isStaff() && (ownsExisting() || resource.data.get('userId', null) == 'TEAM_NODE'))
+        || sharedWith('whiteSpace', 'factFinding');
       allow create: if staffCreatesOwn();
-      allow update: if ownerUpdate();
-      allow delete: if ownerDelete();
+      allow update: if ownerUpdate() || (sharedWith('whiteSpace', 'factFinding') && keepsOwner());
+      allow delete: if ownerDelete() || sharedWith('whiteSpace', 'factFinding');
     }
 
     // ─── Pipeline & CRM Data ────────────────────────────────────────────────────
@@ -321,10 +354,10 @@ service cloud.firestore {
     }
 
     match /factFindingDocs/{docId} {
-      allow read: if ownerRead();
+      allow read: if ownerRead() || sharedWith('factFinding', 'factFinding');
       allow create: if staffCreatesOwn();
-      allow update: if ownerUpdate();
-      allow delete: if ownerDelete();
+      allow update: if ownerUpdate() || (sharedWith('factFinding', 'factFinding') && keepsOwner());
+      allow delete: if ownerDelete() || sharedWith('factFinding', 'factFinding');
     }
 
     match /timeManagementPlans/{planId} {
@@ -463,10 +496,10 @@ service cloud.firestore {
     }
 
     match /canvass_leads/{leadId} {
-      allow read: if ownerRead();
+      allow read: if ownerRead() || sharedWith('canvassing', 'canvassing');
       allow create: if staffCreatesOwn();
-      allow update: if ownerUpdate();
-      allow delete: if ownerDelete();
+      allow update: if ownerUpdate() || (sharedWith('canvassing', 'canvassing') && keepsOwner());
+      allow delete: if ownerDelete() || sharedWith('canvassing', 'canvassing');
     }
 
     // ─── Commercial data (staff only; Actual Spend screen is open to BDMs) ──────

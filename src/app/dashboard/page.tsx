@@ -25,6 +25,7 @@ const SmartGoalsAudit = dynamic(() => import('@/components/dashboard/smart-goals
 const WeeklyArchive = dynamic(() => import('@/components/dashboard/weekly-archive').then(m => m.WeeklyArchive), { loading: () => <ViewSkeleton /> });
 const BIReportsViewer = dynamic(() => import('@/components/dashboard/bi-reports-viewer').then(m => m.BIReportsViewer), { loading: () => <ViewSkeleton /> });
 const DataExplorer = dynamic(() => import('@/components/dashboard/data-explorer').then(m => m.DataExplorer), { loading: () => <ViewSkeleton /> });
+const AccessHub = dynamic(() => import('@/components/dashboard/access-hub').then(m => m.AccessHub), { loading: () => <ViewSkeleton /> });
 const FactFindingHub = dynamic(() => import('@/components/dashboard/fact-finding-hub').then(m => m.FactFindingHub), { loading: () => <ViewSkeleton /> });
 const OpsReportForm = dynamic(() => import('@/components/dashboard/ops-report-form').then(m => m.OpsReportForm), { loading: () => <ViewSkeleton /> });
 const OpsReviewLedger = dynamic(() => import('@/components/dashboard/ops-report-review').then(m => m.OpsReportReview), { loading: () => <ViewSkeleton /> }); // renamed internally for matching
@@ -134,6 +135,7 @@ function DashboardContent() {
     if (!activeUserId && !isAuthLoading) return <div className="flex items-center justify-center py-40"><Loader2 className="animate-spin" /></div>;
 
     if (activeView === 'TEAM' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><UserManagement onSimulate={handleSimulate} /></div>;
+    if (activeView === 'ACCESS' && isLeader) return <div className="w-full p-4 md:p-8"><AccessHub /></div>;
     if (activeView === 'CALL_PLANNING') return <div className="w-full p-4 md:p-8"><CallPlanning userId={activeUserId || ''} initialParams={viewParams} /></div>;
     if (activeView === 'STRATEGIC_ARCHIVE') return <div className="w-full p-4 md:p-8"><StrategicArchive userId={activeUserId || ''} /></div>;
     if (activeView === 'BRIEFS' && isLeader) return <div className="w-full p-4 md:p-8 space-y-8"><AIBriefsHub /></div>;

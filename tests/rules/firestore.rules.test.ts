@@ -452,3 +452,102 @@ describe('Verticals: verticalDismissals ("Trading with TGE")', () => {
     await assertSucceeds(deleteDoc(doc(db(AM), 'verticalDismissals', 'kitchenwarehouse')));
   });
 });
+
+describe('Access: dataShares (one-way, full access)', () => {
+  // BDM (owner) shares with BDM2 (viewer): FF (+ linked WS & CP) only. AM gets canvassing only.
+  const share = (owner: string, viewer: string, areas: Record<string, boolean>) => ({
+    ownerId: owner, viewerId: viewer, ownerName: 'o', viewerName: 'v', areas,
+  });
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const a = ctx.firestore();
+      await setDoc(doc(a, 'dataShares', `${BDM}_${BDM2}`), share(BDM, BDM2, { factFinding: true, whiteSpace: true, callPlans: true, canvassing: false }));
+      await setDoc(doc(a, 'dataShares', `${BDM}_${AM}`), share(BDM, AM, { factFinding: false, whiteSpace: false, callPlans: false, canvassing: true }));
+      await setDoc(doc(a, 'whitespacePlans', 'w1'), { userId: BDM, accountName: 'Acme' });
+      await setDoc(doc(a, 'callPlans', 'cp1'), { userId: BDM, accountName: 'Acme' });
+      await setDoc(doc(a, 'canvass_leads', 'l1'), { userId: BDM, companyName: 'Acme' });
+      await setDoc(doc(a, 'canvass_leads', 'l2'), { userId: BDM2, companyName: 'Own' });
+    });
+  });
+
+  test('only admins write shares; viewers read only their own incoming shares', async () => {
+    await assertSucceeds(setDoc(doc(db(LEADER), 'dataShares', `${BDM2}_${AM}`), share(BDM2, AM, { factFinding: true })));
+    await assertSucceeds(setDoc(doc(db(GM), 'dataShares', `${BDM2}_${BDM}`), share(BDM2, BDM, { canvassing: true })));
+    await assertFails(setDoc(doc(db(BDM), 'dataShares', `${BDM}_${BDM2}`), share(BDM, BDM2, { factFinding: true })));
+    await assertFails(setDoc(doc(db(BDM2), 'dataShares', `${BDM}_${BDM2}`), share(BDM, BDM2, { factFinding: true, canvassing: true })));
+    await assertFails(deleteDoc(doc(db(BDM2), 'dataShares', `${BDM}_${BDM2}`)));
+    // malformed: id mismatch, self share
+    await assertFails(setDoc(doc(db(LEADER), 'dataShares', 'wrong-id'), share(BDM, BDM2, { factFinding: true })));
+    await assertFails(setDoc(doc(db(LEADER), 'dataShares', `${BDM}_${BDM}`), share(BDM, BDM, { factFinding: true })));
+    // viewer reads own incoming shares; not someone else's
+    await assertSucceeds(getDocs(query(collection(db(BDM2), 'dataShares'), where('viewerId', '==', BDM2))));
+    await assertSucceeds(getDoc(doc(db(BDM2), 'dataShares', `${BDM}_${BDM2}`)));
+    await assertFails(getDoc(doc(db(BDM2), 'dataShares', `${BDM}_${AM}`)));
+    await assertFails(getDocs(collection(db(BDM2), 'dataShares')));
+    await assertFails(getDoc(doc(db(GUEST), 'dataShares', `${BDM}_${BDM2}`)));
+    await assertSucceeds(getDocs(collection(db(LEADER), 'dataShares')));
+  });
+
+  test('a share does NOT make anyone an admin (no escalation via dataShares)', async () => {
+    await assertFails(setDoc(doc(db(BDM2), 'users', BDM2), { name: 'Bob', role: 'ADMIN', email: 'bob@teamglobalexp.com' }));
+    await assertFails(getDocs(collection(db(BDM2), 'canvass_leads')));
+  });
+
+  test('Fact Finding share: viewer gets full access to owner FF + linked White Space + Call Plans', async () => {
+    await assertSucceeds(getDocs(query(collection(db(BDM2), 'factFindingDocs'), where('userId', '==', BDM))));
+    await assertSucceeds(getDoc(doc(db(BDM2), 'factFindingDocs', 'f1')));
+    await assertSucceeds(updateDoc(doc(db(BDM2), 'factFindingDocs', 'f1'), { companyName: 'Acme Edited' }));
+    await assertSucceeds(getDocs(query(collection(db(BDM2), 'whitespacePlans'), where('userId', '==', BDM))));
+    await assertSucceeds(updateDoc(doc(db(BDM2), 'whitespacePlans', 'w1'), { accountName: 'Acme 2' }));
+    await assertSucceeds(getDoc(doc(db(BDM2), 'callPlans', 'cp1')));
+    await assertSucceeds(updateDoc(doc(db(BDM2), 'callPlans', 'cp1'), { objective: 'x' }));
+    await assertSucceeds(deleteDoc(doc(db(BDM2), 'callPlans', 'cp1')));
+    await assertSucceeds(deleteDoc(doc(db(BDM2), 'whitespacePlans', 'w1')));
+    await assertSucceeds(deleteDoc(doc(db(BDM2), 'factFindingDocs', 'f1')));
+  });
+
+  test('shared edits cannot take over ownership (keepsOwner)', async () => {
+    await assertFails(updateDoc(doc(db(BDM2), 'factFindingDocs', 'f1'), { userId: BDM2 }));
+    await assertFails(updateDoc(doc(db(BDM2), 'callPlans', 'cp1'), { userId: BDM2 }));
+    await assertSucceeds(updateDoc(doc(db(BDM2), 'factFindingDocs', 'f1'), { userId: BDM, note: 'ok' }));
+  });
+
+  test('sharing is per area: FF share does not give Canvassing', async () => {
+    await assertFails(getDoc(doc(db(BDM2), 'canvass_leads', 'l1')));
+    await assertFails(updateDoc(doc(db(BDM2), 'canvass_leads', 'l1'), { companyName: 'x' }));
+    await assertFails(deleteDoc(doc(db(BDM2), 'canvass_leads', 'l1')));
+  });
+
+  test('Canvassing share: AM gets canvass leads only, not Fact Finding / White Space / Call Plans', async () => {
+    await assertSucceeds(getDocs(query(collection(db(AM), 'canvass_leads'), where('userId', '==', BDM))));
+    await assertSucceeds(updateDoc(doc(db(AM), 'canvass_leads', 'l1'), { companyName: 'Edited' }));
+    await assertSucceeds(deleteDoc(doc(db(AM), 'canvass_leads', 'l1')));
+    await assertFails(getDoc(doc(db(AM), 'factFindingDocs', 'f1')));
+    await assertFails(getDoc(doc(db(AM), 'whitespacePlans', 'w1')));
+    await assertFails(getDoc(doc(db(AM), 'callPlans', 'cp1')));
+    await assertFails(deleteDoc(doc(db(AM), 'factFindingDocs', 'f1')));
+  });
+
+  test('one-way: owner does NOT get the viewer\'s data', async () => {
+    await assertFails(getDoc(doc(db(BDM), 'factFindingDocs', 'f2')));
+    await assertFails(getDoc(doc(db(BDM), 'canvass_leads', 'l2')));
+    await assertFails(updateDoc(doc(db(BDM), 'canvass_leads', 'l2'), { companyName: 'x' }));
+  });
+
+  test('shares do not leak to third parties, guests, or other owners\' data', async () => {
+    await assertFails(getDoc(doc(db(AM), 'factFindingDocs', 'f1')));
+    await assertFails(getDoc(doc(db(GUEST), 'factFindingDocs', 'f1')));
+    await assertFails(getDoc(doc(db(STRANGER), 'factFindingDocs', 'f1')));
+    // BDM2 has a share from BDM only; AM's own FF doc elsewhere stays private
+    await env.withSecurityRulesDisabled(async (ctx) => { await setDoc(doc(ctx.firestore(), 'factFindingDocs', 'f-am'), { userId: AM, companyName: 'AmCo' }); });
+    await assertFails(getDoc(doc(db(BDM2), 'factFindingDocs', 'f-am')));
+  });
+
+  test('revoking a share removes access immediately', async () => {
+    await assertSucceeds(getDoc(doc(db(BDM2), 'factFindingDocs', 'f1')));
+    await assertSucceeds(deleteDoc(doc(db(LEADER), 'dataShares', `${BDM}_${BDM2}`)));
+    await assertFails(getDoc(doc(db(BDM2), 'factFindingDocs', 'f1')));
+    await assertFails(getDoc(doc(db(BDM2), 'callPlans', 'cp1')));
+  });
+});

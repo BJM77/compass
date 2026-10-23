@@ -1,8 +1,8 @@
-import { LucideIcon, LayoutDashboard, Navigation, Clock, CalendarCheck, Send, FileSearch, LayoutGrid, PhoneCall, ClipboardList, Archive, BookOpen, Coins, AlertCircle, Shield, Database, Settings, Star, Sparkles, Map, Users, Upload, Megaphone, Factory, Fuel } from 'lucide-react';
+import { LucideIcon, LayoutDashboard, Navigation, Clock, CalendarCheck, Send, FileSearch, LayoutGrid, PhoneCall, ClipboardList, Archive, BookOpen, Coins, AlertCircle, Shield, Database, Settings, Star, Sparkles, Map, Users, Upload, Megaphone, Factory, Fuel, KeyRound } from 'lucide-react';
 
 export type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
-  | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'STRATEGY' 
+  | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'ACCESS' | 'STRATEGY' 
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' 
   | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' 
   | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' 
@@ -77,6 +77,7 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     label: 'Leadership & Admin',
     items: [
       { view: 'TEAM', label: 'Team', icon: Users, adminOnly: true },
+      { view: 'ACCESS', label: 'Access', icon: KeyRound, adminOnly: true },
       { view: 'AM_BD', label: 'AM/BD Notes Admin', icon: ClipboardList, adminOnly: true },
       { view: 'TEAM_GOALS', label: 'Team Goals', icon: Star, adminOnly: true },
       { view: 'STRATEGY', label: 'Strategy', icon: Map, adminOnly: true },
