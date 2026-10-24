@@ -1,11 +1,11 @@
-import { LucideIcon, LayoutDashboard, Navigation, Clock, CalendarCheck, Send, FileSearch, LayoutGrid, PhoneCall, ClipboardList, Archive, BookOpen, Coins, AlertCircle, Shield, Database, Settings, Star, Sparkles, Map, Users, Upload, Megaphone, Factory, Fuel, KeyRound } from 'lucide-react';
+import { LucideIcon, LayoutDashboard, Navigation, Clock, CalendarCheck, Send, FileSearch, LayoutGrid, PhoneCall, ClipboardList, Archive, BookOpen, Coins, AlertCircle, Shield, Database, Settings, Star, Sparkles, Map, Users, Upload, Megaphone, Factory, Fuel, KeyRound, Presentation } from 'lucide-react';
 
 export type DashboardView =
   | 'DASHBOARD' | 'CALL_PLANNING' | 'ALL_CALL_PLANNING' | 'WHITE_SPACE' 
   | 'WHITESPACE_HISTORY' | 'STRATEGIC_ARCHIVE' | 'BRIEFS' | 'TEAM_GOALS' | 'ACCESS' | 'STRATEGY' 
   | 'TEAM' | 'GM_REVIEW' | 'UPLOAD' | 'ARCHIVE' | 'SETTINGS' | 'REPORTS' | 'DATA_EXPLORER' 
   | 'FACT_FINDING' | 'OPS_REPORT' | 'OPS_REVIEW' | 'TWIW' | 'DEMO_DASH' | 'BROADCAST' 
-  | 'FRIDAY_FW' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' 
+  | 'FRIDAY_FW' | 'NWA_MEETING' | 'PLAYBOOK' | 'ACTUAL_SPEND' | 'STRATEGIC_REPOSITORY' | 'SUCCESS_PLANS' 
   | 'MANAGE_TIME' | 'AM_BD' | 'CANVASSING' | 'DATA_HEALTH' | 'OVERVIEW' | 'ALIGN_CUSTOMER' | 'FF_ADMIN' | 'BD_AM_REVIEW' | 'VERTICALS' | 'FUEL_SURCHARGES';
 
 export type UserRole = 'BDM' | 'ACCOUNT_MANAGER' | 'LEADER' | 'GM' | 'ADMIN' | 'GUEST';
@@ -38,6 +38,7 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
       { view: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard, guestAllowed: true },
       { view: 'TWIW', label: 'TWTW', icon: CalendarCheck, guestAllowed: true },
       { view: 'FRIDAY_FW', label: 'NWA', icon: Send },
+      { view: 'NWA_MEETING', label: 'Team meeting', icon: Presentation, adminOnly: true },
       { view: 'MANAGE_TIME', label: 'Manage Time', icon: Clock },
       { view: 'CALL_PLANNING', label: 'Call Plans', icon: PhoneCall },
     ]
