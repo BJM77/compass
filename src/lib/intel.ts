@@ -228,3 +228,78 @@ ${seed.notes ? `Notes about why this seed is a great customer: ${seed.notes}\n` 
 Answer with one line per company in EXACTLY this format:
 COMPANY: <company name> | <official website domain> | <WA suburb or region> | <sector> | <approx size> | <why similar, one sentence> | <High|Medium|Low confidence>`;
 }
+
+// ─── Find new leads (per vertical) ─────────────────────────────────────────
+/** Per-user daily cap on "Find new leads" searches (also counts toward INTEL_DAILY_LIMIT). */
+export const DISCOVER_DAILY_LIMIT = 5;
+/** Leaders and admins only (matches isAdmin() in firestore.rules). */
+export const DISCOVER_ROLES = ['LEADER', 'GM', 'ADMIN', 'SUPER_ADMIN'];
+
+/** A lead found by "Find new leads", stored team-wide in `discoveredLeads/{key}`. */
+export type DiscoveredLead = {
+  id: string;
+  company: string;
+  website: string;
+  domain: string;
+  vertical: VerticalId;
+  belt: BeltId;
+  sector: string;
+  region: string;
+  size: string;
+  whyTheyShip: string;
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  verifiedBy: 'grounded' | 'dns';
+  evidenceUrl: string | null;
+  sources: SourceRef[];
+  discoveredBy: string;
+  discoveredByName: string;
+  createdAt: any;
+};
+
+const DISCOVER_FOCUS: Record<VerticalId, string> = {
+  MINING: 'mining services and supply businesses (equipment, parts, consumables, PPE, safety gear, drilling supplies, lab and assay supplies, hydraulics, electrical, industrial distributors)',
+  MEDICAL: 'medical, health and allied-health businesses (medical and dental suppliers, pharmacies and pharmacy groups, pathology/lab suppliers, veterinary suppliers, health product distributors, mobility and aged-care equipment)',
+  ECOMMERCE: 'online retailers and direct-to-consumer brands (fashion, beauty, homewares, health and supplements, sporting and outdoor, pet, gifts, specialty food and drink)',
+  OTHER: 'wholesalers, distributors, manufacturers and trade suppliers (automotive parts, building and hardware supplies, packaging, office and print, agricultural supplies, industrial products)',
+};
+
+export function discoverPrompt(vertical: VerticalId, exclude: string[]): string {
+  const ex = exclude.filter(Boolean).slice(0, 120).join('; ');
+  return `Find 8 to 10 real companies in Western Australia in this sector: ${DISCOVER_FOCUS[vertical]}. Use Google Search.
+Requirements: headquartered in Western Australia or with major WA operations (warehouse, store network or distribution centre in WA); they likely send parcels and cartons to customers in Perth, regional WA or interstate (online orders, trade orders, spare parts, consumables). Focus on small to mid-sized businesses that a Team Global Express Parcel sales rep could win.
+Only list companies you actually found in search results, with their real official website domain. Do not invent companies or websites. Do not include names, emails or phone numbers of individuals. Do not mention freight, pallets or linehaul.
+${ex ? `Do NOT list any of these (already known): ${ex}.\n` : ''}Answer with one line per company in EXACTLY this format:
+COMPANY: <company name> | <official website domain> | <WA suburb or region> | <sector> | <approx size> | <why they likely ship parcels, one sentence> | <High|Medium|Low confidence>`;
+}
+
+/** Normalised domain key for de-duplication (e.g. "https://www.Acme.com.au/x" → "acme.com.au"). */
+export function domainKey(u: string | null | undefined): string | null {
+  const h = u ? hostOf(u) : null;
+  return h ? baseDomain(h) : null;
+}
+
+/**
+ * Keep only genuinely new leads: drop anything whose normalised name or domain
+ * is already known (prospects, research list, Trading with TGE, earlier finds),
+ * and anything without a source URL (we only keep search-backed results).
+ */
+export function filterNewLeads(results: Lookalike[], knownNames: string[], knownDomains: string[], max = 10): Lookalike[] {
+  const names = new Set(knownNames.map(normaliseCompany).filter(Boolean));
+  const domains = new Set(knownDomains.map(d => domainKey(d)).filter((d): d is string => !!d));
+  const out: Lookalike[] = [];
+  for (const r of results) {
+    const n = normaliseCompany(r.company);
+    const d = domainKey(r.website);
+    if (!n || !d || names.has(n) || domains.has(d)) continue;
+    if (!r.sources.length) continue;
+    names.add(n); domains.add(d);
+    out.push(r);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+/** Firestore doc ID for a discovered lead: normalised name, letters + digits only. */
+export function discoveredKey(company: string): string {
+  return normaliseCompany(company).slice(0, 150);
+}

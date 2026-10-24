@@ -29,3 +29,15 @@ describe('requireStaff', () => {
     expect(perthDay(Date.UTC(2026, 9, 17, 16, 30))).toBe('20261018'); // 00:30 Perth
   });
 });
+
+describe('requireLeader', () => {
+  it('allows leader/admin roles only', async () => {
+    const { requireLeader } = await import('@/lib/server/intel-guard');
+    verifyIdToken.mockResolvedValueOnce({ uid: 'boss' });
+    await expect(requireLeader(req(TOKEN))).resolves.toMatchObject({ uid: 'boss', role: 'GM' });
+    for (const uid of ['bdm', 'am']) {
+      verifyIdToken.mockResolvedValueOnce({ uid });
+      await expect(requireLeader(req(TOKEN))).rejects.toMatchObject({ status: 403 });
+    }
+  });
+});

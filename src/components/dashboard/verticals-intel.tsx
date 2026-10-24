@@ -25,7 +25,7 @@ const label = <T extends { id: string; label: string }>(list: T[], id: string) =
 /** Calls an intel route with the caller's Firebase ID token. */
 export function useIntelApi() {
   const { user } = useAuth();
-  return async <T,>(path: 'pain' | 'lookalikes', body: Record<string, unknown>): Promise<T> => {
+  return async <T,>(path: 'pain' | 'lookalikes' | 'discover', body: Record<string, unknown>): Promise<T> => {
     if (!user) throw new Error('Not signed in');
     const token = await (user as any).getIdToken();
     const res = await fetch(`/api/intel/${path}`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
@@ -51,7 +51,7 @@ export function PainBadge({ p, onClick }: { p?: PainSignals | null; onClick?: ()
   );
 }
 
-export type PainTarget = { company: string; prospectId?: string; suggestedId?: string; existing?: PainSignals | null };
+export type PainTarget = { company: string; prospectId?: string; suggestedId?: string; discoveredId?: string; existing?: PainSignals | null };
 
 export function PainDialog({ target, onClose }: { target: PainTarget | null; onClose: () => void }) {
   const api = useIntelApi();
@@ -67,7 +67,7 @@ export function PainDialog({ target, onClose }: { target: PainTarget | null; onC
     if (!target) return;
     setLoading(true); setError(null);
     try {
-      const r = await api<{ result: PainSignals; cached: boolean }>('pain', { prospectId: target.prospectId, suggestedId: target.suggestedId, company: target.company });
+      const r = await api<{ result: PainSignals; cached: boolean }>('pain', { prospectId: target.prospectId, suggestedId: target.suggestedId, discoveredId: target.discoveredId, company: target.company });
       setResult(r.result);
       if (r.cached) toast({ title: 'Recent result reused', description: `Re-check allowed ${PAIN_RECHECK_DAYS} days after the last check.` });
     } catch (e: any) { setError(e.message || 'Failed'); } finally { setLoading(false); }

@@ -22,6 +22,10 @@ export async function POST(req: Request) {
       const p = await db.doc(`verticalProspects/${prospectId}`).get();
       if (!p.exists) throw new HttpError(404, 'Prospect not found');
       company = cleanInput(p.get('company'), 200);
+    } else if (typeof body.discoveredId === 'string' && /^[a-z0-9]{1,150}$/.test(body.discoveredId)) {
+      const d = await db.doc(`discoveredLeads/${body.discoveredId}`).get();
+      if (!d.exists) throw new HttpError(404, 'Lead not found');
+      company = cleanInput(d.get('company'), 200); website = typeof d.get('website') === 'string' ? d.get('website') : null;
     } else if (typeof body.suggestedId === 'string') {
       const s = WA_SUGGESTED_PROSPECTS.find(x => x.id === body.suggestedId);
       if (!s) throw new HttpError(404, 'Suggested prospect not found');

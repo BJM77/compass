@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn, getSalesforceSearchUrl } from '@/lib/utils';
 import { SuggestedProspectsPanel } from './suggested-prospects-panel';
+import { useDiscoveredLeads } from '@/hooks/use-discovered-leads';
 import { PainBadge, PainDialog, LookalikeFinder, useIntelApi, type PainTarget } from './verticals-intel';
 import { hasCarrierPain, canRecheck, BATCH_SCAN_MAX } from '@/lib/intel';
 import {
@@ -132,6 +133,7 @@ export function VerticalsView() {
   const { navigateTo } = useNavigation();
   const { copied, copy } = useCopy();
   const dismissals = useVerticalDismissals();
+  const discovered = useDiscoveredLeads();
 
   // Saved-prospects view (cards / compact list); read in an effect so SSR and first paint match
   const [view, setView] = useState<ProspectView>('cards');
@@ -562,7 +564,9 @@ export function VerticalsView() {
               </CardContent>
             </Card>
 
-            <SuggestedProspectsPanel vertical={v.id} prospects={prospects} canAdd={canSource} uid={uid} myName={myName} dismissals={dismissals} onCheckPain={s => setPainTarget({ company: s.company, suggestedId: s.id })} />
+            <SuggestedProspectsPanel vertical={v.id} prospects={prospects} canAdd={canSource} uid={uid} myName={myName} dismissals={dismissals}
+              discovered={discovered} canDiscover={isAdmin}
+              onCheckPain={s => setPainTarget(s.discoveredId ? { company: s.company, discoveredId: s.discoveredId } : { company: s.company, suggestedId: s.id })} />
 
             {/* Google Maps by belt */}
             <Card>

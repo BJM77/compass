@@ -601,3 +601,40 @@ describe('NWA: per-week business updates and team KPI targets (appSettings)', ()
     }
   });
 });
+
+describe('Verticals: discoveredLeads ("Find new leads")', () => {
+  const lead = (over: Record<string, unknown> = {}) => ({
+    company: 'New Med Supplies', website: 'https://newmed.com.au', domain: 'newmed.com.au', vertical: 'MEDICAL',
+    whyTheyShip: 'Ships clinic consumables', discoveredBy: LEADER, discoveredByName: 'Lea', createdAt: serverTimestamp(), ...over,
+  });
+  const seed = async () => env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'discoveredLeads', 'newmedsupplies'), { ...lead(), createdAt: Timestamp.now() });
+  });
+
+  test('all staff can read; guests and strangers cannot', async () => {
+    await seed();
+    for (const u of [BDM, BDM2, AM, LEADER, GM, SUPER]) {
+      await assertSucceeds(getDoc(doc(db(u), 'discoveredLeads', 'newmedsupplies')));
+      await assertSucceeds(getDocs(collection(db(u), 'discoveredLeads')));
+    }
+    for (const u of [GUEST, STRANGER]) {
+      await assertFails(getDoc(doc(db(u), 'discoveredLeads', 'newmedsupplies')));
+      await assertFails(getDocs(collection(db(u), 'discoveredLeads')));
+    }
+    await assertFails(getDoc(doc(db(), 'discoveredLeads', 'newmedsupplies')));
+  });
+
+  test('no client creates or edits, even for admins (server route only)', async () => {
+    await seed();
+    for (const u of [BDM, AM, LEADER, GM, SUPER, GUEST]) {
+      await assertFails(setDoc(doc(db(u), 'discoveredLeads', 'other'), lead({ discoveredBy: u })));
+      await assertFails(updateDoc(doc(db(u), 'discoveredLeads', 'newmedsupplies'), { company: 'x' }));
+    }
+  });
+
+  test('only leaders/admins can remove a find', async () => {
+    await seed();
+    for (const u of [BDM, AM, GUEST, STRANGER]) await assertFails(deleteDoc(doc(db(u), 'discoveredLeads', 'newmedsupplies')));
+    await assertSucceeds(deleteDoc(doc(db(GM), 'discoveredLeads', 'newmedsupplies')));
+  });
+});
