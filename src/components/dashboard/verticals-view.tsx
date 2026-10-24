@@ -32,6 +32,8 @@ import {
 } from '@/lib/verticals';
 
 const AM_ROLES = ['ACCOUNT_MANAGER', 'AM'];
+/** Roles a leader can assign as a prospect owner (role field only, case-insensitive). */
+const ASSIGNABLE_ROLES = ['BDM', ...AM_ROLES];
 const VIEW_STORAGE_KEY = 'verticals.prospectView';
 type ProspectView = 'cards' | 'list';
 const savedDate = (v: any) => {
@@ -159,9 +161,10 @@ export function VerticalsView() {
   const usersRef = useMemoFirebase(() => (db && user ? collection(db, 'users') : null), [db, user]);
   const { data: usersRaw } = useCollection<any>(usersRef);
 
-  const users: UserLite[] = useMemo(() => (usersRaw || []).map((u: any) => ({ id: u.id, name: u.name || u.displayName || u.email || 'Unknown', role: String(u.role || '') })), [usersRaw]);
+  const users: UserLite[] = useMemo(() => (usersRaw || []).map((u: any) => ({ id: u.id, name: u.name || u.displayName || u.email || 'Unknown', role: String(u.role || '').toUpperCase() })), [usersRaw]);
   const userName = (id?: string | null) => (id ? users.find(u => u.id === id)?.name || '—' : '—');
   const amUsers = users.filter(u => AM_ROLES.includes(u.role));
+  const assignableUsers = users.filter(u => ASSIGNABLE_ROLES.includes(u.role)).sort((a, b) => a.name.localeCompare(b.name));
   const prospects = prospectsRaw || [];
 
   const [tab, setTab] = useState<VerticalId>('MINING');
@@ -183,7 +186,7 @@ export function VerticalsView() {
 
   // Permissions (mirror firestore.rules)
   const isOwner = (p: VerticalProspect) => !!p.ownerUid && p.ownerUid === uid && !isClaimExpired(p, now);
-  const canEdit = (p: VerticalProspect) => isAdmin || (isBdm && (isOwner(p) || !p.ownerUid || isClaimExpired(p, now)));
+  const canEdit = (p: VerticalProspect) => isAdmin || (isBdm && (isOwner(p) || !p.ownerUid || isClaimExpired(p, now))) || (isAmUser && isOwner(p));
   const canClaim = (p: VerticalProspect) => isBdm && canBdmClaim(p, now) && p.ownerUid !== uid;
   const canDelete = (p: VerticalProspect) => isAdmin || (isBdm && p.ownerUid === uid);
   const canAmNote = (p: VerticalProspect) => isAdmin || (isAmUser && p.amUid === uid);
@@ -385,8 +388,8 @@ export function VerticalsView() {
             )}
             {isAdmin && p.sfStatus !== 'EXISTING_AM' && (
               <Select value="" onValueChange={v => { const u = users.find(x => x.id === v); update(p, { ownerUid: v, ownerName: u?.name || null, claimedAt: serverTimestamp() }, 'Reassigned'); }}>
-                <SelectTrigger className="h-7 w-auto text-xs"><SelectValue placeholder="Reassign…" /></SelectTrigger>
-                <SelectContent>{users.filter(u => u.role === 'BDM').map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="h-7 w-auto text-xs"><SelectValue placeholder="Assign to BDM / AM…" /></SelectTrigger>
+                <SelectContent>{assignableUsers.map(u => <SelectItem key={u.id} value={u.id}>{u.name} <span className="text-slate-400">· {AM_ROLES.includes(u.role) ? 'AM' : 'BDM'}</span></SelectItem>)}</SelectContent>
               </Select>
             )}
           </div>
@@ -678,7 +681,7 @@ export function VerticalsView() {
               <input type="checkbox" className="h-4 w-4" checked={painOnly} onChange={e => setPainOnly(e.target.checked)} />
               Has carrier pain
             </label>
-            {isBdm && (
+            {(isBdm || isAmUser) && (
               <Button size="sm" variant="outline" disabled={!!scanning} onClick={scanClaimed} title={`Checks up to ${BATCH_SCAN_MAX} of your claimed prospects not checked in 14 days`}>
                 {scanning ? `Scanning ${scanning}` : 'Scan my claimed prospects'}
               </Button>
