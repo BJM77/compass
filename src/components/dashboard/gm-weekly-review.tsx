@@ -33,6 +33,7 @@ import { usePipelineData } from '@/contexts/pipeline-context';
 import { calculateDealHealth } from '@/lib/deal-health';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import { NwaArchiveSummary } from './nwa/nwa-archive-summary';
+import { KpiReviewSummary } from './kpi-review-summary';
 import { isLegacyFridayDoc } from '@/lib/nwa';
 
 export interface CrmMetrics {
@@ -72,6 +73,7 @@ interface BDMWeeklyReport {
   twtwMajorUpdates?: any[];
   twtwProjectedWins?: any[];
   twtwPriorities?: any[];
+  twtwKpiReview?: any;
   focusAccounts?: any[];
   /** weeklyCommitments doc for the coming week when it's an NWA (not a legacy Friday FW). */
   nwaDoc?: any;
@@ -387,6 +389,7 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             twtwMajorUpdates: combinedTwiwMajorUpdates.length > 0 ? combinedTwiwMajorUpdates : (twiwData?.majorUpdates || []),
             twtwProjectedWins: combinedTwiwProjectedWins.length > 0 ? combinedTwiwProjectedWins : (twiwData?.projectedWins || []),
             twtwPriorities: combinedTwiwPriorities.length > 0 ? combinedTwiwPriorities : (twiwData?.priorities || []),
+            twtwKpiReview: twiwData?.kpiReview || null,
             focusAccounts: combinedFocusAccounts.length > 0 ? combinedFocusAccounts : (commitData?.focusAccounts || []),
             // NWA for the coming week (pipeline, KPIs vs target, account management, commitments, follow-through)
             nwaDoc: commitData && !isLegacyFridayDoc(commitData) ? commitData : null,
@@ -1432,6 +1435,8 @@ function BDMReportCard({
                       ))}
                     </div>
                   ) : null}
+
+                  <KpiReviewSummary kpiReview={report.twtwKpiReview} title="TWTW KPI review (actual / target)" />
 
                   {report.twtwProjectedWins && report.twtwProjectedWins.length > 0 && (
                     <div className="bg-blue-50/20 p-4 rounded-xl border border-blue-100/50 space-y-2">

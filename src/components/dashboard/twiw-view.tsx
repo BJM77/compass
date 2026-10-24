@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  useState, useMemo, useEffect, useCallback } from 'react';
+  useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, writeBatch, doc, getDoc, getDocs, query, where, updateDoc, serverTimestamp, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { DemoDashView } from './demo-dash-view';
+import { KpiReviewSummary } from './kpi-review-summary';
+import { kpiReviewToFormFields } from '@/lib/kpi-review';
 // jsPDF and html2canvas dynamically imported on export click
 
 
@@ -150,6 +152,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     callsActual: 0, appointmentsActual: 0, proposalsActual: 0, dealsActual: 0, revenueActual: 0, kpiNotes: ''
   });
   const [previousFocusAccounts, setPreviousFocusAccounts] = useState<any[]>([]);
+  // KPI values saved on this week's submission win over the auto-filled ones (whichever load finishes last).
+  const savedKpiRef = useRef<Partial<KPIReview> | null>(null);
+  const withSavedKpi = (next: KPIReview): KPIReview => (savedKpiRef.current ? { ...next, ...savedKpiRef.current } : next);
 
   useEffect(() => {
     async function loadPreviousFridayData() {
@@ -161,14 +166,14 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         if (prevCommitSnap.exists()) {
           const prevData = prevCommitSnap.data();
           const kpiTargets = prevData.kpiTargets || {};
-          setKpiReview(prev => ({
+          setKpiReview(prev => withSavedKpi({
             ...prev,
             callsTarget: kpiTargets.callsToMake || 0,
             appointmentsTarget: kpiTargets.appointmentsToSet || 0,
             proposalsTarget: kpiTargets.proposalsToSend || 0,
             dealsTarget: kpiTargets.dealsToClose || 0,
             revenueTarget: kpiTargets.revenueTarget || 0
-          }));
+          } as KPIReview));
           setPreviousFocusAccounts(prevData.focusAccounts || []);
         }
         
@@ -176,18 +181,18 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         const prevProgressSnap = await getDoc(prevProgressRef);
         if (prevProgressSnap.exists()) {
           const progressData = prevProgressSnap.data();
-          setKpiReview(prev => ({
+          setKpiReview(prev => withSavedKpi({
             ...prev,
             callsActual: progressData.calls || 0,
             appointmentsActual: progressData.apps || 0,
             proposalsActual: progressData.proposals || 0,
             dealsActual: progressData.deals || 0
-          }));
+          } as KPIReview));
         }
         
         const prevPipelineSnap = await getDocs(query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', previousWeek)));
         const wonRevenue = prevPipelineSnap.docs.map(d => d.data()).filter(d => d.stage === 'Closed Won').reduce((sum, d) => sum + (Number(d.value) || 0), 0);
-        setKpiReview(prev => ({ ...prev, revenueActual: wonRevenue || 0 }));
+        setKpiReview(prev => withSavedKpi({ ...prev, revenueActual: wonRevenue || 0 }));
       } catch (error) { console.error(error); }
     }
     loadPreviousFridayData();
@@ -542,6 +547,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           setMajorUpdates((data.majorUpdates || []).map((m: any) => ({ ...m, id: m.id || crypto.randomUUID() })));
           setProjectedWins((data.projectedWins || []).map((p: any) => ({ ...p, id: p.id || crypto.randomUUID() })));
           setPriorities((data.priorities || []).map((pr: any) => ({ ...pr, id: pr.id || crypto.randomUUID() })));
+          const savedKpi = kpiReviewToFormFields(data.kpiReview);
+          savedKpiRef.current = savedKpi;
+          if (savedKpi) setKpiReview(prev => ({ ...prev, ...savedKpi }));
           setStatus(data.status || 'DRAFT');
         } else {
           // Reset fields
@@ -551,6 +559,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           setMajorUpdates([]);
           setProjectedWins([]);
           setPriorities([]);
+          savedKpiRef.current = null;
           setStatus('NONE');
         }
       } catch (err) {
@@ -3620,6 +3629,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                                     </div>
                                   </td>
                                   <td className="p-3 text-foreground/75 space-y-3 bg-secondary/60">
+                                    <KpiReviewSummary kpiReview={sub.kpiReview} title="KPI review (actual / target)" />
                                     {/* Call Plans */}
                                     <div className="space-y-1">
                                       <div className="text-xs font-semibold text-muted-foreground">📞 Call Plans</div>

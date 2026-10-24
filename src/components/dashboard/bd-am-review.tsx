@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import { kpiReviewAppointments } from '@/lib/kpi-review';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
@@ -158,7 +159,7 @@ export function BdAmReview() {
   // 4. Filter & Aggregate TWTW Data (Wins, Risks, Updates)
   // -------------------------------------------------------------
   const aggregatedTwiwData = useMemo(() => {
-    if (!allTwiwSubmissions) return { wins: [], risks: [], majorUpdates: [], projectedWins: [], totalCalls: 0, totalApps: 0 };
+    if (!allTwiwSubmissions) return { wins: [], risks: [], majorUpdates: [], projectedWins: [], totalApps: 0 };
 
     let filtered = allTwiwSubmissions.filter(sub => {
       // User filter check
@@ -173,7 +174,6 @@ export function BdAmReview() {
     const risks: any[] = [];
     const majorUpdates: any[] = [];
     const projectedWins: any[] = [];
-    let totalCalls = 0;
     let totalApps = 0;
 
     filtered.forEach(sub => {
@@ -195,13 +195,13 @@ export function BdAmReview() {
         if (!p.isHidden) projectedWins.push({ ...p, repName, week: sub.week });
       });
 
+      // kpiReview is saved as { targets, actuals, notes } (older docs: flat *Actual fields). Calls are no longer a TWTW KPI.
       if (sub.kpiReview) {
-        totalCalls += Number(sub.kpiReview.callsActual) || 0;
-        totalApps += Number(sub.kpiReview.appointmentsActual) || 0;
+        totalApps += kpiReviewAppointments(sub.kpiReview);
       }
     });
 
-    return { wins, risks, majorUpdates, projectedWins, totalCalls, totalApps };
+    return { wins, risks, majorUpdates, projectedWins, totalApps };
   }, [allTwiwSubmissions, selectedUserId, selectedUserObj, dateRange, validWeeksInRange]);
 
   // -------------------------------------------------------------
@@ -229,7 +229,7 @@ export function BdAmReview() {
       }
     });
 
-    const callsCount = Math.max(aggregatedTwiwData.totalCalls, totalCallsFromPlans, progressCalls);
+    const callsCount = Math.max(totalCallsFromPlans, progressCalls);
     const appsCount = Math.max(aggregatedTwiwData.totalApps, progressApps);
 
     return {
