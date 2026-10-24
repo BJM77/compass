@@ -103,7 +103,7 @@ service cloud.firestore {
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
              'role', 'isGuest', 'email', 'territory', 'state', 'zones', 'target',
              'manualYtdTarget', 'assignedAgents', 'planType', 'specialisation',
-             'salesforceUserId', 'isMock'
+             'salesforceUserId', 'isMock', 'nwaKpiTargets'
            ])
       );
       allow delete: if isAdmin();
@@ -189,6 +189,17 @@ service cloud.firestore {
       allow create: if staffCreatesOwn();
       allow update: if ownerUpdate();
       allow delete: if isAdmin();
+    }
+
+    // TWA leader additions for one person and week (doc id {uid}_{week}). Leaders write;
+    // the person reads their own (a missing doc is readable by id so the form can check it).
+    match /nwaLeaderNotes/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && (
+        resource == null
+          ? docId.split('_')[0] == request.auth.uid
+          : resource.data.userId == request.auth.uid
+      ));
+      allow write: if isAdmin();
     }
 
     match /activityLogs/{logId} {

@@ -47,6 +47,7 @@ const BUSINESS_UNITS = [
   'Contract Logistics'
 ];
 
+// Parcel services only. Older leads may still list services no longer offered here; they are kept as saved.
 const SERVICE_OPTIONS = [
   'Time Sensitive (Next Available)',
   'Same-Day Road & Air',
@@ -54,8 +55,6 @@ const SERVICE_OPTIONS = [
   'Road Express (1-8 Days)',
   'Courier Network (B2B)',
   'International Air Express',
-  'Sea Freight',
-  'Heavy / Oversize Freight',
   'Dangerous Goods',
   'Temperature Controlled'
 ];

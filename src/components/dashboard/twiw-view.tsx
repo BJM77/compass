@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  useState, useMemo, useEffect, useCallback } from 'react';
+  useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, writeBatch, doc, getDoc, getDocs, query, where, updateDoc, serverTimestamp, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,10 +22,12 @@ import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
-  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck, Download
+  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck, Download
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { DemoDashView } from './demo-dash-view';
+import { KpiReviewSummary } from './kpi-review-summary';
+import { kpiReviewToFormFields } from '@/lib/kpi-review';
 // jsPDF and html2canvas dynamically imported on export click
 
 
@@ -60,7 +62,8 @@ interface WinItem {
   isStarred?: boolean;
 }
 
-const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
+// Parcel business units only. Older submissions may still carry 'Freight' in businessUnits; it is kept as saved.
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium'];
 
 interface RiskItem {
   id: string;
@@ -150,6 +153,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     callsActual: 0, appointmentsActual: 0, proposalsActual: 0, dealsActual: 0, revenueActual: 0, kpiNotes: ''
   });
   const [previousFocusAccounts, setPreviousFocusAccounts] = useState<any[]>([]);
+  // KPI values saved on this week's submission win over the auto-filled ones (whichever load finishes last).
+  const savedKpiRef = useRef<Partial<KPIReview> | null>(null);
+  const withSavedKpi = (next: KPIReview): KPIReview => (savedKpiRef.current ? { ...next, ...savedKpiRef.current } : next);
 
   useEffect(() => {
     async function loadPreviousFridayData() {
@@ -161,14 +167,14 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         if (prevCommitSnap.exists()) {
           const prevData = prevCommitSnap.data();
           const kpiTargets = prevData.kpiTargets || {};
-          setKpiReview(prev => ({
+          setKpiReview(prev => withSavedKpi({
             ...prev,
             callsTarget: kpiTargets.callsToMake || 0,
             appointmentsTarget: kpiTargets.appointmentsToSet || 0,
             proposalsTarget: kpiTargets.proposalsToSend || 0,
             dealsTarget: kpiTargets.dealsToClose || 0,
             revenueTarget: kpiTargets.revenueTarget || 0
-          }));
+          } as KPIReview));
           setPreviousFocusAccounts(prevData.focusAccounts || []);
         }
         
@@ -176,18 +182,18 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
         const prevProgressSnap = await getDoc(prevProgressRef);
         if (prevProgressSnap.exists()) {
           const progressData = prevProgressSnap.data();
-          setKpiReview(prev => ({
+          setKpiReview(prev => withSavedKpi({
             ...prev,
             callsActual: progressData.calls || 0,
             appointmentsActual: progressData.apps || 0,
             proposalsActual: progressData.proposals || 0,
             dealsActual: progressData.deals || 0
-          }));
+          } as KPIReview));
         }
         
         const prevPipelineSnap = await getDocs(query(collection(db, 'pipelineReviews'), where('userId', '==', userId), where('week', '==', previousWeek)));
         const wonRevenue = prevPipelineSnap.docs.map(d => d.data()).filter(d => d.stage === 'Closed Won').reduce((sum, d) => sum + (Number(d.value) || 0), 0);
-        setKpiReview(prev => ({ ...prev, revenueActual: wonRevenue || 0 }));
+        setKpiReview(prev => withSavedKpi({ ...prev, revenueActual: wonRevenue || 0 }));
       } catch (error) { console.error(error); }
     }
     loadPreviousFridayData();
@@ -286,7 +292,6 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     if (!prioritiesValid) return false;
 
     if (isRegisteredUser) {
-      if (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) return false;
       if (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) return false;
       if (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) return false;
       if (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) return false;
@@ -543,6 +548,9 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           setMajorUpdates((data.majorUpdates || []).map((m: any) => ({ ...m, id: m.id || crypto.randomUUID() })));
           setProjectedWins((data.projectedWins || []).map((p: any) => ({ ...p, id: p.id || crypto.randomUUID() })));
           setPriorities((data.priorities || []).map((pr: any) => ({ ...pr, id: pr.id || crypto.randomUUID() })));
+          const savedKpi = kpiReviewToFormFields(data.kpiReview);
+          savedKpiRef.current = savedKpi;
+          if (savedKpi) setKpiReview(prev => ({ ...prev, ...savedKpi }));
           setStatus(data.status || 'DRAFT');
         } else {
           // Reset fields
@@ -552,6 +560,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           setMajorUpdates([]);
           setProjectedWins([]);
           setPriorities([]);
+          savedKpiRef.current = null;
           setStatus('NONE');
         }
       } catch (err) {
@@ -2305,18 +2314,17 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Target className="w-4 h-4 text-success-ink" /> Weekly KPI Review (vs this week's NWA plan)
+                <Target className="w-4 h-4 text-success-ink" /> Weekly KPI Review (vs this week's TWA plan)
               </CardTitle>
               <CardDescription className="text-xs font-bold text-muted-foreground">
-                Review your performance against the KPI targets set in this week's Monday NWA
+                Review your performance against the KPI targets set in this week's Monday TWA
               </CardDescription>
             </div>
             <Badge className="bg-secondary text-foreground/75 font-semibold text-xs">Week {previousWeek.split('-')[1]} Targets</Badge>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-accent" /><div className="text-xs font-semibold text-muted-foreground">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-success" /><div className="text-xs font-semibold text-muted-foreground">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
             <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-accent" /><div className="text-xs font-semibold text-muted-foreground">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
             <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-warning" /><div className="text-xs font-semibold text-muted-foreground">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
@@ -2328,7 +2336,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           </div>
           {previousFocusAccounts.length > 0 && (
             <div className="space-y-3 pt-4 border-t">
-              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-accent" /> Previous Week's Focus Accounts (from NWA plan)</h4>
+              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-accent" /> Previous Week's Focus Accounts (from TWA plan)</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {previousFocusAccounts.map((acc: any, idx: number) => (
                   <div key={idx} className="p-3 bg-secondary/60 border rounded-xl">
@@ -3346,8 +3354,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       {!priorities.every(p => p.text?.trim() && p.salespersonName?.trim()) && <li>Complete all fields in added Priorities rows</li>}
                       {isRegisteredUser && (
                         <>
-                          {(kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0 ||
-                            kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0 ||
+                          {(kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0 ||
                             kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0 ||
                             kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0 ||
                             kpiReview.revenueActual === undefined || isNaN(kpiReview.revenueActual) || kpiReview.revenueActual < 0) && <li>Complete all KPI Actual values</li>}
@@ -3623,6 +3630,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                                     </div>
                                   </td>
                                   <td className="p-3 text-foreground/75 space-y-3 bg-secondary/60">
+                                    <KpiReviewSummary kpiReview={sub.kpiReview} title="KPI review (actual / target)" />
                                     {/* Call Plans */}
                                     <div className="space-y-1">
                                       <div className="text-xs font-semibold text-muted-foreground">📞 Call Plans</div>

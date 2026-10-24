@@ -13,6 +13,10 @@ export interface UnifiedTeamUser {
   territory?: string;
   target?: number;
   linkedIds: string[];
+  /** Admin-set colour for the whole-team NWA view (users/{uid}.nwaColor, a palette id). */
+  nwaColor?: string;
+  /** Leader-set weekly KPI targets for this person (users/{uid}.nwaKpiTargets); blank keys use the team target. */
+  nwaKpiTargets?: Record<string, number>;
 }
 
 /**
@@ -54,12 +58,15 @@ export function useTeamUsers(): { teamUsers: UnifiedTeamUser[]; isLoading: boole
           territory: u.territory,
           target: u.target || u.revenueTarget || 1000000,
           linkedIds: [u.id],
+          ...(typeof u.nwaColor === 'string' && u.nwaColor ? { nwaColor: u.nwaColor } : {}),
+          ...(u.nwaKpiTargets && typeof u.nwaKpiTargets === 'object' ? { nwaKpiTargets: u.nwaKpiTargets } : {}),
         });
       } else {
         const existing = userMap.get(normName)!;
         if (!existing.linkedIds.includes(u.id)) {
           existing.linkedIds.push(u.id);
         }
+        if (!existing.nwaColor && typeof u.nwaColor === 'string' && u.nwaColor) existing.nwaColor = u.nwaColor;
         // If user has both BDM and AM roles across duplicate records, mark role as BDM / AM
         if (u.role && existing.role !== u.role) {
           existing.role = 'BDM / AM';

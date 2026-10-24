@@ -10,9 +10,9 @@ import { getCurrentWeek, getNwaReviewWeek, getPerthWeekKey, getWeekForDate } fro
 
 describe('role-based sections', () => {
   test('AM agenda adds account management and still fits 45 minutes', () => {
-    expect(NWA_SECTIONS_AM.map(s => s.id)).toEqual(['wins', 'appointments', 'pipeline', 'accounts', 'kpis', 'priorities', 'challenges', 'updates', 'commitments']);
+    expect(NWA_SECTIONS_AM.map(s => s.id)).toEqual(['wins', 'shoutout', 'appointments', 'pipeline', 'accounts', 'kpis', 'priorities', 'challenges', 'updates', 'commitments']);
     expect(NWA_SECTIONS_AM.reduce((t, s) => t + s.minutes, 0)).toBe(NWA_MEETING_MINUTES);
-    expect(NWA_SECTIONS_AM.map(s => s.step)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(NWA_SECTIONS_AM.map(s => s.step)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
   test('sections by role', () => {
     expect(isAmRole('ACCOUNT_MANAGER')).toBe(true);
@@ -28,21 +28,23 @@ describe('role-based KPIs', () => {
     const am = kpiDefsFor('ACCOUNT_MANAGER').map(k => k.key);
     const bdm = kpiDefsFor('BDM').map(k => k.key);
     expect(am).toEqual(expect.arrayContaining(['accountReviews', 'revenueRetained', 'renewals']));
-    expect(bdm).toEqual(expect.arrayContaining(['calls', 'appointments', 'revenue']));
+    expect(bdm).toEqual(expect.arrayContaining(['appointments', 'revenue']));
+    expect(bdm).not.toContain('calls');
+    expect(am).not.toContain('calls');
     expect(bdm).not.toContain('revenueRetained');
   });
   test('target precedence: person, team, annual target, default', () => {
-    expect(resolveKpiTargets('BDM').source.callsToMake).toBe('default');
+    expect(resolveKpiTargets('BDM').source.appointmentsToSet).toBe('default');
     expect(resolveKpiTargets('BDM').targets).toEqual(defaultKpiTargets('BDM'));
-    const team = { byRole: { BDM: { callsToMake: 60 }, AM: { accountReviewsTarget: 12 } } };
+    const team = { byRole: { BDM: { appointmentsToSet: 60 }, AM: { accountReviewsTarget: 12 } } };
     const r1 = resolveKpiTargets('BDM', { teamTargets: team, stats: { target: 5_200_000 } });
-    expect(r1.targets.callsToMake).toBe(60);
-    expect(r1.source.callsToMake).toBe('team');
+    expect(r1.targets.appointmentsToSet).toBe(60);
+    expect(r1.source.appointmentsToSet).toBe('team');
     expect(r1.targets.revenueTarget).toBe(100000);
     expect(r1.source.revenueTarget).toBe('annualTarget');
-    const r2 = resolveKpiTargets('BDM', { userDoc: { nwaKpiTargets: { callsToMake: 70 }, target: 1_040_000 }, teamTargets: team });
-    expect(r2.targets.callsToMake).toBe(70);
-    expect(r2.source.callsToMake).toBe('person');
+    const r2 = resolveKpiTargets('BDM', { userDoc: { nwaKpiTargets: { appointmentsToSet: 70 }, target: 1_040_000 }, teamTargets: team });
+    expect(r2.targets.appointmentsToSet).toBe(70);
+    expect(r2.source.appointmentsToSet).toBe('person');
     expect(r2.targets.revenueTarget).toBe(20000);
     const r3 = resolveKpiTargets('ACCOUNT_MANAGER', { teamTargets: team, stats: { target: 5_200_000 } });
     expect(r3.targets.accountReviewsTarget).toBe(12);
@@ -89,11 +91,11 @@ describe('account management storage', () => {
     p.accounts.growth.push(emptyGrowthRow({ account: 'Gamma', opportunity: 'East lanes', value: 8000 }));
     p.accounts.handovers.push(emptyHandover({ account: 'Delta', fromName: 'Sam', toName: 'Alex' }));
     p.accounts.atRisk.push(emptyAtRiskRow()); // blank, dropped
-    const out: any = buildNwaPayload(p, { role: 'ACCOUNT_MANAGER', kpiActuals: { calls: 3 } as any });
+    const out: any = buildNwaPayload(p, { role: 'ACCOUNT_MANAGER', kpiActuals: { calls: 3, accountReviews: 2 } as any });
     expect(out.accounts.atRisk).toHaveLength(1);
     expect(out.revenueAtRisk).toBe(30000);
     expect(out.kpiRole).toBe('AM');
-    expect(out.kpiActuals).toEqual({ calls: 3 });
+    expect(out.kpiActuals).toEqual({ accountReviews: 2 }); // calls is no longer an NWA KPI
     expect(out.pipeline.handedOver[0]).toMatchObject({ account: 'Delta' });
     expect(out.focusAccounts.map((f: any) => f.actionType)).toEqual(['At risk', 'Renewal', 'Growth']);
     expect(typeof out.strategicFocus).toBe('string');

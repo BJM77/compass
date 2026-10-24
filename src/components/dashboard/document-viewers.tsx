@@ -64,6 +64,23 @@ export function CallPlanViewer({ callPlan }: CallPlanViewerProps) {
               </p>
             </div>
           </div>
+
+          {(callPlan.aboutThem || callPlan.aboutUs) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">About Them</Label>
+                <p className="mt-1 font-medium text-slate-700 bg-slate-50/50 p-3 rounded-lg border border-slate-100/50 whitespace-pre-wrap">
+                  {callPlan.aboutThem || '-'}
+                </p>
+              </div>
+              <div>
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">About Us</Label>
+                <p className="mt-1 font-medium text-slate-700 bg-slate-50/50 p-3 rounded-lg border border-slate-100/50 whitespace-pre-wrap">
+                  {callPlan.aboutUs || '-'}
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -26,7 +26,7 @@ export function LegacyFridaySummary({ data, compact }: { data: any; compact?: bo
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-muted-foreground"><Archive className="h-4 w-4" /></span>
           <div>
             <h2 className="text-base font-semibold text-foreground">Friday FW submission (previous format)</h2>
-            <p className="text-sm text-muted-foreground">Submitted before the Monday NWA form. Shown read-only as it was captured.</p>
+            <p className="text-sm text-muted-foreground">Submitted before the Monday TWA form. Shown read-only as it was captured.</p>
           </div>
         </div>
       )}

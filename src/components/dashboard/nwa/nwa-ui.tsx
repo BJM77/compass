@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
-import { CheckCircle2, Circle, Clock } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Check, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { CommitmentOutcome, NwaDueState, NwaSectionDef } from '@/lib/nwa';
-import { NWA_DUE_LABEL } from '@/lib/nwa';
+import type { CommitmentOutcome, NwaDueState, NwaSectionDef, NwaSectionEntry } from '@/lib/nwa';
+import { NWA_DUE_LABEL, NWA_ENTRY_LABEL } from '@/lib/nwa';
 
 /** Suggested time for an agenda item. */
 export function TimeChip({ minutes, className }: { minutes: number; className?: string }) {
@@ -25,12 +25,24 @@ export function FieldLabel({ htmlFor, children, hint }: { htmlFor?: string; chil
   );
 }
 
+const ENTRY_TONE: Record<NwaSectionEntry, string> = {
+  required: 'bg-cta/15 text-cta',
+  optional: 'bg-surface-2 text-muted-foreground',
+  auto: 'bg-info-soft text-info',
+  leader: 'bg-accent/15 text-accent',
+};
+
+/** Who fills a section in: Required / Optional / Auto-filled / Leader. */
+export function EntryBadge({ entry }: { entry: NwaSectionEntry }) {
+  return <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', ENTRY_TONE[entry])}>{NWA_ENTRY_LABEL[entry]}</span>;
+}
+
 /** Numbered agenda card with title, description and time chip. */
 export function SectionCard({
   section, complete, children, actions, id, collapsed,
 }: { section: NwaSectionDef; complete?: boolean; children: React.ReactNode; actions?: React.ReactNode; id?: string; collapsed?: boolean }) {
   return (
-    <section id={id ?? `nwa-${section.id}`} className="scroll-mt-24 rounded-2xl border border-border bg-card shadow-sm">
+    <section id={id ?? `nwa-${section.id}`} className={cn(NWA_SCROLL_MT, 'rounded-2xl border border-border bg-card shadow-sm')}>
       <header className={cn('flex flex-wrap items-start justify-between gap-3 px-5 py-4', !collapsed && 'border-b border-border')}>
         <div className="flex min-w-0 items-start gap-3">
           <span className={cn(
@@ -40,7 +52,10 @@ export function SectionCard({
             {complete ? <CheckCircle2 className="h-4 w-4" aria-label="Complete" /> : section.step || <Circle className="h-4 w-4" aria-label="Optional" />}
           </span>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-foreground">{section.title}</h2>
+            <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold text-foreground">
+              {section.title}
+              {section.entry && <EntryBadge entry={section.entry} />}
+            </h2>
             <p className="text-sm text-muted-foreground">{section.description}</p>
           </div>
         </div>
@@ -161,5 +176,96 @@ export function StatTile({ label, value, sub, tone = 'default' }: { label: strin
       <p className={cn('mt-1 text-xl font-semibold tabular-nums', toneCls)}>{value}</p>
       {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
     </div>
+  );
+}
+
+
+/** Scroll offset for section anchors: the app header (4rem) plus the sticky agenda bar. */
+export const NWA_SCROLL_MT = 'scroll-mt-36';
+
+export interface AgendaItem {
+  /** DOM id of the section to jump to. */
+  anchorId: string;
+  step?: number | string;
+  title: string;
+  minutes?: number;
+  complete?: boolean;
+}
+
+/**
+ * Full-width agenda bar shown under the NWA header. Sticky below the app header, scrolls
+ * horizontally on small screens, highlights the section in view and jumps to a section on click.
+ */
+export function AgendaBar({ items, totalMinutes, className }: { items: AgendaItem[]; totalMinutes?: number; className?: string }) {
+  const [activeId, setActiveId] = useState<string | null>(items[0]?.anchorId ?? null);
+  const scroller = useRef<HTMLDivElement>(null);
+  const ids = items.map(i => i.anchorId).join('|');
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return;
+    const els = ids.split('|').map(id => document.getElementById(id)).filter((e): e is HTMLElement => !!e);
+    if (!els.length) return;
+    const obs = new IntersectionObserver(entries => {
+      const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible[0]) setActiveId(visible[0].target.id);
+    }, { rootMargin: '-150px 0px -55% 0px', threshold: 0 });
+    els.forEach(e => obs.observe(e));
+    return () => obs.disconnect();
+  }, [ids]);
+
+  // Keep the active step visible in the horizontal scroller.
+  useEffect(() => {
+    if (!activeId || !scroller.current) return;
+    const el = scroller.current.querySelector<HTMLElement>(`[data-anchor="${activeId}"]`);
+    el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  }, [activeId]);
+
+  const jump = (e: React.MouseEvent, id: string) => {
+    const el = typeof document !== 'undefined' ? document.getElementById(id) : null;
+    if (!el) return;
+    e.preventDefault();
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveId(id);
+    if (typeof history !== 'undefined') history.replaceState(null, '', `#${id}`);
+  };
+
+  return (
+    <nav aria-label="Meeting agenda" className={cn('sticky top-16 z-20 -mx-1 px-1 print:static', className)}>
+      <div className="flex items-stretch gap-2 rounded-2xl border border-border bg-card/95 p-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/85">
+        <span className="hidden shrink-0 items-center px-2 text-sm font-semibold text-foreground md:flex">Agenda</span>
+        <div ref={scroller} className="flex min-w-0 flex-1 snap-x items-stretch gap-1 overflow-x-auto [scrollbar-width:thin]">
+          {items.map(it => {
+            const active = it.anchorId === activeId;
+            return (
+              <a
+                key={it.anchorId}
+                href={`#${it.anchorId}`}
+                data-anchor={it.anchorId}
+                onClick={e => jump(e, it.anchorId)}
+                aria-current={active ? 'step' : undefined}
+                className={cn(
+                  'flex shrink-0 snap-start items-center gap-2 rounded-xl px-3 py-1.5 text-sm transition-colors',
+                  active ? 'bg-primary/10 text-foreground ring-1 ring-primary/30' : 'text-foreground hover:bg-surface-2',
+                )}
+              >
+                <span className={cn(
+                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                  it.complete ? 'bg-success-soft text-success-ink' : active ? 'bg-primary text-primary-foreground' : 'bg-surface-2 text-muted-foreground',
+                )}>
+                  {it.complete ? <Check className="h-3.5 w-3.5" aria-label="Complete" /> : (it.step ?? <Circle className="h-3 w-3" aria-hidden />)}
+                </span>
+                <span className="whitespace-nowrap font-medium">{it.title}</span>
+                {!!it.minutes && <span className="whitespace-nowrap text-xs text-muted-foreground">{it.minutes}m</span>}
+              </a>
+            );
+          })}
+        </div>
+        {totalMinutes ? (
+          <span className="hidden shrink-0 items-center border-l border-border pl-3 pr-2 text-xs text-muted-foreground sm:flex">
+            Total <span className="ml-1 font-semibold text-foreground">{totalMinutes} min</span>
+          </span>
+        ) : null}
+      </div>
+    </nav>
   );
 }

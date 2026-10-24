@@ -144,7 +144,7 @@ export function NwaTeamMeeting() {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
         <div className="flex items-center gap-3">
           <div>
-            <p className="text-xs font-medium text-muted-foreground">Monday NWA meeting</p>
+            <p className="text-xs font-medium text-muted-foreground">Monday TWA meeting</p>
             <h1 className="text-lg font-semibold text-foreground">Team meeting · week {weekNo(planWeek)}</h1>
           </div>
           <div className="inline-flex items-center rounded-xl border border-border bg-surface-2/50 p-1">
@@ -341,7 +341,7 @@ function MemberSlideView({ m, planWeek, reviewWeek, onSaveNote }: { m: MemberSli
       </div>
 
       {!m.doc ? (
-        <EmptyHint>{m.user.name} hasn’t started their NWA for week {weekNo(planWeek)}.</EmptyHint>
+        <EmptyHint>{m.user.name} hasn’t started their TWA for week {weekNo(planWeek)}.</EmptyHint>
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
           <Panel icon={<Trophy className="h-5 w-5 text-gold" />} title="Wins">
@@ -411,7 +411,7 @@ function MemberSlideView({ m, planWeek, reviewWeek, onSaveNote }: { m: MemberSli
 
       <div className="rounded-2xl border border-border bg-surface-2/30 p-5">
         <h3 className="text-base font-semibold text-foreground">Manager note</h3>
-        <p className="text-xs text-muted-foreground">Optional, after the meeting. {m.user.name} sees it on their NWA.</p>
+        <p className="text-xs text-muted-foreground">Optional, after the meeting. {m.user.name} sees it on their TWA.</p>
         <Textarea className="mt-3" rows={2} value={note} onChange={e => setNote(e.target.value)} placeholder="Coaching points, agreed follow-ups…" />
         <Button className="mt-3" variant="outline" disabled={saving} onClick={async () => { setSaving(true); await onSaveNote(note); setSaving(false); }}>{saving ? 'Saving…' : 'Save note'}</Button>
       </div>

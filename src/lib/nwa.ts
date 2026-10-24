@@ -1,5 +1,7 @@
 /**
- * NWA (Next Week's Activity): the Monday team meeting pack.
+ * TWA (This Week's Activities, formerly "NWA"): the Monday team meeting pack.
+ * Internal names (nwa*, NWA_*, weeklyCommitments, the FRIDAY_FW view key) are unchanged so
+ * stored data needs no migration; only user-facing text says TWA.
  *
  * Pure logic only (no React / Firebase imports) so it can be unit tested.
  *
@@ -20,7 +22,16 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // ─── Agenda ──────────────────────────────────────────────────────────────────
 export type NwaSectionId =
-  | 'wins' | 'appointments' | 'pipeline' | 'accounts' | 'kpis' | 'priorities' | 'challenges' | 'updates' | 'commitments';
+  | 'wins' | 'shoutout' | 'appointments' | 'pipeline' | 'accounts' | 'kpis' | 'priorities' | 'challenges' | 'updates' | 'commitments';
+
+/**
+ * Who fills a section in:
+ *  required: reps (BDM / AM) must complete it to submit, and it counts towards progress.
+ *  optional: reps may add to it; never blocks submit.
+ *  auto:     filled from CRM uploads or the rep's TWTW (read-only, no duplicate entry).
+ *  leader:   maintained by the sales leader (targets, business updates).
+ */
+export type NwaSectionEntry = 'required' | 'optional' | 'auto' | 'leader';
 
 export interface NwaSectionDef {
   id: NwaSectionId;
@@ -28,33 +39,48 @@ export interface NwaSectionDef {
   title: string;
   minutes: number;
   description: string;
+  entry: NwaSectionEntry;
 }
 
+export const NWA_ENTRY_LABEL: Record<NwaSectionEntry, string> = {
+  required: 'Required',
+  optional: 'Optional',
+  auto: 'Auto-filled',
+  leader: 'Leader',
+};
+
 export const NWA_SECTIONS: NwaSectionDef[] = [
-  { id: 'wins', step: 1, title: 'Wins since last meeting', minutes: 5, description: 'Customer wins, closed opportunities, positive feedback and team recognition.' },
-  { id: 'appointments', step: 2, title: 'Upcoming appointments', minutes: 8, description: 'Face-to-face meetings this week: why we are meeting, the outcome we want and the support needed.' },
-  { id: 'pipeline', step: 3, title: 'Pipeline and opportunities review', minutes: 10, description: 'Deals progressing, stalled deals, new opportunities and accounts handed over.' },
-  { id: 'kpis', step: 4, title: 'Weekly goals and KPIs', minutes: 5, description: "Last week's actuals against target, and this week's targets." },
-  { id: 'priorities', step: 5, title: 'Top 3 priorities', minutes: 5, description: 'The three things that matter most this week.' },
-  { id: 'challenges', step: 6, title: 'Challenges and roadblocks', minutes: 5, description: 'What is slowing progress and what you need.' },
-  { id: 'updates', step: 7, title: 'Business updates', minutes: 4, description: 'Pricing, product and competitor news from the leadership team.' },
-  { id: 'commitments', step: 8, title: 'Commitments before next meeting', minutes: 3, description: 'Clear actions with an owner and a due date.' },
+  { id: 'wins', step: 1, title: 'Wins since last week', minutes: 4, entry: 'auto', description: 'From your TWTW for last week: customer wins, closed opportunities, positive feedback and team recognition.' },
+  { id: 'shoutout', step: 2, title: 'Shout out', minutes: 2, entry: 'required', description: 'Call out a teammate: who, and what for.' },
+  { id: 'appointments', step: 3, title: 'Upcoming appointments', minutes: 8, entry: 'auto', description: 'Appointments in Salesforce dated this week (from the latest upload).' },
+  { id: 'pipeline', step: 4, title: 'Pipeline and opportunities review', minutes: 9, entry: 'auto', description: 'Deals progressing, stalled deals, new opportunities and accounts handed over, suggested from CRM.' },
+  { id: 'kpis', step: 5, title: 'Weekly goals and KPIs', minutes: 5, entry: 'leader', description: "Last week's actuals from CRM against target, and this week's targets set by your leader." },
+  { id: 'priorities', step: 6, title: 'Top 3 priorities', minutes: 5, entry: 'required', description: 'The three things that matter most this week.' },
+  { id: 'challenges', step: 7, title: 'Challenges and roadblocks', minutes: 5, entry: 'optional', description: 'Optional: what is slowing progress and what you need.' },
+  { id: 'updates', step: 8, title: 'Business updates', minutes: 4, entry: 'leader', description: 'Pricing, product and competitor news from the leadership team.' },
+  { id: 'commitments', step: 9, title: 'Commitments before next meeting', minutes: 3, entry: 'required', description: 'Clear actions with an owner and a due date.' },
 ];
 
 const ACCOUNTS_DESCRIPTION = 'At-risk and declining accounts, revenue at risk, renewals and rate reviews, growth in existing accounts and account handovers.';
 
+const bySection = (id: NwaSectionId) => NWA_SECTIONS.find(s => s.id === id)!;
+
 /** Account managers get an "Account health and growth" step; the 45 minutes are rebalanced from appointments and pipeline. */
 export const NWA_SECTIONS_AM: NwaSectionDef[] = ([
-  { ...NWA_SECTIONS[0] },
-  { ...NWA_SECTIONS[1], minutes: 6 },
-  { ...NWA_SECTIONS[2], minutes: 5 },
-  { id: 'accounts', step: 4, title: 'Account health and growth', minutes: 7, description: ACCOUNTS_DESCRIPTION },
-  ...NWA_SECTIONS.slice(3),
+  bySection('wins'),
+  bySection('shoutout'),
+  { ...bySection('appointments'), minutes: 6 },
+  { ...bySection('pipeline'), minutes: 4 },
+  { id: 'accounts', step: 0, title: 'Account health and growth', minutes: 7, entry: 'optional', description: ACCOUNTS_DESCRIPTION },
+  ...NWA_SECTIONS.slice(NWA_SECTIONS.findIndex(s => s.id === 'kpis')),
 ] as NwaSectionDef[]).map((s, i) => ({ ...s, step: i + 1 }));
+
+/** The only sections a rep (BDM or AM) has to complete. Progress, submit validation and due state count these. */
+export const NWA_REP_REQUIRED: NwaSectionId[] = NWA_SECTIONS.filter(s => s.entry === 'required').map(s => s.id);
 
 /** BDMs can add account items too, but the section is optional and outside the timed agenda. */
 export const NWA_ACCOUNTS_OPTIONAL: NwaSectionDef = {
-  id: 'accounts', step: 0, title: 'Account health and growth (optional)', minutes: 0, description: ACCOUNTS_DESCRIPTION,
+  id: 'accounts', step: 0, title: 'Account health and growth (optional)', minutes: 0, entry: 'optional', description: ACCOUNTS_DESCRIPTION,
 };
 
 /** ACCOUNT_MANAGER and AM roles (the role field only). */
@@ -89,7 +115,9 @@ export interface NwaAppointment {
   purpose: string;
   desiredOutcome: string;
   supportRequired: string;
-  source?: 'callPlan' | 'manual';
+  /** crm = an APP activity from the Salesforce upload (read-only); callPlan/manual = entered on older versions. */
+  source?: 'callPlan' | 'manual' | 'crm';
+  crmId?: string;
 }
 
 export interface NwaDealRow {
@@ -109,7 +137,11 @@ export interface NwaDealRow {
  * revenueTarget is "New revenue" for BDMs and "Growth revenue" for account managers.
  */
 export interface NwaKpiTargets {
-  callsToMake: number;
+  /**
+   * Legacy only: Calls was removed from the NWA weekly goals and KPIs.
+   * Old docs may still carry it; it is preserved on read but never shown or defaulted.
+   */
+  callsToMake?: number;
   appointmentsToSet: number;
   proposalsToSend: number;
   dealsToClose: number;
@@ -235,7 +267,6 @@ export interface KpiDef { key: KpiKey; label: string; target: keyof NwaKpiTarget
 
 /** BDM KPIs: activity and new business. */
 export const BDM_KPI_DEFS: KpiDef[] = [
-  { key: 'calls', label: 'Calls', target: 'callsToMake' },
   { key: 'appointments', label: 'New appointments', target: 'appointmentsToSet' },
   { key: 'proposals', label: 'Proposals', target: 'proposalsToSend' },
   { key: 'deals', label: 'Deals closed', target: 'dealsToClose' },
@@ -245,7 +276,6 @@ export const BDM_KPI_DEFS: KpiDef[] = [
 /** Account manager KPIs: reviews, retention and renewals, plus growth in existing accounts. */
 export const AM_KPI_DEFS: KpiDef[] = [
   { key: 'accountReviews', label: 'Account reviews', target: 'accountReviewsTarget' },
-  { key: 'calls', label: 'Calls', target: 'callsToMake' },
   { key: 'renewals', label: 'Renewals and rate reviews', target: 'renewalsTarget' },
   { key: 'revenueRetained', label: 'Revenue retained', target: 'revenueRetainedTarget', currency: true },
   { key: 'revenue', label: 'Growth revenue', target: 'revenueTarget', currency: true },
@@ -284,7 +314,6 @@ export function defaultKpiTargets(role: string): NwaKpiTargets {
   const isBdm = (role || '').toUpperCase() === 'BDM';
   const am = isAmRole(role);
   return {
-    callsToMake: isBdm ? 50 : 30,
     appointmentsToSet: isBdm ? 15 : 10,
     proposalsToSend: 8,
     dealsToClose: 3,
@@ -298,7 +327,7 @@ export function defaultKpiTargets(role: string): NwaKpiTargets {
 export type KpiTargetSource = 'person' | 'team' | 'annualTarget' | 'default';
 
 export const KPI_TARGET_KEYS: (keyof NwaKpiTargets)[] = [
-  'callsToMake', 'appointmentsToSet', 'proposalsToSend', 'dealsToClose', 'revenueTarget',
+  'appointmentsToSet', 'proposalsToSend', 'dealsToClose', 'revenueTarget',
   'accountReviewsTarget', 'revenueRetainedTarget', 'renewalsTarget',
 ];
 
@@ -745,6 +774,8 @@ export function mapStoredNwa(d: any, role: string, twtwActions: string[] = []): 
   const kt = doc.kpiTargets || {};
   const kpiTargets: NwaKpiTargets = { ...base.kpiTargets };
   (Object.keys(kpiTargets) as (keyof NwaKpiTargets)[]).forEach(k => { if (kt[k] !== undefined && kt[k] !== '') kpiTargets[k] = num(kt[k]); });
+  // Calls is no longer an NWA KPI; keep an old doc's value so a re-save doesn't lose it.
+  if (kt.callsToMake !== undefined && kt.callsToMake !== '') kpiTargets.callsToMake = num(kt.callsToMake);
 
   // Legacy Friday focus accounts become "deals progressing" when the doc has no NWA pipeline.
   const hasPipeline = doc.pipeline && Object.values(doc.pipeline).some((v: any) => Array.isArray(v) && v.length);
@@ -777,6 +808,7 @@ export function mapStoredNwa(d: any, role: string, twtwActions: string[] = []): 
       desiredOutcome: str(a?.desiredOutcome),
       supportRequired: str(a?.supportRequired),
       ...(a?.source ? { source: a.source } : {}),
+      ...(a?.crmId ? { crmId: str(a.crmId) } : {}),
     })) : [],
     pipeline: {
       progressing: legacyFocus.length ? legacyFocus : rowsOf(doc.pipeline?.progressing),
@@ -882,6 +914,17 @@ export function strategicFocusMirror(p: NwaPlan): string {
     || p.topPriorities.filter(t => t.trim()).join('; ');
 }
 
+/**
+ * KPI actuals stored on the NWA doc: only the KPIs on the role's scorecard (Calls is no longer an
+ * NWA KPI, so it is dropped here; CRM call counts still go to weeklyReports.summary).
+ */
+export function nwaKpiActuals(actuals: Partial<Record<KpiKey, number>>, role?: string): Partial<Record<KpiKey, number>> {
+  const keys = new Set<KpiKey>(kpiDefsFor(role || 'BDM').map(k => k.key));
+  const out: Partial<Record<KpiKey, number>> = {};
+  for (const [k, v] of Object.entries(actuals || {})) if (keys.has(k as KpiKey) && typeof v === 'number') out[k as KpiKey] = v;
+  return out;
+}
+
 /** Firestore payload: NWA V2 fields plus legacy mirrors for older views. */
 export function buildNwaPayload(p: NwaPlan, opts: { kpiActuals?: Partial<Record<KpiKey, number>>; role?: string } = {}) {
   const roadblocks = [
@@ -903,6 +946,7 @@ export function buildNwaPayload(p: NwaPlan, opts: { kpiActuals?: Partial<Record<
     appointments: p.appointments.filter(a => a.customer.trim() || a.purpose.trim()).map(a => {
       const out: any = { ...a };
       if (!out.source) delete out.source;
+      if (!out.crmId) delete out.crmId;
       return out;
     }),
     pipeline: {
@@ -923,7 +967,7 @@ export function buildNwaPayload(p: NwaPlan, opts: { kpiActuals?: Partial<Record<
     },
     revenueAtRisk: totalRevenueAtRisk(p.accounts),
     ...(opts.role ? { kpiRole: kpiRoleGroup(opts.role) } : {}),
-    ...(opts.kpiActuals ? { kpiActuals: opts.kpiActuals } : {}),
+    ...(opts.kpiActuals ? { kpiActuals: nwaKpiActuals(opts.kpiActuals, opts.role) } : {}),
     kpiTargets: p.kpiTargets,
     keyFocusMetrics: p.keyFocusMetrics,
     individualCommitment: p.individualCommitment,
@@ -944,17 +988,153 @@ export function buildNwaPayload(p: NwaPlan, opts: { kpiActuals?: Partial<Record<
 /** How complete the form is, per section (for the progress rail). */
 export function sectionComplete(p: NwaPlan, id: NwaSectionId, role = 'BDM'): boolean {
   switch (id) {
-    case 'wins': return !!(p.wins.customerWins || p.wins.closedOpportunities || p.wins.positiveFeedback || p.wins.teamRecognition || p.wins.shoutOut.teammate).trim();
+    case 'wins': return !!(p.wins.customerWins || p.wins.closedOpportunities || p.wins.positiveFeedback || p.wins.teamRecognition).trim();
+    case 'shoutout': return !!(p.wins.shoutOut.teammate.trim() && p.wins.shoutOut.reason.trim());
     case 'appointments': return p.appointments.some(a => a.customer.trim());
     case 'pipeline': return Object.values(p.pipeline).some(rows => rows.some(r => r.account.trim()));
     case 'accounts': return Object.values(p.accounts).some((rows: any[]) => rows.some(r => str(r.account).trim()));
-    case 'kpis': return kpiDefsFor(role).every(k => p.kpiTargets[k.target] > 0);
+    case 'kpis': return kpiDefsFor(role).every(k => (p.kpiTargets[k.target] || 0) > 0);
     case 'priorities': return p.topPriorities.every(t => t.trim());
     case 'challenges': return !!(p.challenges.slowingProgress || p.challenges.customerIssues || p.challenges.internalIssues || p.challenges.resourcesRequired).trim();
     case 'updates': return true;
     case 'commitments': return p.commitments.some(c => c.text.trim());
     default: return false;
   }
+}
+
+/** Required rep sections for a role, in agenda order. */
+export function requiredSectionsFor(role: string | undefined | null): NwaSectionDef[] {
+  return nwaSectionsFor(role).filter(s => s.entry === 'required');
+}
+
+/**
+ * Progress over the rep-required sections only (Shout out, Top 3 priorities, Commitments).
+ * Optional, auto-filled and leader sections never count, so they can't hold a rep's submission back.
+ */
+export function requiredProgress(p: NwaPlan, role: string | undefined | null = 'BDM'): { done: NwaSectionDef[]; missing: NwaSectionDef[]; total: number; pct: number } {
+  const req = requiredSectionsFor(role);
+  const done = req.filter(s => sectionComplete(p, s.id, role || 'BDM'));
+  const missing = req.filter(s => !done.includes(s));
+  return { done, missing, total: req.length, pct: req.length ? Math.round((done.length / req.length) * 100) : 100 };
+}
+
+// ─── Appointments from the Salesforce (CRM) upload ───────────────────────────
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const ymd = (y: number, m: number, d: number) => `${y}-${pad2(m)}-${pad2(d)}`;
+
+/** Monday to Sunday (Perth calendar dates, yyyy-mm-dd) of a financial-year week key. */
+export function weekDateRange(weekKey: string): { start: string; end: string } | null {
+  const s = weekStartDate(weekKey);
+  if (!s) return null;
+  const end = new Date(Date.UTC(s.year, s.month - 1, s.day + 6));
+  return { start: ymd(s.year, s.month, s.day), end: ymd(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate()) };
+}
+
+/**
+ * Calendar day of a crmActivities date. The importer stores the uploader's local midnight as an ISO
+ * string (e.g. 2026-10-25T16:00:00.000Z for 26 Oct in Perth), so shift by 12h before taking the UTC
+ * date: right for any uploader between UTC-11 and UTC+12. Plain yyyy-mm-dd strings pass through.
+ */
+export function crmActivityDay(value: any): string {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const ms = typeof value?.toMillis === 'function' ? value.toMillis() : typeof value === 'number' ? value : Date.parse(String(value));
+  if (!Number.isFinite(ms)) return '';
+  const d = new Date(ms + 12 * 60 * 60 * 1000);
+  return ymd(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
+}
+
+/**
+ * Appointments for a plan week from uploaded CRM activity: every APP-type crmActivities record for the
+ * person's ids dated Monday to Sunday of planWeek (Perth), or tagged with that week by the importer.
+ * Re-uploads create new random ids, so identical rows (same person, day, company and subject) are merged.
+ */
+export function crmAppointmentsForWeek(activities: any[], planWeek: string, userIds?: string[] | Set<string>): NwaAppointment[] {
+  const range = weekDateRange(planWeek);
+  const ids = userIds ? new Set(Array.from(userIds)) : null;
+  const seen = new Set<string>();
+  const out: NwaAppointment[] = [];
+  for (const a of activities || []) {
+    if (str(a?.type).toUpperCase() !== 'APP') continue;
+    if (ids && !ids.has(str(a?.userId))) continue;
+    const day = crmActivityDay(a?.date);
+    const inRange = !!range && !!day && day >= range.start && day <= range.end;
+    if (!inRange && str(a?.week) !== planWeek) continue;
+    const customer = str(a?.companyName) || str(a?.accountName) || 'Unknown account';
+    const purpose = str(a?.subject);
+    const key = [str(a?.userId), day, customer.toLowerCase(), purpose.toLowerCase()].join('|');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      id: `crm-${str(a?.id) || key}`,
+      customer,
+      date: day,
+      meetingType: 'Salesforce appointment',
+      purpose,
+      desiredOutcome: '',
+      supportRequired: '',
+      source: 'crm',
+      ...(a?.id ? { crmId: str(a.id) } : {}),
+    });
+  }
+  return out.sort((x, y) => x.date.localeCompare(y.date) || x.customer.localeCompare(y.customer));
+}
+
+const tsMs = (v: any): number => {
+  if (!v) return 0;
+  if (typeof v?.toMillis === 'function') return v.toMillis();
+  if (typeof v?.seconds === 'number') return v.seconds * 1000;
+  if (typeof v === 'number') return v;
+  const t = Date.parse(String(v));
+  return Number.isFinite(t) ? t : 0;
+};
+
+/** Latest Salesforce upload time: appSettings/global.lastCrmSync, else the newest crmActivities.uploadedAt. */
+export function latestCrmUploadMs(lastCrmSync: any, activities: any[] = []): number | null {
+  const best = Math.max(tsMs(lastCrmSync), ...(activities || []).map(a => tsMs(a?.uploadedAt)), 0);
+  return best > 0 ? best : null;
+}
+
+// ─── Wins since last week, from the rep's TWTW ───────────────────────────────
+/** Customer wins text from TWTW Key Wins rows (customer, value, update). */
+export function twtwCustomerWinsText(wins: any[]): string {
+  return (Array.isArray(wins) ? wins : [])
+    .filter(w => str(w?.customer).trim() && !w?.isHidden)
+    .map(w => {
+      const v = num(w?.value);
+      const head = `${str(w.customer).trim()}${v ? ` – $${Math.round(v).toLocaleString('en-AU')}` : ''}`;
+      return str(w?.updateText).trim() ? `${head}: ${str(w.updateText).trim()}` : head;
+    })
+    .join('\n');
+}
+
+export type NwaWinsSource = 'twtw' | 'stored' | 'none';
+
+/**
+ * "Wins since last week" for the TWA, read-only. Pulled from the rep's TWTW for reviewWeek
+ * (twiwSubmissions/{uid}_{reviewWeek}) so nothing is typed twice:
+ *   Customer wins = TWTW Key Wins rows; Positive feedback / Team recognition = the TWTW fields of the
+ *   same name; Closed opportunities = CRM Closed Won deals for the week (TWTW closed won wins as a fallback).
+ * Without a TWTW, older TWA docs that stored typed wins still show them (source 'stored').
+ * The rep's shout-out always comes from the TWA itself.
+ */
+export function winsFromTwtw(twtw: any | null | undefined, closedWonText: string, stored?: NwaWins | null): { wins: NwaWins; source: NwaWinsSource } {
+  const shoutOut = stored?.shoutOut || { teammate: '', reason: '' };
+  if (twtw) {
+    return {
+      source: 'twtw',
+      wins: {
+        customerWins: twtwCustomerWinsText(twtw.wins),
+        closedOpportunities: closedWonText || str(twtw.closedOpportunities),
+        positiveFeedback: str(twtw.positiveFeedback),
+        teamRecognition: str(twtw.teamRecognition),
+        shoutOut,
+      },
+    };
+  }
+  const legacy = stored && [stored.customerWins, stored.positiveFeedback, stored.teamRecognition].some(x => str(x).trim());
+  if (legacy && stored) return { source: 'stored', wins: { ...stored, closedOpportunities: stored.closedOpportunities || closedWonText, shoutOut } };
+  return { source: 'none', wins: { customerWins: '', closedOpportunities: closedWonText, positiveFeedback: '', teamRecognition: '', shoutOut } };
 }
 
 export function emptyBusinessUpdates(): NwaBusinessUpdates {
@@ -1014,4 +1194,137 @@ export function callPlanToAppointment(cp: any): NwaAppointment {
     supportRequired: '',
     source: 'callPlan',
   };
+}
+
+// ─── Leader-maintained sections (one place per week) ────────────────────────
+/**
+ * Sections the sales leader writes once a week, shown read-only on every TWA and in the team view:
+ *  - Team-wide: extra fields on the per-week business updates doc appSettings/nwaBusinessUpdates_{week}
+ *    (teamPipeline, teamKpis), next to the four business update fields. Staff read, leaders write.
+ *  - Per person: nwaLeaderNotes/{uid}_{week} = { userId, week, updates, pipeline, kpis }. Only that
+ *    person and leaders can read it; only leaders write (firestore.rules).
+ * KPI targets stay where they were: appSettings/nwaKpiTargets.byRole (team) and users/{uid}.nwaKpiTargets.
+ */
+export interface NwaLeaderNotes {
+  /** Pipeline and handovers notes. */
+  pipeline: string;
+  /** KPI focus for the week. */
+  kpis: string;
+  /** Extra business updates. */
+  updates: string;
+}
+
+export const NWA_LEADER_NOTE_FIELDS: { key: keyof NwaLeaderNotes; section: NwaSectionId; label: string; hint: string }[] = [
+  { key: 'pipeline', section: 'pipeline', label: 'Pipeline and handovers', hint: 'Deals to push, accounts handed over, who owns what.' },
+  { key: 'kpis', section: 'kpis', label: 'KPI focus', hint: 'The one or two numbers that matter most this week.' },
+  { key: 'updates', section: 'updates', label: 'Business updates', hint: 'Anything else the team needs to know.' },
+];
+
+export function emptyLeaderNotes(): NwaLeaderNotes {
+  return { pipeline: '', kpis: '', updates: '' };
+}
+
+/** Per-person leader additions doc id (collection nwaLeaderNotes). */
+export function leaderNotesDocId(uid: string, week: string): string {
+  return `${uid}_${week}`;
+}
+
+/** Per-person leader additions from nwaLeaderNotes/{uid}_{week}. */
+export function mapLeaderNotes(doc: any): NwaLeaderNotes {
+  return { pipeline: str(doc?.pipeline), kpis: str(doc?.kpis), updates: str(doc?.updates) };
+}
+
+/** Team-wide leader sections from the per-week business updates doc (teamPipeline / teamKpis). */
+export function teamLeaderNotes(weekDoc: any): NwaLeaderNotes {
+  return { pipeline: str(weekDoc?.teamPipeline), kpis: str(weekDoc?.teamKpis), updates: '' };
+}
+
+export function hasLeaderNotes(n: Partial<NwaLeaderNotes> | null | undefined): boolean {
+  return !!n && [n.pipeline, n.kpis, n.updates].some(x => str(x).trim());
+}
+
+// ─── Submission timeliness ───────────────────────────────────────────────────
+/**
+ * Whether a submitted TWA was late: the stored submittedLate flag, else submittedAt after dueAt
+ * (stored, or Sunday 8pm before the plan week). Unknown or not submitted → false.
+ */
+export function isLateSubmission(d: any): boolean {
+  if (!d || !isSubmittedStatus(d.status)) return false;
+  if (typeof d.submittedLate === 'boolean') return d.submittedLate;
+  const at = tsMs(d.submittedAt);
+  const due = typeof d.dueAt === 'number' ? d.dueAt : nwaDueAt(str(d.week));
+  return !!(at && due && at > due);
+}
+
+/** The n plan weeks ending at (and including) lastWeek, oldest first. */
+export function recentWeeks(lastWeek: string, n: number, prevWeek: (w: string) => string): string[] {
+  const out: string[] = [];
+  let w = lastWeek;
+  for (let i = 0; i < n && w; i++) { out.unshift(w); w = prevWeek(w); }
+  return out;
+}
+
+/**
+ * On-time rate over the given plan weeks for one person: weeks submitted and not late ÷ weeks.
+ * A week with no submitted TWA counts as not on time.
+ */
+export function onTimeRate(docs: any[], weeks: string[]): { onTime: number; late: number; missed: number; total: number; pct: number | null } {
+  const byWeek = new Map<string, any>();
+  for (const d of docs || []) {
+    if (!d?.week) continue;
+    const prev = byWeek.get(str(d.week));
+    // Linked ids can give two docs for one week: keep a submitted one.
+    if (!prev || (!isSubmittedStatus(prev.status) && isSubmittedStatus(d.status))) byWeek.set(str(d.week), d);
+  }
+  let onTime = 0; let late = 0; let missed = 0;
+  for (const w of weeks) {
+    const d = byWeek.get(w);
+    if (!d || !isSubmittedStatus(d.status)) missed += 1;
+    else if (isLateSubmission(d)) late += 1;
+    else onTime += 1;
+  }
+  const total = weeks.length;
+  return { onTime, late, missed, total, pct: total ? Math.round((onTime / total) * 100) : null };
+}
+
+// ─── Auto-filled sections applied to a plan ─────────────────────────────────
+/**
+ * The plan as shown, saved and counted: wins from the TWTW, appointments from the Salesforce
+ * upload, pipeline from the CRM. Used by the individual TWA and the team view so both agree.
+ *  - Appointments: CRM APP activities for the plan week; if none are loaded (the upload keeps four
+ *    weeks), the CRM snapshot saved on the doc. Older manual / call plan rows stay, read-only.
+ *  - Pipeline: while live (not submitted, not a past week) rows come from CRM suggestions, keeping
+ *    any rows typed on older versions; once frozen the saved rows are shown.
+ */
+export function applyAutoSections(
+  plan: NwaPlan,
+  src: {
+    twtw?: any | null;
+    closedWonText?: string;
+    crmAppointments?: NwaAppointment[];
+    suggestions?: { progressing: any[]; stalled: any[]; created: any[] } | null;
+    live?: boolean;
+    now?: number;
+  },
+): { plan: NwaPlan; winsSource: NwaWinsSource } {
+  const { wins, source } = winsFromTwtw(src.twtw, src.closedWonText || '', plan.wins);
+  const storedCrm = plan.appointments.filter(a => a.source === 'crm');
+  const legacy = plan.appointments.filter(a => a.source !== 'crm');
+  const crm = src.crmAppointments && src.crmAppointments.length ? src.crmAppointments : storedCrm;
+  let pipeline = plan.pipeline;
+  if (src.live && src.suggestions) {
+    const now = src.now ?? Date.now();
+    const build = (key: 'progressing' | 'stalled' | 'created') => {
+      const typed = (plan.pipeline[key] || []).filter(r => !r.crmId);
+      const prev = new Map((plan.pipeline[key] || []).filter(r => r.crmId).map(r => [r.crmId, r]));
+      const fromCrm = (src.suggestions![key] || []).map(d => {
+        const row = dealToRow(d, now);
+        const old = row.crmId ? prev.get(row.crmId) : undefined;
+        return old ? { ...row, id: old.id, nextStep: old.nextStep, note: old.note } : row;
+      });
+      return [...fromCrm, ...typed];
+    };
+    pipeline = { ...plan.pipeline, progressing: build('progressing'), stalled: build('stalled'), created: build('created') };
+  }
+  return { plan: { ...plan, wins, appointments: [...crm, ...legacy], pipeline }, winsSource: source };
 }

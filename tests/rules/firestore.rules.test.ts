@@ -638,3 +638,61 @@ describe('Verticals: discoveredLeads ("Find new leads")', () => {
     await assertSucceeds(deleteDoc(doc(db(GM), 'discoveredLeads', 'newmedsupplies')));
   });
 });
+
+describe('NWA whole-team view: person colours and team reads', () => {
+  test('leaders can set and clear users/{uid}.nwaColor; BDMs cannot set a teammate’s', async () => {
+    for (const uid of [LEADER, GM, SUPER]) {
+      await assertSucceeds(setDoc(doc(db(uid), 'users', AM), { nwaColor: 'lavender' }, { merge: true }));
+      await assertSucceeds(updateDoc(doc(db(uid), 'users', AM), { nwaColor: null }));
+    }
+    await assertFails(setDoc(doc(db(BDM), 'users', AM), { nwaColor: 'sky' }, { merge: true }));
+    await assertFails(setDoc(doc(db(GUEST), 'users', AM), { nwaColor: 'sky' }, { merge: true }));
+  });
+
+  test('leaders can read every weeklyCommitments doc for the plan and review weeks; BDMs only their own', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const a = ctx.firestore();
+      await setDoc(doc(a, 'weeklyCommitments', `${BDM}_2026-44`), { userId: BDM, week: '2026-44', status: 'SUBMITTED' });
+      await setDoc(doc(a, 'weeklyCommitments', `${AM}_2026-43`), { userId: AM, week: '2026-43', status: 'SUBMITTED' });
+    });
+    const teamQuery = (uid?: string) => query(collection(db(uid), 'weeklyCommitments'), where('week', 'in', ['2026-44', '2026-43']));
+    for (const uid of [LEADER, GM, SUPER]) {
+      const snap = await assertSucceeds(getDocs(teamQuery(uid)));
+      expect(snap.size).toBe(2);
+    }
+    await assertFails(getDocs(teamQuery(BDM)));
+    await assertFails(getDoc(doc(db(BDM), 'weeklyCommitments', `${AM}_2026-43`)));
+    await assertSucceeds(getDoc(doc(db(BDM), 'weeklyCommitments', `${BDM}_2026-44`)));
+  });
+});
+
+describe('TWA leader sections: per-person notes and targets', () => {
+  test('leaders write nwaLeaderNotes; the person reads their own; other reps cannot', async () => {
+    const id = `${BDM}_2026-44`;
+    const note = { userId: BDM, week: '2026-44', pipeline: 'Take over Acme', kpis: '', updates: '' };
+    await assertSucceeds(getDoc(doc(db(BDM), 'nwaLeaderNotes', id))); // missing doc, own id
+    await assertFails(getDoc(doc(db(BDM2), 'nwaLeaderNotes', id)));
+    await assertFails(setDoc(doc(db(BDM), 'nwaLeaderNotes', id), note));
+    for (const uid of [LEADER, GM, SUPER]) await assertSucceeds(setDoc(doc(db(uid), 'nwaLeaderNotes', id), note));
+    await assertSucceeds(getDoc(doc(db(BDM), 'nwaLeaderNotes', id)));
+    await assertFails(getDoc(doc(db(BDM2), 'nwaLeaderNotes', id)));
+    await assertFails(getDoc(doc(db(GUEST), 'nwaLeaderNotes', id)));
+    await assertSucceeds(getDocs(query(collection(db(LEADER), 'nwaLeaderNotes'), where('week', '==', '2026-44'))));
+    await assertFails(getDocs(query(collection(db(BDM), 'nwaLeaderNotes'), where('week', '==', '2026-44'))));
+  });
+
+  test('reps cannot set their own nwaKpiTargets; leaders can', async () => {
+    await assertFails(updateDoc(doc(db(BDM), 'users', BDM), { nwaKpiTargets: { callsTarget: 1 } }));
+    await assertSucceeds(updateDoc(doc(db(BDM), 'users', BDM), { name: 'Bea M' }));
+    await assertSucceeds(updateDoc(doc(db(LEADER), 'users', BDM), { nwaKpiTargets: { callsTarget: 40 } }));
+  });
+
+  test('leaders can read the team’s TWTWs and Salesforce appointments for a week', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'crmActivities', 'a1'), { userId: BDM, week: '2026-44', type: 'APP' });
+    });
+    await assertSucceeds(getDocs(query(collection(db(LEADER), 'twiwSubmissions'), where('week', '==', '2026-28'))));
+    await assertSucceeds(getDocs(query(collection(db(LEADER), 'crmActivities'), where('type', '==', 'APP'), where('week', '==', '2026-44'))));
+    await assertSucceeds(getDocs(query(collection(db(BDM), 'crmActivities'), where('userId', '==', BDM), where('week', '==', '2026-44'))));
+  });
+});

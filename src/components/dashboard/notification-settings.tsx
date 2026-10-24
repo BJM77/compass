@@ -119,13 +119,13 @@ export function NotificationSettings() {
             onChange={e => e.target.value && save({ allowedEnd: e.target.value })} />
         </div>
       </Row>
-      <Row label="Weekdays only" description="Don't send on Saturday or Sunday, except the Sunday afternoon reminder that your NWA is due at 8pm.">
+      <Row label="Weekdays only" description="Don't send on Saturday or Sunday, except the Sunday afternoon reminder that your TWA is due at 8pm.">
         <Switch checked={prefs.weekdaysOnly} onCheckedChange={v => save({ weekdaysOnly: v })} />
       </Row>
       <Row label="Daily digest (8am)" description="Your top 3 Do Now tasks plus anything due today.">
         <Switch checked={prefs.dailyDigest} onCheckedChange={v => save({ dailyDigest: v })} />
       </Row>
-      <Row label="TWTW / NWA deadline nudges" description="1pm on TWTW due day and 7am Mondays (NWA), only if you haven't submitted.">
+      <Row label="TWTW / TWA deadline nudges" description="1pm on TWTW due day and 7am Mondays (TWA), only if you haven't submitted.">
         <Switch checked={prefs.deadlineNudges} onCheckedChange={v => save({ deadlineNudges: v })} />
       </Row>
       <Row label="Stale Do Now alerts" description={'Push when a Do Now task has been untouched for 2+ days ("Delegate or Delete?").'}>

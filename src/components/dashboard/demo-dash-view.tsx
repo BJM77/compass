@@ -54,7 +54,8 @@ interface WinItem {
   isStarred?: boolean;
 }
 
-const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
+// Parcel business units only. Older submissions may still carry 'Freight' in businessUnits; it is kept as saved.
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium'];
 
 interface RiskItem {
   id: string;
@@ -234,10 +235,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                <Target className="w-4 h-4 text-emerald-600" /> Weekly KPI Review (vs Previous NWA Plan)
+                <Target className="w-4 h-4 text-emerald-600" /> Weekly KPI Review (vs Previous TWA Plan)
               </CardTitle>
               <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Review your performance against the KPI targets set at the last NWA
+                Review your performance against the KPI targets set at the last TWA
               </CardDescription>
             </div>
             <Badge className="bg-slate-100 text-slate-600 font-black text-[9px] uppercase">Week {previousWeek.split('-')[1]} Targets</Badge>
@@ -508,7 +509,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
       { id: 'r1', account: 'GLOBAL CARRIERS', value: 80000, mitigation: 'Reviewing rates & negotiating spot discounts.', salespersonName: activeUserName }
     ]);
     setMajorUpdates([
-      { id: 'm1', customer: 'BHP Billiton', value: 340000, businessUnits: ['Freight'], updateText: 'Contract negotiations advanced.', salespersonName: activeUserName }
+      { id: 'm1', customer: 'BHP Billiton', value: 340000, businessUnits: ['Road Express'], updateText: 'Contract negotiations advanced.', salespersonName: activeUserName }
     ]);
     setProjectedWins([
       { id: 'p1', account: 'ZENITH MANUFACTURING', value: 280000, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: 'Proposals finalized', salespersonName: activeUserName }
@@ -522,8 +523,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
     setUpdates(actionBullets ? `${actionBullets}\n\nZenith and ACME progressed strongly. Global Carriers remains a minor rate risk.` : 'Zenith and ACME progressed strongly. Global Carriers remains a minor rate risk.');
 
     toast({
-      title: "NWA Data Loaded",
-      description: "TWTW pre-populated from previous NWA plan & CRM. Review or delete entries below."
+      title: "TWA Data Loaded",
+      description: "TWTW pre-populated from previous TWA plan & CRM. Review or delete entries below."
     });
   };
 
@@ -651,7 +652,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
       });
       setFridaySuccessOpen(true);
     } else {
-      toast({ title: "Draft Saved", description: "NWA and planning draft saved successfully." });
+      toast({ title: "Draft Saved", description: "TWA and planning draft saved successfully." });
     }
   };
 
@@ -2214,7 +2215,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             <Calendar className="w-3.5 h-3.5" /> Thursday TWTW
           </TabsTrigger>
           <TabsTrigger value="friday" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
-            <ClipboardList className="w-3.5 h-3.5" /> NWA (Combined Pack)
+            <ClipboardList className="w-3.5 h-3.5" /> TWA (Combined Pack)
           </TabsTrigger>
           {isLeader && (
             <TabsTrigger value="collation" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
@@ -2315,7 +2316,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                 <Shield className="w-16 h-16 text-slate-300" />
                 <h3 className="text-xl font-black text-slate-600 uppercase tracking-tight">Access Restricted</h3>
                 <p className="text-sm text-muted-foreground max-w-md">
-                  The Next Weeks Activity (NWA) review is only available to registered team members. 
+                  The TWA (This Week's Activities) review is only available to registered team members. 
                   Please log in with your corporate credentials to access this feature.
                 </p>
               </div>
@@ -2350,7 +2351,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                         onClick={handleLoadPreviousFridayData}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest h-12 px-5 rounded-2xl shadow-lg w-full sm:w-auto gap-2"
                       >
-                        <RefreshCw className="w-4 h-4" /> Load Previous NWA Data
+                        <RefreshCw className="w-4 h-4" /> Load Previous TWA Data
                       </Button>
                     </div>
                   </header>
@@ -2938,7 +2939,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             ))}
                             {currentWeekActions.length === 0 && (
                               <p className="text-[10px] text-muted-foreground italic text-center py-4">
-                                No active commitments. Click "Load Previous NWA Data" to pull actions.
+                                No active commitments. Click "Load Previous TWA Data" to pull actions.
                               </p>
                             )}
                           </div>
@@ -2988,7 +2989,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           ))}
                           {currentWeekFocusAccounts.length === 0 && (
                             <p className="text-[10px] text-muted-foreground italic text-center py-6">
-                              No active Focus Accounts. Load previous NWA data to review goals.
+                              No active Focus Accounts. Load previous TWA data to review goals.
                             </p>
                           )}
                         </CardContent>
@@ -3001,7 +3002,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             <AlertTriangle className="w-3.5 h-3.5" /> Roadblocks (Registered)
                           </label>
                           <Textarea 
-                            placeholder="What roadblocks are you hitting? (Loaded from previous NWA plan)" 
+                            placeholder="What roadblocks are you hitting? (Loaded from previous TWA plan)" 
                             value={twtwRoadblocks} 
                             onChange={e => setTwtwRoadblocks(e.target.value)} 
                             className="min-h-[90px] text-xs" 
@@ -3483,7 +3484,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               Report Submitted!
             </DialogTitle>
             <DialogDescription className="text-sm font-bold text-slate-500">
-              NWA locked in for Monday.
+              TWA locked in for Monday.
             </DialogDescription>
           </DialogHeader>
           <div className="text-center text-xs font-semibold text-slate-400 mt-2 mb-6">

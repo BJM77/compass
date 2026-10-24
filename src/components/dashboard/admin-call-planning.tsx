@@ -245,6 +245,8 @@ export function AdminCallPlanning({ userId }: AdminCallPlanningProps) {
                     </TableCell>
                     <TableCell>
                       <p className="text-xs font-medium text-muted-foreground italic line-clamp-1 max-w-[200px]">"{plan.objective}"</p>
+                      {plan.aboutThem && <p className="mt-1 text-xs text-muted-foreground line-clamp-2 max-w-[260px]" title={plan.aboutThem}><span className="font-semibold text-foreground">About them:</span> {plan.aboutThem}</p>}
+                      {plan.aboutUs && <p className="mt-1 text-xs text-muted-foreground line-clamp-2 max-w-[260px]" title={plan.aboutUs}><span className="font-semibold text-foreground">About us:</span> {plan.aboutUs}</p>}
                     </TableCell>
                     <TableCell>
                        <div className="flex flex-wrap gap-1">

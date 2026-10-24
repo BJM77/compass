@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { AuthGuard } from '@/components/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
-import { TestWeeklyGoals } from '@/components/dashboard/test/test-weekly-goals';
-import { TestBDMWeeklySubmission } from '@/components/dashboard/test/test-bdm-weekly-submission';
 import { TestFridayReviewHub } from '@/components/dashboard/test/test-friday-review-hub';
 import { TestGMWeeklyReview } from '@/components/dashboard/test/test-gm-weekly-review';
 import { TestGMReportGenerator } from '@/components/dashboard/test/test-gm-report-generator';
@@ -31,22 +29,12 @@ export default function TestPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="monday" className="w-full">
+        <Tabs defaultValue="friday_hub" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="monday">Monday Plan</TabsTrigger>
-            <TabsTrigger value="friday_submission">Friday Submission</TabsTrigger>
             <TabsTrigger value="friday_hub">Friday Review Hub</TabsTrigger>
             <TabsTrigger value="gm">GM Command Hub</TabsTrigger>
             <TabsTrigger value="pdf">PDF Dispatch</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="monday">
-            <TestWeeklyGoals userId={userId} />
-          </TabsContent>
-          
-          <TabsContent value="friday_submission">
-            <TestBDMWeeklySubmission userId={userId} userName={userName} />
-          </TabsContent>
           
           <TabsContent value="friday_hub">
             <TestFridayReviewHub />
