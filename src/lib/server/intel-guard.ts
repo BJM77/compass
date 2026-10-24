@@ -1,6 +1,6 @@
 // Server-only: auth (Firebase ID token + staff role) and per-user daily rate limit.
 import { adminAuth, adminDb } from './admin';
-import { INTEL_DAILY_LIMIT } from '@/lib/intel';
+import { INTEL_DAILY_LIMIT, DISCOVER_ROLES } from '@/lib/intel';
 
 export const STAFF_ROLES = ['BDM', 'ACCOUNT_MANAGER', 'AM', 'LEADER', 'GM', 'ADMIN', 'SUPER_ADMIN'];
 export const SOURCING_ROLES = ['BDM', 'LEADER', 'GM', 'ADMIN', 'SUPER_ADMIN'];
@@ -22,21 +22,33 @@ export async function requireStaff(req: Request): Promise<Caller> {
   return { uid, role, name: String(snap.get('name') || '') };
 }
 
+/** Staff check plus leader/admin role (users/{uid}.role only; no email allow-lists). */
+export async function requireLeader(req: Request): Promise<Caller> {
+  const caller = await requireStaff(req);
+  if (!DISCOVER_ROLES.includes(caller.role)) throw new HttpError(403, 'Leaders and admins only');
+  return caller;
+}
+
 /** Perth calendar day, e.g. 20261018. */
 export function perthDay(now = Date.now()): string {
   return new Date(now + 8 * 3600e3).toISOString().slice(0, 10).replace(/-/g, '');
 }
 
-/** Atomically count one call; throws 429 past the daily limit. */
-export async function consumeQuota(uid: string, kind: string): Promise<number> {
+/**
+ * Atomically count one call; throws 429 past the daily limit.
+ * `kindLimit` optionally caps this kind separately (it still counts toward the overall limit).
+ */
+export async function consumeQuota(uid: string, kind: string, kindLimit?: number): Promise<number> {
   const db = adminDb();
   const ref = db.doc(`intelUsage/${uid}_${perthDay()}`);
   return db.runTransaction(async tx => {
     const s = await tx.get(ref);
     const n = (s.exists ? Number(s.get('count') || 0) : 0) + 1;
+    const k = (s.exists ? Number(s.get(`by_${kind}`) || 0) : 0) + 1;
     if (n > INTEL_DAILY_LIMIT) throw new HttpError(429, `Daily limit of ${INTEL_DAILY_LIMIT} intel checks reached`);
-    tx.set(ref, { uid, count: n, [`by_${kind}`]: (s.exists ? Number(s.get(`by_${kind}`) || 0) : 0) + 1, updatedAt: new Date() }, { merge: true });
-    return INTEL_DAILY_LIMIT - n;
+    if (kindLimit != null && k > kindLimit) throw new HttpError(429, `Daily limit of ${kindLimit} reached for this search. Try again tomorrow.`);
+    tx.set(ref, { uid, count: n, [`by_${kind}`]: k, updatedAt: new Date() }, { merge: true });
+    return kindLimit != null ? Math.min(INTEL_DAILY_LIMIT - n, kindLimit - k) : INTEL_DAILY_LIMIT - n;
   });
 }
 

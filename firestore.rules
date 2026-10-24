@@ -511,6 +511,14 @@ service cloud.firestore {
     }
 
     // Server-only intel cache and per-user usage counters (Admin SDK bypasses rules).
+    // "Find new leads" results: written only by the server route (Admin SDK, leaders/admins).
+    // All staff can read; leaders/admins can remove a bad find. No client create/update.
+    match /discoveredLeads/{key} {
+      allow read: if isStaff();
+      allow create, update: if false;
+      allow delete: if isAdmin();
+    }
+
     match /intelCache/{id} { allow read, write: if false; }
     match /intelUsage/{id} { allow read, write: if false; }
 
