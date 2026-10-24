@@ -7,6 +7,7 @@ import { DiagnosticsProvider } from '@/contexts/diagnostics-context';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 import { AnnouncementBanner } from '@/components/ui/announcement-banner';
+import { THEME_INIT_SCRIPT } from '@/lib/theme-mode';
 
 export const metadata: Metadata = {
   title: 'BDM Compass',
@@ -21,6 +22,10 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#0B2545' },
+    { media: '(prefers-color-scheme: dark)', color: '#0A1220' },
+  ],
 };
 
 export default function RootLayout({
@@ -31,6 +36,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Apply the saved light/dark theme before first paint (no flash). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {/* Set the mobile/tablet layout class before first paint (mirrors useIsMobileNav). */}
         <script
           dangerouslySetInnerHTML={{
@@ -40,7 +47,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background">
         <FirebaseClientProvider>

@@ -193,6 +193,67 @@
   animation: shimmer 3s infinite linear;
 }
 @media print {
+  /* Print and PDF always use the light palette, even when dark mode is on. */
+  html.dark {
+    --background: 216 29% 97%;
+    --foreground: 216 50% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 216 50% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 50% 12%;
+    --primary: 213 72% 16%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 35% 94%;
+    --secondary-foreground: 213 72% 16%;
+    --muted: 213 35% 94%;
+    --muted-foreground: 213 17% 43%;
+    --accent: 216 84% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 61% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 212 25% 88%;
+    --input: 212 25% 88%;
+    --ring: 216 84% 52%;
+    --radius: 0.75rem;
+    --surface: 0 0% 100%;
+    --surface-2: 213 35% 94%;
+    --cta: 21 89% 54%;
+    --cta-foreground: 0 0% 100%;
+    --cta-hover: 21 83% 46%;
+    --success: 160 75% 29%;
+    --success-fill: 155 65% 38%;
+    --success-foreground: 0 0% 100%;
+    --success-soft: 150 41% 93%;
+    --warning: 36 71% 42%;
+    --warning-foreground: 0 0% 100%;
+    --warning-ink: 37 78% 31%;
+    --success-ink: 160 80% 24%;
+    --warning-soft: 39 88% 94%;
+    --danger-soft: 0 81% 96%;
+    --info: 216 84% 52%;
+    --info-foreground: 0 0% 100%;
+    --info-soft: 218 92% 95%;
+    --gold: 41 79% 52%;
+    --gold-foreground: 216 50% 12%;
+    --panel: 213 72% 16%;
+    --panel-foreground: 0 0% 100%;
+    --chart-1: 213 72% 16%;
+    --chart-2: 185 85% 35%;
+    --chart-3: 21 89% 54%;
+    --chart-4: 155 65% 38%;
+    --chart-5: 239 84% 67%;
+    --chart-6: 215 20% 65%;
+    --sidebar-background: 213 72% 16%;
+    --sidebar-foreground: 214 47% 93%;
+    --sidebar-primary: 21 89% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 66% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 58% 25%;
+    --sidebar-ring: 21 89% 54%;
+    --sidebar-muted: 211 27% 70%;
+    color-scheme: light;
+  }
   @page {
     size: A4 portrait;
     margin: 10mm 12mm 12mm 12mm;

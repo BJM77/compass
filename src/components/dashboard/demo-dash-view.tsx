@@ -1510,6 +1510,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        onclone: (d: Document) => { d.documentElement.classList.remove('dark'); },
         width: 1323,
         windowWidth: 1323
       });

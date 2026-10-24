@@ -41,6 +41,7 @@ const SuccessPlansView = dynamic(() => import('@/components/dashboard/success-pl
 import { OverdueTaskStrip } from '@/components/dashboard/overdue-task-strip';
 import { HeaderClock } from '@/components/dashboard/header-clock';
 import { TimeReminderBell } from '@/components/dashboard/time-reminder-bell';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 const VerticalsView = dynamic(() => import('@/components/dashboard/verticals-view').then(m => m.VerticalsView), { loading: () => <ViewSkeleton /> });
 const FuelSurchargesView = dynamic(() => import('@/components/dashboard/fuel-surcharges-view').then(m => m.FuelSurchargesView), { loading: () => <ViewSkeleton /> });
 const ManageTimeView = dynamic(() => import('@/components/dashboard/manage-time-view').then(m => m.ManageTimeView), { loading: () => <ViewSkeleton /> });
@@ -297,7 +298,7 @@ function DashboardContent() {
             )}
 
             {simulationUid && isLeader && (
-              <div className="flex items-center gap-2 bg-warning-soft px-3 py-1 rounded-full border border-warning/30 text-warning text-sm font-medium">
+              <div className="flex items-center gap-2 bg-warning-soft px-3 py-1 rounded-full border border-warning/30 text-warning-ink text-sm font-medium">
                 <span className="w-2 h-2 rounded-full bg-warning inline-block animate-pulse" />
                 <span>Simulating: <strong className="font-semibold">{simulatedUserProfile?.name || simulationUid}</strong></span>
                 <button
@@ -328,6 +329,7 @@ function DashboardContent() {
             )}
             <HeaderClock />
             <TimeReminderBell onOpenManageTime={() => navigateTo('MANAGE_TIME')} />
+            <ThemeToggle />
             <div className="flex items-center gap-3 min-w-0 pl-1">
               <div className="text-right hidden sm:block min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate max-w-[40vw] nav:max-w-none">{profile?.name || user?.email}</p>

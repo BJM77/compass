@@ -11,6 +11,8 @@ export async function exportElementToPdf(element: HTMLElement, filename: string)
     logging: false,
     backgroundColor: '#ffffff',
     onclone: (clonedDoc) => {
+      // PDFs always render in the light theme.
+      clonedDoc.documentElement.classList.remove('dark');
       // Replace every textarea with a div containing its value
       clonedDoc.querySelectorAll('textarea').forEach((ta) => {
         const div = clonedDoc.createElement('div');

@@ -253,6 +253,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         toast({ title: "Generating PDF", description: "Compiling Multi-Page A4 Report..." });
 
         const baseCanvasOptions = (doc: Document) => {
+          doc.documentElement.classList.remove('dark');
           const style = doc.createElement('style');
           let css = `
             * {
