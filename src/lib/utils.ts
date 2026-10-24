@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { format, startOfWeek, differenceInCalendarWeeks, isBefore } from "date-fns"
+import { perthParts } from "./time-mgmt"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -259,20 +260,34 @@ export function getWeekForDate(date: Date): string {
  * Canonical week key for all Firestore weekly documents.
  */
 export function getCurrentWeek(): string {
-  return getWeekForDate(new Date());
+  return getPerthWeekKey();
 }
 
 /**
- * Week reviewed in the Monday NWA (Next Weeks Activity) meeting.
+ * Perth calendar date of an instant as a local Date (midnight), so getWeekForDate() — which works on
+ * local calendar dates — gives the Perth week regardless of the device timezone.
+ */
+export function perthCalendarDate(at: Date | number = Date.now()): Date {
+  const p = perthParts(typeof at === 'number' ? at : at.getTime());
+  return new Date(p.year, p.month - 1, p.day);
+}
+
+/** Financial-year week key for an instant, in Australia/Perth time. Mirrors perthWeekKey() in functions/. */
+export function getPerthWeekKey(at: Date | number = Date.now()): string {
+  return getWeekForDate(perthCalendarDate(at));
+}
+
+/**
+ * Week reviewed in the Monday NWA (Next Weeks Activity) meeting, in Perth time.
  * Mon–Thu: the week just finished (plan saved for the current week).
  * Fri–Sun: the current week (reps preparing early for Monday).
  */
 export function getNwaReviewWeek(date: Date = new Date()): string {
-  const day = date.getDay(); // 0=Sun … 6=Sat
-  if (day >= 1 && day <= 4) {
-    return getWeekForDate(new Date(date.getTime() - 7 * 24 * 60 * 60 * 1000));
-  }
-  return getWeekForDate(date);
+  // Perth weekday and date, whatever the device timezone.
+  const day = perthParts(date.getTime()).weekday; // 0=Sun … 6=Sat
+  const local = perthCalendarDate(date);
+  if (day >= 1 && day <= 4) local.setDate(local.getDate() - 7);
+  return getWeekForDate(local);
 }
 
 /**

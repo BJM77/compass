@@ -27,17 +27,17 @@ export function FieldLabel({ htmlFor, children, hint }: { htmlFor?: string; chil
 
 /** Numbered agenda card with title, description and time chip. */
 export function SectionCard({
-  section, complete, children, actions, id,
-}: { section: NwaSectionDef; complete?: boolean; children: React.ReactNode; actions?: React.ReactNode; id?: string }) {
+  section, complete, children, actions, id, collapsed,
+}: { section: NwaSectionDef; complete?: boolean; children: React.ReactNode; actions?: React.ReactNode; id?: string; collapsed?: boolean }) {
   return (
     <section id={id ?? `nwa-${section.id}`} className="scroll-mt-24 rounded-2xl border border-border bg-card shadow-sm">
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
+      <header className={cn('flex flex-wrap items-start justify-between gap-3 px-5 py-4', !collapsed && 'border-b border-border')}>
         <div className="flex min-w-0 items-start gap-3">
           <span className={cn(
             'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
             complete ? 'bg-success-soft text-success-ink' : 'bg-primary text-primary-foreground',
           )}>
-            {complete ? <CheckCircle2 className="h-4 w-4" aria-label="Complete" /> : section.step}
+            {complete ? <CheckCircle2 className="h-4 w-4" aria-label="Complete" /> : section.step || <Circle className="h-4 w-4" aria-label="Optional" />}
           </span>
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-foreground">{section.title}</h2>
@@ -46,10 +46,10 @@ export function SectionCard({
         </div>
         <div className="flex items-center gap-2">
           {actions}
-          <TimeChip minutes={section.minutes} />
+          {section.minutes > 0 && <TimeChip minutes={section.minutes} />}
         </div>
       </header>
-      <div className="space-y-5 px-5 py-5">{children}</div>
+      {!collapsed && <div className="space-y-5 px-5 py-5">{children}</div>}
     </section>
   );
 }

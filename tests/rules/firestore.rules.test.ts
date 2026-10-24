@@ -580,3 +580,24 @@ describe('Dashboard Designer: appSettings/global layout writes are admin-only', 
     for (const uid of [GUEST, STRANGER, undefined]) await assertFails(getDoc(doc(db(uid), 'appSettings', 'global')));
   });
 });
+
+describe('NWA: per-week business updates and team KPI targets (appSettings)', () => {
+  const ids = ['nwaBusinessUpdates_2026-30', 'nwaKpiTargets'];
+
+  test('staff can read; guests and signed-out users cannot', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      for (const id of ids) await setDoc(doc(ctx.firestore(), 'appSettings', id), { seeded: true });
+    });
+    for (const id of ids) {
+      for (const uid of [BDM, AM, LEADER]) await assertSucceeds(getDoc(doc(db(uid), 'appSettings', id)));
+      for (const uid of [GUEST, STRANGER, undefined]) await assertFails(getDoc(doc(db(uid), 'appSettings', id)));
+    }
+  });
+
+  test('leaders can write; BDMs and AMs cannot', async () => {
+    for (const id of ids) {
+      for (const uid of [LEADER, GM, SUPER]) await assertSucceeds(setDoc(doc(db(uid), 'appSettings', id), { updatedBy: uid }, { merge: true }));
+      for (const uid of [BDM, AM, GUEST, undefined]) await assertFails(setDoc(doc(db(uid), 'appSettings', id), { updatedBy: 'x' }, { merge: true }));
+    }
+  });
+});

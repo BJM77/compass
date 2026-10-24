@@ -32,6 +32,8 @@ import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { calculateDealHealth } from '@/lib/deal-health';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
+import { NwaArchiveSummary } from './nwa/nwa-archive-summary';
+import { isLegacyFridayDoc } from '@/lib/nwa';
 
 export interface CrmMetrics {
   eav: number;
@@ -71,6 +73,9 @@ interface BDMWeeklyReport {
   twtwProjectedWins?: any[];
   twtwPriorities?: any[];
   focusAccounts?: any[];
+  /** weeklyCommitments doc for the coming week when it's an NWA (not a legacy Friday FW). */
+  nwaDoc?: any;
+  role?: string;
 }
 
 export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
@@ -382,7 +387,10 @@ export function GMWeeklyReview({ week: propWeek }: { week?: string }) {
             twtwMajorUpdates: combinedTwiwMajorUpdates.length > 0 ? combinedTwiwMajorUpdates : (twiwData?.majorUpdates || []),
             twtwProjectedWins: combinedTwiwProjectedWins.length > 0 ? combinedTwiwProjectedWins : (twiwData?.projectedWins || []),
             twtwPriorities: combinedTwiwPriorities.length > 0 ? combinedTwiwPriorities : (twiwData?.priorities || []),
-            focusAccounts: combinedFocusAccounts.length > 0 ? combinedFocusAccounts : (commitData?.focusAccounts || [])
+            focusAccounts: combinedFocusAccounts.length > 0 ? combinedFocusAccounts : (commitData?.focusAccounts || []),
+            // NWA for the coming week (pipeline, KPIs vs target, account management, commitments, follow-through)
+            nwaDoc: commitData && !isLegacyFridayDoc(commitData) ? commitData : null,
+            role: bdm.role,
           } as any;
         });
 
@@ -1440,8 +1448,10 @@ function BDMReportCard({
 
                 {/* NWA details */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">NWA Focus Accounts (legacy)</h4>
-                  {report.focusAccounts && report.focusAccounts.length > 0 ? (
+                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">{report.nwaDoc ? 'NWA: next week' : 'NWA Focus Accounts (legacy)'}</h4>
+                  {report.nwaDoc ? (
+                    <NwaArchiveSummary data={report.nwaDoc} role={report.role} />
+                  ) : report.focusAccounts && report.focusAccounts.length > 0 ? (
                     <div className="space-y-2">
                       {report.focusAccounts.map((fa: any, idx: number) => (
                         <div key={fa.id || idx} className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm text-xs">

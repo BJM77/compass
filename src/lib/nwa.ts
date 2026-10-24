@@ -20,7 +20,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // ─── Agenda ──────────────────────────────────────────────────────────────────
 export type NwaSectionId =
-  | 'wins' | 'appointments' | 'pipeline' | 'kpis' | 'priorities' | 'challenges' | 'updates' | 'commitments';
+  | 'wins' | 'appointments' | 'pipeline' | 'accounts' | 'kpis' | 'priorities' | 'challenges' | 'updates' | 'commitments';
 
 export interface NwaSectionDef {
   id: NwaSectionId;
@@ -41,11 +41,37 @@ export const NWA_SECTIONS: NwaSectionDef[] = [
   { id: 'commitments', step: 8, title: 'Commitments before next meeting', minutes: 3, description: 'Clear actions with an owner and a due date.' },
 ];
 
+const ACCOUNTS_DESCRIPTION = 'At-risk and declining accounts, revenue at risk, renewals and rate reviews, growth in existing accounts and account handovers.';
+
+/** Account managers get an "Account health and growth" step; the 45 minutes are rebalanced from appointments and pipeline. */
+export const NWA_SECTIONS_AM: NwaSectionDef[] = ([
+  { ...NWA_SECTIONS[0] },
+  { ...NWA_SECTIONS[1], minutes: 6 },
+  { ...NWA_SECTIONS[2], minutes: 5 },
+  { id: 'accounts', step: 4, title: 'Account health and growth', minutes: 7, description: ACCOUNTS_DESCRIPTION },
+  ...NWA_SECTIONS.slice(3),
+] as NwaSectionDef[]).map((s, i) => ({ ...s, step: i + 1 }));
+
+/** BDMs can add account items too, but the section is optional and outside the timed agenda. */
+export const NWA_ACCOUNTS_OPTIONAL: NwaSectionDef = {
+  id: 'accounts', step: 0, title: 'Account health and growth (optional)', minutes: 0, description: ACCOUNTS_DESCRIPTION,
+};
+
+/** ACCOUNT_MANAGER and AM roles (the role field only). */
+export function isAmRole(role: string | undefined | null): boolean {
+  const r = String(role || '').toUpperCase();
+  return r === 'ACCOUNT_MANAGER' || r === 'AM';
+}
+
+export function nwaSectionsFor(role: string | undefined | null): NwaSectionDef[] {
+  return isAmRole(role) ? NWA_SECTIONS_AM : NWA_SECTIONS;
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 export type NwaStatus = 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED' | 'REVIEWED_BY_ADMIN';
 export type CommitmentOutcome = 'done' | 'partly' | 'not_done';
 export type PipelineKey = 'progressing' | 'stalled' | 'created' | 'handedOver';
-export type KpiKey = 'calls' | 'appointments' | 'proposals' | 'deals' | 'revenue';
+export type KpiKey = 'calls' | 'appointments' | 'proposals' | 'deals' | 'revenue' | 'accountReviews' | 'revenueRetained' | 'renewals';
 
 export interface NwaWins {
   customerWins: string;
@@ -78,14 +104,88 @@ export interface NwaDealRow {
   crmId?: string;
 }
 
-/** Legacy key names are kept so TWTW, demo dash and the archive read targets unchanged. */
+/**
+ * Legacy key names are kept so TWTW, demo dash and the archive read targets unchanged.
+ * revenueTarget is "New revenue" for BDMs and "Growth revenue" for account managers.
+ */
 export interface NwaKpiTargets {
   callsToMake: number;
   appointmentsToSet: number;
   proposalsToSend: number;
   dealsToClose: number;
   revenueTarget: number;
+  /** Account manager targets. */
+  accountReviewsTarget: number;
+  revenueRetainedTarget: number;
+  renewalsTarget: number;
 }
+
+// ─── Account management (AM section) ──────────────────────────────────────
+export type RiskStatus = 'open' | 'saved' | 'lost';
+export type RenewalType = 'renewal' | 'rate_review';
+export type RenewalStatus = 'not_started' | 'in_progress' | 'agreed' | 'lost';
+export type HandoverStatus = 'proposed' | 'in_progress' | 'complete';
+
+/** An at-risk or declining-spend account. */
+export interface NwaAtRiskRow {
+  id: string;
+  accountId: string;
+  account: string;
+  reason: string;
+  revenueAtRisk: number;
+  action: string;
+  status: RiskStatus;
+  /** CRM signal text when prefilled (e.g. "YTD down 22% on last FY"). */
+  signal?: string;
+  source: 'crm' | 'manual';
+}
+
+export interface NwaRenewalRow {
+  id: string;
+  accountId: string;
+  account: string;
+  type: RenewalType;
+  dueDate: string; // yyyy-mm-dd
+  value: number;
+  status: RenewalStatus;
+  note: string;
+}
+
+export interface NwaGrowthRow {
+  id: string;
+  accountId: string;
+  account: string;
+  opportunity: string;
+  value: number;
+  nextStep: string;
+  nextStepDate: string; // yyyy-mm-dd
+}
+
+/** An account moving between an AM and a BDM (or any two team members). */
+export interface NwaHandover {
+  id: string;
+  accountId: string;
+  account: string;
+  fromUserId: string;
+  fromName: string;
+  toUserId: string;
+  toName: string;
+  status: HandoverStatus;
+  reason: string;
+  date: string; // yyyy-mm-dd
+}
+
+export interface NwaAccountMgmt {
+  atRisk: NwaAtRiskRow[];
+  renewals: NwaRenewalRow[];
+  growth: NwaGrowthRow[];
+  handovers: NwaHandover[];
+}
+
+export const RISK_STATUS_LABEL: Record<RiskStatus, string> = { open: 'Open', saved: 'Saved', lost: 'Lost' };
+export const RENEWAL_TYPE_LABEL: Record<RenewalType, string> = { renewal: 'Renewal', rate_review: 'Rate review' };
+export const RENEWAL_STATUS_LABEL: Record<RenewalStatus, string> = { not_started: 'Not started', in_progress: 'In progress', agreed: 'Agreed', lost: 'Lost' };
+export const HANDOVER_STATUS_LABEL: Record<HandoverStatus, string> = { proposed: 'Proposed', in_progress: 'In progress', complete: 'Complete' };
 
 export interface NwaCommitment {
   id: string;
@@ -119,6 +219,7 @@ export interface NwaPlan {
   challenges: { slowingProgress: string; customerIssues: string; internalIssues: string; resourcesRequired: string };
   commitments: NwaCommitment[];
   commitmentReview: NwaCommitmentReview[];
+  accounts: NwaAccountMgmt;
 }
 
 export interface NwaBusinessUpdates {
@@ -130,13 +231,32 @@ export interface NwaBusinessUpdates {
   updatedAt?: any;
 }
 
-export const KPI_DEFS: { key: KpiKey; label: string; target: keyof NwaKpiTargets; currency?: boolean }[] = [
+export interface KpiDef { key: KpiKey; label: string; target: keyof NwaKpiTargets; currency?: boolean }
+
+/** BDM KPIs: activity and new business. */
+export const BDM_KPI_DEFS: KpiDef[] = [
   { key: 'calls', label: 'Calls', target: 'callsToMake' },
-  { key: 'appointments', label: 'Appointments', target: 'appointmentsToSet' },
+  { key: 'appointments', label: 'New appointments', target: 'appointmentsToSet' },
   { key: 'proposals', label: 'Proposals', target: 'proposalsToSend' },
-  { key: 'deals', label: 'Deals', target: 'dealsToClose' },
-  { key: 'revenue', label: 'Revenue', target: 'revenueTarget', currency: true },
+  { key: 'deals', label: 'Deals closed', target: 'dealsToClose' },
+  { key: 'revenue', label: 'New revenue', target: 'revenueTarget', currency: true },
 ];
+
+/** Account manager KPIs: reviews, retention and renewals, plus growth in existing accounts. */
+export const AM_KPI_DEFS: KpiDef[] = [
+  { key: 'accountReviews', label: 'Account reviews', target: 'accountReviewsTarget' },
+  { key: 'calls', label: 'Calls', target: 'callsToMake' },
+  { key: 'renewals', label: 'Renewals and rate reviews', target: 'renewalsTarget' },
+  { key: 'revenueRetained', label: 'Revenue retained', target: 'revenueRetainedTarget', currency: true },
+  { key: 'revenue', label: 'Growth revenue', target: 'revenueTarget', currency: true },
+];
+
+/** @deprecated use kpiDefsFor(role). Kept for older imports. */
+export const KPI_DEFS = BDM_KPI_DEFS;
+
+export function kpiDefsFor(role: string | undefined | null): KpiDef[] {
+  return isAmRole(role) ? AM_KPI_DEFS : BDM_KPI_DEFS;
+}
 
 export const PIPELINE_GROUPS: { key: PipelineKey; title: string; hint: string; notePlaceholder: string }[] = [
   { key: 'progressing', title: 'Key deals progressing', hint: 'Value, next step and date.', notePlaceholder: 'Notes' },
@@ -159,9 +279,59 @@ export function nwaId(prefix = 'n'): string {
   return `${prefix}_${Date.now().toString(36)}_${idCounter}`;
 }
 
+/** Fallback targets only: person and team targets (resolveKpiTargets) take precedence. */
 export function defaultKpiTargets(role: string): NwaKpiTargets {
   const isBdm = (role || '').toUpperCase() === 'BDM';
-  return { callsToMake: isBdm ? 50 : 30, appointmentsToSet: isBdm ? 15 : 10, proposalsToSend: 8, dealsToClose: 3, revenueTarget: 250000 };
+  const am = isAmRole(role);
+  return {
+    callsToMake: isBdm ? 50 : 30,
+    appointmentsToSet: isBdm ? 15 : 10,
+    proposalsToSend: 8,
+    dealsToClose: 3,
+    revenueTarget: 250000,
+    accountReviewsTarget: am ? 8 : 0,
+    revenueRetainedTarget: am ? 50000 : 0,
+    renewalsTarget: am ? 2 : 0,
+  };
+}
+
+export type KpiTargetSource = 'person' | 'team' | 'annualTarget' | 'default';
+
+export const KPI_TARGET_KEYS: (keyof NwaKpiTargets)[] = [
+  'callsToMake', 'appointmentsToSet', 'proposalsToSend', 'dealsToClose', 'revenueTarget',
+  'accountReviewsTarget', 'revenueRetainedTarget', 'renewalsTarget',
+];
+
+/** Team targets are stored per role group in appSettings/nwaKpiTargets.byRole. */
+export function kpiRoleGroup(role: string | undefined | null): 'AM' | 'BDM' {
+  return isAmRole(role) ? 'AM' : 'BDM';
+}
+
+/**
+ * Weekly KPI targets, in order of precedence:
+ *  1. users/{uid}.nwaKpiTargets (set for one person)
+ *  2. appSettings/nwaKpiTargets.byRole[AM|BDM] (team targets, set by a leader from the NWA form)
+ *  3. BDM new revenue only: annual target (bdmStats/{uid}.target, else users/{uid}.target) ÷ 52
+ *  4. defaultKpiTargets(role)
+ */
+export function resolveKpiTargets(
+  role: string,
+  src: { userDoc?: any; teamTargets?: any; stats?: any } = {},
+): { targets: NwaKpiTargets; source: Record<keyof NwaKpiTargets, KpiTargetSource> } {
+  const defaults = defaultKpiTargets(role);
+  const person = src.userDoc?.nwaKpiTargets || {};
+  const team = src.teamTargets?.byRole?.[kpiRoleGroup(role)] || {};
+  const annual = num(src.stats?.target) || num(src.userDoc?.target);
+  const has = (o: any, k: string) => o && o[k] !== undefined && o[k] !== null && o[k] !== '' && Number.isFinite(Number(o[k]));
+  const targets = { ...defaults };
+  const source = {} as Record<keyof NwaKpiTargets, KpiTargetSource>;
+  KPI_TARGET_KEYS.forEach(k => {
+    if (has(person, k)) { targets[k] = num(person[k]); source[k] = 'person'; }
+    else if (has(team, k)) { targets[k] = num(team[k]); source[k] = 'team'; }
+    else if (k === 'revenueTarget' && !isAmRole(role) && annual > 0) { targets[k] = Math.round(annual / 52); source[k] = 'annualTarget'; }
+    else source[k] = 'default';
+  });
+  return { targets, source };
 }
 
 export function emptyWins(): NwaWins {
@@ -180,7 +350,28 @@ export function emptyNwaPlan(role: string): NwaPlan {
     challenges: { slowingProgress: '', customerIssues: '', internalIssues: '', resourcesRequired: '' },
     commitments: [],
     commitmentReview: [],
+    accounts: emptyAccountMgmt(),
   };
+}
+
+export function emptyAccountMgmt(): NwaAccountMgmt {
+  return { atRisk: [], renewals: [], growth: [], handovers: [] };
+}
+
+export function emptyAtRiskRow(partial: Partial<NwaAtRiskRow> = {}): NwaAtRiskRow {
+  return { id: nwaId('risk'), accountId: '', account: '', reason: '', revenueAtRisk: 0, action: '', status: 'open', source: 'manual', ...partial };
+}
+
+export function emptyRenewalRow(partial: Partial<NwaRenewalRow> = {}): NwaRenewalRow {
+  return { id: nwaId('ren'), accountId: '', account: '', type: 'renewal', dueDate: '', value: 0, status: 'not_started', note: '', ...partial };
+}
+
+export function emptyGrowthRow(partial: Partial<NwaGrowthRow> = {}): NwaGrowthRow {
+  return { id: nwaId('grow'), accountId: '', account: '', opportunity: '', value: 0, nextStep: '', nextStepDate: '', ...partial };
+}
+
+export function emptyHandover(partial: Partial<NwaHandover> = {}): NwaHandover {
+  return { id: nwaId('ho'), accountId: '', account: '', fromUserId: '', fromName: '', toUserId: '', toName: '', status: 'proposed', reason: '', date: '', ...partial };
 }
 
 export function emptyDealRow(partial: Partial<NwaDealRow> = {}): NwaDealRow {
@@ -328,7 +519,13 @@ export function closedWonLines(closedWon: any[]): string {
 }
 
 // ─── Activity actuals ──────────────────────────────────────────────────────
-export function computeActuals(input: { progress?: any; activity?: any[]; callPlanCount?: number; deals?: any[] }): Record<KpiKey, number> {
+/**
+ * Actuals for the KPI table. Account reviews = meetings held (account managers' meetings are reviews of
+ * existing accounts). Renewals and revenue retained come from the plan's account section: renewals marked
+ * agreed, plus at-risk accounts marked saved. Resolved rows are not carried into the next week, so each
+ * counts once.
+ */
+export function computeActuals(input: { progress?: any; activity?: any[]; callPlanCount?: number; deals?: any[]; accounts?: NwaAccountMgmt | null }): Record<KpiKey, number> {
   const p = input.progress || {};
   const acts = input.activity || [];
   const sum = (f: (a: any) => number) => acts.reduce((s, a) => s + f(a), 0);
@@ -342,7 +539,94 @@ export function computeActuals(input: { progress?: any; activity?: any[]; callPl
   const won = (input.deals || []).filter(d => /closed won/i.test(str(d?.stage)));
   const deals = Math.max(num(p.deals) || sum(a => num(a.deals)), won.length);
   const revenue = won.reduce((s, d) => s + num(d.value), 0);
-  return { calls, appointments, proposals, deals, revenue };
+  const acc = input.accounts || emptyAccountMgmt();
+  const agreed = acc.renewals.filter(r => r.status === 'agreed');
+  const saved = acc.atRisk.filter(r => r.status === 'saved');
+  const renewals = agreed.length;
+  const revenueRetained = agreed.reduce((s, r) => s + num(r.value), 0) + saved.reduce((s, r) => s + num(r.revenueAtRisk), 0);
+  return { calls, appointments, proposals, deals, revenue, accountReviews: appointments, renewals, revenueRetained };
+}
+
+// ─── Account health signals (CRM customer accounts) ─────────────────────────
+/** YTD spend down this much on the same period last FY flags an account as declining. */
+export const DECLINE_THRESHOLD = 0.15;
+/** No invoice for this many days flags an account as at risk. */
+export const NO_INVOICE_DAYS = 45;
+
+export interface AccountOption { id: string; name: string }
+
+export interface AccountSignal extends AccountOption {
+  ytdThisFY: number;
+  ytdLastFY: number;
+  declinePct: number | null; // negative = down
+  daysSinceInvoice: number | null;
+  creditHold: boolean;
+  revenueAtRisk: number;
+  reasons: string[];
+}
+
+function accountIdOf(d: any): string {
+  return str(d?.accountMasterCode) || str(d?.salesforceId) || str(d?.pipeline) || str(d?.id);
+}
+
+/**
+ * At-risk / declining customer accounts from the CRM import (pipelineReviews rows with isBareAccount:
+ * ytdRevenueThisFY vs ytdRevenueLastFY, lastInvoiceDate, creditHold). Revenue at risk is the YTD shortfall
+ * against last FY (or last FY YTD when the account has stopped invoicing).
+ */
+export function accountSignals(deals: any[], now = Date.now()): AccountSignal[] {
+  const out: AccountSignal[] = [];
+  const seen = new Set<string>();
+  for (const d of latestDeals((deals || []).filter(x => x?.isBareAccount))) {
+    const id = accountIdOf(d);
+    const name = str(d?.pipeline) || str(d?.accountName);
+    if (!id || !name || seen.has(id)) continue;
+    seen.add(id);
+    const thisFY = num(d.ytdRevenueThisFY ?? d.currentRevenue);
+    const lastFY = num(d.ytdRevenueLastFY ?? d.lastYearRevenue);
+    const declinePct = lastFY > 0 ? (thisFY - lastFY) / lastFY : null;
+    const inv = parseLooseDate(d.lastInvoiceDate);
+    const daysSinceInvoice = inv ? Math.max(0, Math.floor((now - inv.getTime()) / DAY_MS)) : null;
+    const creditHold = d.creditHold === true || /^(yes|true)$/i.test(str(d.creditHold));
+    const reasons: string[] = [];
+    if (declinePct !== null && declinePct <= -DECLINE_THRESHOLD) reasons.push(`YTD down ${Math.round(-declinePct * 100)}% on last FY`);
+    if (daysSinceInvoice !== null && daysSinceInvoice >= NO_INVOICE_DAYS && (thisFY > 0 || lastFY > 0)) reasons.push(`No invoice for ${daysSinceInvoice} days`);
+    if (creditHold) reasons.push('On credit hold');
+    if (!reasons.length) continue;
+    out.push({ id, name, ytdThisFY: thisFY, ytdLastFY: lastFY, declinePct, daysSinceInvoice, creditHold, revenueAtRisk: Math.max(0, Math.round(lastFY - thisFY)), reasons });
+  }
+  return out.sort((a, b) => b.revenueAtRisk - a.revenueAtRisk);
+}
+
+export function signalToAtRiskRow(sig: AccountSignal): NwaAtRiskRow {
+  return emptyAtRiskRow({ accountId: sig.id, account: sig.name, revenueAtRisk: sig.revenueAtRisk, signal: sig.reasons.join(' · '), source: 'crm' });
+}
+
+/** Accounts for the pickers: CRM customer accounts first, then open opportunities, de-duplicated. */
+export function accountOptions(deals: any[]): AccountOption[] {
+  const byId = new Map<string, AccountOption>();
+  const rows = latestDeals(deals || []);
+  [...rows.filter(d => d?.isBareAccount), ...rows.filter(d => !d?.isBareAccount)].forEach(d => {
+    const id = accountIdOf(d);
+    const name = str(d?.pipeline) || str(d?.opportunityName);
+    if (id && name && !byId.has(id)) byId.set(id, { id, name });
+  });
+  return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function totalRevenueAtRisk(acc: NwaAccountMgmt): number {
+  return acc.atRisk.filter(r => r.status === 'open').reduce((s, r) => s + num(r.revenueAtRisk), 0);
+}
+
+/** Open account items from last week's plan carry into this week (resolved ones drop off). */
+export function carryForwardAccounts(prev: NwaAccountMgmt | null | undefined): NwaAccountMgmt {
+  if (!prev) return emptyAccountMgmt();
+  return {
+    atRisk: prev.atRisk.filter(r => r.status === 'open'),
+    renewals: prev.renewals.filter(r => r.status === 'not_started' || r.status === 'in_progress'),
+    growth: prev.growth.filter(r => r.account.trim()),
+    handovers: prev.handovers.filter(h => h.status !== 'complete'),
+  };
 }
 
 // ─── Commitments & follow-through ───────────────────────────────────────────
@@ -462,6 +746,20 @@ export function mapStoredNwa(d: any, role: string, twtwActions: string[] = []): 
   const kpiTargets: NwaKpiTargets = { ...base.kpiTargets };
   (Object.keys(kpiTargets) as (keyof NwaKpiTargets)[]).forEach(k => { if (kt[k] !== undefined && kt[k] !== '') kpiTargets[k] = num(kt[k]); });
 
+  // Legacy Friday focus accounts become "deals progressing" when the doc has no NWA pipeline.
+  const hasPipeline = doc.pipeline && Object.values(doc.pipeline).some((v: any) => Array.isArray(v) && v.length);
+  const legacyFocus: NwaDealRow[] = !isV2 && !hasPipeline && Array.isArray(doc.focusAccounts)
+    ? doc.focusAccounts
+        .filter((fa: any) => str(fa?.accountName).trim())
+        .map((fa: any) => emptyDealRow({ account: str(fa.accountName), value: num(fa.eav), nextStep: str(fa.actionType), note: str(fa.aboutAccount) }))
+    : [];
+  const handedOverRows = rowsOf(doc.pipeline?.handedOver);
+  const accounts = accountsOf(doc.accounts);
+  // NWA rows handed over before structured handovers existed.
+  if (!doc.accounts && handedOverRows.length) {
+    accounts.handovers = handedOverRows.filter(r => r.account.trim()).map(r => emptyHandover({ account: r.account, toName: r.note, status: 'complete', date: r.nextStepDate }));
+  }
+
   return {
     wins: {
       customerWins: str(w.customerWins),
@@ -481,13 +779,14 @@ export function mapStoredNwa(d: any, role: string, twtwActions: string[] = []): 
       ...(a?.source ? { source: a.source } : {}),
     })) : [],
     pipeline: {
-      progressing: rowsOf(doc.pipeline?.progressing),
+      progressing: legacyFocus.length ? legacyFocus : rowsOf(doc.pipeline?.progressing),
       stalled: rowsOf(doc.pipeline?.stalled),
       created: rowsOf(doc.pipeline?.created),
-      handedOver: rowsOf(doc.pipeline?.handedOver),
+      // Handovers live in accounts.handovers; pipeline.handedOver is only a mirror written for older readers.
+      handedOver: [],
     },
     kpiTargets,
-    keyFocusMetrics: str(doc.keyFocusMetrics),
+    keyFocusMetrics: str(doc.keyFocusMetrics) || (isV2 ? '' : str(doc.strategicFocus)),
     individualCommitment: str(doc.individualCommitment),
     topPriorities: [priorities[0], priorities[1], priorities[2]],
     challenges: {
@@ -504,11 +803,87 @@ export function mapStoredNwa(d: any, role: string, twtwActions: string[] = []): 
           outcome: outcomeOf(r), note: str(r?.note),
         }))
       : [],
+    accounts,
   };
 }
 
+const RISK: RiskStatus[] = ['open', 'saved', 'lost'];
+const REN_TYPES: RenewalType[] = ['renewal', 'rate_review'];
+const REN_STATUS: RenewalStatus[] = ['not_started', 'in_progress', 'agreed', 'lost'];
+const HO_STATUS: HandoverStatus[] = ['proposed', 'in_progress', 'complete'];
+const pick = <T extends string>(v: unknown, list: T[], fallback: T): T => (list.includes(v as T) ? (v as T) : fallback);
+const arr = (v: any): any[] => (Array.isArray(v) ? v : []);
+
+function accountsOf(a: any): NwaAccountMgmt {
+  return {
+    atRisk: arr(a?.atRisk).map(r => ({
+      id: str(r?.id) || nwaId('risk'), accountId: str(r?.accountId), account: str(r?.account), reason: str(r?.reason),
+      revenueAtRisk: num(r?.revenueAtRisk), action: str(r?.action), status: pick(r?.status, RISK, 'open'),
+      ...(r?.signal ? { signal: str(r.signal) } : {}), source: r?.source === 'crm' ? 'crm' as const : 'manual' as const,
+    })),
+    renewals: arr(a?.renewals).map(r => ({
+      id: str(r?.id) || nwaId('ren'), accountId: str(r?.accountId), account: str(r?.account), type: pick(r?.type, REN_TYPES, 'renewal'),
+      dueDate: str(r?.dueDate), value: num(r?.value), status: pick(r?.status, REN_STATUS, 'not_started'), note: str(r?.note),
+    })),
+    growth: arr(a?.growth).map(r => ({
+      id: str(r?.id) || nwaId('grow'), accountId: str(r?.accountId), account: str(r?.account), opportunity: str(r?.opportunity),
+      value: num(r?.value), nextStep: str(r?.nextStep), nextStepDate: str(r?.nextStepDate),
+    })),
+    handovers: arr(a?.handovers).map(h => ({
+      id: str(h?.id) || nwaId('ho'), accountId: str(h?.accountId), account: str(h?.account),
+      fromUserId: str(h?.fromUserId), fromName: str(h?.fromName), toUserId: str(h?.toUserId), toName: str(h?.toName),
+      status: pick(h?.status, HO_STATUS, 'proposed'), reason: str(h?.reason), date: str(h?.date),
+    })),
+  };
+}
+
+/** The Friday FW fields kept on a converted doc so the original stays viewable. */
+export const LEGACY_FRIDAY_FIELDS = ['focusAccounts', 'strategicFocus', 'actionPlan', 'kpiTargets', 'roadblocks', 'supportNeeded', 'status', 'submittedAt', 'adminCoachingNotes'] as const;
+
+export function legacyFridaySnapshot(d: any): Record<string, any> {
+  const out: Record<string, any> = {};
+  LEGACY_FRIDAY_FIELDS.forEach(k => { if (d?.[k] !== undefined) out[k] = d[k]; });
+  return out;
+}
+
+/** "Start NWA" on a week that has an old Friday FW doc: map it into the NWA form, keeping a snapshot. */
+export function convertLegacyFriday(d: any, role: string, twtwActions: string[] = []): { plan: NwaPlan; legacyFriday: Record<string, any> } {
+  return { plan: mapStoredNwa(d, role, twtwActions), legacyFriday: d?.legacyFriday || legacyFridaySnapshot(d) };
+}
+
+/**
+ * Legacy focusAccounts shape ({ id, accountName, actionType, eav, aboutAccount }) for the GM review,
+ * TWTW focus-account review and demo dash, built from the NWA pipeline and account section.
+ */
+export function focusAccountsMirror(p: NwaPlan): { id: string; accountName: string; actionType: string; eav: number; aboutAccount: string }[] {
+  const about = (...parts: (string | false | undefined)[]) => parts.filter(x => x && String(x).trim()).join(' · ');
+  const deal = (type: string) => (r: NwaDealRow) => ({
+    id: r.id, accountName: r.account, actionType: type, eav: num(r.value),
+    aboutAccount: about(r.nextStep, r.nextStepDate && `by ${r.nextStepDate}`, r.note),
+  });
+  return [
+    ...p.pipeline.progressing.map(deal('Progressing')),
+    ...p.pipeline.stalled.map(deal('Stalled')),
+    ...p.pipeline.created.map(deal('New opportunity')),
+    ...p.accounts.atRisk.filter(r => r.status === 'open').map(r => ({
+      id: r.id, accountName: r.account, actionType: 'At risk', eav: num(r.revenueAtRisk), aboutAccount: about(r.reason || r.signal, r.action),
+    })),
+    ...p.accounts.renewals.filter(r => r.status === 'not_started' || r.status === 'in_progress').map(r => ({
+      id: r.id, accountName: r.account, actionType: RENEWAL_TYPE_LABEL[r.type], eav: num(r.value), aboutAccount: about(r.dueDate && `due ${r.dueDate}`, r.note),
+    })),
+    ...p.accounts.growth.map(r => ({
+      id: r.id, accountName: r.account, actionType: 'Growth', eav: num(r.value), aboutAccount: about(r.opportunity, r.nextStep, r.nextStepDate && `by ${r.nextStepDate}`),
+    })),
+  ].filter(f => f.accountName.trim());
+}
+
+export function strategicFocusMirror(p: NwaPlan): string {
+  return [p.keyFocusMetrics, p.individualCommitment].map(s => s.trim()).filter(Boolean).join('\n')
+    || p.topPriorities.filter(t => t.trim()).join('; ');
+}
+
 /** Firestore payload: NWA V2 fields plus legacy mirrors for older views. */
-export function buildNwaPayload(p: NwaPlan) {
+export function buildNwaPayload(p: NwaPlan, opts: { kpiActuals?: Partial<Record<KpiKey, number>>; role?: string } = {}) {
   const roadblocks = [
     p.challenges.slowingProgress,
     p.challenges.customerIssues && `Customer: ${p.challenges.customerIssues}`,
@@ -534,8 +909,21 @@ export function buildNwaPayload(p: NwaPlan) {
       progressing: clean(p.pipeline.progressing),
       stalled: clean(p.pipeline.stalled),
       created: clean(p.pipeline.created),
-      handedOver: clean(p.pipeline.handedOver),
+      // Mirror of structured handovers for older readers.
+      handedOver: p.accounts.handovers.filter(h => h.account.trim()).map(h => ({
+        id: h.id, account: h.account, value: 0, nextStep: HANDOVER_STATUS_LABEL[h.status], nextStepDate: h.date,
+        note: [h.fromName && `from ${h.fromName}`, h.toName && `to ${h.toName}`].filter(Boolean).join(' '), daysWithoutMovement: null, autoFlagged: false,
+      })),
     },
+    accounts: {
+      atRisk: p.accounts.atRisk.filter(r => r.account.trim()).map(r => { const o: any = { ...r }; if (!o.signal) delete o.signal; return o; }),
+      renewals: p.accounts.renewals.filter(r => r.account.trim()),
+      growth: p.accounts.growth.filter(r => r.account.trim()),
+      handovers: p.accounts.handovers.filter(h => h.account.trim()),
+    },
+    revenueAtRisk: totalRevenueAtRisk(p.accounts),
+    ...(opts.role ? { kpiRole: kpiRoleGroup(opts.role) } : {}),
+    ...(opts.kpiActuals ? { kpiActuals: opts.kpiActuals } : {}),
     kpiTargets: p.kpiTargets,
     keyFocusMetrics: p.keyFocusMetrics,
     individualCommitment: p.individualCommitment,
@@ -548,16 +936,19 @@ export function buildNwaPayload(p: NwaPlan) {
     actionPlan: [...p.topPriorities, ...commitments.map(c => c.text)].filter(a => a && a.trim()),
     roadblocks,
     supportNeeded: p.challenges.resourcesRequired,
+    focusAccounts: focusAccountsMirror(p),
+    strategicFocus: strategicFocusMirror(p),
   };
 }
 
 /** How complete the form is, per section (for the progress rail). */
-export function sectionComplete(p: NwaPlan, id: NwaSectionId): boolean {
+export function sectionComplete(p: NwaPlan, id: NwaSectionId, role = 'BDM'): boolean {
   switch (id) {
     case 'wins': return !!(p.wins.customerWins || p.wins.closedOpportunities || p.wins.positiveFeedback || p.wins.teamRecognition || p.wins.shoutOut.teammate).trim();
     case 'appointments': return p.appointments.some(a => a.customer.trim());
     case 'pipeline': return Object.values(p.pipeline).some(rows => rows.some(r => r.account.trim()));
-    case 'kpis': return KPI_DEFS.every(k => p.kpiTargets[k.target] > 0);
+    case 'accounts': return Object.values(p.accounts).some((rows: any[]) => rows.some(r => str(r.account).trim()));
+    case 'kpis': return kpiDefsFor(role).every(k => p.kpiTargets[k.target] > 0);
     case 'priorities': return p.topPriorities.every(t => t.trim());
     case 'challenges': return !!(p.challenges.slowingProgress || p.challenges.customerIssues || p.challenges.internalIssues || p.challenges.resourcesRequired).trim();
     case 'updates': return true;
@@ -568,6 +959,20 @@ export function sectionComplete(p: NwaPlan, id: NwaSectionId): boolean {
 
 export function emptyBusinessUpdates(): NwaBusinessUpdates {
   return { pricingChanges: '', productUpdates: '', competitorActivity: '', other: '' };
+}
+
+/** Per-week doc id in appSettings (covered by the existing appSettings rule: staff read, leaders write). */
+export function businessUpdatesDocId(planWeek: string): string {
+  return `nwaBusinessUpdates_${planWeek}`;
+}
+
+/**
+ * Business updates for planWeek: the per-week doc (appSettings/nwaBusinessUpdates_{week}) when it has
+ * content, else the legacy single doc's byWeek[planWeek].
+ */
+export function resolveBusinessUpdates(weekDoc: any, legacyDoc: any, planWeek: string): NwaBusinessUpdates {
+  const fromWeek = businessUpdatesFor({ byWeek: { [planWeek]: weekDoc || {} } }, planWeek);
+  return hasBusinessUpdates(fromWeek) ? fromWeek : businessUpdatesFor(legacyDoc, planWeek);
 }
 
 export function businessUpdatesFor(doc: any, planWeek: string): NwaBusinessUpdates {

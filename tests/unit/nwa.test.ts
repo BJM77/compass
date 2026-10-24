@@ -86,7 +86,7 @@ describe('actuals', () => {
       callPlanCount: 4,
       deals: [{ stage: 'Closed Won', value: 1000 }, { stage: 'Proposal', value: 50 }],
     });
-    expect(a).toEqual({ calls: 20, appointments: 4, proposals: 3, deals: 1, revenue: 1000 });
+    expect(a).toEqual({ calls: 20, appointments: 4, proposals: 3, deals: 1, revenue: 1000, accountReviews: 4, renewals: 0, revenueRetained: 0 });
   });
 });
 
