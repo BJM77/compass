@@ -658,7 +658,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h2 className="text-xl font-black text-foreground">
+            <h2 className="text-xl font-black tabular-nums text-foreground">
               {docId ? 'Edit Fact Finding' : 'New Fact Finding'}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
@@ -775,14 +775,14 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
       {/* Print Header - Visible ONLY on Print */}
       <div className="hidden print:block mb-8 border-b-2 border-foreground/30 pb-4">
-        <h1 className="text-4xl font-black text-foreground tracking-tight">Fact Finding Report</h1>
+        <h1 className="text-4xl font-bold text-foreground tracking-tight">Fact Finding Report</h1>
         <div className="flex justify-between items-end mt-4">
           <div>
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Client / Prospect</p>
+            <p className="text-sm font-bold text-muted-foreground">Client / Prospect</p>
             <h2 className="text-2xl font-bold text-foreground">{formData.companyName || '____________________'}</h2>
           </div>
           <div className="text-right">
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Date</p>
+            <p className="text-sm font-bold text-muted-foreground">Date</p>
             <p className="text-lg font-bold text-foreground">{new Date().toLocaleDateString()}</p>
           </div>
         </div>
@@ -795,7 +795,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           
           <Card className="border-border shadow-sm print:shadow-none print:border-none">
             <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Building className="w-5 h-5 text-primary print:text-foreground" />
                 1. General Business Profile
               </CardTitle>
@@ -830,7 +830,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       checked={!!formData.inSalesforce}
                       onCheckedChange={(checked: boolean | 'indeterminate') => handleChange('inSalesforce', !!checked)}
                     />
-                    <Label htmlFor="inSalesforce" className="text-sm font-black text-foreground/85 cursor-pointer pt-0.5">In Salesforce</Label>
+                    <Label htmlFor="inSalesforce" className="text-sm font-semibold text-foreground/85 cursor-pointer pt-0.5">In Salesforce</Label>
                   </div>
                 </div>
                 {/* Stage Pipeline */}
@@ -841,7 +841,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       checked={!!formData.currentCustomer}
                       onCheckedChange={(checked: boolean | 'indeterminate') => handleChange('currentCustomer', !!checked)}
                     />
-                    <Label htmlFor="currentCustomer" className="text-sm font-black text-primary cursor-pointer print:text-xs">Current Customer</Label>
+                    <Label htmlFor="currentCustomer" className="text-sm font-semibold text-primary cursor-pointer print:text-xs">Current Customer</Label>
                   </div>
                   <div className="flex flex-wrap gap-2 print:hidden">
                     {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading', 'Down Trading'].map(s => (
@@ -860,7 +860,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     ))}
                   </div>
                   <div className="hidden print:block text-xs font-bold text-foreground">
-                    Stage: <span className="font-black text-primary">{formData.stage || 'Not specified'}</span>
+                    Stage: <span className="font-semibold text-primary">{formData.stage || 'Not specified'}</span>
                   </div>
                 </div>
               </div>
@@ -868,7 +868,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               <div className="space-y-2 print:hidden bg-accent/5 p-4 rounded-xl border border-accent/15">
                 <Label className="font-bold text-foreground/85 flex justify-between items-center">
                   <span>Current Note / Quick Update</span>
-                  <span className="text-[10px] text-accent font-bold uppercase tracking-wider">Archives on save</span>
+                  <span className="text-xs text-accent font-bold uppercase tracking-wide">Archives on save</span>
                 </Label>
                 <div className="flex gap-3 items-end">
                   <Textarea 
@@ -896,11 +896,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                 {formData.archivedNotes && formData.archivedNotes.length > 0 && (
                   <div className="mt-3 p-3 bg-card rounded-lg border border-accent/10 shadow-sm space-y-1">
-                    <span className="text-[9px] uppercase font-black text-accent block">Last Saved Note:</span>
+                    <span className="text-xs font-semibold text-accent block">Last Saved Note:</span>
                     <p className="text-xs font-semibold text-foreground whitespace-pre-wrap break-words leading-relaxed">
                       {formData.archivedNotes[formData.archivedNotes.length - 1].note}
                     </p>
-                    <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider flex justify-between pt-1 border-t border-border/60">
+                    <div className="text-xs text-muted-foreground font-bold uppercase tracking-wide flex justify-between pt-1 border-t border-border/60">
                       <span>By {formData.archivedNotes[formData.archivedNotes.length - 1].createdByName}</span>
                       <span>
                         {(() => {
@@ -968,7 +968,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               </div>
 
               <div className="border-t border-border/60 pt-6 mt-6">
-                <h3 className="text-sm font-black uppercase text-primary tracking-wider mb-4">Operational Needs</h3>
+                <h3 className="text-sm font-bold text-primary mb-4">Operational Needs</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="flex items-center space-x-3 bg-secondary/30 p-3 rounded-xl border border-border/60">
                     <Checkbox id="securityConcern" checked={formData.securityConcern} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('securityConcern', !!c)} className="print:border-muted-foreground/40" />
@@ -1003,7 +1003,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               </div>
 
               <div className="border-t border-border/60 pt-6 mt-6">
-                <h3 className="text-sm font-black uppercase text-primary tracking-wider mb-4">Advanced Details</h3>
+                <h3 className="text-sm font-bold text-primary mb-4">Advanced Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
                     <Label className="font-bold text-foreground/85">Primary Pain Points</Label>
@@ -1035,7 +1035,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
             <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                   <Package className="w-5 h-5 text-primary print:text-foreground" />
                   2. Domestic Freight Profile & Shipping Map
                 </CardTitle>
@@ -1112,9 +1112,9 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                   {/* MAP 1: OUTBOUND */}
                   <div className="bg-secondary/30 p-4 rounded-xl border border-border/60 flex flex-col items-center space-y-4">
                     <div className="text-center">
-                      <span className="text-[10px] font-black tracking-widest uppercase text-muted-foreground">Interactive Shipping Map</span>
+                      <span className="text-xs font-semibold text-muted-foreground">Interactive Shipping Map</span>
                       <h4 className="text-xs font-bold text-foreground/85 mb-1">Origin Perth (WA) Destination Lanes</h4>
-                      <p className="text-[10px] text-destructive font-bold uppercase tracking-wide">OUTBOUND (FROM PERTH)</p>
+                      <p className="text-xs text-destructive font-bold uppercase tracking-wide">OUTBOUND (FROM PERTH)</p>
                     </div>
                     <div className="relative w-full max-w-[280px] aspect-[420/520]">
                       <svg viewBox="0 0 420 520" className="w-full h-full select-none">
@@ -1142,12 +1142,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                         {/* Perth Origin Point */}
                         <circle cx={95} cy={330} r={6} className="fill-accent stroke-white stroke-2 animate-pulse" />
-                        <text x={95} y={320} className="text-[9px] font-black fill-accent text-anchor-middle">PERTH</text>
+                        <text x={95} y={320} className="text-xs font-semibold fill-accent text-anchor-middle">PERTH</text>
 
                         {/* Pilbara Origin Point */}
                         <g className="cursor-pointer" onClick={() => handleToggleStateFrom('PILBARA')}>
                           <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesFrom?.includes('PILBARA') ? 'fill-destructive animate-pulse' : 'fill-muted-foreground'} stroke-white stroke-1.5`} />
-                          <text x={80} y={190} className="text-[8px] font-black fill-foreground/80" textAnchor="middle">PILBARA</text>
+                          <text x={80} y={190} className="text-xs font-semibold fill-foreground/80" textAnchor="middle">PILBARA</text>
                         </g>
 
                         {/* Connection Lanes */}
@@ -1166,7 +1166,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 className="animate-[dash_2s_linear_infinite]"
                               />
                               <circle cx={state.x} cy={state.y} r={4} className="fill-accent stroke-white stroke-1.5" />
-                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-foreground/80 text-center" textAnchor="middle">
+                              <text x={state.x} y={state.y - 8} className="text-xs font-bold fill-foreground/80 text-center" textAnchor="middle">
                                 {state.id}: {state.dist}
                               </text>
                             </g>
@@ -1183,7 +1183,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             key={`btn-from-${state.id}`}
                             type="button"
                             onClick={() => handleToggleStateFrom(state.id)}
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
+                            className={`text-xs font-bold px-2 py-0.5 rounded transition-all ${
                               isSelected ? 'bg-destructive text-destructive-foreground shadow-sm' : 'bg-secondary hover:bg-border text-foreground/75'
                             }`}
                           >
@@ -1193,7 +1193,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       })}
                     </div>
                     <div className="w-full pt-2">
-                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Locations not near Capital City / Unique Notes</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground">Locations not near Capital City / Unique Notes</Label>
                       <Textarea 
                         placeholder="e.g. Bunbury, Kalgoorlie, Port Hedland..." 
                         value={formData.mapNotesFrom || ''} 
@@ -1207,9 +1207,9 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                   {/* MAP 2: INBOUND */}
                   <div className="bg-secondary/30 p-4 rounded-xl border border-border/60 flex flex-col items-center space-y-4">
                     <div className="text-center">
-                      <span className="text-[10px] font-black tracking-widest uppercase text-muted-foreground">Interactive Shipping Map</span>
+                      <span className="text-xs font-semibold text-muted-foreground">Interactive Shipping Map</span>
                       <h4 className="text-xs font-bold text-foreground/85 mb-1">Destination Perth (WA)</h4>
-                      <p className="text-[10px] text-warning-ink font-bold uppercase tracking-wide">INBOUND (TO PERTH)</p>
+                      <p className="text-xs text-warning-ink font-bold uppercase tracking-wide">INBOUND (TO PERTH)</p>
                     </div>
                     <div className="relative w-full max-w-[280px] aspect-[420/520]">
                       <svg viewBox="0 0 420 520" className="w-full h-full select-none">
@@ -1237,12 +1237,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                         {/* Perth Destination Point */}
                         <circle cx={95} cy={330} r={6} className="fill-accent stroke-white stroke-2 animate-pulse" />
-                        <text x={95} y={320} className="text-[9px] font-black fill-accent text-anchor-middle">PERTH</text>
+                        <text x={95} y={320} className="text-xs font-semibold fill-accent text-anchor-middle">PERTH</text>
 
                         {/* Pilbara Destination Point */}
                         <g className="cursor-pointer" onClick={() => handleToggleStateTo('PILBARA')}>
                           <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesTo?.includes('PILBARA') ? 'fill-gold animate-pulse' : 'fill-muted-foreground'} stroke-white stroke-1.5`} />
-                          <text x={80} y={190} className="text-[8px] font-black fill-foreground/80" textAnchor="middle">PILBARA</text>
+                          <text x={80} y={190} className="text-xs font-semibold fill-foreground/80" textAnchor="middle">PILBARA</text>
                         </g>
 
                         {/* Connection Lanes */}
@@ -1261,7 +1261,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 className="animate-[dash_2s_linear_reverse_infinite]"
                               />
                               <circle cx={state.x} cy={state.y} r={4} className="fill-accent stroke-white stroke-1.5" />
-                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-foreground/80 text-center" textAnchor="middle">
+                              <text x={state.x} y={state.y - 8} className="text-xs font-bold fill-foreground/80 text-center" textAnchor="middle">
                                 {state.id}: {state.dist}
                               </text>
                             </g>
@@ -1278,7 +1278,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             key={`btn-to-${state.id}`}
                             type="button"
                             onClick={() => handleToggleStateTo(state.id)}
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
+                            className={`text-xs font-bold px-2 py-0.5 rounded transition-all ${
                               isSelected ? 'bg-warning text-warning-foreground shadow-sm' : 'bg-secondary hover:bg-border text-foreground/75'
                             }`}
                           >
@@ -1288,7 +1288,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       })}
                     </div>
                     <div className="w-full pt-2">
-                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Locations not near Capital City / Unique Notes</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground">Locations not near Capital City / Unique Notes</Label>
                       <Textarea 
                         placeholder="e.g. Albany, Geraldton, Broome..." 
                         value={formData.mapNotesTo || ''} 
@@ -1304,21 +1304,21 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               <div className="hidden print:block border-t border-border pt-4 space-y-4">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <h5 className="text-xs font-bold text-foreground/85 uppercase tracking-widest mb-1">Outbound Lanes (From Perth)</h5>
+                    <h5 className="text-xs font-bold text-foreground/85 mb-1">Outbound Lanes (From Perth)</h5>
                     <p className="text-sm font-bold text-foreground">{(formData.selectedStatesFrom || []).join(', ') || 'None selected'}</p>
                     {formData.mapNotesFrom && (
                       <div className="mt-2">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Locations not near Capital City / Unique Notes:</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase">Locations not near Capital City / Unique Notes:</p>
                         <p className="text-xs font-medium text-foreground whitespace-pre-wrap">{formData.mapNotesFrom}</p>
                       </div>
                     )}
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-foreground/85 uppercase tracking-widest mb-1">Inbound Lanes (To Perth)</h5>
+                    <h5 className="text-xs font-bold text-foreground/85 mb-1">Inbound Lanes (To Perth)</h5>
                     <p className="text-sm font-bold text-foreground">{(formData.selectedStatesTo || []).join(', ') || 'None selected'}</p>
                     {formData.mapNotesTo && (
                       <div className="mt-2">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Locations not near Capital City / Unique Notes:</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase">Locations not near Capital City / Unique Notes:</p>
                         <p className="text-xs font-medium text-foreground whitespace-pre-wrap">{formData.mapNotesTo}</p>
                       </div>
                     )}
@@ -1332,7 +1332,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           {/* Clickable Carrier Services Grid (TGE WA Network) */}
           <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
             <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Truck className="w-5 h-5 text-primary print:text-foreground" />
                 3. TGE Parcel Network Western Australia Services
               </CardTitle>
@@ -1344,14 +1344,14 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               <div className="border border-border rounded-xl overflow-hidden shadow-inner bg-secondary/10 p-4 print:hidden">
                 
                 {/* Visual Header */}
-                <div className="bg-success text-success-foreground py-3 px-4 text-center rounded-lg font-black text-lg mb-6 shadow-sm flex items-center justify-center gap-2 print:border print:border-border print:text-foreground print:bg-transparent">
+                <div className="bg-success text-success-foreground py-3 px-4 text-center rounded-lg font-bold text-lg mb-6 shadow-sm flex items-center justify-center gap-2 print:border print:border-border print:text-foreground print:bg-transparent">
                   <Truck className="w-5 h-5" />
                   Team Global Express Parcel Network Western Australia
                 </div>
 
                 {/* Pricing Information (Restricted to Admin/Leader edit, visible to all) */}
                 <div className="mb-6 p-4 rounded-xl border border-success/25 bg-success-soft/30 shadow-sm print:border-border print:bg-transparent">
-                  <Label className="text-xs font-black uppercase text-success-ink tracking-wider flex items-center gap-1.5 mb-2">
+                  <Label className="text-xs font-semibold text-success-ink flex items-center gap-1.5 mb-2">
                     <Coins className="w-4 h-4 text-success" />
                     Pricing & Rate Agreement Info (Leaders & Site Admins Only Edit)
                   </Label>
@@ -1375,11 +1375,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                   
                   {/* Speed Column: Next Available Road & Air */}
                   <div className="space-y-4">
-                    <div className="bg-success text-success-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-success text-success-foreground font-semibold text-xs py-2 px-3 rounded-md text-center shadow-sm">
                       Next Available Road & Air
                     </div>
                     <div className="bg-success/10 p-2 rounded-lg space-y-2 border border-success/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-success-ink uppercase tracking-widest block text-center mb-1">Priority Services / Premium</span>
+                      <span className="text-xs font-semibold text-success-ink block text-center mb-1">Priority Services / Premium</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Next Available')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
@@ -1393,15 +1393,15 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               }`}
                             >
                               <div className="flex justify-between items-start mb-1">
-                                <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                <span className="text-xs font-semibold tracking-tight">{s.name}</span>
                                 {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                               </div>
-                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                              <span className="text-xs font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-xs font-semibold text-muted-foreground">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
@@ -1430,7 +1430,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
                                   <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
+                                    <Label className="text-xs font-semibold text-success-ink block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
@@ -1441,7 +1441,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-xs text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1457,11 +1457,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                   {/* Speed Column: Tomorrow Road & Air */}
                   <div className="space-y-4">
-                    <div className="bg-success text-success-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-success text-success-foreground font-semibold text-xs py-2 px-3 rounded-md text-center shadow-sm">
                       Tomorrow Road & Air
                     </div>
                     <div className="bg-success/10 p-2 rounded-lg space-y-2 border border-success/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-success-ink uppercase tracking-widest block text-center mb-1">Priority Services</span>
+                      <span className="text-xs font-semibold text-success-ink block text-center mb-1">Priority Services</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Tomorrow')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         const isIntl = s.id === 'tom-intl-air-sea';
@@ -1479,17 +1479,17 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             >
                               <div className="flex justify-between items-start mb-1">
                                 <div className="flex flex-col">
-                                  <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
-                                  <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                  <span className="text-xs font-semibold opacity-75">{s.tier}</span>
+                                  <span className="text-xs font-semibold tracking-tight">{s.name}</span>
                                 </div>
                                 {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                               </div>
-                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                              <span className="text-xs font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-xs font-semibold text-muted-foreground">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
@@ -1518,7 +1518,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
                                   <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
+                                    <Label className="text-xs font-semibold text-success-ink block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
@@ -1529,7 +1529,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-xs text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1545,11 +1545,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                   {/* Speed Column: 1 - 8 Days Road */}
                   <div className="space-y-4">
-                    <div className="bg-warning text-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-warning text-foreground font-semibold text-xs py-2 px-3 rounded-md text-center shadow-sm">
                       1 - 8 Days Road
                     </div>
                     <div className="bg-warning/10 p-2 rounded-lg space-y-2 border border-warning/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-warning-ink uppercase tracking-widest block text-center mb-1">IPEC Road Services</span>
+                      <span className="text-xs font-semibold text-warning-ink block text-center mb-1">IPEC Road Services</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('1-8 Days')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
@@ -1564,17 +1564,17 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             >
                               <div className="flex justify-between items-start mb-1">
                                 <div className="flex flex-col">
-                                  <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
-                                  <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                  <span className="text-xs font-semibold opacity-75">{s.tier}</span>
+                                  <span className="text-xs font-semibold tracking-tight">{s.name}</span>
                                 </div>
                                 {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                               </div>
-                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                              <span className="text-xs font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-xs font-semibold text-muted-foreground">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
@@ -1603,7 +1603,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
                                   <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
+                                    <Label className="text-xs font-semibold text-success-ink block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
@@ -1614,7 +1614,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-xs text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1630,11 +1630,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                   {/* Speed Column: Courier */}
                   <div className="space-y-4">
-                    <div className="bg-panel/90 text-panel-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-panel/90 text-panel-foreground font-semibold text-xs py-2 px-3 rounded-md text-center shadow-sm">
                       Courier Network
                     </div>
                     <div className="bg-panel/10 p-2 rounded-lg space-y-2 border border-panel-foreground/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-foreground/85 uppercase tracking-widest block text-center mb-1">TGE Courier</span>
+                      <span className="text-xs font-semibold text-foreground/85 block text-center mb-1">TGE Courier</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Courier')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
@@ -1649,17 +1649,17 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             >
                               <div className="flex justify-between items-start mb-1">
                                 <div className="flex flex-col">
-                                  <span className="text-[8px] font-black uppercase opacity-75">{s.tier}</span>
-                                  <span className="text-xs font-black tracking-tight">{s.name}</span>
+                                  <span className="text-xs font-semibold opacity-75">{s.tier}</span>
+                                  <span className="text-xs font-semibold tracking-tight">{s.name}</span>
                                 </div>
                                 {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
                               </div>
-                              <span className="text-[8px] font-bold opacity-80 leading-tight">{s.weight}</span>
+                              <span className="text-xs font-bold opacity-80 leading-tight">{s.weight}</span>
                             </div>
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-xs font-semibold text-muted-foreground">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
@@ -1688,7 +1688,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
                                   <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
+                                    <Label className="text-xs font-semibold text-success-ink block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
@@ -1699,7 +1699,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-xs text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1721,7 +1721,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
               {/* Selected Services Print Version (Clean Static List for PDF) */}
               <div className="hidden print:block pt-1 space-y-3">
-                <h4 className="text-xs font-black text-foreground uppercase tracking-wider mb-2">Required Carrier Services</h4>
+                <h4 className="text-xs font-bold text-foreground mb-2">Required Carrier Services</h4>
                 {formData.selectedServices && formData.selectedServices.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3">
                     {formData.selectedServices.map(sid => {
@@ -1732,14 +1732,14 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       return (
                         <div key={sid} className="border border-border p-2.5 rounded-lg text-xs bg-secondary/20">
                           <div className="flex justify-between items-start">
-                            <span className="font-black text-foreground">{s.name} ({s.speed})</span>
-                            <span className="text-foreground/75 font-bold text-[10px]">{s.weight}</span>
+                            <span className="font-semibold text-foreground">{s.name} ({s.speed})</span>
+                            <span className="text-foreground/75 font-bold text-xs">{s.weight}</span>
                           </div>
-                          {note && <p className="mt-1.5 text-foreground/85 font-medium whitespace-pre-wrap text-[11px] leading-snug">{note}</p>}
+                          {note && <p className="mt-1.5 text-foreground/85 font-medium whitespace-pre-wrap text-xs leading-snug">{note}</p>}
                           {adminNote && (
                             <div className="mt-2 pt-1.5 border-t border-border">
-                              <span className="text-[8px] font-black uppercase text-success-ink block">Admin Information</span>
-                              <p className="text-foreground/85 font-medium whitespace-pre-wrap text-[10px] leading-snug">{adminNote}</p>
+                              <span className="text-xs font-semibold text-success-ink block">Admin Information</span>
+                              <p className="text-foreground/85 font-medium whitespace-pre-wrap text-xs leading-snug">{adminNote}</p>
                             </div>
                           )}
                         </div>
@@ -1752,7 +1752,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                 {formData.pricingInfo && (
                   <div className="mt-3 border-t border-border pt-2">
-                    <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider mb-1">Pricing & Rate Agreement Info</h5>
+                    <h5 className="text-xs font-bold text-foreground mb-1">Pricing & Rate Agreement Info</h5>
                     <p className="text-xs font-medium text-foreground/85 whitespace-pre-wrap">{formData.pricingInfo}</p>
                   </div>
                 )}
@@ -1763,7 +1763,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
           <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
             <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-primary print:text-foreground" />
                 4. Expectations & Pain Points
               </CardTitle>
@@ -1790,7 +1790,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           {formData.currentCustomer && (
             <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
               <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
-                <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                   5. Down Trading
                 </CardTitle>
               </CardHeader>
@@ -1836,7 +1836,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           {/* Archived Notes Section */}
           <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
             <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary print:text-foreground" />
                 7. Archived Notes
               </CardTitle>
@@ -1846,7 +1846,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                 <div className="space-y-3">
                   {formData.archivedNotes.slice(0, -1).reverse().map((noteObj, idx) => (
                     <div key={idx} className="bg-secondary/60 p-4 rounded-xl border border-border/60 space-y-1.5 break-words">
-                      <div className="flex justify-between items-center text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                      <div className="flex justify-between items-center text-xs text-muted-foreground font-bold uppercase tracking-wide">
                         <span>By {noteObj.createdByName}</span>
                         <span>
                           {noteObj.createdAt ? (
@@ -1923,7 +1923,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
         <Dialog open={isWsFormOpen} onOpenChange={setIsWsFormOpen}>
           <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-6 bg-secondary/30">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-xl font-black uppercase text-foreground flex items-center gap-2">
+              <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
                 <LayoutGrid className="w-5 h-5 text-warning-ink" />
                 White Space Analysis — {formData.companyName || 'Lead Diagnostic'}
               </DialogTitle>
@@ -1950,11 +1950,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           <DialogContent className="max-w-5xl max-h-[92vh] p-0 flex flex-col overflow-hidden bg-card shadow-2xl border border-border rounded-2xl">
             <DialogHeader className="p-6 border-b border-border/60 flex flex-row items-center justify-between shrink-0">
               <div>
-                <DialogTitle className="text-xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
+                <DialogTitle className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                   <LayoutGrid className="w-5 h-5 text-info" />
                   White Space Diagnostic
                 </DialogTitle>
-                <DialogDescription className="font-bold text-xs uppercase text-muted-foreground mt-1">
+                <DialogDescription className="font-bold text-xs text-muted-foreground mt-1">
                   Account: {formData.companyName || 'Document'}
                 </DialogDescription>
               </div>
@@ -2014,7 +2014,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     <LayoutGrid className="w-8 h-8" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black uppercase text-foreground/85">No White Space Found</h3>
+                    <h3 className="text-base font-bold text-foreground/85">No White Space Found</h3>
                     <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto font-medium">
                       No White Space analysis has been completed yet for <span className="font-bold text-foreground/85">"{formData.companyName || 'this account'}"</span>.
                     </p>
@@ -2024,7 +2024,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       setIsViewWsOpen(false);
                       setIsWsFormOpen(true);
                     }}
-                    className="bg-warning hover:bg-warning/90 text-warning-foreground font-black text-xs uppercase h-10 px-6 gap-2 shadow-md"
+                    className="bg-warning hover:bg-warning/90 text-warning-foreground font-semibold text-xs h-10 px-6 gap-2 shadow-md"
                   >
                     <LayoutGrid className="w-4 h-4" />
                     Complete White Space Now

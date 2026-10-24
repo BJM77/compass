@@ -108,7 +108,7 @@ export function DeveloperDiagnostics() {
       >
         <button
           onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-2xl transition-all duration-300 border text-xs font-black uppercase tracking-wider backdrop-blur-md ${
+          className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-2xl transition-all duration-300 border text-xs font-semibold backdrop-blur-md ${
             errorsCount > 0 
               ? 'bg-destructive/80 text-panel-foreground/80 border-destructive hover:bg-destructive/90 shadow-destructive/10' 
               : warningsCount > 0
@@ -120,11 +120,11 @@ export function DeveloperDiagnostics() {
           <Wrench className={`w-3.5 h-3.5 ${isDeepAuditing ? 'animate-spin text-gold' : ''}`} />
           <span className="font-mono">Dev Diagnostics</span>
           {errorsCount > 0 ? (
-            <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[10px] font-mono">
+            <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs font-mono">
               {errorsCount}
             </span>
           ) : warningsCount > 0 ? (
-            <span className="w-5 h-5 rounded-full bg-warning text-warning-foreground flex items-center justify-center text-[10px] font-mono">
+            <span className="w-5 h-5 rounded-full bg-warning text-warning-foreground flex items-center justify-center text-xs font-mono">
               {warningsCount}
             </span>
           ) : (
@@ -147,12 +147,12 @@ export function DeveloperDiagnostics() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-black uppercase tracking-wider text-white">Developer Diagnostics</h2>
-                  <Badge variant="outline" className="text-[9px] bg-success-fill/10 text-success-fill border-success-fill/30">
+                  <h2 className="text-sm font-bold text-white">Developer Diagnostics</h2>
+                  <Badge variant="outline" className="text-xs bg-success-fill/10 text-success-fill border-success-fill/30">
                     Super Admin
                   </Badge>
                 </div>
-                <p className="text-[10px] text-muted-foreground font-mono">Active Page: <strong className="text-accent">{currentView}</strong></p>
+                <p className="text-xs text-muted-foreground font-mono">Active Page: <strong className="text-accent">{currentView}</strong></p>
               </div>
             </div>
 
@@ -182,10 +182,10 @@ export function DeveloperDiagnostics() {
             {/* System Context Banner */}
             <div className="bg-panel/90 border border-panel-foreground/15 p-3 rounded-2xl space-y-2 text-xs">
               <div className="flex items-center justify-between border-b border-foreground/25 pb-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-panel-foreground/60">Session Context</span>
-                <span className="font-mono text-[10px] text-success-fill font-bold">{user?.email}</span>
+                <span className="text-xs font-semibold text-panel-foreground/60">Session Context</span>
+                <span className="font-mono text-xs text-success-fill font-bold">{user?.email}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                 <div>
                   <span className="text-panel-foreground/60">Sales Week:</span> <strong className="text-white">{currentWeek}</strong>
                 </div>
@@ -209,10 +209,10 @@ export function DeveloperDiagnostics() {
               >
                 <div className="flex items-center gap-2">
                   <Database className="w-4 h-4 text-accent" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">Page Collections (In-Memory)</h3>
+                  <h3 className="text-xs font-bold text-panel-foreground/90">Page Collections (In-Memory)</h3>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] border-panel-foreground/15 bg-panel/90 text-panel-foreground/70">
+                  <Badge variant="outline" className="text-xs border-panel-foreground/15 bg-panel/90 text-panel-foreground/70">
                     {activeReport?.collections?.length || 0} Registered
                   </Badge>
                   {expandedSections.collections ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
@@ -227,28 +227,28 @@ export function DeveloperDiagnostics() {
                     </div>
                   ) : (
                     activeReport.collections.map((coll, idx) => (
-                      <div key={coll.name + idx} className="py-2.5 flex items-center justify-between first:pt-0 last:pb-0 font-mono text-[11px]">
+                      <div key={coll.name + idx} className="py-2.5 flex items-center justify-between first:pt-0 last:pb-0 font-mono text-xs">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
                             <span className="text-panel-foreground/90 font-bold">{coll.name}</span>
                             {coll.status === 'ready' && coll.count === 0 && (
-                              <Badge className="bg-panel/90 text-panel-foreground/60 border-panel-foreground/15 text-[9px] py-0">EMPTY</Badge>
+                              <Badge className="bg-panel/90 text-panel-foreground/60 border-panel-foreground/15 text-xs py-0">EMPTY</Badge>
                             )}
                             {coll.status === 'error' && (
-                              <Badge className="bg-destructive/90 text-destructive border-destructive text-[9px] py-0">ERROR</Badge>
+                              <Badge className="bg-destructive/90 text-destructive border-destructive text-xs py-0">ERROR</Badge>
                             )}
                             {coll.status === 'permission-denied' && (
-                              <Badge className="bg-destructive/90 text-panel-foreground/80 border-destructive text-[9px] py-0">DENIED</Badge>
+                              <Badge className="bg-destructive/90 text-panel-foreground/80 border-destructive text-xs py-0">DENIED</Badge>
                             )}
                             {coll.status === 'loading' && (
-                              <Badge className="bg-warning/90 text-gold border-warning text-[9px] py-0">LOADING</Badge>
+                              <Badge className="bg-warning/90 text-gold border-warning text-xs py-0">LOADING</Badge>
                             )}
                           </div>
                           {coll.error && (
-                            <p className="text-[10px] text-destructive font-sans">{coll.error}</p>
+                            <p className="text-xs text-destructive font-sans">{coll.error}</p>
                           )}
                           {coll.sampleNames && coll.sampleNames.length > 0 && (
-                            <p className="text-[10px] text-muted-foreground font-sans truncate max-w-[320px]">
+                            <p className="text-xs text-muted-foreground font-sans truncate max-w-[320px]">
                               Samples: {coll.sampleNames.join(', ')}
                             </p>
                           )}
@@ -275,7 +275,7 @@ export function DeveloperDiagnostics() {
                 >
                   <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-gold" />
-                    <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">View Metrics & State</h3>
+                    <h3 className="text-xs font-bold text-panel-foreground/90">View Metrics & State</h3>
                   </div>
                   {expandedSections.metrics ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                 </button>
@@ -284,8 +284,8 @@ export function DeveloperDiagnostics() {
                   <div className="p-3 grid grid-cols-2 gap-2 text-xs font-mono">
                     {Object.entries(activeReport.customMetrics).map(([key, val]) => (
                       <div key={key} className="bg-panel/60 p-2 rounded-xl border border-panel-foreground/10">
-                        <span className="text-[10px] text-muted-foreground block truncate">{key}</span>
-                        <strong className="text-panel-foreground/90 text-[11px] truncate block">
+                        <span className="text-xs text-muted-foreground block truncate">{key}</span>
+                        <strong className="text-panel-foreground/90 text-xs truncate block">
                           {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
                         </strong>
                       </div>
@@ -303,9 +303,9 @@ export function DeveloperDiagnostics() {
               >
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-gold" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">Detected Issues & Heuristics</h3>
+                  <h3 className="text-xs font-bold text-panel-foreground/90">Detected Issues & Heuristics</h3>
                 </div>
-                <Badge variant="outline" className={`text-[10px] ${issues.length > 0 ? 'bg-warning/10 text-gold border-warning/30' : 'bg-panel/90 text-panel-foreground/60'}`}>
+                <Badge variant="outline" className={`text-xs ${issues.length > 0 ? 'bg-warning/10 text-gold border-warning/30' : 'bg-panel/90 text-panel-foreground/60'}`}>
                   {issues.length}
                 </Badge>
               </button>
@@ -332,11 +332,11 @@ export function DeveloperDiagnostics() {
                             {issue.severity === 'error' ? <AlertCircle className="w-3.5 h-3.5 text-destructive" /> : <AlertTriangle className="w-3.5 h-3.5 text-gold" />}
                             {issue.title}
                           </span>
-                          <span className="text-[10px] uppercase font-mono tracking-widest opacity-75">{issue.category}</span>
+                          <span className="text-xs uppercase font-mono tracking-wide opacity-75">{issue.category}</span>
                         </div>
-                        <p className="text-[11px] opacity-90">{issue.detail}</p>
+                        <p className="text-xs opacity-90">{issue.detail}</p>
                         {issue.docIds && issue.docIds.length > 0 && (
-                          <p className="text-[10px] font-mono text-muted-foreground truncate">
+                          <p className="text-xs font-mono text-muted-foreground truncate">
                             Doc IDs: {issue.docIds.join(', ')}
                           </p>
                         )}
@@ -355,31 +355,31 @@ export function DeveloperDiagnostics() {
               >
                 <div className="flex items-center gap-2">
                   <Layers className="w-4 h-4 text-chart-5" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">Deep Identity & Orphan Audit (Opt-in)</h3>
+                  <h3 className="text-xs font-bold text-panel-foreground/90">Deep Identity & Orphan Audit (Opt-in)</h3>
                 </div>
                 {expandedSections.deepAudit ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
               </button>
 
               {expandedSections.deepAudit && (
                 <div className="p-3 space-y-3 text-xs">
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Scans 9 primary collections against the registry to detect orphaned records from ex-employees or unmigrated legacy IDs.
                   </p>
 
                   <Button
                     onClick={runDeepAudit}
                     disabled={isDeepAuditing}
-                    className="w-full h-9 bg-chart-5 hover:bg-chart-5/90 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2"
+                    className="w-full h-9 bg-chart-5 hover:bg-chart-5/90 text-white font-semibold text-xs rounded-xl shadow-md flex items-center justify-center gap-2"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isDeepAuditing ? 'animate-spin' : ''}`} />
                     {isDeepAuditing ? 'Auditing Database...' : 'Run Deep Audit Now'}
                   </Button>
 
                   {deepAuditResults && (
-                    <div className="mt-3 bg-panel p-3 rounded-xl border border-panel-foreground/15 space-y-2 font-mono text-[11px]">
+                    <div className="mt-3 bg-panel p-3 rounded-xl border border-panel-foreground/15 space-y-2 font-mono text-xs">
                       <div className="flex items-center justify-between border-b border-foreground/30 pb-1.5">
-                        <span className="text-panel-foreground/60 text-[10px]">Registered Users: {deepAuditResults.totalRegisteredUsers}</span>
-                        <span className="text-chart-5 text-[10px]">{deepAuditResults.scanDurationMs}ms</span>
+                        <span className="text-panel-foreground/60 text-xs">Registered Users: {deepAuditResults.totalRegisteredUsers}</span>
+                        <span className="text-chart-5 text-xs">{deepAuditResults.scanDurationMs}ms</span>
                       </div>
                       
                       {deepAuditResults.auditedCollections && Object.entries(deepAuditResults.auditedCollections).map(([name, stat]: [string, any]) => (

@@ -296,7 +296,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
       <Loader2 className="w-10 h-10 text-accent animate-spin" />
-      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Accessing Expansion Archive...</p>
+      <p className="text-xs font-semibold text-muted-foreground">Accessing Expansion Archive...</p>
     </div>
   );
 
@@ -306,11 +306,11 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
       <div className="lg:col-span-4 space-y-4">
         <header className="px-1 flex justify-between items-center">
           <div>
-            <h2 className="text-sm font-black uppercase tracking-tighter text-primary flex items-center gap-2">
+            <h2 className="text-sm font-bold tracking-tighter text-primary flex items-center gap-2">
               <History className="w-4 h-4 text-accent" />
               Strategic Archive
             </h2>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Permanent Diagnostic Repository</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mt-0.5">Permanent Diagnostic Repository</p>
           </div>
           {/* View Toggle (List vs Card) */}
           <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl border border-border">
@@ -352,7 +352,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
             <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-secondary/60">
-                  <TableRow className="uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableRow className="text-xs font-semibold border-b">
                     <TableHead className="py-2.5 pl-3">Account</TableHead>
                     <TableHead className="py-2.5 px-2 text-right">Actions</TableHead>
                   </TableRow>
@@ -367,20 +367,20 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                         key={plan.id}
                         onClick={() => setSelectedPlanId(plan.id)}
                         className={`cursor-pointer transition-colors ${
-                          isSelected ? 'bg-accent/10 font-black text-primary' : 'hover:bg-secondary/60'
+                          isSelected ? 'bg-accent/10 font-semibold text-primary' : 'hover:bg-secondary/60'
                         }`}
                       >
                         <TableCell className="py-2.5 pl-3">
-                          <p className={`text-xs uppercase leading-tight truncate max-w-[150px] ${isSelected ? 'font-black text-accent' : 'font-bold text-foreground'}`}>
+                          <p className={`text-xs leading-tight truncate max-w-[150px] ${isSelected ? 'font-semibold text-accent' : 'font-bold text-foreground'}`}>
                             {plan.accountName}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[9px] font-bold text-muted-foreground">
+                            <span className="text-xs font-bold text-muted-foreground">
                               {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d') : ''}
                             </span>
                             <SharedBadge name={plan.sharedByName} />
                             {isElevated && plan.userId && (
-                              <span className="text-[9px] font-bold text-accent truncate max-w-[90px]">
+                              <span className="text-xs font-bold text-accent truncate max-w-[90px]">
                                 • {userMap[plan.userId] || 'Unknown'}
                               </span>
                             )}
@@ -435,7 +435,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-1.5">
                          <Calendar className="w-3 h-3 text-muted-foreground" />
-                         <span className="text-[9px] font-bold text-muted-foreground uppercase">
+                         <span className="text-xs font-bold text-muted-foreground uppercase">
                            {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, p') : 'Just now'}
                          </span>
                       </div>
@@ -463,12 +463,12 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                         )}
                       </div>
                     </div>
-                    <p className="text-sm font-black text-primary uppercase leading-tight truncate pr-2">{plan.accountName}</p>
+                    <p className="text-sm font-semibold text-primary leading-tight truncate pr-2">{plan.accountName}</p>
                     <SharedBadge name={plan.sharedByName} className="mt-1" />
                     {isElevated && plan.userId && (
                       <div className="flex items-center gap-1.5 mt-1.5">
                         <UserIcon className="w-3 h-3 text-accent" />
-                        <span className="text-[10px] font-bold text-accent uppercase tracking-wider">{userMap[plan.userId] || 'Unknown User'}</span>
+                        <span className="text-xs font-bold text-accent uppercase tracking-wide">{userMap[plan.userId] || 'Unknown User'}</span>
                       </div>
                     )}
                     <div className="mt-3 flex justify-between items-center">
@@ -487,7 +487,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
           {filteredPlans.length === 0 && (
             <div className="text-center py-20 bg-card rounded-2xl border-2 border-dashed">
               <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-relaxed">
+              <p className="text-xs font-semibold text-muted-foreground leading-relaxed">
                 No expansion plans match your search.
               </p>
             </div>
@@ -502,10 +502,10 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
             <Card className="border-none shadow-2xl bg-card overflow-hidden">
                <CardHeader className="bg-panel text-panel-foreground pb-8">
                   <div className="flex justify-between items-start mb-4">
-                     <Badge className="bg-accent text-accent-foreground border-none font-black text-[9px] uppercase tracking-widest">Diagnostic Record</Badge>
+                     <Badge className="bg-accent text-accent-foreground border-none font-semibold text-xs">Diagnostic Record</Badge>
                      <Button 
                        onClick={(e) => handleExportPdf(selectedPlan, e)}
-                       className="bg-white/10 hover:bg-white/20 text-white font-black text-[10px] uppercase h-8 px-3 gap-1.5 rounded-lg border border-white/20"
+                       className="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs h-8 px-3 gap-1.5 rounded-lg border border-white/20"
                      >
                        <Download className="w-3.5 h-3.5 text-accent" /> EXPORT PDF
                      </Button>
@@ -519,7 +519,7 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                         className="text-left group/sf flex items-center gap-3 transition-colors"
                         title="Click to search in Salesforce"
                       >
-                        <CardTitle className="text-3xl font-black tracking-tight uppercase group-hover/sf:text-accent transition-colors flex items-center gap-2">
+                        <CardTitle className="text-3xl font-black tabular-nums tracking-tight group-hover/sf:text-accent transition-colors flex items-center gap-2">
                           {selectedPlan.accountName}
                           <ExternalLink className="w-5 h-5 text-accent opacity-0 group-hover/sf:opacity-100 transition-opacity" />
                         </CardTitle>
@@ -536,30 +536,30 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                     {canEdit && (
                       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button className="bg-accent hover:bg-accent/80 text-accent-foreground font-black text-[10px] uppercase h-10 px-4 gap-2 shadow-md">
+                          <Button className="bg-accent hover:bg-accent/80 text-accent-foreground font-semibold text-xs h-10 px-4 gap-2 shadow-md">
                             <Edit3 className="w-3.5 h-3.5" /> EDIT DIAGNOSTIC
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle className="text-xl font-black uppercase text-primary">Edit Whitespace Diagnostic</DialogTitle>
+                            <DialogTitle className="text-xl font-bold text-primary">Edit Whitespace Diagnostic</DialogTitle>
                             <DialogDescription className="text-xs">Update account expansion diagnostics and rationale models.</DialogDescription>
                           </DialogHeader>
 
                           <div className="space-y-6 my-4">
                             <div className="space-y-2">
-                              <Label className="text-xs font-black uppercase">Account Name</Label>
+                              <Label className="text-xs font-semibold">Account Name</Label>
                               <Input 
                                 value={editAccountName} 
                                 onChange={(e) => setEditAccountName(e.target.value)} 
-                                className="font-black uppercase text-xs"
+                                className="font-semibold text-xs"
                               />
                             </div>
 
                             <Separator />
 
                             <div className="space-y-6">
-                              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Service Configuration Matrix</h3>
+                              <h3 className="text-xs font-bold text-muted-foreground">Service Configuration Matrix</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {SERVICES.map(service => {
                                   const config = editConfigs[service] || {
@@ -571,58 +571,58 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                                   };
                                   return (
                                     <div key={service} className="p-4 border rounded-2xl bg-secondary/60 space-y-3">
-                                      <h4 className="text-xs font-black uppercase text-primary border-b pb-1">{service}</h4>
+                                      <h4 className="text-xs font-bold text-primary border-b pb-1">{service}</h4>
                                       
                                       <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                          <Label className="text-[9px] font-black uppercase text-muted-foreground">Strategy State</Label>
+                                          <Label className="text-xs font-semibold text-muted-foreground">Strategy State</Label>
                                           <Select 
                                             value={config.state} 
                                             onValueChange={(val: ServiceState) => handleUpdateConfig(service, 'state', val)}
                                           >
-                                            <SelectTrigger className="h-8 text-[9px] font-black uppercase bg-card"><SelectValue /></SelectTrigger>
-                                            <SelectContent>{STATES.map(s => <SelectItem key={s} value={s} className="text-[9px] uppercase font-bold">{s.replace('_', ' ')}</SelectItem>)}</SelectContent>
+                                            <SelectTrigger className="h-8 text-xs font-semibold bg-card"><SelectValue /></SelectTrigger>
+                                            <SelectContent>{STATES.map(s => <SelectItem key={s} value={s} className="text-xs uppercase font-bold">{s.replace('_', ' ')}</SelectItem>)}</SelectContent>
                                           </Select>
                                         </div>
                                         
                                         <div className="space-y-1">
-                                          <Label className="text-[9px] font-black uppercase text-muted-foreground">Priority</Label>
+                                          <Label className="text-xs font-semibold text-muted-foreground">Priority</Label>
                                           <Select 
                                             value={config.priority} 
                                             onValueChange={(val: Priority) => handleUpdateConfig(service, 'priority', val)}
                                           >
-                                            <SelectTrigger className="h-8 text-[9px] font-black uppercase bg-card"><SelectValue /></SelectTrigger>
-                                            <SelectContent>{PRIORITIES.map(p => <SelectItem key={p} value={p} className="text-[9px] uppercase font-bold">{p}</SelectItem>)}</SelectContent>
+                                            <SelectTrigger className="h-8 text-xs font-semibold bg-card"><SelectValue /></SelectTrigger>
+                                            <SelectContent>{PRIORITIES.map(p => <SelectItem key={p} value={p} className="text-xs uppercase font-bold">{p}</SelectItem>)}</SelectContent>
                                           </Select>
                                         </div>
                                       </div>
 
                                       <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                          <Label className="text-[9px] font-black uppercase text-muted-foreground">Current Spend</Label>
+                                          <Label className="text-xs font-semibold text-muted-foreground">Current Spend</Label>
                                           <Input 
                                             type="number" 
                                             value={config.currentSpend} 
                                             onChange={(e) => handleUpdateConfig(service, 'currentSpend', e.target.value === '' ? '' : parseFloat(e.target.value))} 
-                                            className="h-8 text-[10px] font-black bg-card" 
+                                            className="h-8 text-xs font-semibold bg-card" 
                                             placeholder="$" 
                                           />
                                         </div>
                                         
                                         <div className="space-y-1">
-                                          <Label className="text-[9px] font-black uppercase text-muted-foreground">Total Wallet</Label>
+                                          <Label className="text-xs font-semibold text-muted-foreground">Total Wallet</Label>
                                           <Input 
                                             type="number" 
                                             value={config.totalWallet} 
                                             onChange={(e) => handleUpdateConfig(service, 'totalWallet', e.target.value === '' ? '' : parseFloat(e.target.value))} 
-                                            className="h-8 text-[10px] font-black bg-card" 
+                                            className="h-8 text-xs font-semibold bg-card" 
                                             placeholder="$" 
                                           />
                                         </div>
                                       </div>
 
                                       <div className="space-y-1">
-                                        <Label className="text-[9px] font-black uppercase text-muted-foreground">Strategic Rationale</Label>
+                                        <Label className="text-xs font-semibold text-muted-foreground">Strategic Rationale</Label>
                                         <Textarea 
                                           value={config.rationale} 
                                           onChange={(e) => handleUpdateConfig(service, 'rationale', e.target.value)} 
@@ -657,21 +657,21 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
                       return (
                         <div key={service} className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 hover:bg-secondary/30 transition-colors">
                           <div className="space-y-1">
-                             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{service}</p>
-                             <Badge variant="outline" className="text-[9px] font-black border-accent/30 text-accent uppercase">{config.state?.replace('_', ' ')}</Badge>
+                             <p className="text-xs font-semibold text-muted-foreground">{service}</p>
+                             <Badge variant="outline" className="text-xs font-semibold border-accent/30 text-accent">{config.state?.replace('_', ' ')}</Badge>
                           </div>
                           <div className="space-y-1">
-                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Priority</p>
-                             <p className={`text-xs font-black uppercase ${config.priority === 'HIGH' ? 'text-warning-ink' : 'text-foreground/85'}`}>{config.priority}</p>
+                             <p className="text-xs font-bold text-muted-foreground uppercase">Priority</p>
+                             <p className={`text-xs font-semibold ${config.priority === 'HIGH' ? 'text-warning-ink' : 'text-foreground/85'}`}>{config.priority}</p>
                           </div>
                           <div className="space-y-1">
-                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Financials</p>
-                             <p className="text-[10px] font-medium text-foreground/75">
+                             <p className="text-xs font-bold text-muted-foreground uppercase">Financials</p>
+                             <p className="text-xs font-medium text-foreground/75">
                                Spend: ${spend.toLocaleString()} / ${wallet.toLocaleString()} ({sharePct.toFixed(0)}%)
                              </p>
                           </div>
                           <div className="space-y-2">
-                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Strategic Rationale</p>
+                             <p className="text-xs font-bold text-muted-foreground uppercase">Strategic Rationale</p>
                              <p className="text-xs font-medium text-foreground/85 leading-relaxed italic">
                                "{config.rationale || 'No documentation provided.'}"
                              </p>
@@ -688,8 +688,8 @@ export function WhitespaceHistory({ userId }: WhitespaceHistoryProps) {
              <div className="w-20 h-20 rounded-full bg-secondary/60 flex items-center justify-center mb-6">
                 <LayoutGrid className="w-10 h-10 text-muted-foreground/30" />
              </div>
-             <h3 className="text-sm font-black text-muted-foreground uppercase tracking-widest">Select a saved diagnostic</h3>
-             <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest mt-2 text-center max-w-xs">
+             <h3 className="text-sm font-bold text-muted-foreground">Select a saved diagnostic</h3>
+             <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide mt-2 text-center max-w-xs">
                 Review historical whitespace diagnostics synced during your PDF export sessions.
              </p>
           </div>

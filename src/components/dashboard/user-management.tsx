@@ -91,7 +91,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                     <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase text-accent">Manual YTD Target Override (Optional)</Label><Input type="number" placeholder="e.g. 5768380" value={formData.manualYtdTarget} onChange={e => setFormData({...formData, manualYtdTarget: e.target.value})} /></div>
                   </div>
                 </div>
-                <Button type="submit" className="w-full bg-primary font-bold h-12 uppercase" disabled={isSaving}>{isSaving ? <Loader2 className="animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Sync Node</>}</Button>
+                <Button type="submit" className="w-full bg-primary font-bold h-12" disabled={isSaving}>{isSaving ? <Loader2 className="animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Sync Node</>}</Button>
               </form>
             </CardContent>
           </Card>
@@ -108,8 +108,8 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
                       <div>
-                        <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-[9px] uppercase ml-2">{u.role}</Badge></div>
-                        <div className="text-[10px] text-muted-foreground font-black uppercase mt-1">
+                        <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-xs uppercase ml-2">{u.role}</Badge></div>
+                        <div className="text-xs text-muted-foreground font-semibold mt-1">
                           <Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} ({u.state || 'WA'}) • Target: ${(Number(u.target) || 0).toLocaleString()} 
                           {Number(u.manualYtdTarget) > 0 && <span className="text-accent ml-1">• YTD Override: ${(Number(u.manualYtdTarget)).toLocaleString()}</span>}
                         </div>

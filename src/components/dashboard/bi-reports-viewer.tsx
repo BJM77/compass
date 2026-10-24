@@ -179,7 +179,7 @@ export function BIReportsViewer() {
         <div className="bg-accent/10 p-4 rounded-2xl shadow-inner animate-pulse">
           <LayoutDashboard className="w-12 h-12 text-accent" />
         </div>
-        <h2 className="text-2xl font-black uppercase tracking-tight text-foreground">No Custom Dashboards</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">No Custom Dashboards</h2>
         {isAdmin ? (
           <>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -189,7 +189,7 @@ export function BIReportsViewer() {
               <Button 
                 onClick={handleInitializeDefaults} 
                 disabled={isSeeding}
-                className="font-black uppercase text-xs tracking-wider bg-gradient-to-r from-accent to-chart-5 text-white shadow-lg hover:shadow-accent/10 transition-all duration-300 h-11 px-6 rounded-xl"
+                className="font-semibold text-xs bg-gradient-to-r from-accent to-chart-5 text-white shadow-lg hover:shadow-accent/10 transition-all duration-300 h-11 px-6 rounded-xl"
               >
                 {isSeeding ? (
                   <>
@@ -247,11 +247,11 @@ export function BIReportsViewer() {
         <Card key={widget.id} className="border-none shadow-xl bg-card hover:scale-[1.02] transition-transform">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{widget.name}</p>
+              <p className="text-xs font-semibold text-muted-foreground">{widget.name}</p>
               <Activity className="w-4 h-4 text-accent opacity-50" />
             </div>
-            <h3 className="text-3xl font-black tracking-tighter text-foreground">{displayValue}</h3>
-            <p className="text-[10px] mt-2 font-bold text-muted-foreground capitalize">{widget.calculation} of {widget.field}</p>
+            <h3 className="text-3xl font-black tabular-nums tracking-tighter text-foreground">{displayValue}</h3>
+            <p className="text-xs mt-2 font-bold text-muted-foreground capitalize">{widget.calculation} of {widget.field}</p>
           </CardContent>
         </Card>
       );
@@ -263,7 +263,7 @@ export function BIReportsViewer() {
       return (
         <Card key={widget.id} className="border-none shadow-xl bg-card col-span-full overflow-hidden">
           <CardHeader className="bg-secondary/60 border-b">
-            <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
+            <CardTitle className="text-sm font-bold tracking-tight flex items-center gap-2">
               <TableProperties className="w-4 h-4 text-primary" />
               {widget.name}
             </CardTitle>
@@ -271,7 +271,7 @@ export function BIReportsViewer() {
           <CardContent className="p-0">
             <div className="overflow-x-auto max-h-[400px]">
               <table className="w-full text-sm">
-                <thead className="bg-secondary sticky top-0 uppercase text-[9px] font-black tracking-widest text-muted-foreground">
+                <thead className="bg-secondary sticky top-0 text-xs font-semibold text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 text-left">Primary Entity</th>
                     <th className="px-4 py-3 text-left">Owner</th>
@@ -289,20 +289,20 @@ export function BIReportsViewer() {
                       <tr key={i} className="hover:bg-secondary/60">
                         <td className="px-4 py-3 font-bold text-xs truncate max-w-[200px]">{row.pipeline || row.userId}</td>
                         <td className="px-4 py-3 font-medium text-xs">{row.userName || row.userId}</td>
-                        <td className="px-4 py-3 text-right font-black text-xs text-primary">{displayVal}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-xs text-primary">{displayVal}</td>
                       </tr>
                     );
                   })}
                   {filteredData.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest">No data available</td>
+                      <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground text-xs font-bold uppercase tracking-wide">No data available</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
             {filteredData.length > 100 && (
-              <div className="bg-secondary/60 p-2 text-center text-[10px] font-bold text-muted-foreground">Showing first 100 records</div>
+              <div className="bg-secondary/60 p-2 text-center text-xs font-bold text-muted-foreground">Showing first 100 records</div>
             )}
           </CardContent>
         </Card>
@@ -319,15 +319,15 @@ export function BIReportsViewer() {
           <LayoutDashboard className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl md:text-3xl font-black font-headline text-foreground tracking-tighter uppercase">BI Engine</h1>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Real-time Performance Rendering</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-headline text-foreground tracking-tighter">BI Engine</h1>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Real-time Performance Rendering</p>
         </div>
       </header>
 
       <Tabs value={activeTab || ''} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-12 inline-flex overflow-x-auto scrollbar-hide max-w-full">
           {availableDashboards.map(dash => (
-            <TabsTrigger key={dash.id} value={dash.id} className="font-black uppercase text-[10px] md:text-xs tracking-widest h-full px-6">
+            <TabsTrigger key={dash.id} value={dash.id} className="font-semibold text-xs md:text-xs h-full px-6">
               {dash.name}
             </TabsTrigger>
           ))}

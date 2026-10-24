@@ -78,7 +78,7 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-destructive">
             <AlertCircle className="w-5 h-5 animate-bounce" />
-            <h4 className="text-xs font-black uppercase tracking-widest">Awaiting Your Action & Confirmation ({unreadNotes.length})</h4>
+            <h4 className="text-xs font-bold">Awaiting Your Action & Confirmation ({unreadNotes.length})</h4>
           </div>
           <div className="space-y-3">
             {unreadNotes.map((note) => (
@@ -86,9 +86,9 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
                 <CardHeader className="bg-danger-soft/50 pb-3 border-b border-destructive/10">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <div>
-                      <h4 className="text-xs font-black uppercase text-foreground mt-1.5">{note.title}</h4>
+                      <h4 className="text-xs font-bold text-foreground mt-1.5">{note.title}</h4>
                     </div>
-                    <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">
+                    <span className="text-xs font-bold text-muted-foreground whitespace-nowrap">
                       {note.createdAt?.toDate ? format(note.createdAt.toDate(), 'PPP p') : 'Just now'}
                     </span>
                   </div>
@@ -98,12 +98,12 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
                     {note.content}
                   </p>
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-3 border-t border-destructive/10">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
                       Sender: <strong className="text-foreground">{note.createdByName}</strong>
                     </span>
                     <Button 
                       onClick={() => handleConfirm(note.id)}
-                      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl text-[10px] font-black uppercase tracking-widest px-4 h-8 gap-1.5 shadow-md shadow-destructive/5 w-full sm:w-auto"
+                      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl text-xs font-semibold px-4 h-8 gap-1.5 shadow-md shadow-destructive/5 w-full sm:w-auto"
                     >
                       <ClipboardCheck className="w-3.5 h-3.5" /> Confirm Receipt
                     </Button>
@@ -117,7 +117,7 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
 
       {/* ARCHIVE / READ LIST SECTION */}
       <div className="space-y-3">
-        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+        <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
           <History className="w-4 h-4" /> Notes & Updates Archive ({readNotes.length})
         </h4>
         {readNotes.length === 0 ? (
@@ -131,17 +131,17 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
                 <CardHeader className="pb-3 bg-secondary/30 border-b border-border/60">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <div>
-                      <Badge className="bg-secondary text-foreground/75 border-none text-[8px] font-black uppercase tracking-wider gap-1">
+                      <Badge className="bg-secondary text-foreground/75 border-none text-xs font-semibold gap-1">
                         <CheckCircle2 className="w-2.5 h-2.5 text-success" /> Confirmed
                       </Badge>
-                      <h4 className="text-xs font-black uppercase text-foreground mt-1.5">{note.title}</h4>
+                      <h4 className="text-xs font-bold text-foreground mt-1.5">{note.title}</h4>
                     </div>
                     <div className="text-right whitespace-nowrap">
-                      <span className="text-[9px] font-semibold text-muted-foreground block">
+                      <span className="text-xs font-semibold text-muted-foreground block">
                         Sent: {note.createdAt?.toDate ? format(note.createdAt.toDate(), 'dd MMM yyyy, HH:mm') : 'N/A'}
                       </span>
                       {note.readAt?.toDate && (
-                        <span className="text-[9px] font-bold text-success block">
+                        <span className="text-xs font-bold text-success block">
                           Confirmed: {format(note.readAt.toDate(), 'dd MMM yyyy, HH:mm')}
                         </span>
                       )}
@@ -153,7 +153,7 @@ export function AMBDNotesWidget({ userId }: { userId: string }) {
                     {note.content}
                   </p>
                   <div className="pt-2 border-t border-border/60">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
                       Sender: <strong className="text-foreground/75">{note.createdByName}</strong>
                     </span>
                   </div>

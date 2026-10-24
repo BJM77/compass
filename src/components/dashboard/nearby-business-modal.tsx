@@ -152,7 +152,7 @@ export function NearbyBusinessModal({
                   Lat: {latitude.toFixed(5)}, Lng: {longitude.toFixed(5)}
                 </span>
               </div>
-              <Badge variant="outline" className="text-[10px] bg-success-soft text-success-ink border-success/40 font-bold">
+              <Badge variant="outline" className="text-xs bg-success-soft text-success-ink border-success/40 font-bold">
                 📍 Live GPS
               </Badge>
             </div>
@@ -190,7 +190,7 @@ export function NearbyBusinessModal({
                           <p className="text-xs text-muted-foreground">{b.street} {b.suburb ? `, ${b.suburb}` : ''}</p>
                         )}
                       </div>
-                      <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 shrink-0 group-hover:bg-accent/90 group-hover:text-accent-foreground font-semibold">
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0 group-hover:bg-accent/90 group-hover:text-accent-foreground font-semibold">
                         <ExternalLink className="h-3 w-3" />
                         Select & SF Search
                       </Button>
@@ -202,7 +202,7 @@ export function NearbyBusinessModal({
           ) : (
             <div className="p-4 text-center border border-dashed rounded-xl space-y-1">
               <p className="text-xs text-muted-foreground font-medium">No named commercial listings found in 50m radius.</p>
-              <p className="text-[11px] text-muted-foreground">Enter company name manually below.</p>
+              <p className="text-xs text-muted-foreground">Enter company name manually below.</p>
             </div>
           )}
 

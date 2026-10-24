@@ -79,9 +79,9 @@ export function BDMDashboard({ simulatedUser }: BDMDashboardProps) {
     <div className="w-full p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-xl md:text-3xl font-black font-headline text-primary tracking-tighter uppercase">{isAM ? 'Portfolio Intelligence' : 'Professional Brief'}</h1>
+          <h1 className="text-xl md:text-3xl font-black tabular-nums font-headline text-primary tracking-tighter">{isAM ? 'Portfolio Intelligence' : 'Professional Brief'}</h1>
           <div className="flex items-center gap-2">
-            <Badge className="bg-accent text-accent-foreground border-none font-black text-[9px] uppercase tracking-widest">{profile.territory?.replace('_', ' ')}</Badge>
+            <Badge className="bg-accent text-accent-foreground border-none font-semibold text-xs">{profile.territory?.replace('_', ' ')}</Badge>
             <p className="text-muted-foreground text-xs font-bold uppercase tracking-tight">{profile.name}</p>
           </div>
         </div>

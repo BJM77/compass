@@ -60,7 +60,7 @@ export function DataHealthDashboard() {
       <div className="w-full flex items-center justify-center p-12">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <Database className="w-8 h-8 text-accent/50" />
-          <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Analyzing Data Health...</p>
+          <p className="text-sm font-bold text-muted-foreground">Analyzing Data Health...</p>
         </div>
       </div>
     );
@@ -70,7 +70,7 @@ export function DataHealthDashboard() {
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-border pb-6">
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Shield className="w-6 h-6 text-accent" />
             Data Health & Integrity
           </h1>
@@ -82,8 +82,8 @@ export function DataHealthDashboard() {
         {metrics && (
           <div className="flex items-center gap-3 bg-card px-4 py-2 rounded-xl shadow-sm border border-border">
             <div className="text-right">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Freshness Score</p>
-              <p className={`text-2xl font-black ${metrics.freshnessScore >= 80 ? 'text-success' : metrics.freshnessScore >= 50 ? 'text-warning' : 'text-destructive'}`}>
+              <p className="text-xs font-semibold text-muted-foreground">Freshness Score</p>
+              <p className={`text-2xl font-black tabular-nums ${metrics.freshnessScore >= 80 ? 'text-success' : metrics.freshnessScore >= 50 ? 'text-warning' : 'text-destructive'}`}>
                 {metrics.freshnessScore}/100
               </p>
             </div>
@@ -107,14 +107,14 @@ export function DataHealthDashboard() {
           {/* CRM Sync Status */}
           <Card className={`border-l-4 ${metrics.daysSinceSync <= 1 ? 'border-l-success-fill' : metrics.daysSinceSync <= 7 ? 'border-l-warning' : 'border-l-destructive'}`}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
                 <Database className="w-4 h-4" />
                 CRM Sync Pipeline
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-foreground">
+                <span className="text-3xl font-black tabular-nums text-foreground">
                   {metrics.lastSyncDate ? format(metrics.lastSyncDate, 'MMM d') : 'Never'}
                 </span>
                 <span className="text-sm font-medium text-muted-foreground">
@@ -130,14 +130,14 @@ export function DataHealthDashboard() {
           {/* Stale Accounts */}
           <Card className={`border-l-4 ${metrics.staleAccountsCount === 0 ? 'border-l-success-fill' : (metrics.staleAccountsCount / metrics.totalAccounts) < 0.2 ? 'border-l-warning' : 'border-l-destructive'}`}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Stale Accounts (30d+)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-foreground">
+                <span className="text-3xl font-black tabular-nums text-foreground">
                   {metrics.staleAccountsCount}
                 </span>
                 <span className="text-sm font-medium text-muted-foreground">
@@ -153,14 +153,14 @@ export function DataHealthDashboard() {
           {/* Data Quality */}
           <Card className={`border-l-4 ${(metrics.missingContactCount / metrics.totalAccounts) < 0.1 ? 'border-l-success-fill' : 'border-l-warning'}`}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
                 <ServerCrash className="w-4 h-4" />
                 Missing Contacts
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-foreground">
+                <span className="text-3xl font-black tabular-nums text-foreground">
                   {metrics.missingContactCount}
                 </span>
                 <span className="text-sm font-medium text-muted-foreground">

@@ -27,7 +27,7 @@ export function SmartGoalsAudit() {
   if (isUsersLoading) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
       <Loader2 className="w-10 h-10 text-warning animate-spin" />
-      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Syncing Territory SMART Nodes...</p>
+      <p className="text-xs font-semibold text-muted-foreground">Syncing Territory SMART Nodes...</p>
     </div>
   );
 
@@ -35,7 +35,7 @@ export function SmartGoalsAudit() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-700 pb-20">
       {/* Team Sidebar */}
       <div className="lg:col-span-3 space-y-4">
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+        <h3 className="text-xs font-bold text-muted-foreground px-1 flex items-center gap-2">
           <Users className="w-3 h-3" /> Team Registry
         </h3>
         <ScrollArea className="h-[700px] pr-2">
@@ -50,12 +50,12 @@ export function SmartGoalsAudit() {
                     : 'border-border/60 bg-card hover:border-border'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${activeBdmId === u.id ? 'bg-warning text-warning-foreground border-warning' : 'bg-secondary text-muted-foreground'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-xs border ${activeBdmId === u.id ? 'bg-warning text-warning-foreground border-warning' : 'bg-secondary text-muted-foreground'}`}>
                    {u.name.charAt(0)}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black text-primary uppercase truncate">{u.name}</p>
-                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{u.role} · {u.territory?.replace('_', ' ')}</p>
+                  <p className="text-xs font-semibold text-primary truncate">{u.name}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{u.role} · {u.territory?.replace('_', ' ')}</p>
                 </div>
               </button>
             ))}
@@ -72,24 +72,24 @@ export function SmartGoalsAudit() {
                <CardHeader>
                   <div className="flex justify-between items-start relative z-10">
                      <div className="space-y-1">
-                        <Badge className="bg-warning text-warning-foreground border-none font-black text-[9px] uppercase tracking-widest mb-2">Executive Audit Node</Badge>
-                        <CardTitle className="text-3xl font-black tracking-tighter uppercase">{selectedUser.name}</CardTitle>
+                        <Badge className="bg-warning text-warning-foreground border-none font-semibold text-xs mb-2">Executive Audit Node</Badge>
+                        <CardTitle className="text-3xl font-black tabular-nums tracking-tighter">{selectedUser.name}</CardTitle>
                         <CardDescription className="text-panel-foreground/60 font-medium">Reviewing Weekly SMART Commitments</CardDescription>
                      </div>
                      <div className="text-right">
-                        <p className="text-[9px] font-bold text-panel-foreground/60 uppercase tracking-widest">Reporting Period</p>
-                        <p className="text-xs font-black text-warning">Week {currentWeek.split('-')[1]}</p>
+                        <p className="text-xs font-bold text-panel-foreground/60 uppercase tracking-wide">Reporting Period</p>
+                        <p className="text-xs font-semibold text-warning">Week {currentWeek.split('-')[1]}</p>
                      </div>
                   </div>
                </CardHeader>
                <CardContent className="relative z-10 pt-4">
                   <div className="flex gap-4">
                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex-1">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Role Objective</p>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Role Objective</p>
                         <p className="text-xs font-bold">{selectedUser.role} - Territory Strategy Lock</p>
                      </div>
                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex-1">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Target Achievement</p>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Target Achievement</p>
                         <p className="text-xs font-bold">${((selectedUser.target || 1000000) / 1000000).toFixed(2)}M Strategic Plan</p>
                      </div>
                   </div>
@@ -98,7 +98,7 @@ export function SmartGoalsAudit() {
 
             {/* Reusing the SmartGoalsView for detailed editing/viewing */}
             <div className="border-t pt-6">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 mb-4 px-1">
+              <h3 className="text-xs font-bold text-primary flex items-center gap-2 mb-4 px-1">
                 <ClipboardList className="w-3.5 h-3.5 text-warning" /> Active SMART Commitments
               </h3>
               <SmartGoalsView userId={activeBdmId} />
@@ -109,8 +109,8 @@ export function SmartGoalsAudit() {
              <div className="w-20 h-20 rounded-full bg-secondary/60 flex items-center justify-center mb-6">
                 <Star className="w-10 h-10 text-gold" />
              </div>
-             <h3 className="text-sm font-black text-muted-foreground uppercase tracking-widest">Select a team member</h3>
-             <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest mt-2 text-center max-w-xs leading-relaxed">
+             <h3 className="text-sm font-bold text-muted-foreground">Select a team member</h3>
+             <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide mt-2 text-center max-w-xs leading-relaxed">
                 Audit historical and current SMART goals to ensure territory execution remains at the professional standard.
              </p>
           </div>

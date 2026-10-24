@@ -145,15 +145,15 @@ export function AiReportGenerator() {
       <CardHeader className="bg-panel text-panel-foreground pb-6 pt-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl flex items-center gap-2 font-black tracking-tight uppercase">
+            <CardTitle className="text-xl flex items-center gap-2 font-bold tracking-tight">
               <Presentation className="w-5 h-5 text-accent" />
               AI Presentation Report
             </CardTitle>
-            <CardDescription className="text-panel-foreground/60 font-bold uppercase text-[10px] tracking-widest">
+            <CardDescription className="text-panel-foreground/60 font-bold text-xs">
               Synthesize 90-Day Plans, Playbooks, and Pipeline for Senior Managers
             </CardDescription>
           </div>
-          <Badge className="bg-white/10 text-white border-none uppercase tracking-widest text-[10px] font-black hover:bg-white/20 transition-colors">Week {currentWeek.split('-')[1]}</Badge>
+          <Badge className="bg-white/10 text-white border-none text-xs font-semibold hover:bg-white/20 transition-colors">Week {currentWeek.split('-')[1]}</Badge>
         </div>
       </CardHeader>
       
@@ -163,11 +163,11 @@ export function AiReportGenerator() {
             <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Sparkles className="w-10 h-10 text-accent" />
             </div>
-            <h3 className="text-lg font-black text-primary mb-2 uppercase tracking-tight">Generate Weekly Presentation</h3>
+            <h3 className="text-lg font-bold text-primary mb-2 tracking-tight">Generate Weekly Presentation</h3>
             <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto mb-8">
               Click below to aggregate the team's 90-day plan progress, pipeline metrics, and territory playbooks into a polished presentation format.
             </p>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-14 px-10 rounded-xl text-sm shadow-xl shadow-accent/20 uppercase tracking-widest transition-all hover:scale-105" onClick={runGeneration}>
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-14 px-10 rounded-xl text-sm shadow-xl shadow-accent/20 transition-all hover:scale-105" onClick={runGeneration}>
               <Sparkles className="w-4 h-4 mr-2" /> Generate AI Report
             </Button>
           </div>
@@ -178,15 +178,15 @@ export function AiReportGenerator() {
               <Loader2 className="w-12 h-12 animate-spin text-accent relative z-10" />
             </div>
             <div className="space-y-1 text-center">
-              <p className="text-sm font-black text-primary uppercase tracking-widest animate-pulse">Consulting the Oracle...</p>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Cross-referencing Playbooks & Pipeline Data</p>
+              <p className="text-sm font-semibold text-primary animate-pulse">Consulting the Oracle...</p>
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-wide">Cross-referencing Playbooks & Pipeline Data</p>
             </div>
           </div>
         ) : report ? (
           <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-secondary/60">
             <div className="flex items-center justify-between border-b pb-4">
-               <h2 className="text-2xl font-black text-primary uppercase tracking-tight max-w-2xl">{report.presentationTitle}</h2>
-               <Button variant="outline" className="border-primary/20 font-black h-10 px-6 rounded-lg bg-card shadow-sm uppercase text-[10px] tracking-widest" onClick={exportToPdf} disabled={isExporting}>
+               <h2 className="text-2xl font-black tabular-nums text-primary tracking-tight max-w-2xl">{report.presentationTitle}</h2>
+               <Button variant="outline" className="border-primary/20 font-semibold h-10 px-6 rounded-lg bg-card shadow-sm text-xs" onClick={exportToPdf} disabled={isExporting}>
                  {isExporting ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <FileText className="w-4 h-4 mr-2" />} Export PDF
                </Button>
             </div>
@@ -195,7 +195,7 @@ export function AiReportGenerator() {
               {/* Group 90 Day Plan */}
               <div className="space-y-3 bg-card p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><CheckSquare className="w-24 h-24 text-info" /></div>
-                <h3 className="text-xs font-black text-info uppercase tracking-widest flex items-center gap-2">
+                <h3 className="text-xs font-bold text-info flex items-center gap-2">
                   <CheckSquare className="w-4 h-4" /> Group 90-Day Plan Review
                 </h3>
                 <p className="text-sm text-foreground/85 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.groupPlanReview}</p>
@@ -204,7 +204,7 @@ export function AiReportGenerator() {
               {/* Pipeline & Opportunities */}
               <div className="space-y-3 bg-card p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><TargetIcon className="w-24 h-24 text-accent" /></div>
-                <h3 className="text-xs font-black text-accent uppercase tracking-widest flex items-center gap-2">
+                <h3 className="text-xs font-bold text-accent flex items-center gap-2">
                   <TargetIcon className="w-4 h-4" /> Pipeline & Opportunities
                 </h3>
                 <p className="text-sm text-foreground/85 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.userOpportunities}</p>
@@ -213,7 +213,7 @@ export function AiReportGenerator() {
               {/* Playbooks */}
               <div className="space-y-3 bg-card p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Target className="w-24 h-24 text-success" /></div>
-                <h3 className="text-xs font-black text-success uppercase tracking-widest flex items-center gap-2">
+                <h3 className="text-xs font-bold text-success flex items-center gap-2">
                   <Target className="w-4 h-4" /> Strategy Playbooks Alignment
                 </h3>
                 <p className="text-sm text-foreground/85 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.strategyPlaybooks}</p>
@@ -222,7 +222,7 @@ export function AiReportGenerator() {
               {/* Key Takeaways */}
               <div className="space-y-3 bg-panel p-6 rounded-2xl border-none shadow-xl relative overflow-hidden group text-panel-foreground">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Sparkles className="w-24 h-24 text-accent" /></div>
-                <h3 className="text-xs font-black text-accent uppercase tracking-widest flex items-center gap-2">
+                <h3 className="text-xs font-bold text-accent flex items-center gap-2">
                   <Sparkles className="w-4 h-4" /> Executive Takeaways
                 </h3>
                 <p className="text-sm text-panel-foreground/90 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.keyTakeaways}</p>
@@ -230,7 +230,7 @@ export function AiReportGenerator() {
             </div>
 
             <div className="pt-4 flex justify-center">
-               <Button variant="ghost" onClick={() => setReport(null)} className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary">
+               <Button variant="ghost" onClick={() => setReport(null)} className="text-xs font-semibold text-muted-foreground hover:text-primary">
                  Start Over / Regenerate
                </Button>
             </div>

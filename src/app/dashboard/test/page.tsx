@@ -22,7 +22,7 @@ export default function TestPage() {
     <AuthGuard>
       <div className="w-full p-4 md:p-8 space-y-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-black tracking-tight text-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             TEST ENVIRONMENT
           </h1>
           <p className="text-muted-foreground text-sm flex items-center gap-2">

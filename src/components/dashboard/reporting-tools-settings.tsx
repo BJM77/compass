@@ -122,7 +122,7 @@ export function ReportingToolsSettings({
         <Card className="w-full lg:w-1/3 flex flex-col border-border shadow-sm overflow-hidden h-[300px] lg:h-auto">
           <CardHeader className="bg-secondary/60 border-b p-4">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Custom Dashboards</CardTitle>
+              <CardTitle className="text-xs font-bold text-foreground">Custom Dashboards</CardTitle>
               <Button size="sm" variant="ghost" onClick={addDashboard} className="h-7 w-7 p-0"><Plus className="w-4 h-4" /></Button>
             </div>
           </CardHeader>
@@ -155,15 +155,15 @@ export function ReportingToolsSettings({
               <CardHeader className="bg-secondary/60 border-b p-6 space-y-4">
                 <div className="flex flex-col lg:flex-row items-start justify-between gap-4">
                   <div className="space-y-2 flex-1 w-full max-w-md">
-                     <Label className="text-[10px] font-black uppercase text-muted-foreground">Dashboard Title</Label>
+                     <Label className="text-xs font-semibold text-muted-foreground">Dashboard Title</Label>
                      <Input 
                        value={activeDash.name} 
                        onChange={e => updateDashboard(activeDash.id, 'name', e.target.value)}
-                       className="font-black text-lg h-12"
+                       className="font-bold text-lg h-12"
                      />
                   </div>
                   <div className="space-y-2 lg:text-right w-full lg:w-auto">
-                     <Label className="text-[10px] font-black uppercase text-muted-foreground flex lg:justify-end gap-1"><Eye className="w-3 h-3"/> Visible To</Label>
+                     <Label className="text-xs font-semibold text-muted-foreground flex lg:justify-end gap-1"><Eye className="w-3 h-3"/> Visible To</Label>
                      <div className="flex gap-2">
                        {['BDM', 'LEADER', 'GM'].map(role => {
                          const isActive = activeDash.visibleTo.includes(role);
@@ -171,7 +171,7 @@ export function ReportingToolsSettings({
                            <Badge
                              key={role}
                              onClick={() => toggleDashVisibility(activeDash.id, role)}
-                             className={`cursor-pointer transition-colors px-3 py-1 font-black text-[10px] border ${isActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-panel-foreground/60 border-border hover:border-border'}`}
+                             className={`cursor-pointer transition-colors px-3 py-1 font-semibold text-xs border ${isActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-panel-foreground/60 border-border hover:border-border'}`}
                            >
                              {role}
                            </Badge>
@@ -183,12 +183,12 @@ export function ReportingToolsSettings({
               </CardHeader>
               <CardContent className="p-6 flex-1 overflow-y-auto bg-secondary/30">
                  <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-sm font-black uppercase text-foreground/85">Dashboard Canvas</h3>
+                   <h3 className="text-sm font-bold text-foreground/85">Dashboard Canvas</h3>
                    <Button size="sm" onClick={() => setShowWidgetDialog(true)} className="gap-2 font-bold text-xs"><Plus className="w-3.5 h-3.5" /> Add Widget</Button>
                  </div>
                  
                  {activeWidgets.length === 0 ? (
-                   <div className="border-2 border-dashed border-border rounded-2xl h-40 flex items-center justify-center text-muted-foreground text-xs font-bold uppercase tracking-widest bg-card">
+                   <div className="border-2 border-dashed border-border rounded-2xl h-40 flex items-center justify-center text-muted-foreground text-xs font-bold uppercase tracking-wide bg-card">
                      Empty Canvas. Add a widget.
                    </div>
                  ) : (
@@ -205,9 +205,9 @@ export function ReportingToolsSettings({
                            </Button>
                          </div>
                          <div className="space-y-1.5 text-xs">
-                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-[9px]">Source:</span> <span className="font-medium truncate pl-2">{DATA_SOURCES.find(d=>d.id===w.dataSource)?.label}</span></div>
-                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-[9px]">Field:</span> <span className="font-medium truncate pl-2">{w.field}</span></div>
-                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-[9px]">Calculation:</span> <span className="font-bold uppercase text-[9px] bg-secondary px-1.5 py-0.5 rounded">{w.calculation}</span></div>
+                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-xs">Source:</span> <span className="font-medium truncate pl-2">{DATA_SOURCES.find(d=>d.id===w.dataSource)?.label}</span></div>
+                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-xs">Field:</span> <span className="font-medium truncate pl-2">{w.field}</span></div>
+                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-xs">Calculation:</span> <span className="font-bold uppercase text-xs bg-secondary px-1.5 py-0.5 rounded">{w.calculation}</span></div>
                          </div>
                        </div>
                      ))}
@@ -226,18 +226,18 @@ export function ReportingToolsSettings({
       <Dialog open={showWidgetDialog} onOpenChange={setShowWidgetDialog}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-widest text-foreground">Configure New Widget</DialogTitle>
+            <DialogTitle className="font-bold text-foreground">Configure New Widget</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
             {/* Left Column: Form Controls */}
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground">Widget Name</Label>
+                <Label className="text-xs font-semibold text-muted-foreground">Widget Name</Label>
                 <Input placeholder="e.g. Total Revenue" value={newWidget.name || ''} onChange={e => setNewWidget({...newWidget, name: e.target.value})} className="font-bold border-border" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Widget Type</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground">Widget Type</Label>
                   <Select value={newWidget.type} onValueChange={v => setNewWidget({...newWidget, type: v, calculation: v === 'table' ? 'none' : 'sum'})}>
                     <SelectTrigger className="font-bold border-border"><SelectValue/></SelectTrigger>
                     <SelectContent>
@@ -247,7 +247,7 @@ export function ReportingToolsSettings({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Data Source</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground">Data Source</Label>
                   <Select value={newWidget.dataSource} onValueChange={v => setNewWidget({...newWidget, dataSource: v, field: ''})}>
                     <SelectTrigger className="font-bold border-border"><SelectValue/></SelectTrigger>
                     <SelectContent>
@@ -259,7 +259,7 @@ export function ReportingToolsSettings({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Target Field</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground">Target Field</Label>
                   <Select value={newWidget.field} onValueChange={v => setNewWidget({...newWidget, field: v})}>
                     <SelectTrigger className="font-bold border-border"><SelectValue placeholder="Select..."/></SelectTrigger>
                     <SelectContent>
@@ -270,7 +270,7 @@ export function ReportingToolsSettings({
                 
                 {newWidget.type === 'kpi' && (
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Calculation</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Calculation</Label>
                     <Select value={newWidget.calculation} onValueChange={v => setNewWidget({...newWidget, calculation: v})}>
                       <SelectTrigger className="font-bold border-border"><SelectValue/></SelectTrigger>
                       <SelectContent>
@@ -287,19 +287,19 @@ export function ReportingToolsSettings({
 
             {/* Right Column: Live Interactive Preview */}
             <div className="flex flex-col justify-center bg-secondary/60 p-6 rounded-2xl border border-border/60 min-h-[220px]">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 text-center">Live Widget Preview</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-4 text-center">Live Widget Preview</p>
               
               {newWidget.type === 'kpi' ? (
                 <Card className="border-none shadow-md bg-card w-full">
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest truncate max-w-[80%]">{newWidget.name || 'Untitled KPI'}</p>
+                      <p className="text-xs font-semibold text-muted-foreground truncate max-w-[80%]">{newWidget.name || 'Untitled KPI'}</p>
                       <Activity className="w-3.5 h-3.5 text-accent opacity-50" />
                     </div>
-                    <h3 className="text-2xl font-black tracking-tighter text-foreground">
+                    <h3 className="text-2xl font-black tabular-nums tracking-tighter text-foreground">
                       {newWidget.calculation === 'count' ? '42' : newWidget.calculation === 'avg' ? '$2.4M' : '$128.5M'}
                     </h3>
-                    <p className="text-[9px] mt-1.5 font-bold text-muted-foreground capitalize">
+                    <p className="text-xs mt-1.5 font-bold text-muted-foreground capitalize">
                       {newWidget.calculation || 'sum'} of {newWidget.field || 'Amount'}
                     </p>
                   </CardContent>
@@ -307,14 +307,14 @@ export function ReportingToolsSettings({
               ) : (
                 <Card className="border-none shadow-md bg-card w-full overflow-hidden">
                   <CardHeader className="bg-secondary/60 border-b py-2.5 px-4">
-                    <CardTitle className="text-[10px] font-black uppercase tracking-tight flex items-center gap-1.5">
+                    <CardTitle className="text-xs font-bold tracking-tight flex items-center gap-1.5">
                       <TableProperties className="w-3.5 h-3.5 text-primary" />
                       {newWidget.name || 'Untitled Table'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <table className="w-full text-[10px]">
-                      <thead className="bg-secondary uppercase text-[8px] font-black tracking-widest text-muted-foreground">
+                    <table className="w-full text-xs">
+                      <thead className="bg-secondary text-xs font-semibold text-muted-foreground">
                         <tr>
                           <th className="px-3 py-1.5 text-left">Entity</th>
                           <th className="px-3 py-1.5 text-left">Owner</th>
@@ -325,12 +325,12 @@ export function ReportingToolsSettings({
                         <tr className="hover:bg-secondary/60">
                           <td className="px-3 py-1.5 font-bold truncate max-w-[80px]">Acme Deal</td>
                           <td className="px-3 py-1.5 text-muted-foreground">John Doe</td>
-                          <td className="px-3 py-1.5 text-right font-black text-primary">$4.50M</td>
+                          <td className="px-3 py-1.5 text-right font-semibold text-primary">$4.50M</td>
                         </tr>
                         <tr className="hover:bg-secondary/60">
                           <td className="px-3 py-1.5 font-bold truncate max-w-[80px]">Stark Corp</td>
                           <td className="px-3 py-1.5 text-muted-foreground">Tony Stark</td>
-                          <td className="px-3 py-1.5 text-right font-black text-primary">$18.2M</td>
+                          <td className="px-3 py-1.5 text-right font-semibold text-primary">$18.2M</td>
                         </tr>
                       </tbody>
                     </table>
@@ -340,8 +340,8 @@ export function ReportingToolsSettings({
             </div>
           </div>
           <DialogFooter className="border-t pt-4">
-            <Button variant="ghost" onClick={() => setShowWidgetDialog(false)} className="font-black">CANCEL</Button>
-            <Button onClick={handleAddWidget} className="font-black">CREATE WIDGET</Button>
+            <Button variant="ghost" onClick={() => setShowWidgetDialog(false)} className="font-semibold">CANCEL</Button>
+            <Button onClick={handleAddWidget} className="font-semibold">CREATE WIDGET</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

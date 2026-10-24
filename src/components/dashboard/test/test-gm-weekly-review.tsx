@@ -382,13 +382,13 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     <div id="gm-report-capture" className="space-y-8 animate-in fade-in duration-700 pb-20 bg-secondary/60 p-6 rounded-xl">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black uppercase text-primary flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
             <Shield className="w-8 h-8 text-accent" />
             GM Weekly Performance Node
           </h1>
           <div className="flex items-center gap-4 mt-2">
-            <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
-            <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-card px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+            <p className="text-muted-foreground text-xs font-bold uppercase tracking-wide">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
+            <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-card px-3 py-1 text-xs font-semibold">
               {(availableWeeks.length > 0 ? availableWeeks : [selectedWeek]).map(w => (
                 <option key={w} value={w}>{w}</option>
               ))}
@@ -396,17 +396,17 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           </div>
         </div>
         <div className="flex gap-2" data-html2canvas-ignore="true">
-          <Button variant="outline" onClick={generateExecutiveReview} className="bg-warning hover:bg-warning/90 text-warning-foreground font-black text-[10px] uppercase h-10 shadow-lg shadow-warning/5">
+          <Button variant="outline" onClick={generateExecutiveReview} className="bg-warning hover:bg-warning/90 text-warning-foreground font-semibold text-xs h-10 shadow-lg shadow-warning/5">
             <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
           </Button>
-          <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-card">
+          <Button variant="outline" onClick={exportReport} className="font-semibold text-xs h-10 bg-card">
             <Download className="w-4 h-4 mr-2" /> EXPORT CSV
           </Button>
-          <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-panel/90 hover:bg-panel/90 font-black text-[10px] uppercase h-10 text-panel-foreground shadow-lg shadow-primary/5">
+          <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-panel/90 hover:bg-panel/90 font-semibold text-xs h-10 text-panel-foreground shadow-lg shadow-primary/5">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
             {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH(B&W)'}
           </Button>
-          <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-primary-foreground shadow-lg shadow-primary/20">
+          <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-semibold text-xs h-10 text-primary-foreground shadow-lg shadow-primary/20">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />} 
             {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH TO GM'}
           </Button>
@@ -416,8 +416,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       {showReviewArea && (
         <Card className="border-none shadow-md bg-card overflow-hidden p-6 animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-black uppercase text-primary">Edit Executive Summary Draft (8-10 Lines max)</h3>
-            <Badge className="bg-warning-soft text-warning-ink hover:bg-warning/20 border-none font-bold text-[9px] uppercase px-2 py-0.5">Editable Draft</Badge>
+            <h3 className="text-xs font-bold text-primary">Edit Executive Summary Draft (8-10 Lines max)</h3>
+            <Badge className="bg-warning-soft text-warning-ink hover:bg-warning/20 border-none font-bold text-xs uppercase px-2 py-0.5">Editable Draft</Badge>
           </div>
           <Textarea 
             className="w-full text-xs font-medium leading-relaxed font-sans border-primary/20 bg-secondary/30 p-4 rounded-xl min-h-[160px]" 
@@ -438,7 +438,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="border-none shadow-md bg-card overflow-hidden">
-          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Activity & Achievement Index</CardTitle></CardHeader>
+          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-bold">Activity & Achievement Index</CardTitle></CardHeader>
           <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={performanceData}>
@@ -455,7 +455,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         </Card>
 
         <Card className="border-none shadow-md bg-card overflow-hidden">
-          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Pipeline Distribution</CardTitle></CardHeader>
+          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-bold">Pipeline Distribution</CardTitle></CardHeader>
           <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -624,12 +624,12 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       {/* ── INTERACTIVE TAB VIEW (screen only) ─────────────────────────────── */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
         <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
-          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
-          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
-          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
-          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Opportunities</TabsTrigger>
-          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Signed Work</TabsTrigger>
-          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">New Business</TabsTrigger>
+          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-semibold text-xs">Team Performance</TabsTrigger>
+          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-semibold text-xs flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
+          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-semibold text-xs flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
+          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-semibold text-xs">Opportunities</TabsTrigger>
+          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-semibold text-xs">Signed Work</TabsTrigger>
+          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-semibold text-xs">New Business</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -663,39 +663,39 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-xl shadow-md border-2 border-border/60">{report.userName.charAt(0)}</div>
+            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black tabular-nums text-xl shadow-md border-2 border-border/60">{report.userName.charAt(0)}</div>
             <div>
-              <h3 className="font-black text-lg uppercase text-primary leading-none">{report.userName}</h3>
+              <h3 className="font-bold text-lg text-primary leading-none">{report.userName}</h3>
               <div className="flex items-center gap-2 mt-1.5">
-                <Badge className={cn("text-[8px] font-black uppercase border-none", report.status === 'REVIEWED' ? 'bg-success-soft text-success-ink' : 'bg-warning-soft text-warning-ink')}>
+                <Badge className={cn("text-xs font-semibold border-none", report.status === 'REVIEWED' ? 'bg-success-soft text-success-ink' : 'bg-warning-soft text-warning-ink')}>
                   {report.status}
                 </Badge>
-                {report.submittedAt && <span className="text-[9px] font-bold text-muted-foreground uppercase">Sub: {format(report.submittedAt.toDate(), 'MMM d, h:mm a')}</span>}
+                {report.submittedAt && <span className="text-xs font-bold text-muted-foreground uppercase">Sub: {format(report.submittedAt.toDate(), 'MMM d, h:mm a')}</span>}
               </div>
             </div>
           </div>
-          <Button variant="ghost" onClick={() => setIsOpen(!isOpen)} data-html2canvas-ignore="true" className="text-accent font-black text-[10px] uppercase">
+          <Button variant="ghost" onClick={() => setIsOpen(!isOpen)} data-html2canvas-ignore="true" className="text-accent font-semibold text-xs">
             <MessageSquare className="w-4 h-4 mr-2" /> {isOpen ? 'CLOSE FEEDBACK' : 'REVIEW NOTES'}
           </Button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
           <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60">
-            <p className="text-[9px] font-black text-info uppercase mb-1">Calls</p>
-            <p className="text-xl font-black text-primary">{report.summary.crmCalls || 0}</p>
-            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">Man: {report.summary.callsMade || 0}</p>
+            <p className="text-xs font-semibold text-info mb-1">Calls</p>
+            <p className="text-xl font-black tabular-nums text-primary">{report.summary.crmCalls || 0}</p>
+            <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wide">Man: {report.summary.callsMade || 0}</p>
           </div>
           <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60">
-            <p className="text-[9px] font-black text-success uppercase mb-1">Apps</p>
-            <p className="text-xl font-black text-primary">{report.summary.crmApps || 0}</p>
-            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">Man: {report.summary.meetingsHeld || 0}</p>
+            <p className="text-xs font-semibold text-success mb-1">Apps</p>
+            <p className="text-xl font-black tabular-nums text-primary">{report.summary.crmApps || 0}</p>
+            <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wide">Man: {report.summary.meetingsHeld || 0}</p>
           </div>
-          <div className="bg-info-soft p-4 rounded-2xl border border-info/15"><p className="text-[9px] font-black text-info uppercase mb-1">Total EAV</p><p className="text-xl font-black text-info">{formatEAV(report.summary.totalEAV)}</p></div>
-          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-[9px] font-black text-accent uppercase mb-1">Whitespace</p><p className="text-xl font-black text-primary">{report.whitespaceCount || 0}</p></div>
-          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-[9px] font-black text-info uppercase mb-1">Call Plans</p><p className="text-xl font-black text-primary">{report.callPlanCount || 0}</p></div>
-          <div className="bg-success-soft p-4 rounded-2xl border border-success/15"><p className="text-[9px] font-black text-success uppercase mb-1">New Opps</p><p className="text-xl font-black text-success-ink">{report.summary.newOpportunitiesCount}</p></div>
-          <div className="bg-chart-5/10 p-4 rounded-2xl border border-chart-5/15"><p className="text-[9px] font-black text-chart-5 uppercase mb-1">Signed</p><p className="text-xl font-black text-chart-5">{report.summary.signedPaperworkCount}</p></div>
-          <div className="bg-warning-soft p-4 rounded-2xl border border-warning/15"><p className="text-[9px] font-black text-warning-ink uppercase mb-1">New Biz</p><p className="text-xl font-black text-warning-ink">{report.summary.newBusinessCount}</p></div>
+          <div className="bg-info-soft p-4 rounded-2xl border border-info/15"><p className="text-xs font-semibold text-info mb-1">Total EAV</p><p className="text-xl font-black tabular-nums text-info">{formatEAV(report.summary.totalEAV)}</p></div>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-xs font-semibold text-accent mb-1">Whitespace</p><p className="text-xl font-black tabular-nums text-primary">{report.whitespaceCount || 0}</p></div>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-xs font-semibold text-info mb-1">Call Plans</p><p className="text-xl font-black tabular-nums text-primary">{report.callPlanCount || 0}</p></div>
+          <div className="bg-success-soft p-4 rounded-2xl border border-success/15"><p className="text-xs font-semibold text-success mb-1">New Opps</p><p className="text-xl font-black tabular-nums text-success-ink">{report.summary.newOpportunitiesCount}</p></div>
+          <div className="bg-chart-5/10 p-4 rounded-2xl border border-chart-5/15"><p className="text-xs font-semibold text-chart-5 mb-1">Signed</p><p className="text-xl font-black tabular-nums text-chart-5">{report.summary.signedPaperworkCount}</p></div>
+          <div className="bg-warning-soft p-4 rounded-2xl border border-warning/15"><p className="text-xs font-semibold text-warning-ink mb-1">New Biz</p><p className="text-xl font-black tabular-nums text-warning-ink">{report.summary.newBusinessCount}</p></div>
         </div>
 
         {(isOpen || forceOpen) && (
@@ -703,7 +703,7 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
              {/* 1x4 stack layout to show sections cleanly, no text truncation/clipping */}
              <div className="grid grid-cols-1 gap-6 bdm-text-fields-grid">
                 <div className="bg-secondary/60 p-6 rounded-2xl border min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground mb-3 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5" /> High-Level Summary (Friday)</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5" /> High-Level Summary (Friday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
                     <p className="text-sm font-medium text-foreground/85 leading-relaxed italic whitespace-pre-line break-words">
                       "{report.weeklyNotes || 'No summary notes submitted.'}"
@@ -712,7 +712,7 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
                 </div>
                 
                 <div className="bg-danger-soft/50 p-6 rounded-2xl border border-destructive/15 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-destructive mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
+                  <p className="text-xs font-semibold text-destructive mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
                     <p className="text-sm font-bold text-destructive leading-relaxed italic whitespace-pre-line break-words">
                       "{report.roadblocks || 'None reported.'}"
@@ -721,7 +721,7 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
                 </div>
 
                 <div className="bg-info-soft/50 p-6 rounded-2xl border border-info/15 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-info mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
+                  <p className="text-xs font-semibold text-info mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
                     <p className="text-sm font-bold text-info leading-relaxed italic whitespace-pre-line break-words">
                       "{report.supportNeeded || 'None requested.'}"
@@ -730,9 +730,9 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
                 </div>
 
                 <div className="bg-success-soft/50 p-6 rounded-2xl border border-success/15 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-success mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
+                  <p className="text-xs font-semibold text-success mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
                   <div className="bg-card p-4 rounded-xl border border-success/15 shadow-inner h-auto w-full text-field-container">
-                    <p className="text-[11px] font-bold text-success-ink leading-relaxed whitespace-pre-line break-words">
+                    <p className="text-xs font-bold text-success-ink leading-relaxed whitespace-pre-line break-words">
                       {report.nextWeekCommitments || 'No tactical commitments set.'}
                     </p>
                   </div>
@@ -741,16 +741,16 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
 
              {report.gmFeedback && (
                <div className="bg-accent/5 p-6 rounded-2xl border border-accent/20 h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-accent mb-2">Historical GM Feedback</p>
+                  <p className="text-xs font-semibold text-accent mb-2">Historical GM Feedback</p>
                   <div className="h-auto pr-2 text-field-container">
                     <p className="text-sm font-bold text-foreground leading-relaxed whitespace-pre-line break-words">"{report.gmFeedback}"</p>
                   </div>
                </div>
              )}
              <div data-html2canvas-ignore="true" className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-primary">Provide Strategic Feedback</p>
+                <p className="text-xs font-semibold text-primary">Provide Strategic Feedback</p>
                 <Textarea placeholder="Coach this team member on their weekly performance..." value={feedback} onChange={(e) => setFeedback(e.target.value)} className="min-h-[100px] rounded-2xl border-primary/20 bg-card" />
-                <Button onClick={() => onSaveFeedback(report.userId, feedback)} disabled={!feedback.trim()} className="w-full bg-accent font-black uppercase text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
+                <Button onClick={() => onSaveFeedback(report.userId, feedback)} disabled={!feedback.trim()} className="w-full bg-accent font-semibold text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
              </div>
           </div>
         )}
@@ -987,9 +987,9 @@ function MetricCard({ title, value, sub, icon, color }: any) {
       <div className={cn("bg-gradient-to-br p-6 text-white dark:text-background h-full", gradients[color])}>
         <div className="flex justify-between items-start">
           <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{title}</p>
-            <p className="text-3xl font-black tracking-tight">{value}</p>
-            <p className="text-[9px] font-bold uppercase opacity-70 mt-1">{sub}</p>
+            <p className="text-xs font-semibold opacity-80">{title}</p>
+            <p className="text-3xl font-black tabular-nums tracking-tight">{value}</p>
+            <p className="text-xs font-bold uppercase opacity-70 mt-1">{sub}</p>
           </div>
           <div className="bg-white/20 p-3 rounded-2xl backdrop-blur group-hover:scale-110 transition-transform">{icon}</div>
         </div>
@@ -1003,8 +1003,8 @@ function OpportunitiesTable({ data }: { data: any[] }) {
     <Card className="border-none shadow-xl bg-card overflow-hidden">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-secondary/60"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Stage</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge></TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-secondary/60"><TableRow className="text-xs font-semibold"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Stage</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-semibold text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-semibold text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell><Badge variant="outline" className="text-xs font-semibold border-accent/20 text-accent">{o.stage}</Badge></TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -1016,8 +1016,8 @@ function SignedPaperworkTable({ data }: { data: any[] }) {
     <Card className="border-none shadow-xl bg-card overflow-hidden">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-secondary/60"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Signed Date</TableHead><TableHead>Term (M)</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-black text-success">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{p.signedDate?.toDate ? format(p.signedDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-secondary/60"><TableRow className="text-xs font-semibold"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Signed Date</TableHead><TableHead>Term (M)</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-semibold text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-semibold text-success">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{p.signedDate?.toDate ? format(p.signedDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-xs italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -1029,8 +1029,8 @@ function NewBusinessTable({ data }: { data: any[] }) {
     <Card className="border-none shadow-xl bg-card overflow-hidden border-border">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-secondary/60"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-chart-5">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-secondary/60"><TableRow className="text-xs font-semibold"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-semibold text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-semibold text-chart-5">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-xs font-semibold">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -1041,7 +1041,7 @@ function StrategyTable({ data }: { data: any[] }) {
   return (
     <Card className="border-none shadow-xl bg-card overflow-hidden border-border">
       <CardHeader className="bg-panel text-panel-foreground pb-6">
-        <CardTitle className="text-xl font-black uppercase flex items-center gap-3">
+        <CardTitle className="text-xl font-bold flex items-center gap-3">
           <ShieldCheck className="w-6 h-6 text-accent" />
           Corporate Strategy Blueprints
         </CardTitle>
@@ -1050,7 +1050,7 @@ function StrategyTable({ data }: { data: any[] }) {
       <CardContent className="p-0">
         <Table>
           <TableHeader className="bg-secondary/60">
-            <TableRow className="uppercase text-[9px] font-black">
+            <TableRow className="text-xs font-semibold">
               <TableHead className="pl-6">Blueprint Name</TableHead>
               <TableHead>Primary Objective</TableHead>
               <TableHead>Last Updated</TableHead>
@@ -1059,9 +1059,9 @@ function StrategyTable({ data }: { data: any[] }) {
           <TableBody>
             {data?.map(plan => (
               <TableRow key={plan.id}>
-                <TableCell className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</TableCell>
+                <TableCell className="pl-6 font-semibold text-xs text-primary">{plan.accountName}</TableCell>
                 <TableCell className="text-xs font-medium italic">"{plan.objective}"</TableCell>
-                <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">
+                <TableCell className="text-xs font-bold text-muted-foreground uppercase">
                   {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
                 </TableCell>
               </TableRow>
@@ -1070,7 +1070,7 @@ function StrategyTable({ data }: { data: any[] }) {
               <TableRow>
                 <TableCell colSpan={3} className="text-center py-20 bg-secondary/30">
                   <PhoneCall className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
-                  <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">No strategic blueprints deployed.</p>
+                  <p className="text-xs font-semibold text-muted-foreground">No strategic blueprints deployed.</p>
                 </TableCell>
               </TableRow>
             )}

@@ -561,7 +561,7 @@ export function DataExplorer() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border shadow-sm">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-3">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
             <Database className="w-7 h-7 text-primary" />
             CRM Data Explorer & Analytics
           </h2>
@@ -579,25 +579,25 @@ export function DataExplorer() {
       {/* Advanced Filter Toolbar */}
       <Card className="p-4 bg-secondary/50 border shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5 text-accent" /> Filter & Search Controls
           </span>
           <div className="flex flex-wrap gap-2">
             <button 
               onClick={() => { setActiveTab('activities'); setSelectedWeek(availableWeeks[0] || 'all'); setSearchQuery(''); setSelectedUser('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-info-soft text-info border border-info/25 hover:bg-info-soft transition-colors"
+              className="text-xs font-semibold px-2.5 py-1 rounded-full bg-info-soft text-info border border-info/25 hover:bg-info-soft transition-colors"
             >
               This Week's Activity
             </button>
             <button 
               onClick={() => { setActiveTab('opportunities'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); setSelectedStage('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-success-soft text-success-ink border border-success/25 hover:bg-success-soft transition-colors"
+              className="text-xs font-semibold px-2.5 py-1 rounded-full bg-success-soft text-success-ink border border-success/25 hover:bg-success-soft transition-colors"
             >
               All Revenue & Pipeline
             </button>
             <button 
               onClick={() => { setActiveTab('customers'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); setSelectedBu('all'); setCreditHoldFilter('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-chart-5/10 text-chart-5 border border-chart-5/25 hover:bg-chart-5/15 transition-colors"
+              className="text-xs font-semibold px-2.5 py-1 rounded-full bg-chart-5/10 text-chart-5 border border-chart-5/25 hover:bg-chart-5/15 transition-colors"
             >
               Customer Accounts
             </button>
@@ -676,7 +676,7 @@ export function DataExplorer() {
           <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-secondary to-accent/5 border-b border-border/60">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-accent animate-pulse" />
-              <span className="text-[10px] font-black uppercase text-primary tracking-widest">Compass CRM Insights Engine</span>
+              <span className="text-xs font-semibold text-primary">Compass CRM Insights Engine</span>
             </div>
             {smartInsights.length > 1 && (
               <div className="flex items-center gap-1.5">
@@ -686,7 +686,7 @@ export function DataExplorer() {
                 >
                   &lt;
                 </button>
-                <span className="text-[9px] font-bold text-muted-foreground uppercase">{insightIndex + 1} / {smartInsights.length}</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase">{insightIndex + 1} / {smartInsights.length}</span>
                 <button 
                   onClick={() => setInsightIndex(prev => (prev + 1) % smartInsights.length)}
                   className="p-1 rounded hover:bg-border/50 text-muted-foreground hover:text-foreground transition-colors"
@@ -725,7 +725,7 @@ export function DataExplorer() {
         <TabsContent value="customers">
           {customersChartData.length > 0 && (
             <Card className="border-none shadow-sm bg-card p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-foreground tracking-wider mb-4">Customer Revenue Split by Business Unit</h3>
+              <h3 className="text-sm font-bold text-foreground mb-4">Customer Revenue Split by Business Unit</h3>
               <div className="h-[250px] w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -755,7 +755,7 @@ export function DataExplorer() {
             {/* Customer Specific Sub-Filters */}
             <div className="bg-secondary/60 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Credit Hold:</span>
+                <span className="text-xs font-semibold text-muted-foreground">Credit Hold:</span>
                 <Select value={creditHoldFilter} onValueChange={setCreditHoldFilter}>
                   <SelectTrigger className="w-[150px] h-8 text-xs font-bold bg-card">
                     <SelectValue placeholder="Credit Status" />
@@ -778,7 +778,7 @@ export function DataExplorer() {
                 <TableHeader className="bg-secondary/60 border-b">
                   <TableRow>
                     <TableHead 
-                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('accountMasterCode')}
                     >
                       <div className="flex items-center gap-1">
@@ -787,7 +787,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('pipeline')}
                     >
                       <div className="flex items-center gap-1">
@@ -795,10 +795,10 @@ export function DataExplorer() {
                         {customerSortField === 'pipeline' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
-                    <TableHead className="font-black text-foreground/75">BDM / AM</TableHead>
-                    <TableHead className="font-black text-foreground/75">Business Unit</TableHead>
+                    <TableHead className="font-semibold text-foreground/75">BDM / AM</TableHead>
+                    <TableHead className="font-semibold text-foreground/75">Business Unit</TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('currentRevenue')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -807,7 +807,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('closedWonValue')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -815,7 +815,7 @@ export function DataExplorer() {
                         {customerSortField === 'closedWonValue' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
-                    <TableHead className="font-black text-foreground/75 text-center">Credit Hold</TableHead>
+                    <TableHead className="font-semibold text-foreground/75 text-center">Credit Hold</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -830,7 +830,7 @@ export function DataExplorer() {
                       <TableCell className="text-right font-medium">{formatMoney(c.currentRevenue || 0)}</TableCell>
                       <TableCell className="text-right font-bold text-success">{formatMoney(c.closedWonValue || 0)}</TableCell>
                       <TableCell className="text-center">
-                        {c.creditHold ? <Badge variant="destructive" className="text-[10px]">YES</Badge> : <Badge variant="secondary" className="text-[10px] bg-secondary text-panel-foreground/60">NO</Badge>}
+                        {c.creditHold ? <Badge variant="destructive" className="text-xs">YES</Badge> : <Badge variant="secondary" className="text-xs bg-secondary text-panel-foreground/60">NO</Badge>}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -844,7 +844,7 @@ export function DataExplorer() {
         <TabsContent value="opportunities">
           {opportunitiesChartData.length > 0 && (
             <Card className="border-none shadow-sm bg-card p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-foreground tracking-wider mb-4">Active Pipeline Value by Stage</h3>
+              <h3 className="text-sm font-bold text-foreground mb-4">Active Pipeline Value by Stage</h3>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={opportunitiesChartData}>
@@ -866,7 +866,7 @@ export function DataExplorer() {
           <Card className="border-none shadow-sm bg-card overflow-hidden">
             <div className="bg-secondary/60 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Stage Filter:</span>
+                <span className="text-xs font-semibold text-muted-foreground">Stage Filter:</span>
                 <Select value={selectedStage} onValueChange={setSelectedStage}>
                   <SelectTrigger className="w-[180px] h-8 text-xs font-bold bg-card">
                     <SelectValue placeholder="All Stages" />
@@ -889,9 +889,9 @@ export function DataExplorer() {
               <Table>
                 <TableHeader className="bg-secondary/60 border-b">
                   <TableRow>
-                    <TableHead className="font-black text-foreground/75">Opp ID</TableHead>
+                    <TableHead className="font-semibold text-foreground/75">Opp ID</TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('opportunityName')}
                     >
                       <div className="flex items-center gap-1">
@@ -900,7 +900,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('pipeline')}
                     >
                       <div className="flex items-center gap-1">
@@ -908,9 +908,9 @@ export function DataExplorer() {
                         {oppSortField === 'pipeline' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
-                    <TableHead className="font-black text-foreground/75">BDM / AM</TableHead>
+                    <TableHead className="font-semibold text-foreground/75">BDM / AM</TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('stage')}
                     >
                       <div className="flex items-center gap-1">
@@ -919,7 +919,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('value')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -928,7 +928,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('probability')}
                     >
                       <div className="flex items-center justify-end gap-1">
@@ -948,7 +948,7 @@ export function DataExplorer() {
                       <TableCell className="font-medium text-xs">{o.pipeline}</TableCell>
                       <TableCell className="text-xs font-semibold">{normalizeBdmName(o.userName, o.userId)}</TableCell>
                       <TableCell>
-                        <Badge className="text-[10px] bg-info-soft text-info hover:bg-info/20 border-none">{o.stage}</Badge>
+                        <Badge className="text-xs bg-info-soft text-info hover:bg-info/20 border-none">{o.stage}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-bold">{formatMoney(o.value || 0)}</TableCell>
                       <TableCell className="text-right font-medium text-xs">{o.probability}%</TableCell>
@@ -964,7 +964,7 @@ export function DataExplorer() {
         <TabsContent value="activities">
           {activitiesChartData.length > 0 && (
             <Card className="border-none shadow-sm bg-card p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-foreground tracking-wider mb-4">BDM Weekly Activity Comparison</h3>
+              <h3 className="text-sm font-bold text-foreground mb-4">BDM Weekly Activity Comparison</h3>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={activitiesChartData}>
@@ -986,7 +986,7 @@ export function DataExplorer() {
             <div className="bg-info-soft/50 p-4 border-b border-info/15 flex items-start gap-3">
               <Activity className="w-5 h-5 text-info mt-0.5" />
               <div>
-                <h4 className="text-sm font-black text-info uppercase">Aggregated Weekly Activity</h4>
+                <h4 className="text-sm font-bold text-info">Aggregated Weekly Activity</h4>
                 <p className="text-xs text-info/80 mt-1 font-medium max-w-2xl">
                   This table shows the summarized totals of all activities imported for the selected timeframe.
                   Click column headers to sort by calls, meetings, proposals, or wins.
@@ -999,7 +999,7 @@ export function DataExplorer() {
                 <TableHeader className="bg-secondary/60 border-b">
                   <TableRow>
                     <TableHead 
-                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('name')}
                     >
                       <div className="flex items-center gap-1">
@@ -1008,7 +1008,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('calls')}
                     >
                       <div className="flex items-center justify-center gap-1">
@@ -1017,7 +1017,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('apps')}
                     >
                       <div className="flex items-center justify-center gap-1">
@@ -1026,7 +1026,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('proposals')}
                     >
                       <div className="flex items-center justify-center gap-1">
@@ -1035,7 +1035,7 @@ export function DataExplorer() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-semibold text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('deals')}
                     >
                       <div className="flex items-center justify-center gap-1">
@@ -1051,10 +1051,10 @@ export function DataExplorer() {
                   ) : activities.map(a => (
                     <TableRow key={a.id} className="hover:bg-secondary/60">
                       <TableCell className="font-bold text-sm">{normalizeBdmName(a.userName || userIdToName.get(a.userId), a.userId)}</TableCell>
-                      <TableCell className="text-center font-black text-foreground/85">{a.calls || 0}</TableCell>
-                      <TableCell className="text-center font-black text-info">{a.apps || 0}</TableCell>
-                      <TableCell className="text-center font-black text-warning-ink">{a.proposals || 0}</TableCell>
-                      <TableCell className="text-center font-black text-success">{a.deals || 0}</TableCell>
+                      <TableCell className="text-center font-semibold text-foreground/85">{a.calls || 0}</TableCell>
+                      <TableCell className="text-center font-semibold text-info">{a.apps || 0}</TableCell>
+                      <TableCell className="text-center font-semibold text-warning-ink">{a.proposals || 0}</TableCell>
+                      <TableCell className="text-center font-semibold text-success">{a.deals || 0}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

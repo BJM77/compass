@@ -60,14 +60,14 @@ export function AIBriefsHub() {
   if (isUsersLoading) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
       <Loader2 className="w-10 h-10 text-primary animate-spin" />
-      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Syncing Intelligence Registry...</p>
+      <p className="text-xs font-semibold text-muted-foreground">Syncing Intelligence Registry...</p>
     </div>
   );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-700 pb-20">
       <div className="lg:col-span-3 space-y-4">
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+        <h3 className="text-xs font-bold text-muted-foreground px-1 flex items-center gap-2">
           <Users className="w-3 h-3" /> Territory Registry
         </h3>
         <ScrollArea className="h-[700px] pr-2">
@@ -82,12 +82,12 @@ export function AIBriefsHub() {
                     : 'border-border/60 bg-card hover:border-border'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${activeBdmId === u.id ? 'bg-accent text-accent-foreground border-accent' : 'bg-secondary text-muted-foreground'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-xs border ${activeBdmId === u.id ? 'bg-accent text-accent-foreground border-accent' : 'bg-secondary text-muted-foreground'}`}>
                    {u.name.charAt(0)}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black text-primary uppercase truncate">{u.name}</p>
-                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{u.role}</p>
+                  <p className="text-xs font-semibold text-primary truncate">{u.name}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{u.role}</p>
                 </div>
               </button>
             ))}
@@ -99,7 +99,7 @@ export function AIBriefsHub() {
         {selectedUser && activeBdmId ? (
           <div className="space-y-8">
             <div className="space-y-4">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2 px-1">
+              <h3 className="text-xs font-bold text-accent flex items-center gap-2 px-1">
                 <Sparkles className="w-3.5 h-3.5" /> Live Strategic Synthesis
               </h3>
               <AISummaryView 
@@ -128,7 +128,7 @@ export function AIBriefsHub() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 px-1">
+              <h3 className="text-xs font-bold text-primary flex items-center gap-2 px-1">
                 <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Performance Archive
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -146,16 +146,16 @@ export function AIBriefsHub() {
                           }`}
                         >
                           <div className="flex justify-between items-center mb-1">
-                            <Badge variant="outline" className="text-[7px] h-4 uppercase font-black tracking-widest">Wk {brief.week?.split('-')[1]}</Badge>
-                            <span className="text-[8px] font-bold text-muted-foreground">{brief.createdAt?.toDate ? format(brief.createdAt.toDate(), 'MMM d') : '...'}</span>
+                            <Badge variant="outline" className="text-xs h-4 font-semibold">Wk {brief.week?.split('-')[1]}</Badge>
+                            <span className="text-xs font-bold text-muted-foreground">{brief.createdAt?.toDate ? format(brief.createdAt.toDate(), 'MMM d') : '...'}</span>
                           </div>
-                          <p className="text-[10px] font-bold text-primary line-clamp-1 opacity-80">{brief.summary}</p>
+                          <p className="text-xs font-bold text-primary line-clamp-1 opacity-80">{brief.summary}</p>
                         </button>
                       ))}
                       {(!briefs || briefs.length === 0) && !isBriefsLoading && (
                         <div className="text-center py-10 opacity-30">
                            <Clock className="w-6 h-6 mx-auto mb-2" />
-                           <p className="text-[9px] font-black uppercase">No Archived Data</p>
+                           <p className="text-xs font-semibold">No Archived Data</p>
                         </div>
                       )}
                     </div>
@@ -166,12 +166,12 @@ export function AIBriefsHub() {
                      <Card className="border-none shadow-xl bg-secondary/60 overflow-hidden">
                         <CardHeader className="bg-card border-b py-4">
                            <div className="flex justify-between items-center">
-                              <CardTitle className="text-xs font-black uppercase tracking-widest text-primary">Synthesis · Week {selectedBrief.week}</CardTitle>
-                              <Badge variant="secondary" className="text-[8px] font-black">{selectedBrief.createdAt?.toDate ? format(selectedBrief.createdAt.toDate(), 'PPP') : ''}</Badge>
+                              <CardTitle className="text-xs font-bold text-primary">Synthesis · Week {selectedBrief.week}</CardTitle>
+                              <Badge variant="secondary" className="text-xs font-semibold">{selectedBrief.createdAt?.toDate ? format(selectedBrief.createdAt.toDate(), 'PPP') : ''}</Badge>
                            </div>
                         </CardHeader>
                         <CardContent className="pt-6 space-y-6">
-                           <div className="bg-card p-4 rounded-xl border text-[11px] font-medium leading-relaxed italic text-foreground/85">
+                           <div className="bg-card p-4 rounded-xl border text-xs font-medium leading-relaxed italic text-foreground/85">
                              "{selectedBrief.summary}"
                            </div>
                         </CardContent>
@@ -179,7 +179,7 @@ export function AIBriefsHub() {
                    ) : (
                      <div className="h-full min-h-[300px] flex flex-col items-center justify-center bg-secondary/30 rounded-2xl border-2 border-dashed">
                         <Target className="w-8 h-8 text-muted-foreground/30 mb-2" />
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Select an archived node.</p>
+                        <p className="text-xs font-semibold text-muted-foreground">Select an archived node.</p>
                      </div>
                    )}
                 </div>
@@ -191,8 +191,8 @@ export function AIBriefsHub() {
              <div className="w-20 h-20 rounded-full bg-secondary/60 flex items-center justify-center mb-6">
                 <Sparkles className="w-10 h-10 text-muted-foreground/30" />
              </div>
-             <h3 className="text-sm font-black text-muted-foreground uppercase tracking-widest">Select a Professional</h3>
-             <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest mt-2 text-center max-w-xs leading-relaxed">
+             <h3 className="text-sm font-bold text-muted-foreground">Select a Professional</h3>
+             <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide mt-2 text-center max-w-xs leading-relaxed">
                 Access archived intelligence and trigger new coaching snapshots for your team nodes.
              </p>
           </div>

@@ -98,11 +98,11 @@ export function VoiceActionLogger({ userId, userName }: { userId: string, userNa
       
       <div className="flex items-center justify-between mb-4 relative z-10">
         <div>
-          <h3 className="text-sm font-black uppercase text-primary flex items-center gap-2 tracking-tight">
+          <h3 className="text-sm font-bold text-primary flex items-center gap-2 tracking-tight">
             <Play className="w-4 h-4 text-accent" />
             Field Dictation
           </h3>
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Voice-to-Text Outcome Logger</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mt-0.5">Voice-to-Text Outcome Logger</p>
         </div>
         
         <Button 
@@ -126,7 +126,7 @@ export function VoiceActionLogger({ userId, userName }: { userId: string, userNa
           <Button 
             onClick={handleSave} 
             disabled={!transcript.trim() || isSaving || isRecording}
-            className="bg-accent font-black uppercase text-[10px] h-9 gap-2 shadow-md hover:bg-accent/90"
+            className="bg-accent font-semibold text-xs h-9 gap-2 shadow-md hover:bg-accent/90"
           >
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             Sync Log

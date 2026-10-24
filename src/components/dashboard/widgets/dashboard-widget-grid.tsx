@@ -67,7 +67,7 @@ export function DashboardWidgetGrid({ layout, context, mode = 'responsive', anch
               <button
                 key={w.id}
                 onClick={() => jump(w.id)}
-                className="flex-1 text-center rounded-lg px-4 py-2.5 font-black uppercase text-[10px] md:text-xs tracking-widest text-muted-foreground hover:bg-muted hover:text-primary transition-all whitespace-nowrap"
+                className="flex-1 text-center rounded-lg px-4 py-2.5 font-semibold text-xs md:text-xs text-muted-foreground hover:bg-muted hover:text-primary transition-all whitespace-nowrap"
               >
                 {widgetMeta(w.id)?.title}
               </button>
@@ -96,13 +96,13 @@ export function DashboardWidgetGrid({ layout, context, mode = 'responsive', anch
                 <div className="flex items-center justify-between border-b border-border pb-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
-                    <h3 className="text-[11px] font-black uppercase tracking-wider text-foreground truncate">{widgetMeta(w.id)?.title}</h3>
+                    <h3 className="text-xs font-bold text-foreground truncate">{widgetMeta(w.id)?.title}</h3>
                   </div>
                   {collapsible && (
                     <Button
                       variant="ghost" size="sm"
                       onClick={() => setCollapsed(prev => ({ ...prev, [w.id]: !prev[w.id] }))}
-                      className="h-7 px-2 text-[9px] font-black text-muted-foreground hover:text-primary uppercase tracking-wider gap-1"
+                      className="h-7 px-2 text-xs font-semibold text-muted-foreground hover:text-primary gap-1"
                     >
                       {isCollapsed ? <>Show <ChevronDown className="w-3.5 h-3.5 text-accent" /></> : <>Hide <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /></>}
                     </Button>

@@ -72,11 +72,11 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
   return (
     <Card className="border-none shadow-xl bg-gradient-to-br from-accent/10 to-chart-5/10 overflow-hidden">
       <CardHeader className="border-b bg-card/50 pb-4">
-        <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2 text-primary">
+        <CardTitle className="text-sm font-bold tracking-tight flex items-center gap-2 text-primary">
           <Sparkles className="w-5 h-5 text-accent animate-pulse" />
           AI Deal Whisperer
         </CardTitle>
-        <p className="text-[10px] font-bold text-accent/70 uppercase tracking-widest">
+        <p className="text-xs font-bold text-accent/70 uppercase tracking-wide">
           Actionable intelligence based on pipeline momentum
         </p>
       </CardHeader>
@@ -89,7 +89,7 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-bold text-foreground">{whisper.title}</h4>
-                    <Badge variant="outline" className={`text-[8px] font-black uppercase tracking-widest ${
+                    <Badge variant="outline" className={`text-xs font-semibold ${
                       whisper.type === 'CRITICAL' ? 'border-destructive/25 text-destructive bg-danger-soft' : 
                       whisper.type === 'WARNING' ? 'border-warning/25 text-warning-ink bg-warning-soft' : 
                       'border-info/25 text-info bg-info-soft'
@@ -102,14 +102,14 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
                   <div className="mt-3 p-3 bg-card rounded-lg border border-accent/15 shadow-sm flex items-start gap-3">
                     <div className="flex-1">
                       <p className="text-xs font-bold text-primary leading-relaxed">
-                        <span className="text-[10px] uppercase tracking-widest text-accent block mb-1">Suggested Action</span>
+                        <span className="text-xs uppercase tracking-wide text-accent block mb-1">Suggested Action</span>
                         {whisper.suggestion}
                       </p>
                     </div>
                     <Button 
                       size="sm" 
                       onClick={() => openSalesforceSearch(whisper.deal.pipeline, whisper.deal.salesforceId)}
-                      className="bg-accent hover:bg-accent/90 text-[10px] h-8 shrink-0 shadow-md shadow-accent/20"
+                      className="bg-accent hover:bg-accent/90 text-xs h-8 shrink-0 shadow-md shadow-accent/20"
                     >
                       Act in CRM <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>

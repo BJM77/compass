@@ -48,7 +48,7 @@ export function LostCustomersView() {
           <div className="overflow-x-auto">
             <Table className="min-w-[600px]">
             <TableHeader>
-              <TableRow className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground">
+              <TableRow className="uppercase text-xs font-bold tracking-wide text-muted-foreground">
                 <TableHead>Opportunity / Business</TableHead>
                 <TableHead>Archive Week</TableHead>
                 <TableHead>Reason / Barrier</TableHead>
@@ -60,14 +60,14 @@ export function LostCustomersView() {
                 <TableRow key={deal.id}>
                   <TableCell className="font-bold">{deal.pipeline}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="text-[10px] uppercase">
+                    <Badge variant="secondary" className="text-xs uppercase">
                       Week {deal.week.split('-')[1]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground italic">
                     {deal.reason}
                   </TableCell>
-                  <TableCell className="text-right text-[10px] font-mono opacity-60">
+                  <TableCell className="text-right text-xs font-mono opacity-60">
                     {deal.lostAt?.toDate ? format(deal.lostAt.toDate(), 'PPP') : 'N/A'}
                   </TableCell>
                 </TableRow>

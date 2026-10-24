@@ -35,7 +35,7 @@ export function ResponsiveCard({
         headerClassName
       )}>
         <CardTitle className={cn(
-          "font-black uppercase tracking-tight",
+          "font-bold tracking-tight",
           variant === 'minimal' ? 'text-xs md:text-sm' : 'text-sm md:text-base lg:text-lg'
         )}>
           {title}

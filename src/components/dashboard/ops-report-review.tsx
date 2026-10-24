@@ -79,11 +79,11 @@ export function OpsReportReview() {
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">
         <div>
-          <h2 className="text-2xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-primary tracking-tight flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-accent" />
             Ops Review Ledger
           </h2>
-          <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest mt-1">
+          <p className="text-muted-foreground font-bold uppercase text-xs tracking-wide mt-1">
             Review, escalate, or archive weekly negative & positive feedback reports
           </p>
         </div>
@@ -91,7 +91,7 @@ export function OpsReportReview() {
         {/* Filter Controls Bar */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Time Filter Selection */}
-          <div className="bg-secondary p-1 rounded-xl flex gap-1 text-[10px] font-black uppercase tracking-wider">
+          <div className="bg-secondary p-1 rounded-xl flex gap-1 text-xs font-semibold">
             <button
               onClick={() => setFilterTime('WEEK')}
               className={cn("px-3 py-1.5 rounded-lg transition-colors", filterTime === 'WEEK' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-primary')}
@@ -113,7 +113,7 @@ export function OpsReportReview() {
           </div>
 
           {/* Type Filter Selection */}
-          <div className="bg-secondary p-1 rounded-xl flex gap-1 text-[10px] font-black uppercase tracking-wider">
+          <div className="bg-secondary p-1 rounded-xl flex gap-1 text-xs font-semibold">
             <button
               onClick={() => setFilterType('ALL')}
               className={cn("px-3 py-1.5 rounded-lg transition-colors", filterType === 'ALL' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-primary')}
@@ -138,7 +138,7 @@ export function OpsReportReview() {
             <select 
               value={selectedWeek} 
               onChange={e => setSelectedWeek(e.target.value)} 
-              className="rounded-lg border bg-card px-3 py-2 text-[10px] font-black uppercase tracking-widest h-9"
+              className="rounded-lg border bg-card px-3 py-2 text-xs font-semibold h-9"
             >
               {getMonthWeeksForWeek(currentWeek).reverse().map((w: string) => (
                 <option key={w} value={w}>{w}</option>
@@ -158,7 +158,7 @@ export function OpsReportReview() {
                 <CardContent className="p-6 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
                   <div className="space-y-3 flex-1">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-primary font-black text-xs uppercase shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-primary font-semibold text-xs shrink-0">
                         {(report.userName || '?').charAt(0)}
                       </div>
                       <span className="font-bold text-sm text-primary">{report.userName}</span>
@@ -168,26 +168,26 @@ export function OpsReportReview() {
                       <Badge variant="outline" className={report.status === 'ESCALATED' ? 'border-primary text-primary' : 'border-border text-muted-foreground'}>
                         {report.status}
                       </Badge>
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase">Week {report.week?.split('-')[1]}</span>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">Week {report.week?.split('-')[1]}</span>
                     </div>
                     <p className="text-sm text-foreground/85 font-medium whitespace-pre-wrap">{report.description}</p>
                     {report.createdAt && (
-                      <div className="text-[10px] text-muted-foreground font-bold uppercase shrink-0">
+                      <div className="text-xs text-muted-foreground font-bold uppercase shrink-0">
                         Submitted: {report.createdAt.toDate?.().toLocaleString()}
                       </div>
                     )}
                   </div>
                   <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
                     {report.status === 'ESCALATED' ? (
-                      <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(report.id, 'DISMISSED')} className="flex-1 md:flex-none text-foreground/75 hover:text-foreground text-xs font-bold uppercase">
+                      <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(report.id, 'DISMISSED')} className="flex-1 md:flex-none text-foreground/75 hover:text-foreground text-xs font-bold">
                         <CheckCircle2 className="w-4 h-4 mr-2" /> Dismiss
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(report.id, 'ESCALATED')} className="flex-1 md:flex-none text-primary hover:text-primary text-xs font-bold uppercase border-primary/20 bg-primary/5">
+                      <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(report.id, 'ESCALATED')} className="flex-1 md:flex-none text-primary hover:text-primary text-xs font-bold border-primary/20 bg-primary/5">
                         <Shield className="w-4 h-4 mr-2" /> Escalate
                       </Button>
                     )}
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(report.id)} className="flex-1 md:flex-none text-xs font-bold uppercase bg-destructive hover:bg-destructive/90">
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(report.id)} className="flex-1 md:flex-none text-xs font-bold bg-destructive hover:bg-destructive/90">
                       <Trash2 className="w-4 h-4 mr-2" /> Delete
                     </Button>
                   </div>
@@ -198,7 +198,7 @@ export function OpsReportReview() {
         ) : (
           <div className="text-center py-20 bg-secondary/60 rounded-2xl border border-dashed border-border">
             <ClipboardList className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
-            <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">
+            <p className="text-sm font-semibold text-muted-foreground">
               No reports matching search filters.
             </p>
           </div>

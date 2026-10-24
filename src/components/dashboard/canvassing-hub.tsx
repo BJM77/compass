@@ -306,7 +306,7 @@ export function CanvassingHub() {
             <span className="p-2 bg-warning/20 border border-warning/40 rounded-lg text-gold">
               <Navigation className="h-6 w-6" />
             </span>
-            <h1 className="text-2xl font-black tracking-tight">Field Canvassing & Lead Scout</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Field Canvassing & Lead Scout</h1>
             <Badge variant="outline" className="border-warning/40 text-gold bg-warning/10 text-xs">
               GPS Enabled
             </Badge>
@@ -332,14 +332,14 @@ export function CanvassingHub() {
 
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
         <TabsList className={`grid w-full ${isLeader || isSuperAdmin ? 'grid-cols-4' : 'grid-cols-3'} mb-6 h-12 bg-secondary/50`}>
-          <TabsTrigger value="NEW_LEAD" className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5">
+          <TabsTrigger value="NEW_LEAD" className="font-bold text-xs flex items-center justify-center gap-1.5">
             <Plus className="h-3.5 w-3.5 text-warning" />
             <span>New Lead</span>
           </TabsTrigger>
           <TabsTrigger 
             value="VIEW_LEADS" 
             onClick={() => setViewMode('LIST')} 
-            className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
+            className="font-bold text-xs flex items-center justify-center gap-1.5"
           >
             <Layers className="h-3.5 w-3.5 text-info" />
             <span>Leads Cards</span>
@@ -350,7 +350,7 @@ export function CanvassingHub() {
               setActiveTab('VIEW_LEADS');
               setViewMode('MAP');
             }} 
-            className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
+            className="font-bold text-xs flex items-center justify-center gap-1.5"
           >
             <MapPin className="h-3.5 w-3.5 text-destructive" />
             <span>Visited Areas Map</span>
@@ -358,7 +358,7 @@ export function CanvassingHub() {
           {(isLeader || isSuperAdmin) && (
             <TabsTrigger 
               value="TIMELINE" 
-              className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
+              className="font-bold text-xs flex items-center justify-center gap-1.5"
             >
               <Timer className="h-3.5 w-3.5 text-accent" />
               <span>Timeline</span>
@@ -391,28 +391,28 @@ export function CanvassingHub() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
         <Card className="p-4 shadow-sm border-l-4 border-l-info">
           <div className="text-xs text-muted-foreground font-medium">My Captured Leads</div>
-          <div className="text-2xl font-black mt-1 text-foreground">{myLeads}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Logged by you</div>
+          <div className="text-2xl font-black tabular-nums mt-1 text-foreground">{myLeads}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">Logged by you</div>
         </Card>
 
         <Card className="p-4 shadow-sm border-l-4 border-l-accent">
           <div className="text-xs text-muted-foreground font-medium">Team Total Leads</div>
-          <div className="text-2xl font-black mt-1 text-foreground">{totalLeads}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Across all territories</div>
+          <div className="text-2xl font-black tabular-nums mt-1 text-foreground">{totalLeads}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">Across all territories</div>
         </Card>
 
         <Card className="p-4 shadow-sm border-l-4 border-l-success-fill">
           <div className="text-xs text-muted-foreground font-medium">Synced to Salesforce</div>
-          <div className="text-2xl font-black mt-1 text-success">{syncedCount}</div>
-          <div className="text-[11px] text-success font-semibold mt-0.5">
+          <div className="text-2xl font-black tabular-nums mt-1 text-success">{syncedCount}</div>
+          <div className="text-xs text-success font-semibold mt-0.5">
             {totalLeads > 0 ? `${Math.round((syncedCount / totalLeads) * 100)}% Uploaded` : '0%'}
           </div>
         </Card>
 
         <Card className="p-4 shadow-sm border-l-4 border-l-warning">
           <div className="text-xs text-muted-foreground font-medium">Awaiting SF Upload</div>
-          <div className="text-2xl font-black mt-1 text-warning-ink">{pendingCount}</div>
-          <div className="text-[11px] text-warning-ink font-medium mt-0.5">1-Click ready</div>
+          <div className="text-2xl font-black tabular-nums mt-1 text-warning-ink">{pendingCount}</div>
+          <div className="text-xs text-warning-ink font-medium mt-0.5">1-Click ready</div>
         </Card>
       </div>
 
@@ -542,11 +542,11 @@ export function CanvassingHub() {
 
                     <div>
                       {lead.inSalesforce ? (
-                        <Badge className="bg-success-soft text-success-ink border-success/40 text-[10px] gap-1 shrink-0">
+                        <Badge className="bg-success-soft text-success-ink border-success/40 text-xs gap-1 shrink-0">
                           <CheckCircle2 className="h-3 w-3" /> Synced
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-warning-soft text-warning-ink border-warning/40 text-[10px] shrink-0">
+                        <Badge variant="outline" className="bg-warning-soft text-warning-ink border-warning/40 text-xs shrink-0">
                           Draft
                         </Badge>
                       )}
@@ -556,22 +556,22 @@ export function CanvassingHub() {
                   {lead.businessUnit && (
                     <div className="flex items-center justify-between pt-1 relative">
                       <div className="flex flex-wrap gap-1.5">
-                        <Badge variant="secondary" className="text-[10px] font-normal">
+                        <Badge variant="secondary" className="text-xs font-normal">
                           {lead.businessUnit}
                         </Badge>
                         {lead.estimatedRevenue && (
-                          <Badge variant="outline" className="text-[10px] text-success border-success/40 font-semibold">
+                          <Badge variant="outline" className="text-xs text-success border-success/40 font-semibold">
                             ${lead.estimatedRevenue.toLocaleString()}/yr
                           </Badge>
                         )}
                         {lead.incumbent && (
-                          <Badge variant="outline" className="text-[10px] text-foreground/75">
+                          <Badge variant="outline" className="text-xs text-foreground/75">
                             vs {lead.incumbent}
                           </Badge>
                         )}
                       </div>
                       {lead.createdAt && (
-                        <span className="text-[10px] text-muted-foreground ml-2 whitespace-nowrap shrink-0">
+                        <span className="text-xs text-muted-foreground ml-2 whitespace-nowrap shrink-0">
                           {formatDistanceToNow(lead.createdAt?.toDate ? lead.createdAt.toDate() : new Date(lead.createdAt))} ago
                         </span>
                       )}
@@ -590,7 +590,7 @@ export function CanvassingHub() {
                     </div>
 
                     {hasLocation && (
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-border/50">
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
                         <span className="text-muted-foreground">{lead.latitude?.toFixed(5)}, {lead.longitude?.toFixed(5)}</span>
                         <a
                           href={`https://www.google.com/maps/search/?api=1&query=${lead.latitude},${lead.longitude}`}
@@ -628,14 +628,14 @@ export function CanvassingHub() {
                   {/* Notes snippet */}
                   {lead.notes && (
                     <div className="relative h-14 overflow-hidden rounded bg-muted/20 p-2 pause-on-hover">
-                      <p className="text-[11px] text-muted-foreground italic animate-scroll-up absolute left-2 right-2">
+                      <p className="text-xs text-muted-foreground italic animate-scroll-up absolute left-2 right-2">
                         "{lead.notes}"
                       </p>
                     </div>
                   )}
 
                   {/* Rep & Date info */}
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40">
                     <span className="font-medium truncate max-w-[150px] flex items-center">
                       Rep: 
                       {isSuperAdmin ? (
@@ -644,7 +644,7 @@ export function CanvassingHub() {
                             value={lead.userId || ''} 
                             onValueChange={(val) => handleReassignLead(lead.id, val)}
                           >
-                            <SelectTrigger className="h-5 text-[10px] w-auto border-none bg-transparent hover:bg-secondary px-1.5 py-0 shadow-none font-bold text-foreground focus:ring-0">
+                            <SelectTrigger className="h-5 text-xs w-auto border-none bg-transparent hover:bg-secondary px-1.5 py-0 shadow-none font-bold text-foreground focus:ring-0">
                               <SelectValue placeholder={lead.userName || 'Unknown'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -660,7 +660,7 @@ export function CanvassingHub() {
                         <strong className="text-foreground ml-1">{lead.userName || 'Unknown'}</strong>
                       )}
                     </span>
-                    <span className="flex items-center gap-1 font-semibold text-foreground/85 text-[10px] shrink-0 bg-secondary px-2 py-0.5 rounded">
+                    <span className="flex items-center gap-1 font-semibold text-foreground/85 text-xs shrink-0 bg-secondary px-2 py-0.5 rounded">
                       <Clock className="h-3 w-3 text-muted-foreground" />
                       {lead.createdAt?.toDate ? format(lead.createdAt.toDate(), 'dd MMM yyyy, h:mm a') : 'Recently'}
                     </span>

@@ -63,7 +63,7 @@ export function TimeCompletedPanel({ tasks, readOnly, onUncomplete }: { tasks: T
           <p className="text-sm text-muted-foreground italic">No completed tasks {period === 'all' ? 'yet' : 'in this period'}.</p>
         ) : groups.map(g => (
           <div key={g.label} className="space-y-2 min-w-0">
-            <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{g.label} ({g.items.length})</h4>
+            <h4 className="text-xs font-bold text-muted-foreground">{g.label} ({g.items.length})</h4>
             <div className="grid grid-cols-1 gap-2">
               {g.items.map(t => {
                 const quad = t.completedFromQuadrant ?? t.quadrant;
@@ -72,7 +72,7 @@ export function TimeCompletedPanel({ tasks, readOnly, onUncomplete }: { tasks: T
                     <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1 space-y-1">
                       <p className="text-sm text-foreground/85 line-through decoration-muted-foreground break-words">{t.text}</p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                         <span>{quad ? QUADRANT_LABEL[quad] || quad : 'Inbox'}</span>
                         {t.dueAt ? <span>Due {formatPerth(t.dueAt)}</span> : null}
                         <span>{t.completedAt ? `Completed ${formatCompletedAt(t.completedAt)}` : 'Completed (date unknown)'}</span>

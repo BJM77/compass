@@ -96,7 +96,7 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
             {renderIcon()}
             {activePlaybook.title}
           </CardTitle>
-          <Badge variant="outline" className="border-current font-bold uppercase tracking-widest text-[9px]">
+          <Badge variant="outline" className="border-current font-bold uppercase tracking-wide text-xs">
             Active Patch
           </Badge>
         </div>
@@ -106,12 +106,12 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-3">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-2 mb-3">
                 <MapPin className="w-3 h-3 text-accent" /> Industrial Precincts
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {activePlaybook.precincts?.map((item: any, idx: number) => (
-                  <Badge key={idx} variant="secondary" className="bg-muted/50 text-muted-foreground text-[10px] font-bold">
+                  <Badge key={idx} variant="secondary" className="bg-muted/50 text-muted-foreground text-xs font-bold">
                     <span>{typeof item === 'string' ? item : item.text || item.text || JSON.stringify(item)}</span>
                   </Badge>
                 ))}
@@ -120,12 +120,12 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
 
             {zones && zones.length > 0 && (
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2 mb-2">
+                <h4 className="text-xs font-bold text-primary flex items-center gap-2 mb-2">
                   <Zap className="w-3 h-3 text-warning" /> Assigned Zones
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {zones.map((zone, idx) => (
-                    <Badge key={idx} className="bg-primary text-primary-foreground border-none text-[9px] font-bold">
+                    <Badge key={idx} className="bg-primary text-primary-foreground border-none text-xs font-bold">
                       {zone}
                     </Badge>
                   ))}
@@ -136,7 +136,7 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
 
           <div className="space-y-4">
             <div>
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-3">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-2 mb-3">
                 <ShieldCheck className="w-3 h-3 text-success" /> Winning Messages
               </h4>
               <ul className="space-y-2">
@@ -150,7 +150,7 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
             </div>
 
             <div className="pt-2">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-2">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-2 mb-2">
                 <Target className="w-3 h-3 text-destructive" /> Core Specialisation
               </h4>
               <p className="text-sm font-bold text-primary">{activePlaybook.specialisation}</p>
@@ -159,9 +159,9 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
         </div>
 
         <div className="pt-4 border-t border-dashed mt-auto flex items-center justify-between">
-          <div className="flex items-center gap-3 text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground uppercase font-bold tracking-tight">
             <Info className="w-3.5 h-3.5 text-accent shrink-0" />
-            <span>Target: <span className="text-foreground font-black">{activePlaybook.target}</span></span>
+            <span>Target: <span className="text-foreground font-semibold">{activePlaybook.target}</span></span>
           </div>
         </div>
       </CardContent>

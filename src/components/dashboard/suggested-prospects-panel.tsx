@@ -122,19 +122,19 @@ export function SuggestedProspectsPanel({
                 {copied === s.id ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
-            <p className="text-[11px] text-muted-foreground break-words">{s.sector}{s.region ? ` · ${s.region}` : ''}</p>
+            <p className="text-xs text-muted-foreground break-words">{s.sector}{s.region ? ` · ${s.region}` : ''}</p>
           </div>
-          <span className={cn('shrink-0 text-[10px] font-bold uppercase border rounded-full px-1.5 py-0.5', confidenceClass(s.confidence))}>{s.confidence}</span>
+          <span className={cn('shrink-0 text-xs font-bold uppercase border rounded-full px-1.5 py-0.5', confidenceClass(s.confidence))}>{s.confidence}</span>
         </div>
         <p className="text-xs text-foreground/85 break-words">{s.whyTheyShip}</p>
-        {s.lowPriority && s.lowPriorityReason && <p className="text-[11px] text-warning-ink flex gap-1"><Info className="w-3 h-3 shrink-0 mt-px" />{s.lowPriorityReason}</p>}
+        {s.lowPriority && s.lowPriorityReason && <p className="text-xs text-warning-ink flex gap-1"><Info className="w-3 h-3 shrink-0 mt-px" />{s.lowPriorityReason}</p>}
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
           {s.evidenceUrl ? (
-            <a href={s.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5">
+            <a href={s.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-0.5">
               Evidence <ExternalLink className="w-3 h-3" />
             </a>
-          ) : s.evidenceNote ? <span className="text-[11px] text-muted-foreground break-words">Evidence: {s.evidenceNote}</span> : null}
-          <span className="text-[10px] text-muted-foreground break-words">{s.sources.join(' · ')}</span>
+          ) : s.evidenceNote ? <span className="text-xs text-muted-foreground break-words">Evidence: {s.evidenceNote}</span> : null}
+          <span className="text-xs text-muted-foreground break-words">{s.sources.join(' · ')}</span>
           <div className="flex-1" />
           {onCheckPain && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onCheckPain(s)}>Check delivery pain</Button>}
           <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy[`t-${s.id}`]} onClick={() => markTrading(s)}
@@ -158,7 +158,7 @@ export function SuggestedProspectsPanel({
       <div className="space-y-3">
         {Object.entries(bySector).sort(([a], [b]) => a.localeCompare(b)).map(([sector, items]) => (
           <div key={sector} className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-1.5">{sector} ({items.length})</p>
+            <p className="text-xs font-semibold text-muted-foreground mb-1.5">{sector} ({items.length})</p>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">{items.map(s => <Row key={s.id} s={s} />)}</div>
           </div>
         ))}
@@ -205,7 +205,7 @@ export function SuggestedProspectsPanel({
               {hiddenRows.map(s => (
                 <div key={s.id} className="flex items-center gap-2 min-w-0 rounded-md border bg-secondary/60 px-2 py-1.5">
                   <span className="text-sm font-semibold truncate min-w-0 flex-1">{s.company}</span>
-                  <span className="hidden sm:block text-[11px] text-muted-foreground truncate max-w-[40%]">
+                  <span className="hidden sm:block text-xs text-muted-foreground truncate max-w-[40%]">
                     {dismissals.byKey.get(dismissalKey(s.company))?.dismissedByName ? `by ${dismissals.byKey.get(dismissalKey(s.company))?.dismissedByName}` : ''}
                   </span>
                   <Button size="sm" variant="ghost" className="h-7 text-xs shrink-0" onClick={() => restore(s)}><Undo2 className="w-3.5 h-3.5 mr-1" />Restore</Button>

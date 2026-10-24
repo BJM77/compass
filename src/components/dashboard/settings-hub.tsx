@@ -125,11 +125,11 @@ function SectionCard({ title, description, icon: Icon, children, badge }: {
               <Icon className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-sm font-black uppercase tracking-widest text-primary">{title}</CardTitle>
-              {description && <CardDescription className="text-[11px] mt-0.5">{description}</CardDescription>}
+              <CardTitle className="text-sm font-bold text-primary">{title}</CardTitle>
+              {description && <CardDescription className="text-xs mt-0.5">{description}</CardDescription>}
             </div>
           </div>
-          {badge && <Badge className="text-[9px] font-black uppercase bg-accent/10 text-accent border-accent/20">{badge}</Badge>}
+          {badge && <Badge className="text-xs font-semibold bg-accent/10 text-accent border-accent/20">{badge}</Badge>}
         </div>
       </CardHeader>
       <CardContent className="p-6 space-y-6">{children}</CardContent>
@@ -142,7 +142,7 @@ function SettingRow({ label, description, children }: { label: string; descripti
     <div className="flex items-center justify-between gap-6">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-foreground">{label}</p>
-        {description && <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>}
+        {description && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{description}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -306,11 +306,11 @@ export function SettingsHub() {
     <div className="w-full space-y-8 pb-20">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Governance Node</p>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-primary">System Config</h1>
+          <p className="text-xs font-semibold text-muted-foreground mb-1">Governance Node</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">System Config</h1>
         </div>
         {isDirty && (
-          <Button onClick={handleSave} disabled={isSaving} className="bg-accent font-black h-11 px-6 shadow-lg gap-2">
+          <Button onClick={handleSave} disabled={isSaving} className="bg-accent font-semibold h-11 px-6 shadow-lg gap-2">
             {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
             Save Changes
           </Button>
@@ -324,7 +324,7 @@ export function SettingsHub() {
               key={s.id}
               onClick={() => setActiveSection(s.id)}
               className={cn(
-                'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-xs font-black uppercase tracking-wider',
+                'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-xs font-semibold',
                 activeSection === s.id ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:bg-secondary'
               )}
             >
@@ -337,17 +337,17 @@ export function SettingsHub() {
           {activeSection === 'profile' && (
             <SectionCard title="My Identity" icon={User}>
               <div className="flex items-center gap-4 p-4 bg-secondary/60 rounded-xl border">
-                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-black text-2xl shadow-lg">
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-black tabular-nums text-2xl shadow-lg">
                   {settings.displayName?.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-black text-lg uppercase">{settings.displayName}</p>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase">{profile?.role} · {profile?.territory}</p>
+                  <p className="font-bold text-lg">{settings.displayName}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase">{profile?.role} · {profile?.territory}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase">Display Name</Label><Input value={settings.displayName} onChange={e => set('displayName', e.target.value)} className="font-bold" /></div>
-                <div className="space-y-1.5"><Label className="text-[10px] font-black uppercase">Notify Email</Label><Input value={settings.notifyEmail} onChange={e => set('notifyEmail', e.target.value)} className="font-bold" /></div>
+                <div className="space-y-1.5"><Label className="text-xs font-semibold">Display Name</Label><Input value={settings.displayName} onChange={e => set('displayName', e.target.value)} className="font-bold" /></div>
+                <div className="space-y-1.5"><Label className="text-xs font-semibold">Notify Email</Label><Input value={settings.notifyEmail} onChange={e => set('notifyEmail', e.target.value)} className="font-bold" /></div>
               </div>
             </SectionCard>
           )}
@@ -382,7 +382,7 @@ export function SettingsHub() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase">AI Model Preference</Label>
+                    <Label className="text-xs font-semibold">AI Model Preference</Label>
                     <Select value={settings.aiModel} onValueChange={v => set('aiModel', v)}>
                       <SelectTrigger className="font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -394,10 +394,10 @@ export function SettingsHub() {
                 </div>
                 <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-[10px] font-black uppercase">Usage Audit</p>
-                      <Button variant="ghost" size="sm" onClick={fetchLogs} className="h-6 text-[9px] font-black">REFRESH</Button>
+                      <p className="text-xs font-semibold">Usage Audit</p>
+                      <Button variant="ghost" size="sm" onClick={fetchLogs} className="h-6 text-xs font-semibold">REFRESH</Button>
                    </div>
-                   <ScrollArea className="h-32 text-[10px]">
+                   <ScrollArea className="h-32 text-xs">
                       {logs.map(log => <div key={log.id} className="mb-2 pb-2 border-b border-primary/10 flex justify-between"><span>{log.flow}</span><span className="font-bold">~{Math.round(log.inputTokenEstimate || 0)} tokens</span></div>)}
                    </ScrollArea>
                 </div>
@@ -409,15 +409,15 @@ export function SettingsHub() {
             <SectionCard title="Performance Weights" icon={BarChart3} description="Configure how the Composite Leaderboard index is calculated.">
               <div className="space-y-8 pt-4">
                 <div className="space-y-3">
-                  <div className="flex justify-between font-black text-xs"><span>REVENUE ACHIEVEMENT</span><span className="text-primary">{settings.weightRevenue}%</span></div>
+                  <div className="flex justify-between font-semibold text-xs"><span>REVENUE ACHIEVEMENT</span><span className="text-primary">{settings.weightRevenue}%</span></div>
                   <Slider value={[settings.weightRevenue]} onValueChange={([v]) => handleWeightChange('weightRevenue', v)} min={0} max={100} step={5} />
                 </div>
                 <div className="space-y-3">
-                  <div className="flex justify-between font-black text-xs"><span>ACTIVITY VELOCITY</span><span className="text-accent">{settings.weightActivity}%</span></div>
+                  <div className="flex justify-between font-semibold text-xs"><span>ACTIVITY VELOCITY</span><span className="text-accent">{settings.weightActivity}%</span></div>
                   <Slider value={[settings.weightActivity]} onValueChange={([v]) => handleWeightChange('weightActivity', v)} min={0} max={100} step={5} />
                 </div>
                 <div className="space-y-3">
-                  <div className="flex justify-between font-black text-xs"><span>PROFESSIONAL BEHAVIOUR</span><span className="text-success">{settings.weightBehaviour}%</span></div>
+                  <div className="flex justify-between font-semibold text-xs"><span>PROFESSIONAL BEHAVIOUR</span><span className="text-success">{settings.weightBehaviour}%</span></div>
                   <Slider value={[settings.weightBehaviour]} onValueChange={([v]) => handleWeightChange('weightBehaviour', v)} min={0} max={100} step={5} />
                 </div>
               </div>
@@ -428,9 +428,9 @@ export function SettingsHub() {
             <SectionCard title="API Access" icon={Link2} description="Manage secure integration nodes.">
                <div className="space-y-4">
                   <div className="bg-secondary/60 p-4 rounded-xl border">
-                    <Label className="text-[10px] font-black uppercase">Enterprise Node ID</Label>
+                    <Label className="text-xs font-semibold">Enterprise Node ID</Label>
                     <div className="flex gap-2 mt-2">
-                      <code className="flex-1 p-2 bg-card border rounded font-mono text-[10px] truncate">
+                      <code className="flex-1 p-2 bg-card border rounded font-mono text-xs truncate">
                         bdm_compass_{user?.uid?.slice(0, 16)}_secure
                       </code>
                       <Button 
@@ -457,8 +457,8 @@ export function SettingsHub() {
                    <div className="flex items-center gap-3">
                      <Activity className="w-5 h-5 text-accent" />
                      <div>
-                       <p className="text-xs font-black uppercase text-foreground">Session Monitor</p>
-                       <p className="text-[10px] text-muted-foreground">Real-time authentication log</p>
+                       <p className="text-xs font-semibold text-foreground">Session Monitor</p>
+                       <p className="text-xs text-muted-foreground">Real-time authentication log</p>
                      </div>
                    </div>
                  </div>
@@ -466,24 +466,24 @@ export function SettingsHub() {
                    {userLogs.sort((a, b) => ((b.lastLoginAt?.toMillis?.() || 0) - (a.lastLoginAt?.toMillis?.() || 0))).map(u => (
                      <div key={u.id} className="flex items-center justify-between p-4 bg-card border shadow-sm rounded-xl">
                        <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-black text-muted-foreground">
+                         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-muted-foreground">
                            {u.name?.charAt(0) || u.email?.charAt(0) || '?'}
                          </div>
                          <div>
                            <p className="text-sm font-bold text-foreground">{u.name || u.email}</p>
-                           <p className="text-[10px] uppercase font-bold text-muted-foreground">{u.role || 'User'}</p>
+                           <p className="text-xs uppercase font-bold text-muted-foreground">{u.role || 'User'}</p>
                          </div>
                        </div>
                        <div className="text-right">
-                         <p className="text-xs font-black text-foreground/85">
+                         <p className="text-xs font-semibold text-foreground/85">
                            {u.lastLoginAt ? new Date(u.lastLoginAt.toMillis()).toLocaleString('en-AU') : 'Never Logged In'}
                          </p>
-                         {u.isOnline && <Badge className="mt-1 text-[9px] bg-success-soft text-success-ink border-success/25">Online Recently</Badge>}
+                         {u.isOnline && <Badge className="mt-1 text-xs bg-success-soft text-success-ink border-success/25">Online Recently</Badge>}
                        </div>
                      </div>
                    ))}
                    {userLogs.length === 0 && (
-                     <div className="p-8 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest">
+                     <div className="p-8 text-center text-muted-foreground text-xs font-bold uppercase tracking-wide">
                        No user data found
                      </div>
                    )}
@@ -508,7 +508,7 @@ export function SettingsHub() {
                   <Button 
                     onClick={handleGenerateBackup} 
                     disabled={isBackingUp}
-                    className="bg-primary text-primary-foreground font-black h-11 px-6 shadow-lg gap-2"
+                    className="bg-primary text-primary-foreground font-semibold h-11 px-6 shadow-lg gap-2"
                   >
                     {isBackingUp ? <Loader2 className="animate-spin w-4 h-4" /> : <Database className="w-4 h-4" />}
                     {isBackingUp ? "Generating Backup..." : "Generate Full Backup (JSON)"}
@@ -522,8 +522,8 @@ export function SettingsHub() {
             <SectionCard title="Danger Zone" icon={Trash2}>
               <div className="space-y-4">
                  <div className="p-4 border-2 border-destructive/15 bg-danger-soft rounded-2xl flex items-center justify-between">
-                    <div><p className="text-sm font-black text-destructive uppercase">Wipe Territory Pipeline</p><p className="text-[11px] text-destructive">Irreversibly delete all active opportunities.</p></div>
-                    <Button variant="destructive" onClick={() => setShowDangerConfirm(true)} className="font-black text-xs px-6">EXECUTE WIPE</Button>
+                    <div><p className="text-sm font-semibold text-destructive">Wipe Territory Pipeline</p><p className="text-xs text-destructive">Irreversibly delete all active opportunities.</p></div>
+                    <Button variant="destructive" onClick={() => setShowDangerConfirm(true)} className="font-semibold text-xs px-6">EXECUTE WIPE</Button>
                  </div>
               </div>
             </SectionCard>
@@ -534,12 +534,12 @@ export function SettingsHub() {
       <Dialog open={showDangerConfirm} onOpenChange={setShowDangerConfirm}>
         <DialogContent className="rounded-3xl p-8">
            <DialogHeader>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tight text-destructive">Strict Auth Protocol</DialogTitle>
+              <DialogTitle className="text-2xl font-bold tracking-tight text-destructive">Strict Auth Protocol</DialogTitle>
               <DialogDescription className="font-bold">Type <span className="text-destructive">DELETE CONFIRMED</span> to proceed.</DialogDescription>
            </DialogHeader>
            <Input value={dangerConfirmText} onChange={e => setDangerConfirmText(e.target.value)} placeholder="Type confirmation phrase..." className="h-12 border-destructive/25" />
            <DialogFooter>
-              <Button variant="ghost" onClick={() => setShowDangerConfirm(false)} className="font-black">CANCEL</Button>
+              <Button variant="ghost" onClick={() => setShowDangerConfirm(false)} className="font-semibold">CANCEL</Button>
               <Button variant="destructive" disabled={dangerConfirmText !== 'DELETE CONFIRMED' || isSaving} onClick={async () => {
                  if (!db) return;
                  setIsSaving(true);
@@ -567,7 +567,7 @@ export function SettingsHub() {
                  } finally {
                    setIsSaving(false);
                  }
-              }} className="font-black">
+              }} className="font-semibold">
                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                  PERMANENT PURGE
               </Button>

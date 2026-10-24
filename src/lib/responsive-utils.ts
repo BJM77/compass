@@ -27,12 +27,12 @@ export const responsiveGrid = {
  * Responsive text sizing
  */
 export const responsiveText = {
-  heading1: "text-2xl md:text-3xl lg:text-4xl font-black",
-  heading2: "text-xl md:text-2xl lg:text-3xl font-black",
+  heading1: "text-2xl md:text-3xl lg:text-4xl font-black tabular-nums",
+  heading2: "text-xl md:text-2xl lg:text-3xl font-black tabular-nums",
   heading3: "text-lg md:text-xl lg:text-2xl font-bold",
   body: "text-sm md:text-base",
   small: "text-xs md:text-sm",
-  tiny: "text-[10px] md:text-xs",
+  tiny: "text-xs md:text-xs",
 };
 
 /**

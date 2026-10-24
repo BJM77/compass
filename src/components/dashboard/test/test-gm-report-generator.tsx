@@ -293,30 +293,30 @@ export function TestGMReportGenerator() {
       <CardHeader className="bg-secondary/60 border-b pb-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl flex items-center gap-2 font-black text-primary uppercase tracking-tight">
+            <CardTitle className="text-xl flex items-center gap-2 font-bold text-primary tracking-tight">
               <FileText className="w-5 h-5 text-accent" />
               Friday GM Review Hub &amp; Dispatch
             </CardTitle>
-            <CardDescription className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
+            <CardDescription className="text-muted-foreground font-bold text-xs">
               Aggregating weekly habits, outcomes, and territory gaps.
             </CardDescription>
           </div>
-          <Badge className="bg-panel text-panel-foreground border-none uppercase tracking-widest text-[10px] font-black">Week {currentWeek.split('-')[1]}</Badge>
+          <Badge className="bg-panel text-panel-foreground border-none text-xs font-semibold">Week {currentWeek.split('-')[1]}</Badge>
         </div>
       </CardHeader>
       <CardContent className="pt-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-info-soft/50 p-6 rounded-2xl border border-info/10">
-            <p className="text-[10px] font-black text-info uppercase tracking-widest mb-1">Appointments</p>
-            <span className="text-3xl font-black text-primary">{analytics?.totalAppointments || 0}</span>
+            <p className="text-xs font-semibold text-info mb-1">Appointments</p>
+            <span className="text-3xl font-black tabular-nums text-primary">{analytics?.totalAppointments || 0}</span>
           </div>
           <div className="bg-success-soft/50 p-6 rounded-2xl border border-success/10">
-            <p className="text-[10px] font-black text-success uppercase tracking-widest mb-1">Weekly Calls</p>
-            <span className="text-3xl font-black text-primary">{analytics?.totalCalls || 0}</span>
+            <p className="text-xs font-semibold text-success mb-1">Weekly Calls</p>
+            <span className="text-3xl font-black tabular-nums text-primary">{analytics?.totalCalls || 0}</span>
           </div>
           <div className="bg-accent/5 p-6 rounded-2xl border border-accent/10">
-            <p className="text-[10px] font-black text-accent uppercase tracking-widest mb-1">New Opps</p>
-            <span className="text-3xl font-black text-primary">{analytics?.totalNewOpportunities || 0}</span>
+            <p className="text-xs font-semibold text-accent mb-1">New Opps</p>
+            <span className="text-3xl font-black tabular-nums text-primary">{analytics?.totalNewOpportunities || 0}</span>
           </div>
         </div>
 
@@ -325,35 +325,35 @@ export function TestGMReportGenerator() {
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <Loader2 className="w-10 h-10 animate-spin text-accent" />
-                <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Synthesizing performance data...</p>
+                <p className="text-sm font-semibold text-muted-foreground">Synthesizing performance data...</p>
               </div>
             ) : aiAnalysis ? (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <p className="text-[10px] font-black text-accent uppercase tracking-widest">Executive Summary</p>
+                    <p className="text-xs font-semibold text-accent">Executive Summary</p>
                     <p className="text-sm font-medium text-foreground/85 leading-relaxed bg-card p-6 rounded-2xl border shadow-sm h-full">
                       {aiAnalysis.executiveSummary}
                     </p>
                   </div>
                   <div className="space-y-4">
-                     <p className="text-[10px] font-black text-success uppercase tracking-widest">Ted Butler (Email Draft)</p>
+                     <p className="text-xs font-semibold text-success">Ted Butler (Email Draft)</p>
                      <div className="bg-card p-6 rounded-2xl border shadow-sm space-y-4 font-body">
-                        <div className="border-b pb-2"><p className="text-[10px] font-bold text-muted-foreground">To: ted.butler@teamglobalexp.com</p><p className="text-xs font-bold mt-1">Sub: {aiAnalysis.emailSubject}</p></div>
+                        <div className="border-b pb-2"><p className="text-xs font-bold text-muted-foreground">To: ted.butler@teamglobalexp.com</p><p className="text-xs font-bold mt-1">Sub: {aiAnalysis.emailSubject}</p></div>
                         <p className="text-xs leading-relaxed whitespace-pre-wrap">{aiAnalysis.emailBody}</p>
                      </div>
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <Button className="flex-1 bg-accent font-black h-12 rounded-xl" onClick={openEmailToTed}><Mail className="w-4 h-4 mr-2" /> Dispatch Email</Button>
-                  <Button variant="outline" className="flex-1 border-primary/20 font-black h-12 rounded-xl" onClick={exportToPdf} disabled={isExporting}>{isExporting ? <Loader2 className="animate-spin w-4 h-4" /> : <FileText className="w-4 h-4 mr-2" />} Export PDF Dispatch</Button>
+                  <Button className="flex-1 bg-accent font-semibold h-12 rounded-xl" onClick={openEmailToTed}><Mail className="w-4 h-4 mr-2" /> Dispatch Email</Button>
+                  <Button variant="outline" className="flex-1 border-primary/20 font-semibold h-12 rounded-xl" onClick={exportToPdf} disabled={isExporting}>{isExporting ? <Loader2 className="animate-spin w-4 h-4" /> : <FileText className="w-4 h-4 mr-2" />} Export PDF Dispatch</Button>
                 </div>
               </div>
             ) : (
               <div className="text-center py-16">
                 <Sparkles className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">Ready to automate the Friday GM review.</p>
-                <Button className="mt-6 bg-primary font-black h-12 px-8 rounded-xl" onClick={runAIGeneration}>Automate Review</Button>
+                <p className="text-xs font-semibold text-muted-foreground">Ready to automate the Friday GM review.</p>
+                <Button className="mt-6 bg-primary font-semibold h-12 px-8 rounded-xl" onClick={runAIGeneration}>Automate Review</Button>
               </div>
             )}
           </div>

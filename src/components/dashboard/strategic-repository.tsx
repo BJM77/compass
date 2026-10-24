@@ -77,11 +77,11 @@ export function StrategicRepository() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
         <div className="space-y-1">
-          <h2 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-accent" />
             Strategic Repository
           </h2>
-          <p className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+          <p className="text-muted-foreground text-xs font-bold uppercase tracking-wide">
             Centralized intelligence portal for Whitespace Reports, Call Plans, and Fact Findings.
           </p>
         </div>
@@ -98,15 +98,15 @@ export function StrategicRepository() {
 
       <Tabs defaultValue="whitespace" className="w-full">
         <TabsList className="grid w-full grid-cols-3 max-w-xl bg-secondary p-1 rounded-xl mb-6">
-          <TabsTrigger value="whitespace" className="rounded-lg text-xs font-black uppercase py-2">
+          <TabsTrigger value="whitespace" className="rounded-lg text-xs font-semibold py-2">
             <Map className="w-3.5 h-3.5 mr-2 shrink-0" />
             Whitespace Reports
           </TabsTrigger>
-          <TabsTrigger value="callplans" className="rounded-lg text-xs font-black uppercase py-2">
+          <TabsTrigger value="callplans" className="rounded-lg text-xs font-semibold py-2">
             <PhoneCall className="w-3.5 h-3.5 mr-2 shrink-0" />
             Call Plans
           </TabsTrigger>
-          <TabsTrigger value="factfinding" className="rounded-lg text-xs font-black uppercase py-2">
+          <TabsTrigger value="factfinding" className="rounded-lg text-xs font-semibold py-2">
             <FileSearch className="w-3.5 h-3.5 mr-2 shrink-0" />
             Fact Finding
           </TabsTrigger>
@@ -175,7 +175,7 @@ function DocumentList({ documents, type, onOpen, isLoading, users }: DocumentLis
   if (documents.length === 0) {
     return (
       <div className="text-center py-20 bg-card border border-dashed rounded-2xl border-border">
-        <p className="text-xs font-bold uppercase text-muted-foreground tracking-wider">No matching documents found.</p>
+        <p className="text-xs font-bold uppercase text-muted-foreground tracking-wide">No matching documents found.</p>
       </div>
     );
   }
@@ -185,7 +185,7 @@ function DocumentList({ documents, type, onOpen, isLoading, users }: DocumentLis
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="bg-secondary/60 border-b border-border uppercase text-[9px] font-black tracking-widest text-muted-foreground">
+            <thead className="bg-secondary/60 border-b border-border text-xs font-semibold text-muted-foreground">
               <tr>
                 <th className="px-6 py-4 text-left">Account / Customer</th>
                 <th className="px-6 py-4 text-left">Created By</th>
@@ -211,7 +211,7 @@ function DocumentList({ documents, type, onOpen, isLoading, users }: DocumentLis
 
                 return (
                   <tr key={doc.id} className="hover:bg-secondary/30 transition-colors">
-                    <td className="px-6 py-4 font-black text-foreground uppercase tracking-tight">
+                    <td className="px-6 py-4 font-semibold text-foreground tracking-tight">
                       {name || 'Unnamed Account'}
                     </td>
                     <td className="px-6 py-4 font-semibold text-muted-foreground">
@@ -225,7 +225,7 @@ function DocumentList({ documents, type, onOpen, isLoading, users }: DocumentLis
                         size="sm"
                         variant="outline"
                         onClick={() => onOpen(doc, type)}
-                        className="font-bold text-[10px] uppercase border-border text-foreground/85 hover:bg-secondary/60 h-8 rounded-lg"
+                        className="font-bold text-xs border-border text-foreground/85 hover:bg-secondary/60 h-8 rounded-lg"
                       >
                         View Report
                       </Button>

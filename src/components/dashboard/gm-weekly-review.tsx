@@ -729,13 +729,13 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
     <div id="gm-report-capture" className="space-y-8 animate-in fade-in duration-700 pb-20 bg-secondary/60 p-6 rounded-xl">
       <header className="flex flex-col 2xl:flex-row justify-between items-start 2xl:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black uppercase text-primary flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
             <Shield className="w-8 h-8 text-accent" />
             GM Weekly Performance Node
           </h1>
           <div className="flex flex-wrap items-center gap-4 mt-2">
-            <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
-            <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-card px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+            <p className="text-muted-foreground text-xs font-bold uppercase tracking-wide">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
+            <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-card px-3 py-1 text-xs font-semibold">
               {(availableWeeks.length > 0 ? availableWeeks : [selectedWeek]).map(w => (
                 <option key={w} value={w}>{w}</option>
               ))}
@@ -745,10 +745,10 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         
         <div className="flex flex-wrap items-center gap-3" data-html2canvas-ignore="true">
           <div className="flex flex-wrap items-center gap-2 xl:border-r xl:pr-3 border-border">
-            <Button variant="outline" onClick={generateExecutiveReview} className="bg-warning hover:bg-warning/90 text-warning-foreground font-black text-[10px] uppercase h-10 shadow-lg shadow-warning/5">
+            <Button variant="outline" onClick={generateExecutiveReview} className="bg-warning hover:bg-warning/90 text-warning-foreground font-semibold text-xs h-10 shadow-lg shadow-warning/5">
               <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
             </Button>
-            <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-card">
+            <Button variant="outline" onClick={exportReport} className="font-semibold text-xs h-10 bg-card">
               <Download className="w-4 h-4 mr-2" /> EXPORT CSV
             </Button>
           </div>
@@ -760,13 +760,13 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 onChange={(e) => setIncludeGroupPlan(e.target.checked)}
                 className="w-4 h-4 text-primary rounded border-border focus:ring-primary cursor-pointer"
               />
-              <span className="text-[10px] font-black text-foreground/85 uppercase pt-0.5 whitespace-nowrap">Include 30/60/90 Plan in PDF</span>
+              <span className="text-xs font-semibold text-foreground/85 pt-0.5 whitespace-nowrap">Include 30/60/90 Plan in PDF</span>
             </label>
-            <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-panel/90 hover:bg-panel/90 font-black text-[10px] uppercase h-10 text-panel-foreground shadow-lg shadow-primary/5">
+            <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-panel/90 hover:bg-panel/90 font-semibold text-xs h-10 text-panel-foreground shadow-lg shadow-primary/5">
               {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
               {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH(B&W)'}
             </Button>
-            <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-primary-foreground shadow-lg shadow-primary/20">
+            <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-semibold text-xs h-10 text-primary-foreground shadow-lg shadow-primary/20">
               {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />} 
               {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH TO GM'}
             </Button>
@@ -784,12 +784,12 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
               <p className="font-bold text-xs uppercase tracking-wide text-warning-ink">
                 No CRM data imported for Week {selectedWeek.split('-')[1]}
               </p>
-              <p className="text-[11px] text-warning-ink/90 font-medium">
+              <p className="text-xs text-warning-ink/90 font-medium">
                 Pipeline opportunities, signed paperwork, and CRM calls reflect 0 for this week because no Salesforce CSV snapshot exists for {selectedWeek}.
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="bg-card border-warning/40 text-warning-ink text-[10px] font-black uppercase">
+          <Badge variant="outline" className="bg-card border-warning/40 text-warning-ink text-xs font-semibold">
             Awaiting CRM Sync
           </Badge>
         </div>
@@ -798,8 +798,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       {showReviewArea && (
         <Card className="border-none shadow-md bg-card overflow-hidden p-6 animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-black uppercase text-primary">Edit Executive Summary Draft (8-10 Lines max)</h3>
-            <Badge className="bg-warning-soft text-warning-ink hover:bg-warning/20 border-none font-bold text-[9px] uppercase px-2 py-0.5">Editable Draft</Badge>
+            <h3 className="text-xs font-bold text-primary">Edit Executive Summary Draft (8-10 Lines max)</h3>
+            <Badge className="bg-warning-soft text-warning-ink hover:bg-warning/20 border-none font-bold text-xs uppercase px-2 py-0.5">Editable Draft</Badge>
           </div>
           <Textarea 
             className="w-full text-xs font-medium leading-relaxed font-sans border-primary/20 bg-secondary/30 p-4 rounded-xl min-h-[160px]" 
@@ -827,7 +827,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 <Coins className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-black uppercase tracking-tight text-white">Actual Spend Ledger</h3>
+                <h3 className="text-base font-bold tracking-tight text-white">Actual Spend Ledger</h3>
                 <p className="text-xs text-muted-foreground font-medium">Weekly actual revenue tracking for business accounts across WA Parcels.</p>
               </div>
             </div>
@@ -836,7 +836,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
             variant="outline" 
             size="sm" 
             onClick={() => setSelectedTab('actualSpend')}
-            className="border-panel-foreground/15 bg-panel/70 hover:bg-panel/90 text-panel-foreground/90 text-[10px] font-black uppercase tracking-wider h-8"
+            className="border-panel-foreground/15 bg-panel/70 hover:bg-panel/90 text-panel-foreground/90 text-xs font-semibold h-8"
           >
             Open Spend Ledger
           </Button>
@@ -849,8 +849,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 <div className="bg-panel/55 rounded-xl p-4 border border-panel-foreground/10 cursor-help transition-colors hover:bg-panel/65">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Actual Spend</p>
-                      <h4 className="text-2xl font-black text-success-fill mt-0.5">
+                      <p className="text-xs font-semibold text-muted-foreground">Total Actual Spend</p>
+                      <h4 className="text-2xl font-black tabular-nums text-success-fill mt-0.5">
                         ${actualSpendSummary.totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </h4>
                     </div>
@@ -872,8 +872,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 <div className="bg-panel/55 rounded-xl p-4 border border-panel-foreground/10 cursor-help transition-colors hover:bg-panel/65">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Active Accounts</p>
-                      <h4 className="text-2xl font-black text-info mt-0.5">
+                      <p className="text-xs font-semibold text-muted-foreground">Total Active Accounts</p>
+                      <h4 className="text-2xl font-black tabular-nums text-info mt-0.5">
                         {actualSpendSummary.activeAccounts.toLocaleString()}
                       </h4>
                     </div>
@@ -895,8 +895,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 <div className="bg-panel/55 rounded-xl p-4 border border-panel-foreground/10 cursor-help transition-colors hover:bg-panel/65">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Customer Groups</p>
-                      <h4 className="text-2xl font-black text-gold mt-0.5">
+                      <p className="text-xs font-semibold text-muted-foreground">Customer Groups</p>
+                      <h4 className="text-2xl font-black tabular-nums text-gold mt-0.5">
                         {actualSpendSummary.customerGroups.toLocaleString()}
                       </h4>
                     </div>
@@ -917,16 +917,16 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       {/* Team Activity Scorecard Table */}
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardHeader className="bg-panel text-panel-foreground pb-4">
-          <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
+          <CardTitle className="text-sm font-bold tracking-tight flex items-center gap-2">
             <Activity className="w-5 h-5 text-accent" />
             Team Activity Scorecard
           </CardTitle>
-          <p className="text-[9px] font-bold text-panel-foreground/60 uppercase tracking-widest">Team Activity & Wins for Week {selectedWeek.split('-')[1]}</p>
+          <p className="text-xs font-bold text-panel-foreground/60 uppercase tracking-wide">Team Activity & Wins for Week {selectedWeek.split('-')[1]}</p>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table className="min-w-[600px]">
             <TableHeader className="bg-secondary/60">
-              <TableRow className="uppercase text-[8px] font-black tracking-widest border-b">
+              <TableRow className="text-xs font-semibold border-b">
                 <TableHead className="pl-6">BDM/AM Identity</TableHead>
                 <TableHead className="text-center">CRM Appointments</TableHead>
                 <TableHead className="text-center">Total Opportunities</TableHead>
@@ -939,11 +939,11 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                 const winsVal = r.twtwWins?.reduce((sum: number, w: any) => sum + (Number(w.value) || 0), 0) || 0;
                 return (
                   <TableRow key={r.userId} className="hover:bg-secondary/60 transition-colors">
-                    <TableCell className="pl-6 font-black uppercase text-xs">{r.userName}</TableCell>
+                    <TableCell className="pl-6 font-semibold text-xs">{r.userName}</TableCell>
                     <TableCell className="text-center font-bold text-xs text-success">{r.summary.crmApps || 0}</TableCell>
                     <TableCell className="text-center font-bold text-xs text-accent">{r.summary.newOpportunitiesCount || 0}</TableCell>
                     <TableCell className="text-center font-bold text-xs text-info">${(r.summary.totalEAV || 0).toLocaleString()}</TableCell>
-                    <TableCell className="text-right pr-6 font-black text-xs text-primary">${winsVal.toLocaleString()}</TableCell>
+                    <TableCell className="text-right pr-6 font-semibold text-xs text-primary">${winsVal.toLocaleString()}</TableCell>
                   </TableRow>
                 );
               })}
@@ -954,7 +954,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="border-none shadow-md bg-card overflow-hidden">
-          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Activity & Achievement Index</CardTitle></CardHeader>
+          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-bold">Activity & Achievement Index</CardTitle></CardHeader>
           <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={performanceData}>
@@ -971,7 +971,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         </Card>
 
         <Card className="border-none shadow-md bg-card overflow-hidden">
-          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Pipeline Distribution</CardTitle></CardHeader>
+          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-bold">Pipeline Distribution</CardTitle></CardHeader>
           <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -1120,16 +1120,16 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       {/* ── INTERACTIVE TAB VIEW (screen only) ─────────────────────────────── */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6 w-full max-w-full overflow-hidden">
         <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-auto flex w-full overflow-x-auto scrollbar-hide justify-start">
-          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Team Performance</TabsTrigger>
-          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
-          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
-          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Opportunities</TabsTrigger>
-          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">Signed Work</TabsTrigger>
-          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest shrink-0">New Business</TabsTrigger>
-          <TabsTrigger value="actualSpend" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0">
+          <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-semibold text-xs shrink-0">Team Performance</TabsTrigger>
+          <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-semibold text-xs flex items-center gap-2 shrink-0"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
+          <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-semibold text-xs flex items-center gap-2 shrink-0"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
+          <TabsTrigger value="opportunities" className="rounded-lg px-6 py-2.5 font-semibold text-xs shrink-0">Opportunities</TabsTrigger>
+          <TabsTrigger value="signed" className="rounded-lg px-6 py-2.5 font-semibold text-xs shrink-0">Signed Work</TabsTrigger>
+          <TabsTrigger value="business" className="rounded-lg px-6 py-2.5 font-semibold text-xs shrink-0">New Business</TabsTrigger>
+          <TabsTrigger value="actualSpend" className="rounded-lg px-6 py-2.5 font-semibold text-xs flex items-center gap-2 shrink-0">
             <Coins className="w-3 h-3 text-success" /> Actual Spend
           </TabsTrigger>
-          <TabsTrigger value="opsReports" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shrink-0"><AlertTriangle className="w-3 h-3 text-destructive" /> Ops Reports</TabsTrigger>
+          <TabsTrigger value="opsReports" className="rounded-lg px-6 py-2.5 font-semibold text-xs flex items-center gap-2 shrink-0"><AlertTriangle className="w-3 h-3 text-destructive" /> Ops Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -1168,7 +1168,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
         <TabsContent value="opsReports">
           <Card className="border-none shadow-md bg-card overflow-hidden">
             <CardHeader className="bg-secondary/60 border-b">
-              <CardTitle className="text-sm font-black uppercase text-primary">Escalated Operations Reports</CardTitle>
+              <CardTitle className="text-sm font-bold text-primary">Escalated Operations Reports</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               {opsReports.length > 0 ? (
@@ -1186,7 +1186,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest text-center py-10">No escalated reports for this week.</p>
+                <p className="text-sm text-muted-foreground font-bold text-center py-10">No escalated reports for this week.</p>
               )}
             </CardContent>
           </Card>
@@ -1300,58 +1300,58 @@ function BDMReportCard({
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-xl shadow-md border-2 border-border/60">{report.userName.charAt(0)}</div>
+            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black tabular-nums text-xl shadow-md border-2 border-border/60">{report.userName.charAt(0)}</div>
             <div>
-              <h3 className="font-black text-lg uppercase text-primary leading-none">{report.userName}</h3>
+              <h3 className="font-bold text-lg text-primary leading-none">{report.userName}</h3>
               <div className="flex items-center gap-2 mt-1.5">
-                <Badge className={cn("text-[8px] font-black uppercase border-none", report.status === 'REVIEWED' ? 'bg-success-soft text-success-ink' : 'bg-warning-soft text-warning-ink')}>
+                <Badge className={cn("text-xs font-semibold border-none", report.status === 'REVIEWED' ? 'bg-success-soft text-success-ink' : 'bg-warning-soft text-warning-ink')}>
                   {report.status}
                 </Badge>
-                {report.submittedAt && <span className="text-[9px] font-bold text-muted-foreground uppercase">Sub: {format(report.submittedAt.toDate(), 'MMM d, h:mm a')}</span>}
+                {report.submittedAt && <span className="text-xs font-bold text-muted-foreground uppercase">Sub: {format(report.submittedAt.toDate(), 'MMM d, h:mm a')}</span>}
               </div>
             </div>
           </div>
-          <Button variant="ghost" onClick={() => setIsOpen(!isOpen)} data-html2canvas-ignore="true" className="text-accent font-black text-[10px] uppercase">
+          <Button variant="ghost" onClick={() => setIsOpen(!isOpen)} data-html2canvas-ignore="true" className="text-accent font-semibold text-xs">
             <MessageSquare className="w-4 h-4 mr-2" /> {isOpen ? 'CLOSE FEEDBACK' : 'REVIEW NOTES'}
           </Button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
           <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60">
-            <p className="text-[9px] font-black text-info uppercase mb-1">Calls</p>
-            <p className="text-xl font-black text-primary">{report.summary.crmCalls || 0}</p>
+            <p className="text-xs font-semibold text-info mb-1">Calls</p>
+            <p className="text-xl font-black tabular-nums text-primary">{report.summary.crmCalls || 0}</p>
           </div>
           <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60">
-            <p className="text-[9px] font-black text-success uppercase mb-1">Apps</p>
-            <p className="text-xl font-black text-primary">{report.summary.crmApps || 0}</p>
+            <p className="text-xs font-semibold text-success mb-1">Apps</p>
+            <p className="text-xl font-black tabular-nums text-primary">{report.summary.crmApps || 0}</p>
           </div>
-          <div className="bg-info-soft p-4 rounded-2xl border border-info/15"><p className="text-[9px] font-black text-info uppercase mb-1">Total EAV</p><p className="text-xl font-black text-info">{formatEAV(crmMetrics?.eav ?? report.summary.totalEAV)}</p></div>
-          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-[9px] font-black text-accent uppercase mb-1">Whitespace</p><p className="text-xl font-black text-primary">{report.whitespaceCount || 0}</p></div>
-          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-[9px] font-black text-info uppercase mb-1">Call Plans</p><p className="text-xl font-black text-primary">{report.callPlanCount || 0}</p></div>
+          <div className="bg-info-soft p-4 rounded-2xl border border-info/15"><p className="text-xs font-semibold text-info mb-1">Total EAV</p><p className="text-xl font-black tabular-nums text-info">{formatEAV(crmMetrics?.eav ?? report.summary.totalEAV)}</p></div>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-xs font-semibold text-accent mb-1">Whitespace</p><p className="text-xl font-black tabular-nums text-primary">{report.whitespaceCount || 0}</p></div>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-xs font-semibold text-info mb-1">Call Plans</p><p className="text-xl font-black tabular-nums text-primary">{report.callPlanCount || 0}</p></div>
           <div className="bg-success-soft p-4 rounded-2xl border border-success/15">
-            <p className="text-[9px] font-black text-success uppercase mb-1">New Opps</p>
-            <p className="text-xl font-black text-success-ink">{crmMetrics?.weekOpps ?? report.summary.newOpportunitiesCount}</p>
-            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">MTD: {crmMetrics?.mtdOpps ?? 0}</p>
+            <p className="text-xs font-semibold text-success mb-1">New Opps</p>
+            <p className="text-xl font-black tabular-nums text-success-ink">{crmMetrics?.weekOpps ?? report.summary.newOpportunitiesCount}</p>
+            <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wide">MTD: {crmMetrics?.mtdOpps ?? 0}</p>
           </div>
           <div className="bg-chart-5/10 p-4 rounded-2xl border border-chart-5/15">
-            <p className="text-[9px] font-black text-chart-5 uppercase mb-1">Signed</p>
-            <p className="text-xl font-black text-chart-5">{crmMetrics?.weekSigned ?? report.summary.signedPaperworkCount}</p>
-            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">MTD: {crmMetrics?.mtdSigned ?? 0}</p>
+            <p className="text-xs font-semibold text-chart-5 mb-1">Signed</p>
+            <p className="text-xl font-black tabular-nums text-chart-5">{crmMetrics?.weekSigned ?? report.summary.signedPaperworkCount}</p>
+            <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wide">MTD: {crmMetrics?.mtdSigned ?? 0}</p>
           </div>
           <div className="bg-warning-soft p-4 rounded-2xl border border-warning/15">
-            <p className="text-[9px] font-black text-warning-ink uppercase mb-1">New Biz</p>
-            <p className="text-xl font-black text-warning-ink">{crmMetrics?.weekWon ?? report.summary.newBusinessCount}</p>
-            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">MTD: {crmMetrics?.mtdWon ?? 0}</p>
+            <p className="text-xs font-semibold text-warning-ink mb-1">New Biz</p>
+            <p className="text-xl font-black tabular-nums text-warning-ink">{crmMetrics?.weekWon ?? report.summary.newBusinessCount}</p>
+            <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wide">MTD: {crmMetrics?.mtdWon ?? 0}</p>
           </div>
           <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60">
-            <p className="text-[9px] font-black text-primary uppercase mb-1">Managed Accts</p>
-            <p className="text-xl font-black text-primary">{customers.length}</p>
-            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">Active Portfolio</p>
+            <p className="text-xs font-semibold text-primary mb-1">Managed Accts</p>
+            <p className="text-xl font-black tabular-nums text-primary">{customers.length}</p>
+            <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wide">Active Portfolio</p>
           </div>
           <div className="bg-info-soft/50 p-4 rounded-2xl border border-info/15">
-            <p className="text-[9px] font-black text-info uppercase mb-1">CFY vs LFY</p>
-            <p className="text-xs font-black text-foreground leading-tight pt-1">${(cfyRevenue / 1000).toFixed(0)}k vs ${(lfyRevenue / 1000).toFixed(0)}k</p>
-            <p className="text-[8px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">YoY: {yoyGrowth >= 0 ? '+' : ''}{yoyGrowth.toFixed(1)}%</p>
+            <p className="text-xs font-semibold text-info mb-1">CFY vs LFY</p>
+            <p className="text-xs font-semibold text-foreground leading-tight pt-1">${(cfyRevenue / 1000).toFixed(0)}k vs ${(lfyRevenue / 1000).toFixed(0)}k</p>
+            <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-wide">YoY: {yoyGrowth >= 0 ? '+' : ''}{yoyGrowth.toFixed(1)}%</p>
           </div>
         </div>
 
@@ -1360,7 +1360,7 @@ function BDMReportCard({
              {/* 1x4 stack layout to show sections cleanly, no text truncation/clipping */}
              <div className="grid grid-cols-1 gap-6 bdm-text-fields-grid">
                 <div className="bg-secondary/60 p-6 rounded-2xl border min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground mb-3 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5" /> High-Level Summary (Friday)</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5" /> High-Level Summary (Friday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
                     <p className="text-sm font-medium text-foreground/85 leading-relaxed italic whitespace-pre-line break-words">
                       "{report.weeklyNotes || 'No summary notes submitted.'}"
@@ -1369,7 +1369,7 @@ function BDMReportCard({
                 </div>
                 
                 <div className="bg-danger-soft/50 p-6 rounded-2xl border border-destructive/15 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-destructive mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
+                  <p className="text-xs font-semibold text-destructive mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
                     <p className="text-sm font-bold text-destructive leading-relaxed italic whitespace-pre-line break-words">
                       "{report.roadblocks || 'None reported.'}"
@@ -1378,7 +1378,7 @@ function BDMReportCard({
                 </div>
 
                 <div className="bg-info-soft/50 p-6 rounded-2xl border border-info/15 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-info mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
+                  <p className="text-xs font-semibold text-info mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
                     <p className="text-sm font-bold text-info leading-relaxed italic whitespace-pre-line break-words">
                       "{report.supportNeeded || 'None requested.'}"
@@ -1387,9 +1387,9 @@ function BDMReportCard({
                 </div>
 
                 <div className="bg-success-soft/50 p-6 rounded-2xl border border-success/15 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-success mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
+                  <p className="text-xs font-semibold text-success mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
                   <div className="bg-card p-4 rounded-xl border border-success/15 shadow-inner h-auto w-full text-field-container">
-                    <p className="text-[11px] font-bold text-success-ink leading-relaxed whitespace-pre-line break-words">
+                    <p className="text-xs font-bold text-success-ink leading-relaxed whitespace-pre-line break-words">
                       {report.nextWeekCommitments || 'No tactical commitments set.'}
                     </p>
                   </div>
@@ -1400,14 +1400,14 @@ function BDMReportCard({
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border/60">
                 {/* Thursday TWTW details */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase text-foreground tracking-wider">Thursday TWTW Wins & Risks</h4>
+                  <h4 className="text-xs font-bold text-foreground">Thursday TWTW Wins & Risks</h4>
                   {report.twtwWins && report.twtwWins.length > 0 ? (
                     <div className="bg-success-soft/20 p-4 rounded-xl border border-success/10 space-y-2">
-                      <p className="text-[10px] font-black uppercase text-success-ink">Wins Completed</p>
+                      <p className="text-xs font-semibold text-success-ink">Wins Completed</p>
                       {report.twtwWins.map((w: any, idx: number) => (
                         <div key={w.id || idx} className="bg-card p-3 rounded-lg border border-success/5 shadow-sm text-xs">
                           <div className="flex justify-between font-bold text-foreground/85"><span>{w.customer}</span><span className="text-success">${w.value?.toLocaleString()}</span></div>
-                          <p className="text-[10px] text-muted-foreground mt-1 italic">"{w.updateText}"</p>
+                          <p className="text-xs text-muted-foreground mt-1 italic">"{w.updateText}"</p>
                         </div>
                       ))}
                     </div>
@@ -1415,11 +1415,11 @@ function BDMReportCard({
 
                   {report.twtwRisks && report.twtwRisks.length > 0 ? (
                     <div className="bg-danger-soft/20 p-4 rounded-xl border border-destructive/10 space-y-2">
-                      <p className="text-[10px] font-black uppercase text-destructive">Account Churn Risks</p>
+                      <p className="text-xs font-semibold text-destructive">Account Churn Risks</p>
                       {report.twtwRisks.map((r: any, idx: number) => (
                         <div key={r.id || idx} className="bg-card p-3 rounded-lg border border-destructive/5 shadow-sm text-xs">
                           <div className="flex justify-between font-bold text-foreground/85"><span>{r.account}</span><span className="text-destructive">${r.value?.toLocaleString()}</span></div>
-                          <p className="text-[10px] text-muted-foreground mt-1 italic">Mitigation: "{r.mitigation}"</p>
+                          <p className="text-xs text-muted-foreground mt-1 italic">Mitigation: "{r.mitigation}"</p>
                         </div>
                       ))}
                     </div>
@@ -1427,11 +1427,11 @@ function BDMReportCard({
 
                   {report.twtwProjectedWins && report.twtwProjectedWins.length > 0 && (
                     <div className="bg-info-soft/20 p-4 rounded-xl border border-info/10 space-y-2">
-                      <p className="text-[10px] font-black uppercase text-info">30-Day Pipeline Projections</p>
+                      <p className="text-xs font-semibold text-info">30-Day Pipeline Projections</p>
                       {report.twtwProjectedWins.map((p: any, idx: number) => (
                         <div key={p.id || idx} className="bg-card p-3 rounded-lg border border-info/5 shadow-sm text-xs">
                           <div className="flex justify-between font-bold text-foreground/85"><span>{p.account}</span><span className="text-info">${p.value?.toLocaleString()}</span></div>
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">Expected Close: {p.expectedDate}</p>
+                          <p className="text-xs font-bold text-muted-foreground uppercase mt-1">Expected Close: {p.expectedDate}</p>
                         </div>
                       ))}
                     </div>
@@ -1440,7 +1440,7 @@ function BDMReportCard({
 
                 {/* Friday FW details */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase text-foreground tracking-wider">Friday FW Focus Accounts (Next Week)</h4>
+                  <h4 className="text-xs font-bold text-foreground">Friday FW Focus Accounts (Next Week)</h4>
                   {report.focusAccounts && report.focusAccounts.length > 0 ? (
                     <div className="space-y-2">
                       {report.focusAccounts.map((fa: any, idx: number) => (
@@ -1448,11 +1448,11 @@ function BDMReportCard({
                           <div className="flex justify-between items-start">
                             <span className="font-bold uppercase text-foreground/85">{fa.accountName}</span>
                             <div className="flex gap-2 items-center">
-                              <Badge className="bg-accent/10 text-accent text-[8px] border-none font-black uppercase tracking-wider">{fa.actionType}</Badge>
-                              <span className="font-black text-foreground">${Number(fa.eav).toLocaleString()}</span>
+                              <Badge className="bg-accent/10 text-accent text-xs border-none font-semibold">{fa.actionType}</Badge>
+                              <span className="font-semibold text-foreground">${Number(fa.eav).toLocaleString()}</span>
                             </div>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-1 italic">Notes: "{fa.aboutAccount}"</p>
+                          <p className="text-xs text-muted-foreground mt-1 italic">Notes: "{fa.aboutAccount}"</p>
                         </div>
                       ))}
                     </div>
@@ -1464,8 +1464,8 @@ function BDMReportCard({
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-border/60">
                 <div className="bg-card p-5 rounded-2xl border border-border space-y-3">
                   <div className="flex justify-between items-center">
-                    <p className="text-[10px] font-black uppercase text-primary tracking-wider">Active Opportunities ({opps.length})</p>
-                    <Badge variant="outline" className="text-[8px] font-bold">CRM Pipeline</Badge>
+                    <p className="text-xs font-semibold text-primary">Active Opportunities ({opps.length})</p>
+                    <Badge variant="outline" className="text-xs font-bold">CRM Pipeline</Badge>
                   </div>
                   {opps.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic">No active opportunities in pipeline.</p>
@@ -1474,8 +1474,8 @@ function BDMReportCard({
                       headers={['Opportunity Name', 'EAV', 'Stage', 'Days']}
                       rows={opps.map((o: any) => [
                         <span key={`${o.id}-1`} className="text-xs font-bold uppercase">{o.opportunityName || o.pipeline}</span>,
-                        <span key={`${o.id}-2`} className="text-xs font-black text-info">${(o.value || 0).toLocaleString()}</span>,
-                        <Badge key={`${o.id}-3`} variant="outline" className="text-[8px] border-accent/20 text-accent font-black uppercase">{o.stage}</Badge>,
+                        <span key={`${o.id}-2`} className="text-xs font-semibold text-info">${(o.value || 0).toLocaleString()}</span>,
+                        <Badge key={`${o.id}-3`} variant="outline" className="text-xs border-accent/20 text-accent font-semibold">{o.stage}</Badge>,
                         <span key={`${o.id}-4`} className="text-xs text-muted-foreground font-medium">{o.daysInStage || 0}</span>
                       ])}
                       minWidth="500px"
@@ -1485,8 +1485,8 @@ function BDMReportCard({
 
                 <div className="bg-card p-5 rounded-2xl border border-border space-y-3">
                   <div className="flex justify-between items-center">
-                    <p className="text-[10px] font-black uppercase text-primary tracking-wider">Active Customer Portfolio ({customers.length})</p>
-                    <Badge variant="outline" className="text-[8px] font-bold">CRM Trading Accounts</Badge>
+                    <p className="text-xs font-semibold text-primary">Active Customer Portfolio ({customers.length})</p>
+                    <Badge variant="outline" className="text-xs font-bold">CRM Trading Accounts</Badge>
                   </div>
                   {customers.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic">No trading accounts assigned.</p>
@@ -1495,10 +1495,10 @@ function BDMReportCard({
                       headers={['Account Name', 'YTD Revenue', 'Last Year', 'Last Invoice', 'Hold']}
                       rows={customers.map((c: any) => [
                         <span key={`${c.id}-1`} className="text-xs font-bold uppercase">{c.pipeline || c.accountName}</span>,
-                        <span key={`${c.id}-2`} className="text-xs font-black text-success">${(c.currentRevenue || c.value || 0).toLocaleString()}</span>,
+                        <span key={`${c.id}-2`} className="text-xs font-semibold text-success">${(c.currentRevenue || c.value || 0).toLocaleString()}</span>,
                         <span key={`${c.id}-3`} className="text-xs text-foreground/75 font-medium">${(c.lastYearRevenue || 0).toLocaleString()}</span>,
-                        <span key={`${c.id}-4`} className="text-[9px] font-medium">{c.lastInvoiceDate || 'N/A'}</span>,
-                        <span key={`${c.id}-5`} className="text-xs font-medium">{c.creditHold ? <Badge className="bg-danger-soft text-destructive text-[8px] font-black border-none uppercase">HOLD</Badge> : 'No'}</span>
+                        <span key={`${c.id}-4`} className="text-xs font-medium">{c.lastInvoiceDate || 'N/A'}</span>,
+                        <span key={`${c.id}-5`} className="text-xs font-medium">{c.creditHold ? <Badge className="bg-danger-soft text-destructive text-xs font-semibold border-none">HOLD</Badge> : 'No'}</span>
                       ])}
                       minWidth="500px"
                     />
@@ -1509,15 +1509,15 @@ function BDMReportCard({
              {/* Fact Finding Discovery Documents Completed */}
              {userFactFindings.length > 0 && (
                <div className="bg-card p-5 rounded-2xl border border-border space-y-3">
-                 <p className="text-[10px] font-black uppercase text-primary tracking-wider">Fact Finding Logistics Discoveries ({userFactFindings.length})</p>
+                 <p className="text-xs font-semibold text-primary">Fact Finding Logistics Discoveries ({userFactFindings.length})</p>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                    {userFactFindings.map((ff: any) => (
                      <div key={ff.id} className="bg-secondary/60 p-4 rounded-xl border border-border flex justify-between items-center shadow-inner">
                        <div>
-                         <p className="text-xs font-black uppercase text-foreground">{ff.companyName}</p>
-                         <p className="text-[9px] text-muted-foreground font-bold uppercase mt-0.5">Competitor: {ff.incumbentCompetitor || 'N/A'}</p>
+                         <p className="text-xs font-semibold text-foreground">{ff.companyName}</p>
+                         <p className="text-xs text-muted-foreground font-bold uppercase mt-0.5">Competitor: {ff.incumbentCompetitor || 'N/A'}</p>
                        </div>
-                       <Badge className="bg-info-soft text-info text-[8px] font-black border-none uppercase">Spend: ${ff.weeklySpend || '0'}/wk</Badge>
+                       <Badge className="bg-info-soft text-info text-xs font-semibold border-none">Spend: ${ff.weeklySpend || '0'}/wk</Badge>
                      </div>
                    ))}
                  </div>
@@ -1527,7 +1527,7 @@ function BDMReportCard({
              {/* Coaching Alerts for Low Health Deals */}
              {lowHealthDeals.length > 0 && (
                <div className="bg-danger-soft border border-destructive/15 p-6 rounded-2xl space-y-4">
-                 <p className="text-[10px] font-black uppercase text-destructive flex items-center gap-2">
+                 <p className="text-xs font-semibold text-destructive flex items-center gap-2">
                    <AlertTriangle className="w-4 h-4 text-destructive animate-pulse" /> 
                    Coaching Alert: Stalled / High-Risk Deals ({lowHealthDeals.length})
                  </p>
@@ -1536,15 +1536,15 @@ function BDMReportCard({
                      <div key={deal.id} className="bg-card p-4 rounded-xl border border-destructive/10 flex flex-col sm:flex-row justify-between sm:items-center gap-3 shadow-sm">
                        <div>
                          <p className="font-bold text-xs text-foreground uppercase tracking-tight">{deal.pipeline}</p>
-                         <p className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">
+                         <p className="text-xs font-bold text-muted-foreground uppercase mt-0.5">
                            Stage: {deal.stage || 'Discovery'} · Value: {formatEAV(deal.value)} · Stalled: {deal.daysInStage || 0} days
                          </p>
                        </div>
                        <div className="flex items-center gap-2 sm:self-center">
-                         <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-danger-soft text-destructive border border-destructive/25">
+                         <span className="text-xs font-semibold px-2 py-0.5 rounded bg-danger-soft text-destructive border border-destructive/25">
                            Health: {deal.healthScore}%
                          </span>
-                         <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-warning-soft text-warning-ink border border-warning/25">
+                         <span className="text-xs font-semibold px-2 py-0.5 rounded bg-warning-soft text-warning-ink border border-warning/25">
                            {deal.coachingPrompt}
                          </span>
                        </div>
@@ -1556,46 +1556,46 @@ function BDMReportCard({
 
              {report.gmFeedback && (
                <div className="bg-accent/5 p-6 rounded-2xl border border-accent/20 h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-accent mb-2">Historical GM Feedback</p>
+                  <p className="text-xs font-semibold text-accent mb-2">Historical GM Feedback</p>
                   <div className="h-auto pr-2 text-field-container">
                     <p className="text-sm font-bold text-foreground leading-relaxed whitespace-pre-line break-words">"{report.gmFeedback}"</p>
                   </div>
                </div>
              )}
              <div data-html2canvas-ignore="true" className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-primary">Provide Strategic Feedback</p>
+                <p className="text-xs font-semibold text-primary">Provide Strategic Feedback</p>
                 <div className="flex flex-wrap gap-2 mb-2">
                    <button 
                      type="button"
                      onClick={() => setFeedback("Excellent Progress: Outstanding pipeline velocity and activity levels. Whitespace plans are fully populated.")}
-                     className="text-[9px] font-black uppercase bg-secondary/60 border border-border hover:bg-secondary hover:border-success/40 text-foreground/75 hover:text-success-ink px-2.5 py-1 rounded-lg transition-colors"
+                     className="text-xs font-semibold bg-secondary/60 border border-border hover:bg-secondary hover:border-success/40 text-foreground/75 hover:text-success-ink px-2.5 py-1 rounded-lg transition-colors"
                    >
                      👍 Excellent Progress
                    </button>
                    <button 
                      type="button"
                      onClick={() => setFeedback("Pipeline Risk: High value deals are showing stalled days-in-stage. Focus on closing call plan outcomes this week.")}
-                     className="text-[9px] font-black uppercase bg-secondary/60 border border-border hover:bg-secondary hover:border-destructive/40 text-foreground/75 hover:text-destructive px-2.5 py-1 rounded-lg transition-colors"
+                     className="text-xs font-semibold bg-secondary/60 border border-border hover:bg-secondary hover:border-destructive/40 text-foreground/75 hover:text-destructive px-2.5 py-1 rounded-lg transition-colors"
                    >
                      ⚠️ Pipeline Risk
                    </button>
                    <button 
                      type="button"
                      onClick={() => setFeedback("Data Gaps: Active opportunities are missing Fact Finding discovery logs or Whitespace diagnostics. Complete these nodes.")}
-                     className="text-[9px] font-black uppercase bg-secondary/60 border border-border hover:bg-secondary hover:border-warning/40 text-foreground/75 hover:text-warning-ink px-2.5 py-1 rounded-lg transition-colors"
+                     className="text-xs font-semibold bg-secondary/60 border border-border hover:bg-secondary hover:border-warning/40 text-foreground/75 hover:text-warning-ink px-2.5 py-1 rounded-lg transition-colors"
                    >
                      🔍 Data Gaps
                    </button>
                    <button 
                      type="button"
                      onClick={() => setFeedback("Action Required: Territory activity levels (calls/apps) are currently below threshold. Prioritize customer engagement.")}
-                     className="text-[9px] font-black uppercase bg-secondary/60 border border-border hover:bg-secondary hover:border-accent/40 text-foreground/75 hover:text-primary px-2.5 py-1 rounded-lg transition-colors"
+                     className="text-xs font-semibold bg-secondary/60 border border-border hover:bg-secondary hover:border-accent/40 text-foreground/75 hover:text-primary px-2.5 py-1 rounded-lg transition-colors"
                    >
                      ⚡ Action Required
                    </button>
                 </div>
                 <Textarea placeholder="Coach this team member on their weekly performance..." value={feedback} onChange={(e) => setFeedback(e.target.value)} className="min-h-[100px] rounded-2xl border-primary/20 bg-card text-xs font-bold leading-relaxed" />
-                <Button onClick={() => { onSaveFeedback(report.userId, feedback); setFeedback(''); }} disabled={!feedback.trim()} className="w-full bg-accent font-black uppercase text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
+                <Button onClick={() => { onSaveFeedback(report.userId, feedback); setFeedback(''); }} disabled={!feedback.trim()} className="w-full bg-accent font-semibold text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
              </div>
           </div>
         )}
@@ -1833,9 +1833,9 @@ function MetricCard({ title, value, sub, icon, color, explanation }: any) {
       <div className={cn("bg-gradient-to-br p-6 text-white dark:text-background h-full", gradients[color])}>
         <div className="flex justify-between items-start">
           <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{title}</p>
-            <p className="text-3xl font-black tracking-tight">{value}</p>
-            {sub && <p className="text-[9px] font-bold uppercase opacity-70 mt-1">{sub}</p>}
+            <p className="text-xs font-semibold opacity-80">{title}</p>
+            <p className="text-3xl font-black tabular-nums tracking-tight">{value}</p>
+            {sub && <p className="text-xs font-bold uppercase opacity-70 mt-1">{sub}</p>}
           </div>
           <div className="bg-white/20 p-3 rounded-2xl backdrop-blur group-hover:scale-110 transition-transform">{icon}</div>
         </div>
@@ -1865,11 +1865,11 @@ function OpportunitiesTable({ data }: { data: any[] }) {
       <ResponsiveTable
         headers={['Identity', 'Account', 'Opportunity', 'EAV ($K)', 'Stage']}
         rows={data.map((o) => [
-          <span key={`${o.id}-1`} className="pl-6 font-black uppercase text-xs">{o.userName}</span>,
+          <span key={`${o.id}-1`} className="pl-6 font-semibold text-xs">{o.userName}</span>,
           <span key={`${o.id}-2`} className="font-bold text-xs uppercase">{o.accountName}</span>,
           <span key={`${o.id}-3`} className="text-xs font-medium">{o.opportunityName}</span>,
-          <span key={`${o.id}-4`} className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</span>,
-          <Badge key={`${o.id}-5`} variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge>
+          <span key={`${o.id}-4`} className="font-semibold text-primary">${(o.eav / 1000).toFixed(0)}k</span>,
+          <Badge key={`${o.id}-5`} variant="outline" className="text-xs font-semibold border-accent/20 text-accent">{o.stage}</Badge>
         ])}
         minWidth="600px"
       />
@@ -1890,12 +1890,12 @@ function SignedPaperworkTable({ data }: { data: any[] }) {
       <ResponsiveTable
         headers={['Identity', 'Account', 'EAV ($K)', 'Signed Date', 'Term (M)', 'Notes']}
         rows={data.map((p) => [
-          <span key={`${p.id}-1`} className="pl-6 font-black uppercase text-xs">{p.userName}</span>,
+          <span key={`${p.id}-1`} className="pl-6 font-semibold text-xs">{p.userName}</span>,
           <span key={`${p.id}-2`} className="font-bold text-xs uppercase">{p.accountName}</span>,
-          <span key={`${p.id}-3`} className="font-black text-success">${(p.eav / 1000).toFixed(0)}k</span>,
+          <span key={`${p.id}-3`} className="font-semibold text-success">${(p.eav / 1000).toFixed(0)}k</span>,
           <span key={`${p.id}-4`} className="text-xs font-medium">{formatDate(p.signedDate)}</span>,
           <span key={`${p.id}-5`} className="font-bold text-xs">{p.termMonths}</span>,
-          <span key={`${p.id}-6`} className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</span>
+          <span key={`${p.id}-6`} className="max-w-[200px] truncate text-xs italic">"{p.notes}"</span>
         ])}
         minWidth="600px"
       />
@@ -1916,11 +1916,11 @@ function NewBusinessTable({ data }: { data: any[] }) {
       <ResponsiveTable
         headers={['Identity', 'Account', 'EAV ($K)', 'Go Live', 'Status']}
         rows={data.map((b) => [
-          <span key={`${b.id}-1`} className="pl-6 font-black uppercase text-xs">{b.userName}</span>,
+          <span key={`${b.id}-1`} className="pl-6 font-semibold text-xs">{b.userName}</span>,
           <span key={`${b.id}-2`} className="font-bold text-xs uppercase">{b.accountName}</span>,
-          <span key={`${b.id}-3`} className="font-black text-chart-5">${(b.eav / 1000).toFixed(0)}k</span>,
+          <span key={`${b.id}-3`} className="font-semibold text-chart-5">${(b.eav / 1000).toFixed(0)}k</span>,
           <span key={`${b.id}-4`} className="text-xs font-medium">{formatDate(b.goLiveDate)}</span>,
-          <Badge key={`${b.id}-5`} variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge>
+          <Badge key={`${b.id}-5`} variant="outline" className="text-xs font-semibold">{b.status}</Badge>
         ])}
         minWidth="600px"
       />
@@ -1932,7 +1932,7 @@ function StrategyTable({ data }: { data: any[] }) {
   return (
     <Card className="border-none shadow-xl bg-card overflow-hidden border-border">
       <CardHeader className="bg-panel text-panel-foreground pb-6">
-        <CardTitle className="text-xl font-black uppercase flex items-center gap-3">
+        <CardTitle className="text-xl font-bold flex items-center gap-3">
           <ShieldCheck className="w-6 h-6 text-accent" />
           Corporate Strategy Blueprints
         </CardTitle>
@@ -1941,9 +1941,9 @@ function StrategyTable({ data }: { data: any[] }) {
       <ResponsiveTable
         headers={['Blueprint Name', 'Primary Objective', 'Last Updated']}
         rows={data?.map(plan => [
-          <span key={`${plan.id}-1`} className="pl-6 font-black uppercase text-xs text-primary">{plan.accountName}</span>,
+          <span key={`${plan.id}-1`} className="pl-6 font-semibold text-xs text-primary">{plan.accountName}</span>,
           <span key={`${plan.id}-2`} className="text-xs font-medium italic">"{plan.objective}"</span>,
-          <span key={`${plan.id}-3`} className="text-[10px] font-bold text-muted-foreground uppercase">
+          <span key={`${plan.id}-3`} className="text-xs font-bold text-muted-foreground uppercase">
             {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}
           </span>
         ]) || []}

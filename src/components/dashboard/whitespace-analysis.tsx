@@ -192,26 +192,26 @@ export function WhitespaceAnalysis({
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase text-primary flex items-center gap-3"><LayoutGrid className="w-6 h-6 md:w-8 md:h-8 text-accent shrink-0" /> Whitespace Intelligence</h1>
-          <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Manual Strategic Expansion Diagnostic</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary flex items-center gap-3"><LayoutGrid className="w-6 h-6 md:w-8 md:h-8 text-accent shrink-0" /> Whitespace Intelligence</h1>
+          <p className="text-muted-foreground text-xs font-bold uppercase tracking-wide">Manual Strategic Expansion Diagnostic</p>
         </div>
         <div className="flex flex-col md:flex-row gap-2 bg-card p-2 rounded-2xl border shadow-sm w-full md:w-auto">
           <Input 
             placeholder="ACCOUNT NAME..." 
             value={accountName} 
             onChange={(e) => setAccountName(e.target.value.toUpperCase())} 
-            className="w-full md:w-[240px] h-10 font-black uppercase text-xs border-none bg-secondary/60 focus-visible:ring-0" 
+            className="w-full md:w-[240px] h-10 font-semibold text-xs border-none bg-secondary/60 focus-visible:ring-0" 
           />
           <div className="hidden md:block h-6 w-px bg-border mx-1 self-center" />
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <Button variant="ghost" onClick={handleClear} className="flex-1 md:flex-none text-destructive hover:bg-danger-soft font-black h-10 px-2 text-[10px] uppercase">
+            <Button variant="ghost" onClick={handleClear} className="flex-1 md:flex-none text-destructive hover:bg-danger-soft font-semibold h-10 px-2 text-xs">
               <RotateCcw className="w-3.5 h-3.5 mr-1" /> CLEAR
             </Button>
-            <Button onClick={handleSaveOnly} disabled={!accountName || isSaving} variant="outline" className="flex-1 md:flex-none border-border font-black h-10 px-3 text-[10px] uppercase shadow-sm gap-2">
+            <Button onClick={handleSaveOnly} disabled={!accountName || isSaving} variant="outline" className="flex-1 md:flex-none border-border font-semibold h-10 px-3 text-xs shadow-sm gap-2">
               {isSaving ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5 shrink-0 text-success" />} 
               <span>SAVE</span>
             </Button>
-            <Button onClick={handleExport} disabled={!accountName || isExporting} className="flex-1 md:flex-none bg-panel text-panel-foreground font-black h-10 px-3 text-[10px] uppercase shadow-md gap-2">
+            <Button onClick={handleExport} disabled={!accountName || isExporting} className="flex-1 md:flex-none bg-panel text-panel-foreground font-semibold h-10 px-3 text-xs shadow-md gap-2">
               {isExporting ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <FileDown className="w-3.5 h-3.5 shrink-0" />} 
               <span className="truncate">EXPORT & ARCHIVE</span>
             </Button>
@@ -228,7 +228,7 @@ export function WhitespaceAnalysis({
           return (
             <Card key={service} className="border shadow-sm p-4 md:p-6 space-y-4 bg-card hover:shadow-md transition-shadow">
               <div className="text-center space-y-2">
-                <p className="text-xs font-black uppercase text-muted-foreground">{service}</p>
+                <p className="text-xs font-semibold text-muted-foreground">{service}</p>
                 <div className={cn("mx-auto w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-colors", stateColors[config.state])}>
                   {service === 'Road' && <TrendingUp className="w-5 h-5" />}
                   {service === 'Air' && <Zap className="w-5 h-5" />}
@@ -239,10 +239,10 @@ export function WhitespaceAnalysis({
               </div>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-[9px] font-black uppercase text-muted-foreground">Strategy State</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground">Strategy State</Label>
                   <Select value={config.state} onValueChange={(val: ServiceState) => updateService(service, 'state', val)}>
-                    <SelectTrigger className="h-8 text-[9px] font-black uppercase"><SelectValue /></SelectTrigger>
-                    <SelectContent>{STATES.map(s => <SelectItem key={s} value={s} className="text-[9px] uppercase font-bold">{s.replace('_', ' ')}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className="h-8 text-xs font-semibold"><SelectValue /></SelectTrigger>
+                    <SelectContent>{STATES.map(s => <SelectItem key={s} value={s} className="text-xs uppercase font-bold">{s.replace('_', ' ')}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 
@@ -250,28 +250,28 @@ export function WhitespaceAnalysis({
                 
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black uppercase text-muted-foreground flex items-center gap-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                       <DollarSign className="w-2.5 h-2.5" /> Current Spend
                     </Label>
-                    <Input type="number" value={config.currentSpend} onChange={(e) => updateService(service, 'currentSpend', e.target.value === '' ? '' : parseFloat(e.target.value))} className="h-8 text-[10px] font-black" placeholder="$" />
+                    <Input type="number" value={config.currentSpend} onChange={(e) => updateService(service, 'currentSpend', e.target.value === '' ? '' : parseFloat(e.target.value))} className="h-8 text-xs font-semibold" placeholder="$" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black uppercase text-muted-foreground flex items-center gap-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                       <Box className="w-2.5 h-2.5" /> Total Wallet
                     </Label>
-                    <Input type="number" value={config.totalWallet} onChange={(e) => updateService(service, 'totalWallet', e.target.value === '' ? '' : parseFloat(e.target.value))} className="h-8 text-[10px] font-black" placeholder="$" />
+                    <Input type="number" value={config.totalWallet} onChange={(e) => updateService(service, 'totalWallet', e.target.value === '' ? '' : parseFloat(e.target.value))} className="h-8 text-xs font-semibold" placeholder="$" />
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <div className="flex justify-between text-[8px] font-black uppercase mb-1">
+                  <div className="flex justify-between text-xs font-semibold mb-1">
                     <span>Wallet Share</span>
                     <span className="text-accent">{sharePct.toFixed(1)}%</span>
                   </div>
                   <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
                     <div className="bg-accent h-full transition-all duration-500" style={{ width: `${Math.min(100, sharePct)}%` }} />
                   </div>
-                  <p className="text-[8px] font-black text-muted-foreground mt-1 uppercase text-right">
+                  <p className="text-xs font-semibold text-muted-foreground mt-1 text-right">
                     Gap: ${Math.max(0, wallet - spend).toLocaleString()}
                   </p>
                 </div>
@@ -285,18 +285,18 @@ export function WhitespaceAnalysis({
         <Card className="border shadow-xl p-4 md:p-8 bg-card">
           <div className="flex items-center gap-2 mb-8 text-primary">
              <Info className="w-4 h-4 text-accent" />
-             <CardTitle className="text-sm font-black uppercase">Strategic Rationale & Barriers</CardTitle>
+             <CardTitle className="text-sm font-bold">Strategic Rationale & Barriers</CardTitle>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
             {SERVICES.map(service => (
               <div key={service} className="space-y-3">
                 <div className="flex justify-between items-center bg-secondary/60 p-2 rounded-lg border">
-                  <Label className="text-[10px] font-black uppercase text-primary">{service}</Label>
+                  <Label className="text-xs font-semibold text-primary">{service}</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-black text-muted-foreground uppercase">Priority:</span>
+                    <span className="text-xs font-semibold text-muted-foreground">Priority:</span>
                     <Select value={serviceConfigs[service].priority} onValueChange={(val: Priority) => updateService(service, 'priority', val)}>
-                      <SelectTrigger className="h-6 w-20 text-[8px] font-black uppercase border-none bg-card"><SelectValue /></SelectTrigger>
-                      <SelectContent>{PRIORITIES.map(p => <SelectItem key={p} value={p} className="text-[8px] font-black uppercase">{p}</SelectItem>)}</SelectContent>
+                      <SelectTrigger className="h-6 w-20 text-xs font-semibold border-none bg-card"><SelectValue /></SelectTrigger>
+                      <SelectContent>{PRIORITIES.map(p => <SelectItem key={p} value={p} className="text-xs font-semibold">{p}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                 </div>

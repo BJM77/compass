@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mb-4">
             <AlertCircle className="w-8 h-8 text-destructive" />
           </div>
-          <h2 className="text-xl font-black text-foreground mb-2">Failed to load this view</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Failed to load this view</h2>
           <p className="text-sm text-muted-foreground mb-6 max-w-md">
             Something went wrong while rendering this section of the dashboard. The rest of the application is still functioning normally.
           </p>

@@ -121,7 +121,7 @@ export function ActivityLogger({ userId }: { userId: string }) {
       {/* Rapid Punch Control Panel */}
       <Card className="border-none shadow-2xl overflow-hidden bg-card">
         <CardHeader className="bg-secondary/60 border-b py-4">
-          <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
+          <CardTitle className="text-sm font-bold tracking-tight flex items-center gap-2">
             <Zap className="w-4 h-4 text-accent" />
             Rapid Habit Tracker
           </CardTitle>
@@ -173,9 +173,9 @@ function EditableStatCard({ icon, val, label, color, onChange }: any) {
         type="number" 
         value={val} 
         onChange={(e) => onChange(e.target.value)}
-        className="bg-transparent border-none text-center text-2xl font-black h-8 focus-visible:ring-0 p-0 shadow-none"
+        className="bg-transparent border-none text-center text-2xl font-black tabular-nums h-8 focus-visible:ring-0 p-0 shadow-none"
       />
-      <p className="text-[8px] font-black uppercase tracking-widest mt-1 opacity-70">{label}</p>
+      <p className="text-xs font-semibold mt-1 opacity-70">{label}</p>
     </div>
   );
 }
@@ -187,7 +187,7 @@ function PunchButton({ label, icon, color, onClick }: any) {
       className={`${color} hover:opacity-90 h-16 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg active:scale-95 transition-all text-white border-none`}
     >
       <Plus className="w-5 h-5" />
-      <span className="text-[10px] font-black tracking-widest">{label}</span>
+      <span className="text-xs font-semibold">{label}</span>
     </Button>
   );
 }

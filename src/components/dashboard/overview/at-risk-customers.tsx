@@ -28,7 +28,7 @@ export function AtRiskCustomers({ data }: { data: AtRiskCustomer[] }) {
             <AlertTriangle className="w-5 h-5" />
           </span>
           <div>
-            <h3 className="font-black text-destructive tracking-tight text-base sm:text-lg uppercase">
+            <h3 className="font-bold text-destructive tracking-tight text-base sm:text-lg">
               At-Risk Accounts (Top Revenue Drop vs LY)
             </h3>
             <p className="text-xs text-destructive/80 font-medium">
@@ -54,20 +54,20 @@ export function AtRiskCustomers({ data }: { data: AtRiskCustomer[] }) {
                   {c.companyName}
                 </h4>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <Badge variant="outline" className="text-[9px] font-bold py-0 px-1.5 bg-card text-muted-foreground border-destructive/15">
+                  <Badge variant="outline" className="text-xs font-bold py-0 px-1.5 bg-card text-muted-foreground border-destructive/15">
                     {c.managerName || 'Unassigned'}
                   </Badge>
-                  <span className="text-[10px] text-muted-foreground font-semibold">
+                  <span className="text-xs text-muted-foreground font-semibold">
                     LY: {formatEAV(c.lastYearRevenue)}
                   </span>
                 </div>
               </div>
 
               <div className="text-right flex flex-col items-end shrink-0">
-                <span className="font-black text-destructive text-sm">
+                <span className="font-semibold text-destructive text-sm">
                   -{formatCurrency(Math.abs(c.variance))}
                 </span>
-                <span className="text-[9px] font-black bg-danger-soft text-destructive px-1.5 py-0.5 rounded mt-0.5">
+                <span className="text-xs font-semibold bg-danger-soft text-destructive px-1.5 py-0.5 rounded mt-0.5">
                   ↓ {pctDrop.toFixed(0)}%
                 </span>
               </div>

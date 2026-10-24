@@ -121,7 +121,7 @@ export function FFAdminHub() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <FileSearch className="w-6 h-6 text-accent" /> Fact Finding Admin
           </h1>
           <p className="text-sm text-muted-foreground font-medium">Review and audit all historical Fact Finding notes across the team.</p>
@@ -132,7 +132,7 @@ export function FFAdminHub() {
         <CardHeader className="bg-secondary/30 border-b border-border/60 pb-4">
           <div className="flex flex-col lg:flex-row gap-4 items-end">
             <div className="flex-1 w-full space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Search Notes / Company</label>
+              <label className="text-xs font-semibold text-muted-foreground">Search Notes / Company</label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -145,7 +145,7 @@ export function FFAdminHub() {
             </div>
             
             <div className="w-full lg:w-48 space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filter Owner</label>
+              <label className="text-xs font-semibold text-muted-foreground">Filter Owner</label>
               <Select value={filterOwner} onValueChange={setFilterOwner}>
                 <SelectTrigger className="h-10 bg-card">
                   <SelectValue placeholder="All Owners" />
@@ -160,7 +160,7 @@ export function FFAdminHub() {
             </div>
 
             <div className="w-full lg:w-48 space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filter Day</label>
+              <label className="text-xs font-semibold text-muted-foreground">Filter Day</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -189,21 +189,21 @@ export function FFAdminHub() {
               <TableHeader className="bg-secondary/50">
                 <TableRow>
                   <TableHead className="w-[180px]">
-                    <Button variant="ghost" onClick={() => toggleSort('createdAt')} className="h-8 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground p-0 hover:bg-transparent">
+                    <Button variant="ghost" onClick={() => toggleSort('createdAt')} className="h-8 flex items-center gap-1 text-xs font-semibold text-muted-foreground p-0 hover:bg-transparent">
                       Date & Time <ArrowUpDown className="w-3 h-3 ml-1" />
                     </Button>
                   </TableHead>
                   <TableHead className="w-[150px]">
-                    <Button variant="ghost" onClick={() => toggleSort('createdByName')} className="h-8 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground p-0 hover:bg-transparent">
+                    <Button variant="ghost" onClick={() => toggleSort('createdByName')} className="h-8 flex items-center gap-1 text-xs font-semibold text-muted-foreground p-0 hover:bg-transparent">
                       Owner <ArrowUpDown className="w-3 h-3 ml-1" />
                     </Button>
                   </TableHead>
                   <TableHead className="w-[200px]">
-                    <Button variant="ghost" onClick={() => toggleSort('companyName')} className="h-8 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground p-0 hover:bg-transparent">
+                    <Button variant="ghost" onClick={() => toggleSort('companyName')} className="h-8 flex items-center gap-1 text-xs font-semibold text-muted-foreground p-0 hover:bg-transparent">
                       Company <ArrowUpDown className="w-3 h-3 ml-1" />
                     </Button>
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3">Note</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-muted-foreground py-3">Note</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

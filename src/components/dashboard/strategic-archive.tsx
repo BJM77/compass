@@ -13,11 +13,11 @@ export function StrategicArchive({ userId }: StrategicArchiveProps) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
-        <h2 className="text-2xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-primary tracking-tight flex items-center gap-2">
           <Archive className="w-6 h-6 text-accent" />
           Strategic Archive
         </h2>
-        <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest mt-1">
+        <p className="text-muted-foreground font-bold uppercase text-xs tracking-wide mt-1">
           Historical repository of Call Plans and White Space expansion models
         </p>
       </div>
@@ -26,13 +26,13 @@ export function StrategicArchive({ userId }: StrategicArchiveProps) {
         <TabsList className="grid w-full grid-cols-2 max-w-md mb-8 h-12 bg-secondary p-1">
           <TabsTrigger 
             value="call_plans" 
-            className="font-black uppercase text-xs data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2 h-full"
+            className="font-semibold text-xs data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2 h-full"
           >
             <PhoneCall className="w-4 h-4" /> Call Plans
           </TabsTrigger>
           <TabsTrigger 
             value="white_space" 
-            className="font-black uppercase text-xs data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2 h-full"
+            className="font-semibold text-xs data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2 h-full"
           >
             <LayoutGrid className="w-4 h-4" /> White Space
           </TabsTrigger>

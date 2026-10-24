@@ -52,7 +52,7 @@ function AnnouncementDocBanner({ docId, label }: { docId: string; label: string 
             <Megaphone className="w-4 h-4" />
           </div>
           <p className="text-xs md:text-sm font-bold tracking-tight truncate">
-            <span className="uppercase tracking-widest text-[10px] bg-white/30 px-1.5 py-0.5 rounded mr-2 font-black">{label}</span>
+            <span className="text-xs bg-white/30 px-1.5 py-0.5 rounded mr-2 font-semibold">{label}</span>
             {announcement.message}
           </p>
         </div>

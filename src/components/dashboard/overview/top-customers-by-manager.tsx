@@ -40,7 +40,7 @@ export function TopCustomersByManager({ data }: { data: ManagerCustomerData[] })
             <Users className="w-5 h-5" />
           </span>
           <div>
-            <h3 className="font-black text-foreground tracking-tight text-base sm:text-lg uppercase">
+            <h3 className="font-bold text-foreground tracking-tight text-base sm:text-lg">
               Top 10 Customers per Manager
             </h3>
             <p className="text-xs text-muted-foreground font-medium mt-0.5">
@@ -70,12 +70,12 @@ export function TopCustomersByManager({ data }: { data: ManagerCustomerData[] })
               <div>
                 <div className="flex items-center justify-between mb-3 border-b border-border/80 pb-3">
                   <div className="min-w-0 pr-2">
-                    <h4 className="font-black text-foreground text-sm sm:text-base truncate">{manager.user.name}</h4>
+                    <h4 className="font-bold text-foreground text-sm sm:text-base truncate">{manager.user.name}</h4>
                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                      <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 bg-card text-muted-foreground border-border">
+                      <Badge variant="outline" className="text-xs font-bold uppercase tracking-wide py-0 px-1.5 bg-card text-muted-foreground border-border">
                         {manager.user.role?.replace('_', ' ')}
                       </Badge>
-                      <span className="text-[11px] font-bold text-muted-foreground">
+                      <span className="text-xs font-bold text-muted-foreground">
                         Total: {formatEAV(totalBooked)}
                       </span>
                     </div>
@@ -95,7 +95,7 @@ export function TopCustomersByManager({ data }: { data: ManagerCustomerData[] })
                         <span className="text-muted-foreground font-bold mr-1.5">{idx + 1}.</span>
                         {c.companyName}
                       </span>
-                      <span className="font-black text-foreground">{formatCurrency(c.revenue)}</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(c.revenue)}</span>
                     </div>
                   ))}
 
@@ -131,7 +131,7 @@ export function TopCustomersByManager({ data }: { data: ManagerCustomerData[] })
                   <button
                     type="button"
                     onClick={() => setModalManager(manager)}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-1.5 rounded-lg hover:bg-border/60"
+                    className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-1.5 rounded-lg hover:bg-border/60"
                     title="View full account list"
                   >
                     <Maximize2 className="w-3 h-3" />
@@ -156,10 +156,10 @@ export function TopCustomersByManager({ data }: { data: ManagerCustomerData[] })
             <div>
               <div className="flex items-start justify-between border-b border-border/60 pb-4">
                 <div>
-                  <Badge variant="outline" className="text-[10px] font-bold uppercase py-0 px-2 bg-accent/10 text-primary border-accent/25">
+                  <Badge variant="outline" className="text-xs font-bold uppercase py-0 px-2 bg-accent/10 text-primary border-accent/25">
                     {modalManager.user.role?.replace('_', ' ')}
                   </Badge>
-                  <h3 className="font-black text-foreground text-xl mt-1">{modalManager.user.name}</h3>
+                  <h3 className="font-black tabular-nums text-foreground text-xl mt-1">{modalManager.user.name}</h3>
                   <p className="text-xs text-muted-foreground font-medium mt-0.5">
                     Total Booked: <strong className="text-foreground">{formatCurrency(modalManager.customers.reduce((s, c) => s + c.revenue, 0))}</strong>
                   </p>
@@ -181,14 +181,14 @@ export function TopCustomersByManager({ data }: { data: ManagerCustomerData[] })
                       className="flex justify-between items-center text-xs sm:text-sm p-2.5 rounded-xl bg-secondary/60 border border-border/60 hover:bg-secondary/80 transition-colors"
                     >
                       <div className="flex items-center gap-2 min-w-0 pr-2">
-                        <span className="w-5 h-5 rounded-full bg-border text-foreground/85 font-black text-[10px] flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-border text-foreground/85 font-semibold text-xs flex items-center justify-center shrink-0">
                           {idx + 1}
                         </span>
                         <span className="font-bold text-foreground truncate" title={c.companyName}>
                           {c.companyName}
                         </span>
                       </div>
-                      <span className="font-black text-primary shrink-0">{formatCurrency(c.revenue)}</span>
+                      <span className="font-semibold text-primary shrink-0">{formatCurrency(c.revenue)}</span>
                     </div>
                   ))}
               </div>

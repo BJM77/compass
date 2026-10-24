@@ -145,7 +145,7 @@ export function CreateNoteDialog() {
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recipient</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Recipient</label>
             <Select 
               value={formState.userId} 
               onValueChange={(val) => setFormState(s => ({ ...s, userId: val }))}
@@ -163,7 +163,7 @@ export function CreateNoteDialog() {
           </div>
           
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title / Subject</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Title / Subject</label>
             <Input 
               placeholder="e.g. Weekly Update, Urgent Action Required" 
               value={formState.title}
@@ -172,7 +172,7 @@ export function CreateNoteDialog() {
           </div>
           
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Message Content</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Message Content</label>
             <Textarea 
               placeholder="Write your note here..." 
               className="min-h-[150px]"

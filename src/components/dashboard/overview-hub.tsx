@@ -543,10 +543,10 @@ export function OverviewHub() {
             </span>
             <div>
               <div className="flex items-center gap-2.5">
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   Executive Overview
                 </h2>
-                <Badge className="bg-accent text-accent-foreground font-black text-[10px] uppercase tracking-wider">
+                <Badge className="bg-accent text-accent-foreground font-semibold text-xs">
                   {finProgress.currentQuarter} • {finProgress.monthName}
                 </Badge>
               </div>
@@ -563,7 +563,7 @@ export function OverviewHub() {
             <button
               onClick={() => setRoleFilter('ALL')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                roleFilter === 'ALL' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                roleFilter === 'ALL' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               All Team ({quarterlyData.length})
@@ -571,7 +571,7 @@ export function OverviewHub() {
             <button
               onClick={() => setRoleFilter('ACCOUNT_MANAGER')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                roleFilter === 'ACCOUNT_MANAGER' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                roleFilter === 'ACCOUNT_MANAGER' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               Account Managers
@@ -579,7 +579,7 @@ export function OverviewHub() {
             <button
               onClick={() => setRoleFilter('BDM')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                roleFilter === 'BDM' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                roleFilter === 'BDM' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               BDMs
@@ -598,7 +598,7 @@ export function OverviewHub() {
 
       {/* Print-only Header */}
       <div className="hidden print:block mb-6 border-b pb-4">
-        <h1 className="text-3xl font-black text-foreground tracking-tight">Executive Team Performance Report</h1>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">Executive Team Performance Report</h1>
         <p className="text-sm text-muted-foreground font-medium mt-1">
           Financial Position: {finProgress.currentQuarter} ({finProgress.monthName}) • Generated {new Date().toLocaleDateString()}
         </p>
@@ -609,32 +609,32 @@ export function OverviewHub() {
         {/* Card 1: Team Roster */}
         <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Staff</span>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Active Staff</span>
             <div className="p-2 bg-info-soft text-info rounded-xl">
               <Users className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-foreground">{summaryKpis.totalReps}</div>
-            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">AMs & BDMs Active</p>
+            <div className="text-2xl sm:text-3xl font-black tabular-nums text-foreground">{summaryKpis.totalReps}</div>
+            <p className="text-xs font-semibold text-muted-foreground mt-0.5">AMs & BDMs Active</p>
           </div>
         </div>
 
         {/* Card 2: Team Revenue & Pacing */}
         <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">YTD Revenue</span>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">YTD Revenue</span>
             <div className="p-2 bg-success-soft text-success rounded-xl">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-foreground">{formatEAV(summaryKpis.totalRevenue)}</div>
+            <div className="text-2xl sm:text-3xl font-black tabular-nums text-foreground">{formatEAV(summaryKpis.totalRevenue)}</div>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-[11px] font-bold text-muted-foreground">
+              <span className="text-xs font-bold text-muted-foreground">
                 Paced: {formatEAV(totalPacedTarget)}
               </span>
-              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${
+              <span className={`text-xs font-semibold px-1.5 py-0.5 rounded border ${
                 isTeamAhead 
                   ? 'bg-success-soft text-success-ink border-success/25' 
                   : isTeamAtRisk 
@@ -650,14 +650,14 @@ export function OverviewHub() {
         {/* Card 3: Team Outreach Activity */}
         <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Outreach</span>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Total Outreach</span>
             <div className="p-2 bg-accent/10 text-accent rounded-xl">
               <PhoneCall className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-foreground">{summaryKpis.totalCalls}</div>
-            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+            <div className="text-2xl sm:text-3xl font-black tabular-nums text-foreground">{summaryKpis.totalCalls}</div>
+            <p className="text-xs font-semibold text-muted-foreground mt-0.5">
               {summaryKpis.totalApps} Appointments Logged
             </p>
           </div>
@@ -666,14 +666,14 @@ export function OverviewHub() {
         {/* Card 4: Active Pipeline */}
         <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Pipeline</span>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Active Pipeline</span>
             <div className="p-2 bg-warning-soft text-warning-ink rounded-xl">
               <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-foreground">{formatEAV(summaryKpis.totalPipeline)}</div>
-            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">Total Qualified Deals</p>
+            <div className="text-2xl sm:text-3xl font-black tabular-nums text-foreground">{formatEAV(summaryKpis.totalPipeline)}</div>
+            <p className="text-xs font-semibold text-muted-foreground mt-0.5">Total Qualified Deals</p>
           </div>
         </div>
       </div>

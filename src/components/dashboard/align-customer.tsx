@@ -381,7 +381,7 @@ export function AlignCustomer() {
                 <div className="py-12 text-center text-muted-foreground">No accounts found matching the criteria.</div>
               ) : (
                 <div className="min-w-[800px] divide-y">
-                  <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/60 sticky top-0 z-10">
+                  <div className="grid grid-cols-12 gap-4 p-4 text-xs font-semibold text-muted-foreground bg-secondary/60 sticky top-0 z-10">
                     <div className="col-span-4">Account Name</div>
                     <div className="col-span-2 text-right">Annual Target</div>
                     <div className="col-span-2 text-right">YTD Pace (Wk {currentWeek})</div>
@@ -396,7 +396,7 @@ export function AlignCustomer() {
                       <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-secondary/60 transition-colors">
                         <div className="col-span-4">
                           <div className="font-bold text-sm truncate text-foreground" title={acc.originalName}>{acc.originalName}</div>
-                          {acc.isManualMapping && <Badge variant="outline" className="text-[9px] mt-1 text-accent border-accent/25 bg-accent/10 font-bold uppercase tracking-widest">Aligned</Badge>}
+                          {acc.isManualMapping && <Badge variant="outline" className="text-xs mt-1 text-accent border-accent/25 bg-accent/10 font-bold uppercase tracking-wide">Aligned</Badge>}
                         </div>
                         
                         <div className="col-span-2 text-right font-medium text-sm text-muted-foreground">
@@ -410,7 +410,7 @@ export function AlignCustomer() {
                         <div className="col-span-2 text-right">
                           <div className="font-bold text-sm text-foreground">{formatCurrency(acc.ytdRevenue)}</div>
                           {acc.annualTarget ? (
-                            <div className={`text-[10px] font-bold mt-0.5 ${variance >= 0 ? 'text-success' : 'text-destructive'}`}>
+                            <div className={`text-xs font-bold mt-0.5 ${variance >= 0 ? 'text-success' : 'text-destructive'}`}>
                               {variance >= 0 ? '+' : ''}{formatCurrency(variance)}
                             </div>
                           ) : null}

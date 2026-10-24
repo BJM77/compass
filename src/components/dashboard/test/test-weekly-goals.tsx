@@ -391,21 +391,21 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tighter flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tighter flex items-center gap-3">
             <Target className="w-8 h-8 text-primary" />
             Monday Planning Node
           </h1>
           <div className="flex items-center gap-4 mt-1">
-            <p className="text-muted-foreground text-sm uppercase font-bold tracking-widest">
+            <p className="text-muted-foreground text-sm font-bold">
               Week {currentWeek.split('-')[1]} • Strategic Alignment Mode {weekOffset > 0 ? '(Next Week)' : ''}
             </p>
             {canPlanNextWeek && weekOffset === 0 && (
-              <Button size="sm" variant="outline" onClick={() => setWeekOffset(1)} className="h-7 text-[10px] font-black uppercase bg-accent/10 text-accent border-accent/20 hover:bg-accent/20">
+              <Button size="sm" variant="outline" onClick={() => setWeekOffset(1)} className="h-7 text-xs font-semibold bg-accent/10 text-accent border-accent/20 hover:bg-accent/20">
                 Plan Next Week
               </Button>
             )}
             {weekOffset > 0 && (
-              <Button size="sm" variant="outline" onClick={() => setWeekOffset(0)} className="h-7 text-[10px] font-black uppercase bg-secondary text-foreground/75 hover:bg-border border-border">
+              <Button size="sm" variant="outline" onClick={() => setWeekOffset(0)} className="h-7 text-xs font-semibold bg-secondary text-foreground/75 hover:bg-border border-border">
                 Back to This Week
               </Button>
             )}
@@ -413,14 +413,14 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           {hasExistingPlan && (
-            <Button variant="outline" onClick={handleDelete} disabled={isDeleting} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-destructive/25 text-destructive hover:bg-danger-soft">
+            <Button variant="outline" onClick={handleDelete} disabled={isDeleting} className="font-semibold h-12 px-6 shadow-sm gap-2 border-destructive/25 text-destructive hover:bg-danger-soft">
               {isDeleting ? 'Deleting...' : 'Delete'}
             </Button>
           )}
-          <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSaving} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-primary/20 text-primary">
+          <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSaving} className="font-semibold h-12 px-6 shadow-sm gap-2 border-primary/20 text-primary">
             {isSavingDraft ? 'Saving Draft...' : 'Save Draft'}
           </Button>
-          <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-black h-12 px-8 uppercase shadow-xl gap-2 text-primary-foreground">
+          <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-semibold h-12 px-8 shadow-xl gap-2 text-primary-foreground">
             {isSaving ? 'Synchronising...' : hasExistingPlan ? 'Update Plan' : 'Commit Weekly Plan'}
           </Button>
         </div>
@@ -432,7 +432,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
         {/* Monthly SMART Goal Panel */}
         <Card className="border border-border shadow-md lg:col-span-2">
           <CardHeader className="bg-panel text-panel-foreground flex flex-row items-center justify-between py-4">
-            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-accent">
+            <CardTitle className="text-xs font-bold flex items-center gap-2 text-accent">
               <Star className="w-4 h-4" />
               Monthly SMART Goal ({format(new Date(), 'MMMM yyyy')})
             </CardTitle>
@@ -440,15 +440,15 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
           <CardContent className="p-6">
             {hasGoalForMonth ? (
               <div className="bg-accent/5 border border-accent/20 rounded-2xl p-5 space-y-3">
-                <Badge className="bg-accent text-accent-foreground uppercase font-black text-[9px]">Submitted Goal</Badge>
+                <Badge className="bg-accent text-accent-foreground font-semibold text-xs">Submitted Goal</Badge>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-foreground">
-                  <p>🎯 <span className="text-muted-foreground uppercase text-[10px] ml-1">Specific:</span> {smartGoal.specific || 'None'}</p>
-                  <p>📊 <span className="text-muted-foreground uppercase text-[10px] ml-1">Measurable:</span> {smartGoal.measurable || 'None'}</p>
-                  <p>💪 <span className="text-muted-foreground uppercase text-[10px] ml-1">Achievable:</span> {smartGoal.achievable || 'None'}</p>
-                  <p>🔄 <span className="text-muted-foreground uppercase text-[10px] ml-1">Relevant:</span> {smartGoal.relevant || 'None'}</p>
-                  <p>⏰ <span className="text-muted-foreground uppercase text-[10px] ml-1">Timebound:</span> {smartGoal.timebound || 'None'}</p>
+                  <p>🎯 <span className="text-muted-foreground uppercase text-xs ml-1">Specific:</span> {smartGoal.specific || 'None'}</p>
+                  <p>📊 <span className="text-muted-foreground uppercase text-xs ml-1">Measurable:</span> {smartGoal.measurable || 'None'}</p>
+                  <p>💪 <span className="text-muted-foreground uppercase text-xs ml-1">Achievable:</span> {smartGoal.achievable || 'None'}</p>
+                  <p>🔄 <span className="text-muted-foreground uppercase text-xs ml-1">Relevant:</span> {smartGoal.relevant || 'None'}</p>
+                  <p>⏰ <span className="text-muted-foreground uppercase text-xs ml-1">Timebound:</span> {smartGoal.timebound || 'None'}</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setHasGoalForMonth(false)} className="mt-2 text-[10px] font-black uppercase rounded-lg">
+                <Button variant="outline" size="sm" onClick={() => setHasGoalForMonth(false)} className="mt-2 text-xs font-semibold rounded-lg">
                   Edit Goal
                 </Button>
               </div>
@@ -456,29 +456,29 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Specific Outcome</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Specific Outcome</Label>
                     <Input placeholder="What exactly is the target?" value={smartGoal.specific} onChange={e => setSmartGoal({...smartGoal, specific: e.target.value})} className="h-9 text-xs font-semibold rounded-xl" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Success Metric</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Success Metric</Label>
                     <Input placeholder="How will you measure it?" value={smartGoal.measurable} onChange={e => setSmartGoal({...smartGoal, measurable: e.target.value})} className="h-9 text-xs font-semibold rounded-xl" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Achievable Steps</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Achievable Steps</Label>
                     <Input placeholder="How is this realistic?" value={smartGoal.achievable} onChange={e => setSmartGoal({...smartGoal, achievable: e.target.value})} className="h-9 text-xs font-semibold rounded-xl" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Relevance</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Relevance</Label>
                     <Input placeholder="Why now for the territory?" value={smartGoal.relevant} onChange={e => setSmartGoal({...smartGoal, relevant: e.target.value})} className="h-9 text-xs font-semibold rounded-xl" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Timebound Deadline</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Timebound Deadline</Label>
                     <Input placeholder="When is the deadline?" value={smartGoal.timebound} onChange={e => setSmartGoal({...smartGoal, timebound: e.target.value})} className="h-9 text-xs font-semibold rounded-xl" />
                   </div>
                 </div>
-                <Button onClick={handleSaveSmartGoal} disabled={submittingGoal} className="bg-accent hover:bg-accent/90 text-accent-foreground font-black text-xs uppercase rounded-xl h-10 px-5">
+                <Button onClick={handleSaveSmartGoal} disabled={submittingGoal} className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-xs rounded-xl h-10 px-5">
                   Submit SMART Goal
                 </Button>
               </div>
@@ -489,7 +489,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
         {/* Tallies Card */}
         <Card className="border border-border shadow-md">
           <CardHeader className="bg-panel text-panel-foreground py-4">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
+            <CardTitle className="text-xs font-bold text-accent flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Strategic Tallies
             </CardTitle>
@@ -498,16 +498,16 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
             <div className="flex items-center justify-between p-3 bg-secondary/60 border rounded-2xl">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-accent/10 text-accent rounded-xl"><Map className="w-4 h-4" /></div>
-                <span className="text-xs font-black uppercase text-foreground/85">Whitespace Plans</span>
+                <span className="text-xs font-semibold text-foreground/85">Whitespace Plans</span>
               </div>
-              <span className="text-lg font-black text-foreground">{wsPlans?.length || 0}</span>
+              <span className="text-lg font-bold text-foreground">{wsPlans?.length || 0}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-secondary/60 border rounded-2xl">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-info-soft text-info rounded-xl"><FileText className="w-4 h-4" /></div>
-                <span className="text-xs font-black uppercase text-foreground/85">Active Call Plans</span>
+                <span className="text-xs font-semibold text-foreground/85">Active Call Plans</span>
               </div>
-              <span className="text-lg font-black text-foreground">{callPlans?.length || 0}</span>
+              <span className="text-lg font-bold text-foreground">{callPlans?.length || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -519,7 +519,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
         {/* Left Side: Targets & Focus Commitments */}
         <div className="space-y-6">
           <Card className="border shadow-md">
-            <CardHeader><CardTitle className="text-lg font-black flex items-center gap-2">{userRole === 'BDM' ? <Rocket className="w-5 h-5 text-accent" /> : <Shield className="w-5 h-5 text-accent" />} Focus Accounts</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg font-bold flex items-center gap-2">{userRole === 'BDM' ? <Rocket className="w-5 h-5 text-accent" /> : <Shield className="w-5 h-5 text-accent" />} Focus Accounts</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               {focusAccounts.map((acc, idx) => (
                 <div key={acc.accountId} className="p-4 bg-secondary/60 rounded-2xl border space-y-3 relative group">
@@ -545,7 +545,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                           <a
                             href="#"
                             onClick={(e) => { e.preventDefault(); openSalesforceSearch(acc.accountName); }}
-                            className="text-[9px] text-accent font-black hover:underline tracking-wider uppercase ml-1 block w-fit"
+                            className="text-xs text-accent font-semibold hover:underline ml-1 block w-fit"
                           >
                             SF Account Link
                           </a>
@@ -555,46 +555,46 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Action Type</label>
+                      <label className="text-xs font-semibold text-muted-foreground ml-1">Action Type</label>
                       <Select value={acc.actionType} onValueChange={v => { const n = [...focusAccounts]; n[idx].actionType = v; setFocusAccounts(n); }}>
-                        <SelectTrigger className="h-9 text-[10px] font-black uppercase"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-9 text-xs font-semibold"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {ACTION_TYPES.map(t => (
-                            <SelectItem key={t} value={t} className="text-[10px] font-black">{t.toUpperCase()}</SelectItem>
+                            <SelectItem key={t} value={t} className="text-xs font-semibold">{t.toUpperCase()}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">EAV ($)</label>
+                      <label className="text-xs font-semibold text-muted-foreground ml-1">EAV ($)</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">$</span>
-                        <Input type="number" placeholder="Value..." value={acc.eav || ''} onChange={e => { const n = [...focusAccounts]; n[idx].eav = parseFloat(e.target.value) || 0; setFocusAccounts(n); }} className="h-9 pl-6 text-[10px] font-bold" />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">$</span>
+                        <Input type="number" placeholder="Value..." value={acc.eav || ''} onChange={e => { const n = [...focusAccounts]; n[idx].eav = parseFloat(e.target.value) || 0; setFocusAccounts(n); }} className="h-9 pl-6 text-xs font-bold" />
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">About Account / Opportunity Context</label>
-                    <Textarea placeholder="Context, history, and strategic intent..." value={acc.aboutAccount} onChange={e => { const n = [...focusAccounts]; n[idx].aboutAccount = e.target.value; setFocusAccounts(n); }} className="min-h-[80px] text-[10px] font-medium leading-relaxed" />
+                    <label className="text-xs font-semibold text-muted-foreground ml-1">About Account / Opportunity Context</label>
+                    <Textarea placeholder="Context, history, and strategic intent..." value={acc.aboutAccount} onChange={e => { const n = [...focusAccounts]; n[idx].aboutAccount = e.target.value; setFocusAccounts(n); }} className="min-h-[80px] text-xs font-medium leading-relaxed" />
                   </div>
                 </div>
               ))}
-              <Button variant="outline" onClick={addFocusAccount} className="w-full h-12 border-dashed border-2 rounded-xl font-black uppercase text-[10px] text-muted-foreground hover:bg-secondary/60">+ Add Target Account</Button>
+              <Button variant="outline" onClick={addFocusAccount} className="w-full h-12 border-dashed border-2 rounded-xl font-semibold text-xs text-muted-foreground hover:bg-secondary/60">+ Add Target Account</Button>
             </CardContent>
           </Card>
 
           <Card className="border shadow-md">
-            <CardHeader><CardTitle className="text-lg font-black">Commitments for Week Ahead</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg font-bold">Commitments for Week Ahead</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-1 gap-3">
               {actionPlan.map((action, idx) => (
                 <div key={idx} className="flex gap-4 items-start group">
-                  <Badge variant="outline" className="w-20 justify-center py-2 font-black text-[10px] border-border shrink-0">Action {idx + 1}</Badge>
+                  <Badge variant="outline" className="w-20 justify-center py-2 font-semibold text-xs border-border shrink-0">Action {idx + 1}</Badge>
                   <div className="flex-1 relative">
                     <Textarea 
                       placeholder="Tactical focus..." 
                       value={action} 
                       onChange={e => updateAction(idx, e.target.value)} 
-                      className="min-h-[60px] text-[10px] font-bold rounded-xl shadow-inner pr-8" 
+                      className="min-h-[60px] text-xs font-bold rounded-xl shadow-inner pr-8" 
                     />
                     {idx >= 5 && (
                       <button 
@@ -610,7 +610,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
               <Button 
                 variant="outline" 
                 onClick={addAction} 
-                className="mt-2 h-10 border-dashed border-2 rounded-xl font-black uppercase text-[10px] text-muted-foreground hover:bg-secondary/60 gap-2"
+                className="mt-2 h-10 border-dashed border-2 rounded-xl font-semibold text-xs text-muted-foreground hover:bg-secondary/60 gap-2"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Additional Action
               </Button>
@@ -623,11 +623,11 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
           <Card className="border border-border shadow-md bg-card rounded-3xl overflow-hidden">
             <CardHeader className="bg-panel text-panel-foreground flex flex-row items-center justify-between py-5">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accent" />
                   Salesforce Opportunities
                 </CardTitle>
-                <p className="text-[10px] text-panel-foreground/60 font-bold uppercase tracking-widest mt-0.5">Matched by Account &amp; Owner Name</p>
+                <p className="text-xs text-panel-foreground/60 font-bold uppercase tracking-wide mt-0.5">Matched by Account &amp; Owner Name</p>
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
@@ -636,14 +636,14 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                 return (
                   <div key={stage} className="space-y-2 border-b pb-4 last:border-b-0 last:pb-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-[11px] font-black uppercase tracking-wider text-foreground bg-secondary px-3 py-1 rounded-full border">
+                      <h4 className="text-xs font-bold text-foreground bg-secondary px-3 py-1 rounded-full border">
                         {stage === "--None--" ? "UNASSIGNED STAGE" : stage.toUpperCase()}
                       </h4>
-                      <Badge className="bg-border text-foreground text-[10px] font-black">{list.length} Opportunities</Badge>
+                      <Badge className="bg-border text-foreground text-xs font-semibold">{list.length} Opportunities</Badge>
                     </div>
 
                     {list.length === 0 ? (
-                      <p className="text-[10px] text-muted-foreground font-medium italic pl-4">No opportunities in this stage.</p>
+                      <p className="text-xs text-muted-foreground font-medium italic pl-4">No opportunities in this stage.</p>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
                         {list.map(opp => (
@@ -661,7 +661,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                                 <a 
                                   href="#" 
                                   onClick={(e) => { e.preventDefault(); openSalesforceSearch(opp.opportunityName || opp.pipeline, opp.salesforceId); }}
-                                  className="text-[10px] text-muted-foreground font-medium hover:text-accent hover:underline truncate max-w-[180px] block"
+                                  className="text-xs text-muted-foreground font-medium hover:text-accent hover:underline truncate max-w-[180px] block"
                                   title="Open Opportunity in Salesforce"
                                 >
                                   {opp.opportunityName || "Unnamed Opportunity"}
@@ -675,12 +675,12 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </button>
-                                <Button size="sm" variant="outline" onClick={() => appendToFocusAccounts(opp)} className="h-6 px-1.5 text-[9px] font-black bg-card hover:bg-accent/10 border-border text-foreground/85 hover:text-accent" title="Add to Focus Accounts">
+                                <Button size="sm" variant="outline" onClick={() => appendToFocusAccounts(opp)} className="h-6 px-1.5 text-xs font-semibold bg-card hover:bg-accent/10 border-border text-foreground/85 hover:text-accent" title="Add to Focus Accounts">
                                   <Plus className="w-3 h-3" />
                                 </Button>
                               </div>
                             </div>
-                            <div className="flex justify-between items-center text-[10px] font-semibold text-foreground/75">
+                            <div className="flex justify-between items-center text-xs font-semibold text-foreground/75">
                               <span>EAV: <strong>${(opp.value || 0).toLocaleString()}</strong></span>
                               <span>Probability: <strong>{opp.probability || 0}%</strong></span>
                             </div>
@@ -699,7 +699,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
       {/* Roadblocks & Support */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-4">
-           <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 px-2"><AlertTriangle className="w-3.5 h-3.5 text-destructive" /> Roadblocks & Account Barriers</Label>
+           <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2 px-2"><AlertTriangle className="w-3.5 h-3.5 text-destructive" /> Roadblocks & Account Barriers</Label>
            <Textarea 
              placeholder="What is slowing down your deals? Competitor activity, internal delays, etc..." 
              value={roadblocks} 
@@ -708,7 +708,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
            />
         </div>
         <div className="space-y-4">
-           <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 px-2"><LifeBuoy className="w-3.5 h-3.5 text-info" /> Additional Management Support</Label>
+           <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2 px-2"><LifeBuoy className="w-3.5 h-3.5 text-info" /> Additional Management Support</Label>
            <Textarea 
              placeholder="How can leadership assist this week? Escalations, joint calls, pricing approvals..." 
              value={supportNeeded} 

@@ -60,7 +60,7 @@ export function TimeReminderBell({ onOpenManageTime }: { onOpenManageTime: () =>
         <Button variant="ghost" size="icon" className="relative h-9 w-9 shrink-0" aria-label={`Task reminders${count ? `: ${count} due` : ''}`}>
           <Bell className="w-5 h-5 text-foreground/75" />
           {count > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-black flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-xs font-semibold flex items-center justify-center">
               {count > 99 ? '99+' : count}
             </span>
           )}
@@ -69,7 +69,7 @@ export function TimeReminderBell({ onOpenManageTime }: { onOpenManageTime: () =>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="px-4 py-3 border-b">
           <p className="text-sm font-bold text-foreground">Overdue & due today</p>
-          <p className="text-[11px] text-muted-foreground">From your current Manage Time plan (Perth time)</p>
+          <p className="text-xs text-muted-foreground">From your current Manage Time plan (Perth time)</p>
         </div>
         <div className="max-h-72 overflow-y-auto divide-y">
           {count === 0 ? (

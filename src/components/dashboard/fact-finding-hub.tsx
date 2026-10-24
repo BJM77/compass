@@ -296,7 +296,7 @@ export function FactFindingHub() {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
             <FileSearch className="w-8 h-8 text-primary" />
             Fact Finding Documents
           </h2>
@@ -318,7 +318,7 @@ export function FactFindingHub() {
             <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center shadow-sm mb-4">
               <FileSearch className="w-8 h-8 text-muted-foreground/70" />
             </div>
-            <h3 className="text-xl font-black text-foreground/85 mb-2">No Documents Found</h3>
+            <h3 className="text-xl font-bold text-foreground/85 mb-2">No Documents Found</h3>
             <p className="text-muted-foreground font-medium mb-6 max-w-md">
               You haven't created any Fact Finding documents yet. Create one to capture detailed logistics requirements for a prospect.
             </p>
@@ -457,7 +457,7 @@ export function FactFindingHub() {
                 <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4">
                   <span>Customer</span><span>Owner</span><span>Freight Type</span><span className="text-right">Value</span><span />
                 </div>
-                <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">
+                <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-0.5">
                   <span>Freight Size · Stage</span><span>Model</span><span>Created</span><span className="text-right">Modified</span><span />
                 </div>
               </div>
@@ -477,7 +477,7 @@ export function FactFindingHub() {
                   >
                     {/* Line 1: customer, owner, freight type, value */}
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4 nav:items-center">
-                      <div className="flex items-center gap-1.5 min-w-0 basis-full nav:basis-auto font-black">
+                      <div className="flex items-center gap-1.5 min-w-0 basis-full nav:basis-auto font-semibold">
                         <a
                           href={getSalesforceSearchUrl(doc.companyName || '')}
                           target="_blank"
@@ -501,19 +501,19 @@ export function FactFindingHub() {
                         <span className="truncate">{owner}</span>
                       </div>
                       <div className="text-xs text-foreground/75 min-w-0 truncate">{doc.freightType || '-'}</div>
-                      <div className="font-black text-accent text-sm ml-auto nav:ml-0 nav:text-right truncate">{formatFactFindValue(doc.weeklyAmount)}</div>
+                      <div className="font-semibold text-accent text-sm ml-auto nav:ml-0 nav:text-right truncate">{formatFactFindValue(doc.weeklyAmount)}</div>
                       <ChevronRight className="w-4 h-4 text-muted-foreground hidden nav:block" />
                     </div>
                     {/* Line 2: freight size, stage, model, created, modified */}
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4">
                       <div className="flex items-center gap-2 min-w-0">
                         {doc.freightSize && <span className="truncate" title="Freight size">{doc.freightSize}</span>}
-                        <span className={cn("shrink-0 text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border shadow-sm", getStageConfig(stage).color, getStageConfig(stage).text)}>
+                        <span className={cn("shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border shadow-sm", getStageConfig(stage).color, getStageConfig(stage).text)}>
                           {stage}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider bg-secondary px-2 py-0.5 rounded-md border border-border">
+                        <span className="text-xs font-semibold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">
                           {doc.businessModel || 'B2B'}
                         </span>
                       </div>
@@ -533,7 +533,7 @@ export function FactFindingHub() {
                   <CardHeader className="relative z-10 bg-transparent border-b border-border/30 pb-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
+                        <CardTitle className="text-lg font-bold text-primary flex items-center gap-2">
                           <span className="flex items-center gap-2">
                             <a 
                               href={getSalesforceSearchUrl(doc.companyName || '')} 
@@ -551,7 +551,7 @@ export function FactFindingHub() {
                               </span>
                             )}
                           </span>
-                          <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-card/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
+                          <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-card/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
                             {doc.stage || 'New'}
                           </span>
                         </CardTitle>
@@ -584,31 +584,31 @@ export function FactFindingHub() {
                       <div className="flex items-start gap-2">
                         <Package className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold text-foreground/85 uppercase">Freight Type</p>
+                          <p className="text-xs font-bold text-foreground/85 uppercase">Freight Type</p>
                           <p className="text-xs text-foreground/75 font-medium truncate">{doc.freightType || 'Not specified'}</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
                         <Building className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold text-foreground/85 uppercase">Locations</p>
+                          <p className="text-xs font-bold text-foreground/85 uppercase">Locations</p>
                           <p className="text-xs text-foreground/75 font-medium truncate">{doc.locations || 'Not specified'}</p>
                         </div>
                       </div>
                     </div>
                     <div className="bg-card/80 rounded-xl p-2 border border-border/35 shadow-sm flex flex-col overflow-hidden relative">
                       <div className="absolute top-0 left-0 w-1 h-full bg-accent rounded-l-xl"></div>
-                      <p className="text-[9px] font-black text-accent uppercase tracking-widest mb-1 ml-1 flex items-center gap-1">
+                      <p className="text-xs font-semibold text-accent mb-1 ml-1 flex items-center gap-1">
                         <MessageSquare className="w-3 h-3" /> Latest Note
                       </p>
-                      <p className="text-[10px] text-foreground/75 font-medium leading-tight line-clamp-3 ml-1">
+                      <p className="text-xs text-foreground/75 font-medium leading-tight line-clamp-3 ml-1">
                         {doc.currentNote?.trim() ? doc.currentNote : (doc.archivedNotes && doc.archivedNotes.length > 0 ? doc.archivedNotes[doc.archivedNotes.length - 1].note : 'No notes available.')}
                       </p>
                     </div>
                   </CardContent>
                   <CardFooter className="relative z-10 bg-secondary/30 border-t border-border/60 py-3 flex justify-between items-center">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{doc.businessModel || 'B2B'}</span>
-                    <span className="text-xs font-black text-accent flex items-center gap-1"><span className="text-[10px] text-muted-foreground font-bold uppercase">EAV</span> {doc.weeklyAmount || 'N/A'}</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{doc.businessModel || 'B2B'}</span>
+                    <span className="text-xs font-semibold text-accent flex items-center gap-1"><span className="text-xs text-muted-foreground font-bold uppercase">EAV</span> {doc.weeklyAmount || 'N/A'}</span>
                   </CardFooter>
                 </Card>
               ))}
@@ -620,8 +620,8 @@ export function FactFindingHub() {
       {/* Network Map Segment */}
       <div className="w-full flex flex-col items-center justify-center py-8 bg-card border border-border/60 rounded-3xl p-6 shadow-sm gap-4">
         <div className="text-center space-y-1">
-          <h3 className="text-base font-black text-foreground uppercase tracking-tight">Team Global Express Network Map</h3>
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Western Australia logistics coverage and transit hub registry</p>
+          <h3 className="text-base font-bold text-foreground tracking-tight">Team Global Express Network Map</h3>
+          <p className="text-xs text-muted-foreground font-bold uppercase tracking-wide">Western Australia logistics coverage and transit hub registry</p>
         </div>
         <img 
           src="/network-map.png" 

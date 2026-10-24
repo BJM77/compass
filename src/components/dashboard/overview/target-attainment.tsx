@@ -82,7 +82,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
               <Trophy className="w-5 h-5" />
             </span>
             <div>
-              <h3 className="font-black text-foreground tracking-tight text-base sm:text-lg uppercase">
+              <h3 className="font-bold text-foreground tracking-tight text-base sm:text-lg">
                 Target Attainment & Real-Time Pacing
               </h3>
               <p className="text-xs text-muted-foreground font-medium mt-0.5">
@@ -97,7 +97,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto justify-between lg:justify-end">
           {/* Current Quarter & Month Indicators */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-secondary/60 p-1.5 px-2.5 sm:px-3 rounded-xl border border-border/80 text-[11px] sm:text-xs font-bold">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-secondary/60 p-1.5 px-2.5 sm:px-3 rounded-xl border border-border/80 text-xs sm:text-xs font-bold">
             <div className="flex items-center gap-1 text-primary">
               <Calendar className="w-3.5 h-3.5 text-accent" />
               <span>Quarter: <strong className="text-foreground">{finProgress.currentQuarter}</strong></span>
@@ -110,7 +110,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
               </span>
             </div>
             <span className="text-muted-foreground/70">•</span>
-            <span className="bg-accent/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-black">
+            <span className="bg-accent/10 text-primary px-1.5 py-0.5 rounded text-xs font-semibold">
               {currentElapsedPct.toFixed(1)}% FY Elapsed
             </span>
           </div>
@@ -120,7 +120,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
             <button
               onClick={() => setPacingMode('EXACT_DAY')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
-                pacingMode === 'EXACT_DAY' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                pacingMode === 'EXACT_DAY' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               Actual Date
@@ -128,7 +128,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
             <button
               onClick={() => setPacingMode('EOM')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
-                pacingMode === 'EOM' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                pacingMode === 'EOM' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               Month End (EOM)
@@ -136,7 +136,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
             <button
               onClick={() => setPacingMode('WEEKLY')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
-                pacingMode === 'WEEKLY' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                pacingMode === 'WEEKLY' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
               title="Use this if revenue data is uploaded weekly (up to end of previous week)"
             >
@@ -178,7 +178,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
               {/* Card Header: Rank, Name, Role, Pacing Status Pill */}
               <div className="flex justify-between items-start gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
+                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
                     idx === 0 ? 'bg-warning/80 text-foreground shadow-xs' :
                     idx === 1 ? 'bg-border text-foreground' :
                     idx === 2 ? 'bg-warning/55 text-warning-foreground' :
@@ -187,13 +187,13 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
                     {idx + 1}
                   </div>
                   <div className="min-w-0">
-                    <span className="font-black text-foreground text-sm sm:text-base truncate block">{row.user.name}</span>
+                    <span className="font-semibold text-foreground text-sm sm:text-base truncate block">{row.user.name}</span>
                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                      <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 bg-card text-muted-foreground border-border">
+                      <Badge variant="outline" className="text-xs font-bold uppercase tracking-wide py-0 px-1.5 bg-card text-muted-foreground border-border">
                         {row.user.role?.replace('_', ' ')}
                       </Badge>
                       {row.user.territory && (
-                        <span className="text-[10px] text-muted-foreground font-semibold truncate">
+                        <span className="text-xs text-muted-foreground font-semibold truncate">
                           • {row.user.territory}
                         </span>
                       )}
@@ -202,7 +202,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
                 </div>
 
                 <div className="text-right flex flex-col items-end shrink-0">
-                  <div className={`text-xs font-black px-2.5 py-0.5 rounded-lg border flex items-center gap-1 ${paceColor}`}>
+                  <div className={`text-xs font-semibold px-2.5 py-0.5 rounded-lg border flex items-center gap-1 ${paceColor}`}>
                     {isAhead ? (
                       <ArrowUpRight className="w-3.5 h-3.5 text-success" />
                     ) : (
@@ -210,7 +210,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
                     )}
                     {row.paceAttainment.toFixed(1)}% Pace
                   </div>
-                  <span className={`text-[10px] font-bold mt-1 ${row.varianceVsPace >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  <span className={`text-xs font-bold mt-1 ${row.varianceVsPace >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {row.varianceVsPace >= 0 ? `+${formatEAV(row.varianceVsPace)} ahead` : `-${formatEAV(Math.abs(row.varianceVsPace))} behind`}
                   </span>
                 </div>
@@ -232,7 +232,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
                   />
                 </div>
 
-                <div className="flex justify-between items-center text-[11px] font-bold text-muted-foreground pt-0.5">
+                <div className="flex justify-between items-center text-xs font-bold text-muted-foreground pt-0.5">
                   <div>
                     <span>Actual YTD: </span>
                     <strong className="text-foreground">{formatCurrency(row.ytdRevenue)}</strong>
@@ -267,7 +267,7 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
                 <button
                   type="button"
                   onClick={() => setModalUser({ row, rank: idx + 1 })}
-                  className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded-lg hover:bg-secondary"
+                  className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded-lg hover:bg-secondary"
                   title="Open full screen focus view"
                 >
                   <Maximize2 className="w-3 h-3" />
@@ -280,31 +280,31 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
                 <div className="pt-3 border-t border-accent/10 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                     <div className="p-2 bg-card rounded-xl border border-border/80">
-                      <span className="text-[10px] font-semibold text-muted-foreground block">Annual Target</span>
-                      <span className="font-black text-foreground text-xs sm:text-sm">{formatCurrency(row.target)}</span>
+                      <span className="text-xs font-semibold text-muted-foreground block">Annual Target</span>
+                      <span className="font-semibold text-foreground text-xs sm:text-sm">{formatCurrency(row.target)}</span>
                     </div>
                     <div className="p-2 bg-card rounded-xl border border-border/80">
-                      <span className="text-[10px] font-semibold text-muted-foreground block">Quarter Target</span>
-                      <span className="font-black text-foreground text-xs sm:text-sm">{formatCurrency(quarterlyTarget)}</span>
+                      <span className="text-xs font-semibold text-muted-foreground block">Quarter Target</span>
+                      <span className="font-semibold text-foreground text-xs sm:text-sm">{formatCurrency(quarterlyTarget)}</span>
                     </div>
                     <div className="p-2 bg-card rounded-xl border border-border/80">
-                      <span className="text-[10px] font-semibold text-muted-foreground block">Monthly Target</span>
-                      <span className="font-black text-foreground text-xs sm:text-sm">{formatCurrency(monthlyTarget)}</span>
+                      <span className="text-xs font-semibold text-muted-foreground block">Monthly Target</span>
+                      <span className="font-semibold text-foreground text-xs sm:text-sm">{formatCurrency(monthlyTarget)}</span>
                     </div>
                     <div className="p-2 bg-card rounded-xl border border-border/80">
-                      <span className="text-[10px] font-semibold text-muted-foreground block">Remaining Quota</span>
-                      <span className="font-black text-foreground text-xs sm:text-sm">{formatCurrency(remainingAnnual)}</span>
+                      <span className="text-xs font-semibold text-muted-foreground block">Remaining Quota</span>
+                      <span className="font-semibold text-foreground text-xs sm:text-sm">{formatCurrency(remainingAnnual)}</span>
                     </div>
                   </div>
 
                   <div className="p-3 bg-card rounded-xl border border-border/80 flex items-center justify-between text-xs">
                     <div className="space-y-0.5">
                       <span className="text-muted-foreground font-semibold block">Full Annual Attainment:</span>
-                      <span className="font-black text-foreground text-sm">{row.annualAttainment.toFixed(1)}% of {formatCurrency(row.target)}</span>
+                      <span className="font-semibold text-foreground text-sm">{row.annualAttainment.toFixed(1)}% of {formatCurrency(row.target)}</span>
                     </div>
                     <div className="text-right space-y-0.5">
                       <span className="text-muted-foreground font-semibold block">Variance vs Run-Rate:</span>
-                      <span className={`font-black text-sm ${row.varianceVsPace >= 0 ? 'text-success-ink' : 'text-destructive'}`}>
+                      <span className={`font-semibold text-sm ${row.varianceVsPace >= 0 ? 'text-success-ink' : 'text-destructive'}`}>
                         {row.varianceVsPace >= 0 ? `+${formatCurrency(row.varianceVsPace)}` : `-${formatCurrency(Math.abs(row.varianceVsPace))}`}
                       </span>
                     </div>
@@ -328,17 +328,17 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
           <div className="bg-card rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-border/60 space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between border-b border-border/60 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-accent text-accent-foreground font-black flex items-center justify-center text-lg shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-accent text-accent-foreground font-bold flex items-center justify-center text-lg shadow-sm">
                   {modalUser.row.user.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-muted-foreground">Rank #{modalUser.rank}</span>
-                    <Badge variant="outline" className="text-[10px] font-bold uppercase py-0 px-2 bg-accent/10 text-primary border-accent/25">
+                    <Badge variant="outline" className="text-xs font-bold uppercase py-0 px-2 bg-accent/10 text-primary border-accent/25">
                       {modalUser.row.user.role?.replace('_', ' ')}
                     </Badge>
                   </div>
-                  <h3 className="font-black text-foreground text-xl">{modalUser.row.user.name}</h3>
+                  <h3 className="font-black tabular-nums text-foreground text-xl">{modalUser.row.user.name}</h3>
                 </div>
               </div>
               <button 
@@ -353,11 +353,11 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
               <div className="p-4 rounded-2xl bg-secondary/60 border border-border flex items-center justify-between">
                 <div>
                   <span className="text-xs font-semibold text-muted-foreground block">Current Pacing Attainment</span>
-                  <span className="text-2xl font-black text-foreground">{modalUser.row.paceAttainment.toFixed(1)}%</span>
+                  <span className="text-2xl font-black tabular-nums text-foreground">{modalUser.row.paceAttainment.toFixed(1)}%</span>
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-semibold text-muted-foreground block">Pacing Variance</span>
-                  <span className={`text-base font-black ${modalUser.row.varianceVsPace >= 0 ? 'text-success-ink' : 'text-destructive'}`}>
+                  <span className={`text-base font-bold ${modalUser.row.varianceVsPace >= 0 ? 'text-success-ink' : 'text-destructive'}`}>
                     {modalUser.row.varianceVsPace >= 0 ? `+${formatCurrency(modalUser.row.varianceVsPace)}` : `-${formatCurrency(Math.abs(modalUser.row.varianceVsPace))}`}
                   </span>
                 </div>
@@ -366,19 +366,19 @@ export function TargetAttainment({ data, referenceDate }: { data: AttainmentData
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3.5 bg-secondary/60 rounded-xl border border-border">
                   <span className="text-xs font-semibold text-muted-foreground block">Actual YTD Spend</span>
-                  <span className="text-base font-black text-primary">{formatCurrency(modalUser.row.ytdRevenue)}</span>
+                  <span className="text-base font-bold text-primary">{formatCurrency(modalUser.row.ytdRevenue)}</span>
                 </div>
                 <div className="p-3.5 bg-secondary/60 rounded-xl border border-border">
                   <span className="text-xs font-semibold text-muted-foreground block">Benchmark Target</span>
-                  <span className="text-base font-black text-foreground">{formatCurrency(modalUser.row.expectedYtdTarget)}</span>
+                  <span className="text-base font-bold text-foreground">{formatCurrency(modalUser.row.expectedYtdTarget)}</span>
                 </div>
                 <div className="p-3.5 bg-secondary/60 rounded-xl border border-border">
                   <span className="text-xs font-semibold text-muted-foreground block">Quarter Quota (Target ÷ 4)</span>
-                  <span className="text-base font-black text-foreground">{formatCurrency(modalUser.row.target / 4)}</span>
+                  <span className="text-base font-bold text-foreground">{formatCurrency(modalUser.row.target / 4)}</span>
                 </div>
                 <div className="p-3.5 bg-secondary/60 rounded-xl border border-border">
                   <span className="text-xs font-semibold text-muted-foreground block">Full Annual Quota</span>
-                  <span className="text-base font-black text-foreground">{formatCurrency(modalUser.row.target)}</span>
+                  <span className="text-base font-bold text-foreground">{formatCurrency(modalUser.row.target)}</span>
                 </div>
               </div>
             </div>

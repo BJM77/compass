@@ -335,7 +335,7 @@ export function BdAmReview() {
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-black text-foreground tracking-tight">BD/AM Review</h1>
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">BD/AM Review</h1>
                 <p className="text-xs font-semibold text-muted-foreground">
                   Comprehensive performance summary & strategic operational breakdown for reps and teams.
                 </p>
@@ -346,7 +346,7 @@ export function BdAmReview() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Team Member Filter (BDMs & AMs only) */}
             <div className="w-full sm:w-64">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider mb-1 block">Account Manager / BDM</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Account Manager / BDM</label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger className="h-10 bg-secondary/60 border-border rounded-xl font-bold text-foreground/85 text-xs">
                   <SelectValue placeholder="Select Team Member" />
@@ -364,7 +364,7 @@ export function BdAmReview() {
 
             {/* Date Preset Selector */}
             <div className="w-full sm:w-48">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider mb-1 block">Time Period</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Time Period</label>
               <Select value={datePreset} onValueChange={(val: DatePreset) => setDatePreset(val)}>
                 <SelectTrigger className="h-10 bg-secondary/60 border-border rounded-xl font-bold text-foreground/85 text-xs">
                   <SelectValue placeholder="Select Period" />
@@ -426,9 +426,9 @@ export function BdAmReview() {
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Logged Calls</p>
-              <h3 className="text-2xl font-black text-foreground">{activityMetrics.calls}</h3>
-              <p className="text-[10px] font-bold text-muted-foreground">{activityMetrics.callPlansCreated} Call Plans Prepared</p>
+              <p className="text-xs font-semibold text-muted-foreground">Logged Calls</p>
+              <h3 className="text-2xl font-black tabular-nums text-foreground">{activityMetrics.calls}</h3>
+              <p className="text-xs font-bold text-muted-foreground">{activityMetrics.callPlansCreated} Call Plans Prepared</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-info-soft border border-info/15 flex items-center justify-center text-info">
               <PhoneCall className="w-6 h-6" />
@@ -440,9 +440,9 @@ export function BdAmReview() {
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Appointments / Meetings</p>
-              <h3 className="text-2xl font-black text-foreground">{activityMetrics.appointments}</h3>
-              <p className="text-[10px] font-bold text-muted-foreground">Held or Scheduled</p>
+              <p className="text-xs font-semibold text-muted-foreground">Appointments / Meetings</p>
+              <h3 className="text-2xl font-black tabular-nums text-foreground">{activityMetrics.appointments}</h3>
+              <p className="text-xs font-bold text-muted-foreground">Held or Scheduled</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-chart-5/10 border border-chart-5/15 flex items-center justify-center text-chart-5">
               <CalendarCheck className="w-6 h-6" />
@@ -454,9 +454,9 @@ export function BdAmReview() {
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Active Opportunities</p>
-              <h3 className="text-2xl font-black text-foreground">{processedOpportunities.length}</h3>
-              <p className="text-[10px] font-bold text-success font-semibold">{formatEAV(totalActivePipelineValue)} Total EAV</p>
+              <p className="text-xs font-semibold text-muted-foreground">Active Opportunities</p>
+              <h3 className="text-2xl font-black tabular-nums text-foreground">{processedOpportunities.length}</h3>
+              <p className="text-xs font-bold text-success font-semibold">{formatEAV(totalActivePipelineValue)} Total EAV</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-success-soft border border-success/15 flex items-center justify-center text-success">
               <Target className="w-6 h-6" />
@@ -468,9 +468,9 @@ export function BdAmReview() {
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">TWTW Wins Reported</p>
-              <h3 className="text-2xl font-black text-foreground">{aggregatedTwiwData.wins.length}</h3>
-              <p className="text-[10px] font-bold text-muted-foreground">{aggregatedTwiwData.projectedWins.length} 30-Day Projected</p>
+              <p className="text-xs font-semibold text-muted-foreground">TWTW Wins Reported</p>
+              <h3 className="text-2xl font-black tabular-nums text-foreground">{aggregatedTwiwData.wins.length}</h3>
+              <p className="text-xs font-bold text-muted-foreground">{aggregatedTwiwData.projectedWins.length} 30-Day Projected</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-warning-soft border border-warning/15 flex items-center justify-center text-warning-ink">
               <Trophy className="w-6 h-6" />
@@ -487,7 +487,7 @@ export function BdAmReview() {
         {/* Thursday TWTW Wins */}
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
           <CardHeader className="bg-success-soft/50 border-b border-success/15 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-success-ink flex items-center justify-between">
+            <CardTitle className="text-sm font-bold text-success-ink flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-success" /> TWTW Wins
               </span>
@@ -504,11 +504,11 @@ export function BdAmReview() {
                 <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-foreground">{w.customer}</span>
-                    <span className="font-black text-xs text-success">{formatEAV(w.value)}</span>
+                    <span className="font-semibold text-xs text-success">{formatEAV(w.value)}</span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {w.repName} {w.week ? `(${w.week})` : ''}</div>
+                  <div className="text-xs text-muted-foreground font-bold">Rep: {w.repName} {w.week ? `(${w.week})` : ''}</div>
                   {w.businessUnits && w.businessUnits.length > 0 && (
-                    <div className="text-[9px] font-bold text-muted-foreground">BU: {w.businessUnits.join(', ')}</div>
+                    <div className="text-xs font-bold text-muted-foreground">BU: {w.businessUnits.join(', ')}</div>
                   )}
                   {w.updateText && <p className="text-xs text-foreground/75 mt-1">{w.updateText}</p>}
                 </div>
@@ -520,7 +520,7 @@ export function BdAmReview() {
         {/* Risks & Barriers */}
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
           <CardHeader className="bg-danger-soft/50 border-b border-destructive/15 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-destructive flex items-center justify-between">
+            <CardTitle className="text-sm font-bold text-destructive flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-destructive" /> Risks & Barriers
               </span>
@@ -537,9 +537,9 @@ export function BdAmReview() {
                 <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-foreground">{r.account}</span>
-                    <span className="font-black text-xs text-destructive">{formatEAV(r.value)}</span>
+                    <span className="font-semibold text-xs text-destructive">{formatEAV(r.value)}</span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {r.repName} {r.week ? `(${r.week})` : ''}</div>
+                  <div className="text-xs text-muted-foreground font-bold">Rep: {r.repName} {r.week ? `(${r.week})` : ''}</div>
                   {r.mitigation && <p className="text-xs text-foreground/75 mt-1"><strong className="text-foreground/85">Mitigation:</strong> {r.mitigation}</p>}
                 </div>
               ))
@@ -550,7 +550,7 @@ export function BdAmReview() {
         {/* 30 Day Projected Wins */}
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
           <CardHeader className="bg-chart-5/5 border-b border-chart-5/15 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-chart-5 flex items-center justify-between">
+            <CardTitle className="text-sm font-bold text-chart-5 flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Rocket className="w-4 h-4 text-chart-5" /> 30 Day Projected Wins
               </span>
@@ -567,9 +567,9 @@ export function BdAmReview() {
                 <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-foreground">{p.account}</span>
-                    <span className="font-black text-xs text-chart-5">{formatEAV(p.value)}</span>
+                    <span className="font-semibold text-xs text-chart-5">{formatEAV(p.value)}</span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {p.repName} {p.expectedDate ? `| Close: ${p.expectedDate}` : ''}</div>
+                  <div className="text-xs text-muted-foreground font-bold">Rep: {p.repName} {p.expectedDate ? `| Close: ${p.expectedDate}` : ''}</div>
                   {p.updateText && <p className="text-xs text-foreground/75 mt-1">{p.updateText}</p>}
                 </div>
               ))
@@ -580,7 +580,7 @@ export function BdAmReview() {
         {/* Major Pipeline & Customer Updates */}
         <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
           <CardHeader className="bg-info-soft/50 border-b border-info/15 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-info flex items-center justify-between">
+            <CardTitle className="text-sm font-bold text-info flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Building className="w-4 h-4 text-info" /> Major Pipeline & Customer Updates
               </span>
@@ -597,11 +597,11 @@ export function BdAmReview() {
                 <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-foreground">{m.customer}</span>
-                    {m.value > 0 && <span className="font-black text-xs text-info">{formatEAV(m.value)}</span>}
+                    {m.value > 0 && <span className="font-semibold text-xs text-info">{formatEAV(m.value)}</span>}
                   </div>
-                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {m.repName} {m.week ? `(${m.week})` : ''}</div>
+                  <div className="text-xs text-muted-foreground font-bold">Rep: {m.repName} {m.week ? `(${m.week})` : ''}</div>
                   {m.businessUnits && m.businessUnits.length > 0 && (
-                    <div className="text-[9px] font-bold text-muted-foreground">BU: {m.businessUnits.join(', ')}</div>
+                    <div className="text-xs font-bold text-muted-foreground">BU: {m.businessUnits.join(', ')}</div>
                   )}
                   {m.updateText && <p className="text-xs text-foreground/75 mt-1">{m.updateText}</p>}
                 </div>
@@ -619,14 +619,14 @@ export function BdAmReview() {
         <CardHeader className="bg-secondary/35 border-b border-border/60 py-4 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+              <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Target className="w-4 h-4 text-primary" /> Active Opportunities Ledger
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              <CardDescription className="text-xs font-bold text-muted-foreground">
                 Live deals currently active in the sales pipeline
               </CardDescription>
             </div>
-            <Badge className="bg-primary text-primary-foreground font-black text-xs px-3 py-1 self-start sm:self-auto">
+            <Badge className="bg-primary text-primary-foreground font-semibold text-xs px-3 py-1 self-start sm:self-auto">
               {processedOpportunities.length} Deals ({formatEAV(totalActivePipelineValue)})
             </Badge>
           </div>
@@ -664,7 +664,7 @@ export function BdAmReview() {
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-secondary/60 border-b border-border">
-              <TableRow className="uppercase text-[9px] font-black tracking-widest text-muted-foreground select-none">
+              <TableRow className="text-xs font-semibold text-muted-foreground select-none">
                 <TableHead className="p-3 cursor-pointer hover:bg-secondary transition-colors" onClick={() => handleSortToggle('pipeline')}>
                   <div className="flex items-center gap-1.5">
                     <span>Opportunity / Account</span>
@@ -708,18 +708,18 @@ export function BdAmReview() {
                 <TableRow key={deal.id || `deal-${idx}`}>
                   <TableCell className="p-3">
                     <p className="font-bold text-xs text-foreground">{deal.pipeline || 'Unnamed Deal'}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">{deal.accountMasterCode ? `Master: ${deal.accountMasterCode}` : deal.businessUnit || 'General'}</p>
+                    <p className="text-xs text-muted-foreground font-medium">{deal.accountMasterCode ? `Master: ${deal.accountMasterCode}` : deal.businessUnit || 'General'}</p>
                   </TableCell>
                   <TableCell className="p-3">
                     <span className="text-xs font-bold text-foreground/85">{deal.userName || normalizeBdmName(deal.userId, deal.userId)}</span>
                   </TableCell>
                   <TableCell className="p-3">
-                    <Badge variant="outline" className="text-[10px] font-bold bg-secondary/60 border-border">
+                    <Badge variant="outline" className="text-xs font-bold bg-secondary/60 border-border">
                       {deal.stage || 'Discovery'}
                     </Badge>
                   </TableCell>
                   <TableCell className="p-3">
-                    <span className="text-xs font-black text-success">{formatEAV(deal.value || 0)}</span>
+                    <span className="text-xs font-semibold text-success">{formatEAV(deal.value || 0)}</span>
                   </TableCell>
                   <TableCell className="p-3">
                     <span className="text-xs font-bold text-foreground/75">{deal.probability ? `${deal.probability}%` : 'N/A'}</span>
@@ -731,7 +731,7 @@ export function BdAmReview() {
               ))}
               {processedOpportunities.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs font-bold uppercase tracking-widest">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs font-bold uppercase tracking-wide">
                     No active opportunities match the selected criteria.
                   </TableCell>
                 </TableRow>

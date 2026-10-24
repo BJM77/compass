@@ -353,7 +353,7 @@ export function ActualSpendView() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex justify-between items-end gap-4 flex-wrap">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
             <Coins className="w-8 h-8 text-primary" />
             Actual Spend Ledger
           </h2>
@@ -379,10 +379,10 @@ export function ActualSpendView() {
                 <AlertDialogTitle>Clear the entire Actual Spend Ledger?</AlertDialogTitle>
                 <AlertDialogDescription className="space-y-2">
                   <span className="block">
-                    This permanently deletes every row in <code className="px-1 py-0.5 bg-secondary rounded text-[11px]">actualRevenues</code>.
+                    This permanently deletes every row in <code className="px-1 py-0.5 bg-secondary rounded text-xs">actualRevenues</code>.
                   </span>
                   <span className="block font-semibold text-foreground/85">
-                    Rep assignments in <code className="px-1 py-0.5 bg-secondary rounded text-[11px]">accountMappings</code> are preserved — the ledger will repopulate with the same reps after your next CSV upload.
+                    Rep assignments in <code className="px-1 py-0.5 bg-secondary rounded text-xs">accountMappings</code> are preserved — the ledger will repopulate with the same reps after your next CSV upload.
                   </span>
                   <span className="block text-destructive font-semibold">
                     This cannot be undone. You will need to re-import your YTD report to restore the ledger.
@@ -409,8 +409,8 @@ export function ActualSpendView() {
         <Card className="border border-border bg-card">
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Filtered Spend</p>
-              <h3 className="text-3xl font-black text-foreground">${totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+              <p className="text-xs font-semibold text-muted-foreground">Total Filtered Spend</p>
+              <h3 className="text-3xl font-black tabular-nums text-foreground">${totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
             </div>
             <div className="p-3 bg-success-soft text-success rounded-2xl border border-success/15 shrink-0">
               <Banknote className="w-6 h-6" />
@@ -421,8 +421,8 @@ export function ActualSpendView() {
         <Card className="border border-border bg-card">
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Customer Groups</p>
-              <h3 className="text-3xl font-black text-foreground">{groupedRecords.length}</h3>
+              <p className="text-xs font-semibold text-muted-foreground">Customer Groups</p>
+              <h3 className="text-3xl font-black tabular-nums text-foreground">{groupedRecords.length}</h3>
             </div>
             <div className="p-3 bg-chart-5/10 text-chart-5 rounded-2xl border border-chart-5/15 shrink-0">
               <Layers className="w-6 h-6" />
@@ -433,8 +433,8 @@ export function ActualSpendView() {
         <Card className={`border ${unassignedCount > 0 ? 'border-destructive/25 bg-danger-soft/30' : 'border-border bg-card'}`}>
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className={`text-[10px] font-black uppercase tracking-widest ${unassignedCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>Unassigned Groups</p>
-              <h3 className={`text-3xl font-black ${unassignedCount > 0 ? 'text-destructive' : 'text-foreground'}`}>{unassignedCount}</h3>
+              <p className={`text-xs font-semibold ${unassignedCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>Unassigned Groups</p>
+              <h3 className={`text-3xl font-black tabular-nums ${unassignedCount > 0 ? 'text-destructive' : 'text-foreground'}`}>{unassignedCount}</h3>
             </div>
             <div className={`p-3 rounded-2xl border shrink-0 ${unassignedCount > 0 ? 'bg-danger-soft text-destructive border-destructive/25' : 'bg-secondary/60 text-muted-foreground border-border/60'}`}>
               <UserX className="w-6 h-6" />
@@ -527,7 +527,7 @@ export function ActualSpendView() {
                 {groupedRecords.map((r) => (
                   <TableRow key={r.id} className={`transition-colors ${r.assignedRep === 'Unassigned' ? 'bg-danger-soft/30 hover:bg-danger-soft/50' : 'hover:bg-secondary/60'}`}>
                     <TableCell>
-                      <div className="font-black text-primary">{r.companyName}</div>
+                      <div className="font-semibold text-primary">{r.companyName}</div>
                     </TableCell>
                     <TableCell>
                       {isAdmin ? (
@@ -542,11 +542,11 @@ export function ActualSpendView() {
                           <SelectTrigger className={`h-8 min-w-[150px] text-xs font-bold ${r.assignedRep === 'Unassigned' ? 'border-destructive/25 bg-danger-soft text-destructive hover:bg-danger-soft/80' : 'border-border bg-card text-foreground'}`}>
                             <SelectValue placeholder="Assign Staff...">
                               {r.assignedRep === 'Unassigned' ? (
-                                <span className="text-destructive font-extrabold uppercase tracking-wider text-[11px]">Unassigned</span>
+                                <span className="text-destructive font-extrabold uppercase tracking-wide text-xs">Unassigned</span>
                               ) : (
                                 <span>
                                   {r.assignedRep}
-                                  {r.isManualMapped && <span className="ml-1 text-[10px] text-accent font-bold">(Aligned)</span>}
+                                  {r.isManualMapped && <span className="ml-1 text-xs text-accent font-bold">(Aligned)</span>}
                                 </span>
                               )}
                             </SelectValue>
@@ -567,13 +567,13 @@ export function ActualSpendView() {
                           </SelectContent>
                         </Select>
                       ) : r.assignedRep === 'Unassigned' ? (
-                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-danger-soft text-destructive border-destructive/25">
+                        <Badge variant="outline" className="text-xs font-semibold bg-danger-soft text-destructive border-destructive/25">
                           Unassigned
                         </Badge>
                       ) : (
                         <div className="font-semibold text-sm text-foreground/85">
                           {r.assignedRep}
-                          {r.isManualMapped && <span className="ml-1 text-[10px] text-accent font-bold">(Aligned)</span>}
+                          {r.isManualMapped && <span className="ml-1 text-xs text-accent font-bold">(Aligned)</span>}
                         </div>
                       )}
                     </TableCell>
@@ -581,11 +581,11 @@ export function ActualSpendView() {
                       {r.account}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-secondary/60 text-foreground/85">
+                      <Badge variant="outline" className="text-xs font-semibold bg-secondary/60 text-foreground/85">
                         {r.businessUnit}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-black text-accent text-right">${r.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="font-semibold text-accent text-right">${r.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                     <TableCell className="text-center font-bold text-muted-foreground text-xs">
                       {formatCategory(r.category)}
                     </TableCell>

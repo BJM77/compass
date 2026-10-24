@@ -118,18 +118,18 @@ export function OpsReportForm() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div>
-        <h2 className="text-2xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-primary tracking-tight flex items-center gap-2">
           <AlertCircle className="w-6 h-6 text-accent" />
           Weekly Ops Report
         </h2>
-        <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest mt-1">
+        <p className="text-muted-foreground font-bold uppercase text-xs tracking-wide mt-1">
           Log operational problems or positive events for GM escalation
         </p>
       </div>
 
       <Card className="border-none shadow-lg">
         <CardHeader className="bg-secondary/60 border-b">
-          <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
+          <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
             {editingId ? (
               <><Edit className="w-4 h-4" /> Edit Entry - Week {currentWeek.split('-')[1]}</>
             ) : (
@@ -140,7 +140,7 @@ export function OpsReportForm() {
         <CardContent className="pt-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Event Type</label>
+              <label className="text-xs font-semibold text-muted-foreground">Event Type</label>
               <Select value={type} onValueChange={(val: any) => setType(val)}>
                 <SelectTrigger className="h-12 border-border">
                   <SelectValue placeholder="Select type" />
@@ -154,7 +154,7 @@ export function OpsReportForm() {
           </div>
           
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</label>
+            <label className="text-xs font-semibold text-muted-foreground">Description</label>
             <Textarea 
               className="min-h-[120px] bg-secondary/60 resize-none"
               placeholder="Describe what happened, the impact, and any actions taken..."
@@ -167,7 +167,7 @@ export function OpsReportForm() {
             <Button 
               onClick={handleSubmit} 
               disabled={isSubmitting || !description.trim()} 
-              className="w-full md:w-auto font-black uppercase h-12 px-8"
+              className="w-full md:w-auto font-semibold h-12 px-8"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : (editingId ? <Edit className="w-4 h-4 mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />)}
               {editingId ? 'Update Report' : 'Submit Report'}
@@ -176,7 +176,7 @@ export function OpsReportForm() {
               <Button 
                 variant="ghost" 
                 onClick={() => { setEditingId(null); setDescription(''); setType('PROBLEM'); }}
-                className="font-black uppercase h-12"
+                className="font-semibold h-12"
               >
                 Cancel
               </Button>
@@ -186,7 +186,7 @@ export function OpsReportForm() {
       </Card>
 
       <div className="space-y-4 mt-8">
-        <h3 className="text-sm font-black uppercase tracking-widest text-primary border-b pb-2">Team Submissions This Week</h3>
+        <h3 className="text-sm font-bold text-primary border-b pb-2">Team Submissions This Week</h3>
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>
         ) : teamReports && teamReports.length > 0 ? (
@@ -196,7 +196,7 @@ export function OpsReportForm() {
                 <CardContent className="p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center">
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-primary font-black text-[10px] uppercase shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-primary font-semibold text-xs shrink-0">
                         {(report.userName || '?').charAt(0)}
                       </div>
                       <span className="font-bold text-sm text-primary mr-2">{report.userName}</span>
@@ -226,7 +226,7 @@ export function OpsReportForm() {
                       )}
                     </div>
                     {report.createdAt && (
-                      <div className="text-[9px] text-muted-foreground font-bold uppercase mt-2">
+                      <div className="text-xs text-muted-foreground font-bold uppercase mt-2">
                         {report.createdAt.toDate?.().toLocaleString()}
                       </div>
                     )}
@@ -237,7 +237,7 @@ export function OpsReportForm() {
           </div>
         ) : (
           <div className="text-center py-12 bg-secondary/60 rounded-xl border border-dashed border-border">
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">No reports submitted this week.</p>
+            <p className="text-sm font-bold text-muted-foreground">No reports submitted this week.</p>
           </div>
         )}
       </div>

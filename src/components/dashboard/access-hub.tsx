@@ -119,7 +119,7 @@ export function AccessHub() {
           <KeyRound className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-xl font-black uppercase tracking-tight">Access</h1>
+          <h1 className="text-xl font-bold tracking-tight">Access</h1>
           <p className="text-xs text-muted-foreground font-medium">
             Share one person&apos;s data with other BDMs / Account Managers. One-way, full access (view, edit, delete).
           </p>
@@ -128,7 +128,7 @@ export function AccessHub() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-black uppercase">Whose data is being shared?</CardTitle>
+          <CardTitle className="text-sm font-bold">Whose data is being shared?</CardTitle>
           <CardDescription className="text-xs">
             Pick the owner, then tick the areas each person below can access. Ticking A → B does <strong>not</strong> give A access to B&apos;s data.
           </CardDescription>
@@ -151,7 +151,7 @@ export function AccessHub() {
 
           {owner && (
             <div className="rounded-xl border overflow-hidden">
-              <div className="grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] bg-secondary/60 border-b text-[10px] font-black uppercase tracking-wide text-foreground/75">
+              <div className="grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] bg-secondary/60 border-b text-xs font-semibold text-foreground/75">
                 <div className="p-2 sm:p-3">Can access {owner.name}&apos;s…</div>
                 {SHARE_AREAS.map((a) => (
                   <div key={a.key} className="p-2 sm:p-3 text-center leading-tight">{a.label}</div>
@@ -170,7 +170,7 @@ export function AccessHub() {
                         {v.name}
                         {busy && <Loader2 className="w-3 h-3 animate-spin shrink-0" />}
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase">{v.role}</div>
+                      <div className="text-xs text-muted-foreground uppercase">{v.role}</div>
                     </div>
                     {SHARE_AREAS.map((area) => {
                       const linked = LINKED_TO_FACT_FINDING.includes(area.key) && !!a.factFinding;
@@ -192,7 +192,7 @@ export function AccessHub() {
             </div>
           )}
           {owner && (
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Fact Finding automatically includes the linked White Space and Call Plans (locked). Canvassing is ticked separately.
               Shared records appear in the person&apos;s normal lists with a &ldquo;Shared by {owner.name}&rdquo; badge.
             </p>
@@ -202,7 +202,7 @@ export function AccessHub() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-black uppercase">Current sharing</CardTitle>
+          <CardTitle className="text-sm font-bold">Current sharing</CardTitle>
         </CardHeader>
         <CardContent>
           {summary.length === 0 ? (
@@ -216,7 +216,7 @@ export function AccessHub() {
                   <span className="font-bold">{r.viewer.name}</span>
                   <span className="flex flex-wrap gap-1">
                     {r.areas.map((l) => (
-                      <Badge key={l} variant="secondary" className="text-[9px] font-black uppercase">{l}</Badge>
+                      <Badge key={l} variant="secondary" className="text-xs font-semibold">{l}</Badge>
                     ))}
                   </span>
                 </li>

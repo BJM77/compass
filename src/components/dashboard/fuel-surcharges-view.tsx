@@ -27,9 +27,9 @@ const fmt = (n: number) => `${n.toFixed(2).replace(/\.?0+$/, '')}%`;
 
 function Delta({ d }: { d: number | null }) {
   if (d == null) return null;
-  if (d === 0) return <span className="inline-flex items-center text-[11px] text-muted-foreground"><Minus className="w-3 h-3" />0</span>;
+  if (d === 0) return <span className="inline-flex items-center text-xs text-muted-foreground"><Minus className="w-3 h-3" />0</span>;
   const up = d > 0;
-  return <span className={cn('inline-flex items-center text-[11px] font-bold', up ? 'text-destructive' : 'text-success')} title="Change vs previous period (points)">
+  return <span className={cn('inline-flex items-center text-xs font-bold', up ? 'text-destructive' : 'text-success')} title="Change vs previous period (points)">
     {up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{up ? '+' : ''}{d.toFixed(2)}
   </span>;
 }
@@ -105,17 +105,17 @@ export function FuelSurchargesView() {
       <div className="space-y-0.5 min-w-0">
         {o && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-black text-foreground">{fmt(o.pct)}</span><span className="text-xs text-foreground/75">{o.label}</span>
-            <Badge variant="outline" className="text-[10px] border-chart-5/25 bg-chart-5/10 text-chart-5">Manual{o.effective ? ` · ${dmy(o.effective)}` : ''}</Badge>
-            {o.note && <span className="text-[11px] text-muted-foreground break-words w-full">{o.note} ({o.enteredByName}, {awst(tsMs(o.enteredAt))})</span>}
+            <span className="font-semibold text-foreground">{fmt(o.pct)}</span><span className="text-xs text-foreground/75">{o.label}</span>
+            <Badge variant="outline" className="text-xs border-chart-5/25 bg-chart-5/10 text-chart-5">Manual{o.effective ? ` · ${dmy(o.effective)}` : ''}</Badge>
+            {o.note && <span className="text-xs text-muted-foreground break-words w-full">{o.note} ({o.enteredByName}, {awst(tsMs(o.enteredAt))})</span>}
           </div>
         )}
         {d.current.map(x => (
           <div key={x.label} className={cn('flex flex-wrap items-center gap-1.5', o && 'opacity-60')}>
-            <span className={cn('font-black', r.c.ours ? 'text-primary' : 'text-foreground')}>{fmt(x.pct)}</span>
+            <span className={cn('font-semibold', r.c.ours ? 'text-primary' : 'text-foreground')}>{fmt(x.pct)}</span>
             <span className="text-xs text-foreground/75">{x.label}</span>
             <Delta d={deltaFor(d, x)} />
-            {o && <span className="text-[10px] text-muted-foreground">(published)</span>}
+            {o && <span className="text-xs text-muted-foreground">(published)</span>}
           </div>
         ))}
         {!o && !d.current.length && !r.c.notPublished && (r.c.url ? <a href={r.c.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Check source</a> : null)}
@@ -160,7 +160,7 @@ export function FuelSurchargesView() {
               <tbody>
                 {rows.map(r => (
                   <tr key={r.c.id} className={cn('border-b align-top', r.c.ours && 'bg-accent/5')}>
-                    <td className="py-2 pr-3 font-bold">{r.c.name}{r.c.ours && <Badge className="ml-2 bg-accent hover:bg-accent/90 text-[10px]">Our rate</Badge>}{r.c.note && <div className="text-[11px] font-normal text-muted-foreground">{r.c.note}</div>}</td>
+                    <td className="py-2 pr-3 font-bold">{r.c.name}{r.c.ours && <Badge className="ml-2 bg-accent hover:bg-accent/90 text-xs">Our rate</Badge>}{r.c.note && <div className="text-xs font-normal text-muted-foreground">{r.c.note}</div>}</td>
                     <td className="py-2 pr-3"><Rates r={r} /></td>
                     <td className="py-2 pr-3"><Effective r={r} /></td>
                     <td className="py-2 pr-3">{vsTge(r)}</td>
@@ -175,8 +175,8 @@ export function FuelSurchargesView() {
           <div className="md:hidden grid grid-cols-1 gap-2">
             {rows.map(r => (
               <div key={r.c.id} className={cn('rounded-lg border p-3 space-y-1.5 min-w-0', r.c.ours ? 'bg-accent/10 border-accent/25' : 'bg-card')}>
-                <div className="flex items-center gap-2"><span className="font-bold">{r.c.name}</span>{r.c.ours && <Badge className="bg-accent hover:bg-accent/90 text-[10px]">Our rate</Badge>}<div className="flex-1" />{vsTge(r)}</div>
-                {r.c.note && <p className="text-[11px] text-muted-foreground">{r.c.note}</p>}
+                <div className="flex items-center gap-2"><span className="font-bold">{r.c.name}</span>{r.c.ours && <Badge className="bg-accent hover:bg-accent/90 text-xs">Our rate</Badge>}<div className="flex-1" />{vsTge(r)}</div>
+                {r.c.note && <p className="text-xs text-muted-foreground">{r.c.note}</p>}
                 <Rates r={r} />
                 <Effective r={r} />
                 <Status r={r} />

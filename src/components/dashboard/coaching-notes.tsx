@@ -68,13 +68,13 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
       <CardHeader className="bg-secondary/60 border-b pb-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2 text-primary">
+            <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2 text-primary">
               <MessageSquarePlus className="w-5 h-5 text-accent" />
               Strategic Coaching Log
             </CardTitle>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Compounding Professional Mastery</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Compounding Professional Mastery</p>
           </div>
-          <Badge className="bg-panel text-panel-foreground border-none font-black text-[9px] uppercase tracking-widest px-3">
+          <Badge className="bg-panel text-panel-foreground border-none font-semibold text-xs px-3">
             {notes.filter(n => n.status !== 'RESOLVED').length} Active
           </Badge>
         </div>
@@ -85,7 +85,7 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {isPrivate ? <Lock className="w-3.5 h-3.5 text-destructive" /> : <Globe className="w-3.5 h-3.5 text-success" />}
-                <Label htmlFor="privacy-toggle" className="text-[10px] font-black uppercase tracking-widest text-primary">
+                <Label htmlFor="privacy-toggle" className="text-xs font-semibold text-primary">
                   {isPrivate ? 'Confidential Audit Entry' : 'Public Achievement'}
                 </Label>
               </div>
@@ -104,7 +104,7 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
             <Button 
               onClick={handleSubmit} 
               disabled={isSubmitting || !newNote.trim()}
-              className="w-full bg-primary font-black uppercase text-xs h-12 rounded-xl shadow-lg"
+              className="w-full bg-primary font-semibold text-xs h-12 rounded-xl shadow-lg"
             >
               {isSubmitting ? 'PUNCHING NODE...' : 'SUBMIT PERFORMANCE ENTRY'}
             </Button>
@@ -116,7 +116,7 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
             {notes.length === 0 ? (
               <div className="text-center py-20 bg-secondary/30 rounded-3xl border-2 border-dashed">
                 <ShieldAlert className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">No historical coaching nodes found.</p>
+                <p className="text-xs font-semibold text-muted-foreground">No historical coaching nodes found.</p>
               </div>
             ) : (
               notes.sort((a, b) => {
@@ -133,19 +133,19 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                       <Badge variant="outline" className={`text-[8px] font-black uppercase border-none ${
+                       <Badge variant="outline" className={`text-xs font-semibold border-none ${
                         note.isPrivate ? 'text-destructive bg-danger-soft/50' : 'text-success bg-success-soft/50'
                       }`}>
                         {note.isPrivate ? 'Audited' : 'Public'}
                       </Badge>
                       {note.status === 'OPEN' && (
-                        <div className="flex items-center gap-1.5 text-[8px] font-black text-warning-ink bg-warning-soft/50 px-2 py-0.5 rounded-full uppercase">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-warning-ink bg-warning-soft/50 px-2 py-0.5 rounded-full">
                            <AlertCircle className="w-2.5 h-2.5" /> Action Required
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold uppercase tracking-tight">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground font-bold uppercase tracking-tight">
                         <Clock className="w-3 h-3" />
                         {formatDistanceToNow(note.createdAt?.toDate ? note.createdAt.toDate() : new Date(note.createdAt), { addSuffix: true })}
                       </div>

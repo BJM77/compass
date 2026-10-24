@@ -31,16 +31,16 @@ export function TeamComparison() {
   const renderTable = (members: any[], title: string, icon: any) => (
     <Card className="border-none shadow-2xl bg-card mb-8 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between border-b bg-secondary/30">
-        <CardTitle className="text-xl font-black flex items-center gap-2 text-primary uppercase">
+        <CardTitle className="text-xl font-black tabular-nums flex items-center gap-2 text-primary">
           {icon} {title}
         </CardTitle>
-        <Badge variant="outline" className="border-accent text-accent font-black text-[9px]">ELITE INDEX</Badge>
+        <Badge variant="outline" className="border-accent text-accent font-semibold text-xs">ELITE INDEX</Badge>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table className="min-w-[900px]">
             <TableHeader>
-              <TableRow className="uppercase text-[10px] font-black border-b">
+              <TableRow className="text-xs font-semibold border-b">
                 <TableHead className="pl-6">Rank / BDM</TableHead>
                 <TableHead>Achievement</TableHead>
                 <TableHead className="text-center">Score</TableHead>
@@ -54,25 +54,25 @@ export function TeamComparison() {
                 const score = calculateComposite(m);
                 return (
                   <TableRow key={m.id} className="hover:bg-secondary/60 transition-colors cursor-default">
-                    <TableCell className="pl-6 py-5 font-black">
+                    <TableCell className="pl-6 py-5 font-semibold">
                       <div className="flex items-center gap-3">
                         <span>{idx + 1}. {m.name}</span>
-                        <Badge variant="secondary" className="bg-secondary text-[8px] h-4"><Minus className="w-2 h-2" /></Badge>
+                        <Badge variant="secondary" className="bg-secondary text-xs h-4"><Minus className="w-2 h-2" /></Badge>
                       </div>
                     </TableCell>
                     <TableCell className="w-[200px]">
                       <Progress value={achievement} className="h-2 mb-1" />
-                      <span className="text-[10px] font-bold">{achievement.toFixed(1)}%</span>
+                      <span className="text-xs font-bold">{achievement.toFixed(1)}%</span>
                     </TableCell>
-                    <TableCell className="text-center font-black text-accent">{score.toFixed(1)}</TableCell>
-                    <TableCell className="text-right font-black">${((m.revenueYTD / (m.activityScore || 1))/1000).toFixed(1)}k</TableCell>
-                    <TableCell className="text-center text-success font-black">{m.behaviourScore || 0}%</TableCell>
+                    <TableCell className="text-center font-semibold text-accent">{score.toFixed(1)}</TableCell>
+                    <TableCell className="text-right font-semibold">${((m.revenueYTD / (m.activityScore || 1))/1000).toFixed(1)}k</TableCell>
+                    <TableCell className="text-center text-success font-semibold">{m.behaviourScore || 0}%</TableCell>
                   </TableRow>
                 );
               })}
               {members.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-20 text-muted-foreground uppercase text-[10px] font-black tracking-widest bg-secondary/20">
+                  <TableCell colSpan={5} className="text-center py-20 text-muted-foreground text-xs font-semibold bg-secondary/20">
                     No active nodes found for this category.
                   </TableCell>
                 </TableRow>

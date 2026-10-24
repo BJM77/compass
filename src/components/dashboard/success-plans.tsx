@@ -554,16 +554,16 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-panel text-panel-foreground rounded-3xl p-6 shadow-xl border border-panel-foreground/15">
         <div>
-          <h1 className="text-2xl font-black tracking-tight uppercase flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <ClipboardList className="w-7 h-7 text-accent" />
             Success Programs
           </h1>
-          <p className="text-xs font-bold text-panel-foreground/60 uppercase tracking-widest mt-1">
+          <p className="text-xs font-bold text-panel-foreground/60 uppercase tracking-wide mt-1">
             Tailored Development & Performance Trackers
           </p>
         </div>
         {!isEditing && (
-          <Button onClick={handleStartCreate} className="bg-accent hover:bg-accent/90 font-bold uppercase tracking-wider text-xs rounded-xl shadow-lg shadow-accent/5 gap-2 shrink-0">
+          <Button onClick={handleStartCreate} className="bg-accent hover:bg-accent/90 font-bold text-xs rounded-xl shadow-lg shadow-accent/5 gap-2 shrink-0">
             <Plus className="w-4 h-4" /> Create Success Plan
           </Button>
         )}
@@ -575,8 +575,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
           {/* SIDEBAR: LIST OF PLANS */}
           <Card className="lg:col-span-1 border-none shadow-md bg-card rounded-3xl overflow-hidden">
             <CardHeader className="border-b border-border/60 pb-4">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Success Plans Ledger</CardTitle>
-              <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase">
+              <CardTitle className="text-xs font-bold text-foreground">Success Plans Ledger</CardTitle>
+              <CardDescription className="text-xs font-bold text-muted-foreground">
                 {visiblePlans.length} active programs loaded
               </CardDescription>
             </CardHeader>
@@ -584,7 +584,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               {/* Leader Filters */}
               {isLeader && (
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-muted-foreground">Team Member Filter</label>
+                  <label className="text-xs font-semibold text-muted-foreground">Team Member Filter</label>
                   <Select value={selectedUserFilter} onValueChange={setSelectedUserFilter}>
                     <SelectTrigger className="rounded-xl text-xs font-bold border-border">
                       <SelectValue placeholder="All Members" />
@@ -633,21 +633,21 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                         }`}
                       >
                         <div className="flex justify-between items-start w-full">
-                          <span className="text-xs font-black uppercase tracking-tight">{plan.teamMemberName}</span>
-                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                          <span className="text-xs font-semibold tracking-tight">{plan.teamMemberName}</span>
+                          <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
                             isSelected ? 'bg-panel/90 text-accent' : 'bg-accent/10 text-accent'
                           }`}>
                             Active
                           </span>
                         </div>
-                        <div className={`text-[10px] font-bold ${isSelected ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+                        <div className={`text-xs font-bold ${isSelected ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
                           Commenced: {plan.dateCommenced || 'N/A'}
                         </div>
-                        <div className={`text-[9px] font-medium leading-normal line-clamp-2 ${isSelected ? 'text-muted-foreground/70' : 'text-foreground/75'}`}>
+                        <div className={`text-xs font-medium leading-normal line-clamp-2 ${isSelected ? 'text-muted-foreground/70' : 'text-foreground/75'}`}>
                           Manager: {plan.managerName || 'Not Assigned'}
                         </div>
                         <div className="mt-2">
-                          <Badge className={`text-[9px] font-black uppercase tracking-wider ${
+                          <Badge className={`text-xs font-semibold ${
                             (plan.status || 'FINALISED') === 'DRAFT' 
                               ? 'bg-warning-soft text-warning-ink border-warning/25' 
                               : 'bg-success-soft text-success-ink border-success/25'
@@ -670,10 +670,10 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 <CardHeader className="border-b border-border/60 pb-4 bg-secondary/30 flex flex-row justify-between items-center gap-4">
                   <div>
                     <div className="flex items-center gap-3">
-                      <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">
+                      <CardTitle className="text-sm font-bold text-foreground">
                         Success Program Details
                       </CardTitle>
-                      <Badge className={`text-[9px] font-black uppercase tracking-wider ${
+                      <Badge className={`text-xs font-semibold ${
                         (selectedPlan.status || 'FINALISED') === 'DRAFT' 
                           ? 'bg-warning-soft text-warning-ink border-warning/25' 
                           : 'bg-success-soft text-success-ink border-success/25'
@@ -681,7 +681,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                         {(selectedPlan.status || 'FINALISED') === 'DRAFT' ? 'Draft' : 'Finalised'}
                       </Badge>
                     </div>
-                    <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                    <CardDescription className="text-xs font-bold text-muted-foreground mt-1">
                       Created by {selectedPlan.createdByName}
                     </CardDescription>
                   </div>
@@ -706,26 +706,26 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Info Header */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-secondary/60 p-4 rounded-2xl border border-border/60 text-xs font-bold text-foreground/85">
                     <div>
-                      <span className="text-[9px] uppercase font-black text-muted-foreground block mb-0.5">Team Member</span>
+                      <span className="text-xs font-semibold text-muted-foreground block mb-0.5">Team Member</span>
                       <span className="text-foreground font-extrabold">{selectedPlan.teamMemberName}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase font-black text-muted-foreground block mb-0.5">Manager</span>
+                      <span className="text-xs font-semibold text-muted-foreground block mb-0.5">Manager</span>
                       <span className="text-foreground font-extrabold">{selectedPlan.managerName || 'Not Assigned'}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase font-black text-muted-foreground block mb-0.5">Commencement Date</span>
+                      <span className="text-xs font-semibold text-muted-foreground block mb-0.5">Commencement Date</span>
                       <span className="text-foreground font-extrabold">{selectedPlan.dateCommenced || 'N/A'}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase font-black text-muted-foreground block mb-0.5">Check-in Date</span>
+                      <span className="text-xs font-semibold text-muted-foreground block mb-0.5">Check-in Date</span>
                       <span className="text-foreground font-extrabold">{selectedPlan.checkInDate || 'N/A'}</span>
                     </div>
                   </div>
 
                   {/* Purpose */}
                   <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider text-accent mb-2">Program Purpose</h3>
+                    <h3 className="text-xs font-bold text-accent mb-2">Program Purpose</h3>
                     <p className="text-xs font-semibold leading-relaxed text-foreground/75 bg-secondary/30 p-4 rounded-2xl border border-border/30">
                       {selectedPlan.purpose}
                     </p>
@@ -733,15 +733,15 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
                   {/* Measures Ledger */}
                   <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider text-accent mb-3">Measures & Benchmarks</h3>
+                    <h3 className="text-xs font-bold text-accent mb-3">Measures & Benchmarks</h3>
                     <div className="border border-border/60 rounded-2xl overflow-x-auto shadow-sm">
                       <Table className="min-w-[600px]">
                         <TableHeader className="bg-secondary/60">
                           <TableRow>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Measure</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Starting Point</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Goal by 30 Oct 2026</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Result</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Measure</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Starting Point</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Goal by 30 Oct 2026</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Result</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -761,7 +761,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Stop Start Continue */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-danger-soft/30 border border-destructive/15 p-4 rounded-2xl space-y-3 min-w-0">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-destructive flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-destructive flex items-center gap-1.5">
                         <AlertCircle className="w-3.5 h-3.5" /> Stop Doing
                       </h4>
                       <ul className="text-xs font-semibold text-foreground/85 space-y-1.5 list-decimal pl-4 break-words">
@@ -770,7 +770,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     </div>
 
                     <div className="bg-success-soft/30 border border-success/15 p-4 rounded-2xl space-y-3 min-w-0">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-success flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-success flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Start Doing
                       </h4>
                       <ul className="text-xs font-semibold text-foreground/85 space-y-1.5 list-decimal pl-4 break-words">
@@ -779,7 +779,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                     </div>
 
                     <div className="bg-info-soft/30 border border-info/15 p-4 rounded-2xl space-y-3 min-w-0">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-info flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-info flex items-center gap-1.5">
                         <RefreshCw className="w-3.5 h-3.5" /> Continue Doing
                       </h4>
                       <ul className="text-xs font-semibold text-foreground/85 space-y-1.5 list-decimal pl-4 break-words">
@@ -790,14 +790,14 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
                   {/* Strategies */}
                   <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider text-accent mb-3">Committed Strategies</h3>
+                    <h3 className="text-xs font-bold text-accent mb-3">Committed Strategies</h3>
                     <div className="border border-border/60 rounded-2xl overflow-x-auto shadow-sm">
                       <Table className="min-w-[600px]">
                         <TableHeader className="bg-secondary/60">
                           <TableRow>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Strategy</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground w-32 text-center">Achieving</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Details</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Strategy</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground w-32 text-center">Achieving</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Details</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -805,7 +805,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                             <TableRow key={idx} className="hover:bg-secondary/30">
                               <TableCell className="text-xs font-bold text-foreground max-w-[300px] break-words">{item.strategy || '-'}</TableCell>
                               <TableCell className="text-center">
-                                <Badge className={`font-black text-[9px] uppercase tracking-wider ${
+                                <Badge className={`font-semibold text-xs ${
                                   item.achieving === 'Y' ? 'bg-success-fill/20 text-success border-none' : 
                                   item.achieving === 'N' ? 'bg-destructive/20 text-destructive border-none' : 'bg-secondary text-muted-foreground border-none'
                                 }`}>
@@ -822,14 +822,14 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
                   {/* Required commitments */}
                   <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider text-accent mb-3">Required Commitments from Manager</h3>
+                    <h3 className="text-xs font-bold text-accent mb-3">Required Commitments from Manager</h3>
                     <div className="border border-border/60 rounded-2xl overflow-x-auto shadow-sm">
                       <Table className="min-w-[600px]">
                         <TableHeader className="bg-secondary/60">
                           <TableRow>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Commitment</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground w-32 text-center">Achieving</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase text-foreground">Details</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Commitment</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground w-32 text-center">Achieving</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase text-foreground">Details</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -837,7 +837,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                             <TableRow key={idx} className="hover:bg-secondary/30">
                               <TableCell className="text-xs font-bold text-foreground max-w-[300px] break-words">{item.commitment || '-'}</TableCell>
                               <TableCell className="text-center">
-                                <Badge className={`font-black text-[9px] uppercase tracking-wider ${
+                                <Badge className={`font-semibold text-xs ${
                                   item.achieving === 'Y' ? 'bg-success-fill/20 text-success border-none' : 
                                   item.achieving === 'N' ? 'bg-destructive/20 text-destructive border-none' : 'bg-secondary text-muted-foreground border-none'
                                 }`}>
@@ -855,7 +855,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   {/* Summary */}
                   {selectedPlan.summary && (
                     <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60 space-y-1">
-                      <span className="text-[10px] uppercase font-black text-muted-foreground block mb-1">Plan Summary & Key Takeaways</span>
+                      <span className="text-xs font-semibold text-muted-foreground block mb-1">Plan Summary & Key Takeaways</span>
                       <p className="text-xs font-bold text-foreground leading-relaxed">
                         {selectedPlan.summary}
                       </p>
@@ -867,8 +867,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               <div className="flex flex-col items-center justify-center py-40 text-center space-y-4">
                 <ClipboardList className="w-16 h-16 text-muted-foreground/30" />
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-wider text-foreground">No plan selected</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                  <h3 className="text-sm font-bold text-foreground">No plan selected</h3>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mt-1">
                     Select a plan from the list or create a new success plan
                   </p>
                 </div>
@@ -883,7 +883,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
         /* EDITING / CREATING FORM VIEW */
         <Card className="border-none shadow-xl bg-card rounded-3xl overflow-hidden">
           <CardHeader className="bg-panel text-panel-foreground p-6">
-            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
               <ClipboardList className="w-5 h-5 text-accent" />
               {isCreating ? 'Create Success Plan' : 'Edit Success Plan'}
             </CardTitle>
@@ -896,7 +896,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
             {/* Meta Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-secondary/60 p-6 rounded-2xl border border-border/60">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-foreground block">Team Member</label>
+                <label className="text-xs font-semibold text-foreground block">Team Member</label>
                 {isLeader ? (
                   <Select value={formState.teamMemberId} onValueChange={(val) => {
                     const selected = deDuplicatedUsers?.find(u => (u.id || u.uid) === val);
@@ -920,7 +920,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-foreground block">Manager</label>
+                <label className="text-xs font-semibold text-foreground block">Manager</label>
                 <Input 
                   placeholder="Manager's Name" 
                   value={formState.managerName}
@@ -930,7 +930,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-foreground block">Date Commenced</label>
+                <label className="text-xs font-semibold text-foreground block">Date Commenced</label>
                 <Input 
                   type="date"
                   value={formState.dateCommenced}
@@ -940,7 +940,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-foreground block">Check-in Date</label>
+                <label className="text-xs font-semibold text-foreground block">Check-in Date</label>
                 <Input 
                   type="date"
                   value={formState.checkInDate}
@@ -952,7 +952,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
             {/* Purpose */}
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-foreground flex items-center gap-1.5">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                 Purpose
               </label>
               <Textarea 
@@ -965,8 +965,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
             {/* Measures & Benchmarks Form Table */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-black uppercase text-accent block">Measures & Benchmarks</label>
-                <Button onClick={addMeasureRow} variant="outline" size="sm" className="rounded-xl border-border text-[10px] font-bold uppercase tracking-wider gap-1 h-8">
+                <label className="text-xs font-semibold text-accent block">Measures & Benchmarks</label>
+                <Button onClick={addMeasureRow} variant="outline" size="sm" className="rounded-xl border-border text-xs font-bold gap-1 h-8">
                   <Plus className="w-3.5 h-3.5" /> Add Row
                 </Button>
               </div>
@@ -975,10 +975,10 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                 <Table className="min-w-[600px]">
                   <TableHeader className="bg-secondary/60">
                     <TableRow>
-                      <TableHead className="text-[10px] font-black uppercase text-foreground">Measure</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-foreground">Starting Point</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-foreground">Goal by 30 Oct 2026</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-foreground">Result</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-foreground">Measure</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-foreground">Starting Point</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-foreground">Goal by 30 Oct 2026</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-foreground">Result</TableHead>
                       <TableHead className="w-16 text-center"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1047,7 +1047,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
               {/* Standard Measure Quick Select Library */}
               <div className="bg-secondary/60 p-4 rounded-2xl border border-border/30 space-y-2">
-                <span className="text-[9px] uppercase font-black text-muted-foreground block">💡 Quick Insert Measure Template</span>
+                <span className="text-xs font-semibold text-muted-foreground block">💡 Quick Insert Measure Template</span>
                 <div className="flex flex-wrap gap-2">
                   {STANDARD_MEASURES.map((item, index) => (
                     <button
@@ -1060,7 +1060,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                         }));
                         toast({ title: 'Measure added', description: `Added "${item.name}"` });
                       }}
-                      className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider bg-card border border-border hover:border-muted-foreground/40 rounded-lg text-foreground/85 transition-all flex items-center gap-1"
+                      className="px-2.5 py-1 text-xs font-bold uppercase tracking-wide bg-card border border-border hover:border-muted-foreground/40 rounded-lg text-foreground/85 transition-all flex items-center gap-1"
                     >
                       <Plus className="w-2.5 h-2.5" /> {item.name}
                     </button>
@@ -1072,7 +1072,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
             {/* Stop, Start, Continue Form */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-danger-soft/20 border border-destructive/15 p-5 rounded-2xl space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-destructive flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-destructive flex items-center gap-1.5">
                   <AlertCircle className="w-4 h-4" /> Stop Doing (Challenges & Pitfalls)
                 </h4>
                 <div className="space-y-3">
@@ -1094,7 +1094,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               </div>
 
               <div className="bg-success-soft/20 border border-success/15 p-5 rounded-2xl space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-success flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-success flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4" /> Start Doing (New Activities)
                 </h4>
                 <div className="space-y-3">
@@ -1116,7 +1116,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               </div>
 
               <div className="bg-info-soft/20 border border-info/15 p-5 rounded-2xl space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-info flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-info flex items-center gap-1.5">
                   <RefreshCw className="w-4 h-4" /> Continue Doing (Core Strengths)
                 </h4>
                 <div className="space-y-3">
@@ -1143,8 +1143,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               {/* Strategies to achieve goals */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-black uppercase text-foreground">Committed Strategies to Achieve & Exceed Goals</label>
-                  <Button onClick={addStrategyRow} variant="outline" size="sm" className="rounded-xl border-border text-[10px] font-bold uppercase tracking-wider gap-1 h-8">
+                  <label className="text-xs font-semibold text-foreground">Committed Strategies to Achieve & Exceed Goals</label>
+                  <Button onClick={addStrategyRow} variant="outline" size="sm" className="rounded-xl border-border text-xs font-bold gap-1 h-8">
                     <Plus className="w-3.5 h-3.5" /> Add Strategy
                   </Button>
                 </div>
@@ -1152,9 +1152,9 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   <Table className="min-w-[600px]">
                     <TableHeader className="bg-secondary/60">
                       <TableRow>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground">Your Strategy</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground w-44">Achieving Y/N</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground">Details</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground">Your Strategy</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground w-44">Achieving Y/N</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground">Details</TableHead>
                         <TableHead className="w-16 text-center"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1218,8 +1218,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               {/* Measures to achieve goals */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-black uppercase text-foreground">Measures to Achieve Goals</label>
-                  <Button onClick={addMeasuresToAchieveRow} variant="outline" size="sm" className="rounded-xl border-border text-[10px] font-bold uppercase tracking-wider gap-1 h-8">
+                  <label className="text-xs font-semibold text-foreground">Measures to Achieve Goals</label>
+                  <Button onClick={addMeasuresToAchieveRow} variant="outline" size="sm" className="rounded-xl border-border text-xs font-bold gap-1 h-8">
                     <Plus className="w-3.5 h-3.5" /> Add Measure
                   </Button>
                 </div>
@@ -1227,9 +1227,9 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   <Table className="min-w-[600px]">
                     <TableHeader className="bg-secondary/60">
                       <TableRow>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground">Measures</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground w-44">Achieving Y/N</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground">Details</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground">Measures</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground w-44">Achieving Y/N</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground">Details</TableHead>
                         <TableHead className="w-16 text-center"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1293,8 +1293,8 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               {/* Commitments from Manager */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-black uppercase text-foreground">Required commitments from your Manager</label>
-                  <Button onClick={addManagerCommitmentsRow} variant="outline" size="sm" className="rounded-xl border-border text-[10px] font-bold uppercase tracking-wider gap-1 h-8">
+                  <label className="text-xs font-semibold text-foreground">Required commitments from your Manager</label>
+                  <Button onClick={addManagerCommitmentsRow} variant="outline" size="sm" className="rounded-xl border-border text-xs font-bold gap-1 h-8">
                     <Plus className="w-3.5 h-3.5" /> Add Commitment
                   </Button>
                 </div>
@@ -1302,9 +1302,9 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
                   <Table className="min-w-[600px]">
                     <TableHeader className="bg-secondary/60">
                       <TableRow>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground">Commitments</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground w-44">Achieving Y/N</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase text-foreground">Details</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground">Commitments</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground w-44">Achieving Y/N</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase text-foreground">Details</TableHead>
                         <TableHead className="w-16 text-center"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1368,7 +1368,7 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
 
             {/* Summary Comments */}
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-foreground block">Summary</label>
+              <label className="text-xs font-semibold text-foreground block">Summary</label>
               <Textarea 
                 placeholder="Write summary notes / coaching feedback / executive review"
                 value={formState.summary}
@@ -1382,13 +1382,13 @@ export function SuccessPlansView({ userId, isLeader }: { userId: string; isLeade
               <Button onClick={() => {
                 setIsEditing(false);
                 setIsCreating(false);
-              }} variant="ghost" className="rounded-xl text-xs font-bold uppercase tracking-wider">
+              }} variant="ghost" className="rounded-xl text-xs font-bold">
                 Cancel
               </Button>
-              <Button onClick={() => handleSave('DRAFT')} variant="outline" className="border-border text-foreground/85 rounded-xl text-xs font-bold uppercase tracking-wider px-6">
+              <Button onClick={() => handleSave('DRAFT')} variant="outline" className="border-border text-foreground/85 rounded-xl text-xs font-bold px-6">
                 Save as Draft
               </Button>
-              <Button onClick={() => handleSave('FINALISED')} className="bg-panel hover:bg-panel/80 text-panel-foreground rounded-xl text-xs font-bold uppercase tracking-wider px-6">
+              <Button onClick={() => handleSave('FINALISED')} className="bg-panel hover:bg-panel/80 text-panel-foreground rounded-xl text-xs font-bold px-6">
                 Finalise Plan
               </Button>
             </div>

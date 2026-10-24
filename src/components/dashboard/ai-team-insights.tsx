@@ -58,13 +58,13 @@ export function AITeamInsights({ input }: AITeamInsightsProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="space-y-6">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-accent mb-2 flex items-center gap-2">
+                <h4 className="text-xs font-bold text-accent mb-2 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" /> Executive Summary
                 </h4>
                 <p className="text-sm leading-relaxed opacity-90">{analysis.executiveSummary}</p>
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-accent mb-2 flex items-center gap-2">
+                <h4 className="text-xs font-bold text-accent mb-2 flex items-center gap-2">
                   <Trophy className="w-4 h-4" /> Top Performers
                 </h4>
                 <div className="space-y-3">
@@ -80,13 +80,13 @@ export function AITeamInsights({ input }: AITeamInsightsProps) {
 
             <div className="space-y-6">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-accent mb-2 flex items-center gap-2">
+                <h4 className="text-xs font-bold text-accent mb-2 flex items-center gap-2">
                   <Map className="w-4 h-4" /> Team-Wide Trends
                 </h4>
                 <p className="text-sm leading-relaxed opacity-90">{analysis.strategicAnalysis}</p>
               </div>
               <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-destructive mb-2 flex items-center gap-2">
+                <h4 className="text-xs font-bold text-destructive mb-2 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" /> Risk & Mitigation
                 </h4>
                 <p className="text-sm leading-relaxed opacity-90">{analysis.potentialRisks}</p>

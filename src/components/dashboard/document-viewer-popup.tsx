@@ -75,10 +75,10 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
       <DialogContent className="max-w-5xl max-h-[90vh] p-0 flex flex-col overflow-hidden bg-card shadow-2xl border border-border rounded-2xl">
         <DialogHeader className="p-6 border-b border-border/60 flex flex-row items-center justify-between shrink-0">
           <div>
-            <DialogTitle className="text-xl font-black uppercase tracking-tight text-foreground">
+            <DialogTitle className="text-xl font-black tabular-nums tracking-tight text-foreground">
               {getDocTitle()}
             </DialogTitle>
-            <DialogDescription className="font-bold text-xs uppercase text-muted-foreground mt-1">
+            <DialogDescription className="font-bold text-xs text-muted-foreground mt-1">
               Previewing: {getDocName()}
             </DialogDescription>
           </div>

@@ -31,7 +31,7 @@ export function ResponsiveTable({
           <div key={idx} className="bg-card rounded-xl border border-border p-4 space-y-2">
             {headers.map((header, colIdx) => (
               <div key={`${idx}-${colIdx}`} className="flex justify-between items-center border-b border-border/60 last:border-0 py-1">
-                <span className="text-xs font-black uppercase text-muted-foreground">{header}</span>
+                <span className="text-xs font-semibold text-muted-foreground">{header}</span>
                 <span className="text-sm font-bold text-foreground text-right">{row[colIdx]}</span>
               </div>
             ))}
@@ -40,7 +40,7 @@ export function ResponsiveTable({
         {(!rows || rows.length === 0) && emptyMessage && (
           <div className="bg-card rounded-xl border border-border p-8 text-center">
             {emptyIcon && <div className="flex justify-center mb-4">{emptyIcon}</div>}
-            <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">{emptyMessage}</p>
+            <p className="text-xs font-semibold text-muted-foreground">{emptyMessage}</p>
           </div>
         )}
       </div>
@@ -55,7 +55,7 @@ export function ResponsiveTable({
           <TableHeader>
             <TableRow>
               {headers.map((header, idx) => (
-                <TableHead key={idx} className="font-black uppercase text-xs text-muted-foreground">
+                <TableHead key={idx} className="font-semibold uppercase text-xs text-muted-foreground">
                   {header}
                 </TableHead>
               ))}
@@ -73,7 +73,7 @@ export function ResponsiveTable({
               <TableRow>
                 <TableCell colSpan={headers.length} className="text-center py-20 bg-secondary/30">
                   {emptyIcon && <div className="flex justify-center mb-4">{emptyIcon}</div>}
-                  <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">{emptyMessage}</p>
+                  <p className="text-xs font-semibold text-muted-foreground">{emptyMessage}</p>
                 </TableCell>
               </TableRow>
             )}

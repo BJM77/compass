@@ -503,7 +503,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm">AI Business Card Scanner (OCR)</span>
-                <Badge variant="outline" className="bg-warning-soft/80 text-warning-ink border-warning/40 text-[10px] gap-1 font-bold">
+                <Badge variant="outline" className="bg-warning-soft/80 text-warning-ink border-warning/40 text-xs gap-1 font-bold">
                   <Sparkles className="h-3 w-3 text-warning-ink" /> Gemini Vision
                 </Badge>
               </div>
@@ -581,11 +581,11 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm">GPS Geolocation & Auto-Address</span>
                 {latitude && longitude ? (
-                  <Badge variant="outline" className="bg-success-soft text-success-ink border-success/40 text-[10px]">
+                  <Badge variant="outline" className="bg-success-soft text-success-ink border-success/40 text-xs">
                     📍 Coordinates Locked ({gpsAccuracy ? `±${gpsAccuracy}m` : 'Active'})
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-warning-soft text-warning-ink border-warning/40 text-[10px]">
+                  <Badge variant="outline" className="bg-warning-soft text-warning-ink border-warning/40 text-xs">
                     Not captured yet
                   </Badge>
                 )}
@@ -637,7 +637,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             <div>
               <Label className="text-xs font-semibold flex items-center justify-between">
                 <span>Company Name *</span>
-                <span className="text-[10px] text-muted-foreground font-normal">Required</span>
+                <span className="text-xs text-muted-foreground font-normal">Required</span>
               </Label>
               <Input
                 placeholder="e.g. West Coast Distribution Pty Ltd"
@@ -670,7 +670,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               <div>
                 <Label className="text-xs font-semibold flex items-center justify-between">
                   <span>Last Name</span>
-                  <span className="text-[10px] text-muted-foreground font-normal">Defaults to 'Canvass'</span>
+                  <span className="text-xs text-muted-foreground font-normal">Defaults to 'Canvass'</span>
                 </Label>
                 <Input
                   placeholder="Smith (or blank for Canvass)"
@@ -713,7 +713,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
                     <Phone className="h-3 w-3 text-muted-foreground" />
                     Phone / Mobile
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-normal">0400000000 if empty</span>
+                  <span className="text-xs text-muted-foreground font-normal">0400000000 if empty</span>
                 </Label>
                 <Input
                   type="tel"
@@ -729,7 +729,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
                     <Mail className="h-3 w-3 text-muted-foreground" />
                     Email Address
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-normal">no@email.com if empty</span>
+                  <span className="text-xs text-muted-foreground font-normal">no@email.com if empty</span>
                 </Label>
                 <Input
                   type="email"
@@ -745,7 +745,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               <span className="font-medium text-muted-foreground">Customer Consent Obtained?</span>
               <div className="flex items-center gap-2">
                 <Switch checked={customerConsent} onCheckedChange={setCustomerConsent} />
-                <span className="font-semibold text-[11px]">{customerConsent ? 'Yes' : 'No'}</span>
+                <span className="font-semibold text-xs">{customerConsent ? 'Yes' : 'No'}</span>
               </div>
             </div>
           </CardContent>
@@ -993,7 +993,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             <div className="pt-3 border-t">
               <Label className="text-xs font-semibold flex items-center justify-between">
                 <span className="text-foreground">Field Canvassing Notes & Follow-up Actions *</span>
-                <span className="text-[10px] text-destructive font-bold">Mandatory</span>
+                <span className="text-xs text-destructive font-bold">Mandatory</span>
               </Label>
               <Textarea
                 rows={3}
@@ -1010,7 +1010,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
                 <FileCheck className="h-4 w-4 text-info" />
                 <div>
                   <span className="font-semibold">Marked as Synced in Salesforce?</span>
-                  <p className="text-[11px] text-muted-foreground">Toggle once uploaded or verified in Salesforce Leads</p>
+                  <p className="text-xs text-muted-foreground">Toggle once uploaded or verified in Salesforce Leads</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

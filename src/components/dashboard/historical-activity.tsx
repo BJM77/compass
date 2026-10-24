@@ -189,20 +189,20 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   idx >= 2 && "hidden sm:flex"
                 )}
               >
-                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1">
+                <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
                   Wk {week.split('-')[1]}
-                  {week === currentWeek && <Badge className="text-[7px] px-1 py-0 h-4 bg-accent/10 text-accent border-none ml-1">LIVE</Badge>}
+                  {week === currentWeek && <Badge className="text-xs px-1 py-0 h-4 bg-accent/10 text-accent border-none ml-1">LIVE</Badge>}
                 </div>
                 <div className="flex items-center gap-4 w-full justify-around">
                   <div className="text-center">
                     <Phone className="w-3.5 h-3.5 text-info mx-auto mb-1" />
-                    <p className="text-sm font-black text-foreground">{crmCalls > 0 ? crmCalls : calls}</p>
-                    {crmCalls > 0 && <p className="text-[8px] font-bold text-muted-foreground uppercase mt-0.5">M: {calls}</p>}
+                    <p className="text-sm font-semibold text-foreground">{crmCalls > 0 ? crmCalls : calls}</p>
+                    {crmCalls > 0 && <p className="text-xs font-bold text-muted-foreground uppercase mt-0.5">M: {calls}</p>}
                   </div>
                   <div className="text-center">
                     <CalendarCheck className="w-3.5 h-3.5 text-success mx-auto mb-1" />
-                    <p className="text-sm font-black text-foreground">{crmApps > 0 ? crmApps : apps}</p>
-                    {crmApps > 0 && <p className="text-[8px] font-bold text-muted-foreground uppercase mt-0.5">M: {apps}</p>}
+                    <p className="text-sm font-semibold text-foreground">{crmApps > 0 ? crmApps : apps}</p>
+                    {crmApps > 0 && <p className="text-xs font-bold text-muted-foreground uppercase mt-0.5">M: {apps}</p>}
                   </div>
                 </div>
               </div>
@@ -234,7 +234,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-secondary/60 uppercase text-[9px] font-black tracking-widest border-b text-muted-foreground">
+          <thead className="bg-secondary/60 text-xs font-semibold border-b text-muted-foreground">
             <tr>
               <th className="px-4 py-3 text-left">BDM / Account Manager</th>
               {pastWeeks.map((week, idx) => (
@@ -245,7 +245,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y text-[11px] font-bold">
+          <tbody className="divide-y text-xs font-bold">
             {deduplicateUsers(targetUsers || []).map((u: any) => (
               <tr key={u.id} className="hover:bg-secondary/30 transition-colors">
                 <td 
@@ -254,7 +254,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                     window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'DASHBOARD' } }));
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="px-4 py-3 uppercase text-primary cursor-pointer hover:underline font-black hover:text-primary/80"
+                  className="px-4 py-3 text-primary cursor-pointer hover:underline font-semibold hover:text-primary/80"
                 >
                   {u.name}
                 </td>
@@ -278,11 +278,11 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                       <div className="flex items-center justify-center gap-2">
                         <span className="flex items-center gap-1 flex-col" title="Calls">
                           <span className="flex items-center gap-1"><Phone className="w-3 h-3 text-info" /> {crmCalls > 0 ? crmCalls : calls}</span>
-                          {crmCalls > 0 && <span className="text-[7px] text-muted-foreground">M: {calls}</span>}
+                          {crmCalls > 0 && <span className="text-xs text-muted-foreground">M: {calls}</span>}
                         </span>
                         <span className="flex items-center gap-1 flex-col" title="Apps">
                           <span className="flex items-center gap-1"><CalendarCheck className="w-3 h-3 text-success-fill" /> {crmApps > 0 ? crmApps : apps}</span>
-                          {crmApps > 0 && <span className="text-[7px] text-muted-foreground">M: {apps}</span>}
+                          {crmApps > 0 && <span className="text-xs text-muted-foreground">M: {apps}</span>}
                         </span>
                       </div>
                     </td>
@@ -305,7 +305,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
     <>
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardHeader className={`pb-2 ${userId ? 'pt-4 px-4' : 'bg-panel text-panel-foreground'}`}>
-          <CardTitle className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${userId ? 'text-primary' : 'text-white'}`}>
+          <CardTitle className={`text-xs font-bold flex items-center gap-2 ${userId ? 'text-primary' : 'text-white'}`}>
             <History className={`w-3.5 h-3.5 ${userId ? 'text-accent' : 'text-accent'}`} /> 
             Historical Activity Tracker (4 Weeks)
           </CardTitle>
@@ -318,10 +318,10 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
       <Dialog open={selectedCell !== null} onOpenChange={(open) => !open && setSelectedCell(null)}>
         <DialogContent className="max-w-2xl rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black uppercase tracking-tight text-primary flex items-center gap-2">
+            <DialogTitle className="text-lg font-bold tracking-tight text-primary flex items-center gap-2">
               <History className="w-5 h-5 text-accent" /> Activity History
             </DialogTitle>
-            <DialogDescription className="font-bold text-xs uppercase text-muted-foreground">
+            <DialogDescription className="font-bold text-xs text-muted-foreground">
               {selectedCell?.userName} · Week {selectedCell?.week.split('-')[1]}
             </DialogDescription>
           </DialogHeader>
@@ -330,34 +330,34 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
             {/* KPI Activity Summary Box */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-secondary/60 p-3 rounded-2xl border border-border/60">
               <div className="text-center p-2 bg-card rounded-xl shadow-xs border border-border/60">
-                <div className="text-[9px] font-black uppercase text-muted-foreground flex items-center justify-center gap-1">
+                <div className="text-xs font-semibold text-muted-foreground flex items-center justify-center gap-1">
                   <Phone className="w-3 h-3 text-info" /> CRM Calls
                 </div>
-                <div className="text-lg font-black text-foreground mt-0.5">{activeSummary.crmCalls}</div>
+                <div className="text-lg font-bold text-foreground mt-0.5">{activeSummary.crmCalls}</div>
               </div>
               <div className="text-center p-2 bg-card rounded-xl shadow-xs border border-border/60">
-                <div className="text-[9px] font-black uppercase text-muted-foreground flex items-center justify-center gap-1">
+                <div className="text-xs font-semibold text-muted-foreground flex items-center justify-center gap-1">
                   <CalendarCheck className="w-3 h-3 text-success" /> CRM Apps
                 </div>
-                <div className="text-lg font-black text-foreground mt-0.5">{activeSummary.crmApps}</div>
+                <div className="text-lg font-bold text-foreground mt-0.5">{activeSummary.crmApps}</div>
               </div>
               <div className="text-center p-2 bg-card rounded-xl shadow-xs border border-border/60">
-                <div className="text-[9px] font-black uppercase text-muted-foreground flex items-center justify-center gap-1">
+                <div className="text-xs font-semibold text-muted-foreground flex items-center justify-center gap-1">
                   <FileText className="w-3 h-3 text-accent" /> Call Plans
                 </div>
-                <div className="text-lg font-black text-foreground mt-0.5">{activeCallPlans.length}</div>
+                <div className="text-lg font-bold text-foreground mt-0.5">{activeCallPlans.length}</div>
               </div>
               <div className="text-center p-2 bg-card rounded-xl shadow-xs border border-border/60">
-                <div className="text-[9px] font-black uppercase text-muted-foreground flex items-center justify-center gap-1">
+                <div className="text-xs font-semibold text-muted-foreground flex items-center justify-center gap-1">
                   <ClipboardList className="w-3 h-3 text-success" /> Outcomes/Logs
                 </div>
-                <div className="text-lg font-black text-foreground mt-0.5">{activeOutcomes.length + activeLogs.length}</div>
+                <div className="text-lg font-bold text-foreground mt-0.5">{activeOutcomes.length + activeLogs.length}</div>
               </div>
             </div>
 
             {/* Imported CRM Calls */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-info" /> CRM Calls ({activeCrmActivities.calls.length})
               </h4>
               <div className="space-y-2">
@@ -366,13 +366,13 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   return (
                     <div key={c.id} className="p-3 bg-secondary/60 border rounded-xl flex flex-col gap-1.5 text-xs">
                       <div className="flex justify-between items-start gap-4">
-                        <p className="font-black text-foreground uppercase">{c.companyName || 'Unknown Company'}</p>
-                        <Badge className="text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5 bg-info-soft text-info">
+                        <p className="font-semibold text-foreground">{c.companyName || 'Unknown Company'}</p>
+                        <Badge className="text-xs font-semibold border-none px-2 py-0.5 bg-info-soft text-info">
                           CALL
                         </Badge>
                       </div>
                       {c.subject && <p className="text-foreground/75 font-medium">{c.subject}</p>}
-                      <div className="flex items-center gap-1 text-[8px] text-muted-foreground font-bold uppercase mt-1">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground font-bold uppercase mt-1">
                         <Clock className="w-2.5 h-2.5" />
                         {dt ? format(dt, 'PPP') : 'Unknown Date'}
                       </div>
@@ -380,14 +380,14 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   );
                 })}
                 {activeCrmActivities.calls.length === 0 && (
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase italic pl-1">No CRM calls imported for this week</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase italic pl-1">No CRM calls imported for this week</p>
                 )}
               </div>
             </div>
 
             {/* Imported CRM Apps */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                 <CalendarCheck className="w-3.5 h-3.5 text-success" /> CRM Apps ({activeCrmActivities.apps.length})
               </h4>
               <div className="space-y-2">
@@ -396,13 +396,13 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   return (
                     <div key={a.id} className="p-3 bg-secondary/60 border rounded-xl flex flex-col gap-1.5 text-xs">
                       <div className="flex justify-between items-start gap-4">
-                        <p className="font-black text-foreground uppercase">{a.companyName || 'Unknown Company'}</p>
-                        <Badge className="text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5 bg-success-soft text-success-ink">
+                        <p className="font-semibold text-foreground">{a.companyName || 'Unknown Company'}</p>
+                        <Badge className="text-xs font-semibold border-none px-2 py-0.5 bg-success-soft text-success-ink">
                           APP/MEETING
                         </Badge>
                       </div>
                       {a.subject && <p className="text-foreground/75 font-medium">{a.subject}</p>}
-                      <div className="flex items-center gap-1 text-[8px] text-muted-foreground font-bold uppercase mt-1">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground font-bold uppercase mt-1">
                         <Clock className="w-2.5 h-2.5" />
                         {dt ? format(dt, 'PPP') : 'Unknown Date'}
                       </div>
@@ -410,14 +410,14 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   );
                 })}
                 {activeCrmActivities.apps.length === 0 && (
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase italic pl-1">No CRM apps imported for this week</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase italic pl-1">No CRM apps imported for this week</p>
                 )}
               </div>
             </div>
 
             {/* Call Plans Created */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-accent" /> Call Plans Created ({activeCallPlans.length})
               </h4>
               <div className="space-y-2">
@@ -426,20 +426,20 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   return (
                     <div key={cp.id} className="p-3 bg-secondary/60 border rounded-xl flex flex-col gap-1.5 text-xs">
                       <div className="flex justify-between items-start gap-4">
-                        <p className="font-black text-foreground uppercase">{cp.accountName || cp.dealName || 'Call Plan'}</p>
+                        <p className="font-semibold text-foreground">{cp.accountName || cp.dealName || 'Call Plan'}</p>
                         {cp.services && cp.services.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {cp.services.map((s: string) => (
-                              <Badge key={s} variant="outline" className="text-[7px] font-bold uppercase px-1.5 py-0 bg-card">
+                              <Badge key={s} variant="outline" className="text-xs font-bold uppercase px-1.5 py-0 bg-card">
                                 {s}
                               </Badge>
                             ))}
                           </div>
                         )}
                       </div>
-                      {cp.objective && <p className="text-foreground/75 font-medium text-[11px]"><span className="font-bold text-foreground/85">Objective:</span> {cp.objective}</p>}
-                      {cp.situation && <p className="text-muted-foreground text-[10px] italic line-clamp-2"><span className="font-bold not-italic">Situation:</span> "{cp.situation}"</p>}
-                      <div className="flex items-center gap-1 text-[8px] text-muted-foreground font-bold uppercase mt-1">
+                      {cp.objective && <p className="text-foreground/75 font-medium text-xs"><span className="font-bold text-foreground/85">Objective:</span> {cp.objective}</p>}
+                      {cp.situation && <p className="text-muted-foreground text-xs italic line-clamp-2"><span className="font-bold not-italic">Situation:</span> "{cp.situation}"</p>}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground font-bold uppercase mt-1">
                         <Clock className="w-2.5 h-2.5" />
                         {dt ? format(dt, 'PPP p') : 'Recent'}
                       </div>
@@ -447,14 +447,14 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   );
                 })}
                 {activeCallPlans.length === 0 && (
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase italic pl-1">No call plans created for this week</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase italic pl-1">No call plans created for this week</p>
                 )}
               </div>
             </div>
 
             {/* Call Planning Outcomes */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-info" /> Logged Call Outcomes ({activeOutcomes.length})
               </h4>
               <div className="space-y-2">
@@ -463,9 +463,9 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   return (
                     <div key={o.id} className="p-3 bg-secondary/60 border rounded-xl flex flex-col gap-1.5 text-xs">
                       <div className="flex justify-between items-start gap-4">
-                        <p className="font-black text-foreground uppercase">{o.accountName || 'Call'}</p>
+                        <p className="font-semibold text-foreground">{o.accountName || 'Call'}</p>
                         <Badge className={cn(
-                          "text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5",
+                          "text-xs font-semibold border-none px-2 py-0.5",
                           o.outcome === 'APPOINTMENT_BOOKED' 
                             ? "bg-success-soft text-success-ink" 
                             : "bg-info-soft text-info"
@@ -474,7 +474,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                         </Badge>
                       </div>
                       {o.notes && <p className="text-foreground/75 font-medium">{o.notes}</p>}
-                      <div className="flex items-center gap-1 text-[8px] text-muted-foreground font-bold uppercase mt-1">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground font-bold uppercase mt-1">
                         <Clock className="w-2.5 h-2.5" />
                         {dt ? format(dt, 'PPP p') : 'Recent'}
                       </div>
@@ -482,14 +482,14 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   );
                 })}
                 {activeOutcomes.length === 0 && (
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase italic pl-1">No call outcomes logged via planner</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase italic pl-1">No call outcomes logged via planner</p>
                 )}
               </div>
             </div>
 
             {/* Field Dictations / Visits */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                 <ClipboardList className="w-3.5 h-3.5 text-success" /> Field Dictation & Site Visits ({activeLogs.length})
               </h4>
               <div className="space-y-2">
@@ -498,8 +498,8 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   return (
                     <div key={l.id} className="p-3 bg-secondary/60 border rounded-xl flex flex-col gap-1.5 text-xs">
                       <div className="flex justify-between items-center">
-                        <p className="font-black text-success-ink uppercase tracking-wider text-[10px]">{l.type || 'Field Log'}</p>
-                        <div className="flex items-center gap-1 text-[8px] text-muted-foreground font-bold uppercase">
+                        <p className="font-semibold text-success-ink text-xs">{l.type || 'Field Log'}</p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground font-bold uppercase">
                           <Clock className="w-2.5 h-2.5" />
                           {dt ? format(dt, 'PPP p') : 'Recent'}
                         </div>
@@ -509,7 +509,7 @@ export function HistoricalActivity({ userId }: HistoricalActivityProps) {
                   );
                 })}
                 {activeLogs.length === 0 && (
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase italic pl-1">No field dictation logs found</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase italic pl-1">No field dictation logs found</p>
                 )}
               </div>
             </div>

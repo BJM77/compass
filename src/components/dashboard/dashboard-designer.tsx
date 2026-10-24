@@ -133,14 +133,14 @@ export function DashboardDesigner() {
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-sm font-black uppercase tracking-wider">Dashboard Design</CardTitle>
+              <CardTitle className="text-sm font-bold">Dashboard Design</CardTitle>
               <CardDescription className="text-xs">Choose, order and size the dashboard widgets. Changes only apply when you press Save.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="text-[10px] font-black uppercase" onClick={() => setLayout(DEFAULT_LAYOUT.map(w => ({ ...w })))} disabled={locked}>
+              <Button variant="outline" size="sm" className="text-xs font-semibold" onClick={() => setLayout(DEFAULT_LAYOUT.map(w => ({ ...w })))} disabled={locked}>
                 <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reset to default
               </Button>
-              <Button size="sm" className="text-[10px] font-black uppercase" onClick={handleSave} disabled={!dirty || isSaving}>
+              <Button size="sm" className="text-xs font-semibold" onClick={handleSave} disabled={!dirty || isSaving}>
                 {isSaving ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1.5" />} Save{dirty ? ' changes' : ''}
               </Button>
             </div>
@@ -149,19 +149,19 @@ export function DashboardDesigner() {
         <CardContent className="space-y-4">
           <label className="flex items-center justify-between gap-4 rounded-xl border bg-muted px-4 py-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-wide">Leaders use the same layout as everyone</p>
-              <p className="text-[11px] text-muted-foreground">Turn off to design a separate Leader dashboard.</p>
+              <p className="text-xs font-semibold">Leaders use the same layout as everyone</p>
+              <p className="text-xs text-muted-foreground">Turn off to design a separate Leader dashboard.</p>
             </div>
             <Switch checked={same} onCheckedChange={onSwitchSame} aria-label="Leaders use the same layout as everyone" />
           </label>
 
           <Tabs value={tab} onValueChange={v => setTab(v as Tab)}>
             <TabsList>
-              <TabsTrigger value="everyone" className="text-[10px] font-black uppercase tracking-widest">Everyone (BDM + AM)</TabsTrigger>
-              <TabsTrigger value="leaders" disabled={same} className="text-[10px] font-black uppercase tracking-widest">Leaders</TabsTrigger>
+              <TabsTrigger value="everyone" className="text-xs font-semibold">Everyone (BDM + AM)</TabsTrigger>
+              <TabsTrigger value="leaders" disabled={same} className="text-xs font-semibold">Leaders</TabsTrigger>
             </TabsList>
           </Tabs>
-          {same && <p className="text-[11px] text-muted-foreground">Leaders currently see the Everyone layout (with the Leader-only widgets). Turn the switch off to edit the Leaders tab.</p>}
+          {same && <p className="text-xs text-muted-foreground">Leaders currently see the Everyone layout (with the Leader-only widgets). Turn the switch off to edit the Leaders tab.</p>}
 
           {/* Widget list */}
           <ul className="space-y-2" aria-label="Widget order">
@@ -190,11 +190,11 @@ export function DashboardDesigner() {
                   <GripVertical className="w-4 h-4 text-muted-foreground shrink-0 cursor-grab" aria-hidden />
                   <div className="min-w-0 flex-1 basis-48">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-black uppercase tracking-wide text-foreground">{meta.title}</span>
-                      {meta.leaderOnly && <Badge variant="outline" className="text-[8px] font-black uppercase">Leaders only</Badge>}
-                      {!meta.defaultVisible && <Badge variant="outline" className="text-[8px] font-black uppercase">Optional</Badge>}
+                      <span className="text-xs font-semibold text-foreground">{meta.title}</span>
+                      {meta.leaderOnly && <Badge variant="outline" className="text-xs font-semibold">Leaders only</Badge>}
+                      {!meta.defaultVisible && <Badge variant="outline" className="text-xs font-semibold">Optional</Badge>}
                     </div>
-                    <p className="text-[11px] text-muted-foreground truncate">{meta.description}</p>
+                    <p className="text-xs text-muted-foreground truncate">{meta.description}</p>
                   </div>
                   <div className="flex items-center gap-1" role="group" aria-label={`${meta.title} width`}>
                     {([1, 2, 3] as WidthCols[]).map(n => (
@@ -203,7 +203,7 @@ export function DashboardDesigner() {
                         type="button"
                         onClick={() => update(index, { width: n })}
                         aria-pressed={w.width === n}
-                        className={cn('h-7 w-8 rounded-md border text-[10px] font-black', w.width === n ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground hover:bg-muted')}
+                        className={cn('h-7 w-8 rounded-md border text-xs font-semibold', w.width === n ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground hover:bg-muted')}
                         title={`${n} column${n > 1 ? 's' : ''} wide`}
                       >{n}</button>
                     ))}
@@ -223,7 +223,7 @@ export function DashboardDesigner() {
       {/* Version history */}
       <Card className="border-none shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-black uppercase tracking-wider flex items-center gap-2"><History className="w-4 h-4" /> Version history</CardTitle>
+          <CardTitle className="text-sm font-bold flex items-center gap-2"><History className="w-4 h-4" /> Version history</CardTitle>
           <CardDescription className="text-xs">The last {HISTORY_LIMIT} saved layouts. Restore loads one into the editor; press Save to apply it.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -236,13 +236,13 @@ export function DashboardDesigner() {
                   <div className="min-w-0">
                     <p className="text-xs font-bold truncate">
                       {formatPerth(h.savedAt, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} AWST
-                      {i === 0 && <Badge className="ml-2 text-[8px] font-black uppercase">Current</Badge>}
+                      {i === 0 && <Badge className="ml-2 text-xs font-semibold">Current</Badge>}
                     </p>
-                    <p className="text-[11px] text-muted-foreground truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {h.savedByName || 'Unknown'} · {h.everyone.filter(w => w.visible).length} widgets · {h.useSameLayoutForLeaders ? 'Leaders same' : 'Leaders separate'}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" className="text-[10px] font-black uppercase shrink-0" onClick={() => restore(h)}>
+                  <Button variant="outline" size="sm" className="text-xs font-semibold shrink-0" onClick={() => restore(h)}>
                     <Undo2 className="w-3.5 h-3.5 mr-1.5" /> Restore
                   </Button>
                 </li>
@@ -257,12 +257,12 @@ export function DashboardDesigner() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <CardTitle className="text-sm font-black uppercase tracking-wider">Preview · {editingLeaders ? 'Leaders' : 'Everyone'}</CardTitle>
+              <CardTitle className="text-sm font-bold">Preview · {editingLeaders ? 'Leaders' : 'Everyone'}</CardTitle>
               <CardDescription className="text-xs">Real widgets with your own data; links are switched off. Mobile shows one column in the same order.</CardDescription>
             </div>
             <div className="flex gap-1" role="group" aria-label="Preview size">
-              <Button variant={previewMode === 'desktop' ? 'default' : 'outline'} size="sm" className="text-[10px] font-black uppercase" onClick={() => setPreviewMode('desktop')}><Monitor className="w-3.5 h-3.5 mr-1.5" /> Desktop</Button>
-              <Button variant={previewMode === 'mobile' ? 'default' : 'outline'} size="sm" className="text-[10px] font-black uppercase" onClick={() => setPreviewMode('mobile')}><Smartphone className="w-3.5 h-3.5 mr-1.5" /> Mobile</Button>
+              <Button variant={previewMode === 'desktop' ? 'default' : 'outline'} size="sm" className="text-xs font-semibold" onClick={() => setPreviewMode('desktop')}><Monitor className="w-3.5 h-3.5 mr-1.5" /> Desktop</Button>
+              <Button variant={previewMode === 'mobile' ? 'default' : 'outline'} size="sm" className="text-xs font-semibold" onClick={() => setPreviewMode('mobile')}><Smartphone className="w-3.5 h-3.5 mr-1.5" /> Mobile</Button>
             </div>
           </div>
         </CardHeader>

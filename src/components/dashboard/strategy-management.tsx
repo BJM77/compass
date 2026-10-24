@@ -120,7 +120,7 @@ export function StrategyManagement() {
           <div className="flex flex-col md:flex-row md:items-center justify-between bg-primary/5 p-4 rounded-2xl border border-primary/10 gap-4">
             <div>
               <h3 className="text-base md:text-lg font-bold text-primary">Territory Definitions</h3>
-              <p className="text-[10px] md:text-xs text-muted-foreground">Manage Precincts, Winning Messages, and Specialisations.</p>
+              <p className="text-xs md:text-xs text-muted-foreground">Manage Precincts, Winning Messages, and Specialisations.</p>
             </div>
             {isEditable && (
               <Button onClick={savePlaybooks} disabled={isSaving} className="w-full md:w-auto bg-primary font-bold h-10 text-xs">
@@ -138,12 +138,12 @@ export function StrategyManagement() {
                     <CardTitle className="text-xs md:text-sm font-bold flex items-center gap-2">
                       <Zap className="w-4 h-4 text-accent" /> {p.title}
                     </CardTitle>
-                    <Badge variant="outline" className="text-[8px] uppercase font-bold">{key}</Badge>
+                    <Badge variant="outline" className="text-xs uppercase font-bold">{key}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6 space-y-4">
                   <div className="space-y-1">
-                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Precincts</Label>
+                    <Label className="text-xs uppercase font-bold text-muted-foreground">Precincts</Label>
                     <Input 
                       className="text-xs h-8"
                       value={p.precincts?.join(', ')} 
@@ -152,15 +152,15 @@ export function StrategyManagement() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Specialisation</Label>
+                    <Label className="text-xs uppercase font-bold text-muted-foreground">Specialisation</Label>
                     <Input className="text-xs h-8" value={p.specialisation} onChange={(e) => updatePlaybookField(key, 'specialisation', e.target.value)} readOnly={!isEditable} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Core Target</Label>
+                    <Label className="text-xs uppercase font-bold text-muted-foreground">Core Target</Label>
                     <Input className="text-xs h-8" value={p.target} onChange={(e) => updatePlaybookField(key, 'target', e.target.value)} readOnly={!isEditable} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Winning Messages</Label>
+                    <Label className="text-xs uppercase font-bold text-muted-foreground">Winning Messages</Label>
                     <Textarea 
                       className="min-h-[80px] text-xs" 
                       value={p.wins?.join('\n')} 
@@ -178,7 +178,7 @@ export function StrategyManagement() {
            <div className="flex flex-col md:flex-row md:items-center justify-between bg-primary/5 p-4 rounded-2xl border border-primary/10 gap-4">
             <div>
               <h3 className="text-base md:text-lg font-bold text-primary">Onboarding Pathways</h3>
-              <p className="text-[10px] md:text-xs text-muted-foreground">Define tasks and success markers for the first 90 days. Includes Group Plan.</p>
+              <p className="text-xs md:text-xs text-muted-foreground">Define tasks and success markers for the first 90 days. Includes Group Plan.</p>
             </div>
             {isEditable && (
               <Button onClick={saveOnboarding} disabled={isSaving} className="w-full md:w-auto bg-primary font-bold h-10 text-xs">
@@ -201,9 +201,9 @@ export function StrategyManagement() {
                   <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-x md:divide-y-0">
                     {[30, 60, 90].map(phase => (
                       <div key={phase} className="p-4 md:p-6 space-y-4">
-                        <Badge className="bg-accent text-accent-foreground font-bold uppercase text-[8px] md:text-[9px] mb-2">Day {phase}</Badge>
+                        <Badge className="bg-accent text-accent-foreground font-bold uppercase text-xs md:text-xs mb-2">Day {phase}</Badge>
                         <div className="space-y-1">
-                          <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Focus</Label>
+                          <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Focus</Label>
                           <Input 
                             className="text-xs h-8"
                             value={phases[phase]?.focus} 
@@ -216,7 +216,7 @@ export function StrategyManagement() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Tasks</Label>
+                          <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Tasks</Label>
                           <Textarea 
                             className="text-xs min-h-[100px]"
                             value={phases[phase]?.tasks?.join('\n')}
@@ -229,7 +229,7 @@ export function StrategyManagement() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Success Markers</Label>
+                          <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Success Markers</Label>
                           <Textarea 
                             className="text-xs min-h-[80px] bg-primary/5"
                             value={phases[phase]?.markers?.join('\n')}

@@ -81,7 +81,7 @@ export function NotificationSettings() {
     <div className="space-y-2">
       <div className="flex items-center gap-2 pb-2">
         <BellRing className="w-4 h-4 text-accent" />
-        <p className="text-sm font-black uppercase tracking-wide text-foreground">Push notifications</p>
+        <p className="text-sm font-semibold text-foreground">Push notifications</p>
       </div>
 
       {!VAPID_KEY ? (
@@ -131,7 +131,7 @@ export function NotificationSettings() {
       <Row label="Stale Do Now alerts" description={'Push when a Do Now task has been untouched for 2+ days ("Delegate or Delete?").'}>
         <Switch checked={prefs.escalation} onCheckedChange={v => save({ escalation: v })} />
       </Row>
-      <Label className="block text-[10px] text-muted-foreground pt-1">All times are Australia/Perth (AWST).</Label>
+      <Label className="block text-xs text-muted-foreground pt-1">All times are Australia/Perth (AWST).</Label>
     </div>
   );
 }

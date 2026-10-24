@@ -40,7 +40,7 @@ export function PlaybookView() {
     <div className="space-y-6 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
             <BookOpen className="w-8 h-8 text-primary" />
             Territory Playbooks
           </h2>
@@ -51,7 +51,7 @@ export function PlaybookView() {
 
         {isLeader && bdmsAndAMs.length > 0 && (
           <div className="w-full md:w-64 flex flex-col gap-1.5 shrink-0">
-            <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Select Team Member</label>
+            <label className="text-xs font-semibold text-muted-foreground">Select Team Member</label>
             <Select 
               value={selectedUserId || (bdmsAndAMs[0]?.id || '')} 
               onValueChange={setSelectedUserId}
@@ -80,8 +80,8 @@ export function PlaybookView() {
                   {activeUser.name?.charAt(0) || <User className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h3 className="font-black text-foreground text-sm">{activeUser.name || 'Unknown'}</h3>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                  <h3 className="font-bold text-foreground text-sm">{activeUser.name || 'Unknown'}</h3>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wide">
                     Role: {activeUser.role?.replace('_', ' ')} | Territory: {activeUser.territory?.replace('_', ' ') || 'NONE'}
                   </p>
                 </div>

@@ -72,9 +72,9 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
   const getStatusColor = (actual: number, target: number) => {
     if (target === 0) return 'text-foreground font-semibold';
     const pct = actual / target;
-    if (pct >= 1.0) return 'text-success-ink font-black bg-success-soft px-2 py-0.5 rounded border border-success/15';
-    if (pct >= 0.85) return 'text-warning-ink font-black bg-warning-soft px-2 py-0.5 rounded border border-warning/15';
-    return 'text-destructive font-black bg-danger-soft px-2 py-0.5 rounded border border-destructive/15';
+    if (pct >= 1.0) return 'text-success-ink font-semibold bg-success-soft px-2 py-0.5 rounded border border-success/15';
+    if (pct >= 0.85) return 'text-warning-ink font-semibold bg-warning-soft px-2 py-0.5 rounded border border-warning/15';
+    return 'text-destructive font-semibold bg-danger-soft px-2 py-0.5 rounded border border-destructive/15';
   };
 
   const getQuarterCardStyle = (stats: QuarterlyStats, isCurrent: boolean) => {
@@ -105,7 +105,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             <span className="p-1.5 bg-accent/15 text-accent rounded-lg">
               <Target className="w-5 h-5" />
             </span>
-            <h3 className="font-black text-foreground tracking-tight text-base sm:text-lg uppercase">
+            <h3 className="font-bold text-foreground tracking-tight text-base sm:text-lg">
               Quarterly Performance Breakdown (FY{year})
             </h3>
           </div>
@@ -116,7 +116,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto justify-between md:justify-end">
           {/* Legend */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 text-[10px] sm:text-[11px] font-bold tracking-tight">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 text-xs sm:text-xs font-bold tracking-tight">
             <span className="flex items-center gap-1 text-success-ink bg-success-soft px-2 py-0.5 rounded border border-success/25">
               <CheckCircle2 className="w-3 h-3 text-success" /> &gt;100%
             </span>
@@ -133,7 +133,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             <button
               onClick={() => setPacingMode('EXACT_DAY')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
-                pacingMode === 'EXACT_DAY' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                pacingMode === 'EXACT_DAY' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               Actual Date
@@ -141,7 +141,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             <button
               onClick={() => setPacingMode('EOM')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
-                pacingMode === 'EOM' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                pacingMode === 'EOM' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               Month End (EOM)
@@ -149,7 +149,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             <button
               onClick={() => setPacingMode('WEEKLY')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
-                pacingMode === 'WEEKLY' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                pacingMode === 'WEEKLY' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
               title="Use this if revenue data is uploaded weekly (up to end of previous week)"
             >
@@ -162,7 +162,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             <button
               onClick={() => setViewMode('CARDS')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
-                viewMode === 'CARDS' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                viewMode === 'CARDS' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -171,7 +171,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             <button
               onClick={() => setViewMode('TABLE')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
-                viewMode === 'TABLE' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
+                viewMode === 'TABLE' ? 'bg-card text-accent shadow-xs font-semibold' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               <TableIcon className="w-3.5 h-3.5" />
@@ -212,19 +212,19 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                 {/* Rep Header */}
                 <div className="flex items-start justify-between pb-3 border-b border-border/60">
                   <div className="flex items-center gap-3 min-w-0 pr-2">
-                    <div className="w-10 h-10 rounded-xl bg-accent text-accent-foreground font-black flex items-center justify-center text-sm shadow-xs shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-accent text-accent-foreground font-semibold flex items-center justify-center text-sm shadow-xs shrink-0">
                       {row.user.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-black text-foreground text-base leading-tight truncate">
+                      <h4 className="font-bold text-foreground text-base leading-tight truncate">
                         {row.user.name}
                       </h4>
                       <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider py-0 px-2 bg-secondary/60 text-foreground/75 border-border">
+                        <Badge variant="outline" className="text-xs font-bold uppercase tracking-wide py-0 px-2 bg-secondary/60 text-foreground/75 border-border">
                           {row.user.role?.replace('_', ' ')}
                         </Badge>
                         {row.user.territory && (
-                          <span className="text-[10px] font-semibold text-muted-foreground truncate">
+                          <span className="text-xs font-semibold text-muted-foreground truncate">
                             • {row.user.territory}
                           </span>
                         )}
@@ -234,7 +234,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
 
                   {/* YTD Attainment Pill */}
                   <div className="text-right shrink-0">
-                    <div className={`text-xs font-black px-2.5 py-1 rounded-xl inline-block ${
+                    <div className={`text-xs font-semibold px-2.5 py-1 rounded-xl inline-block ${
                       attainmentPct >= 100 
                         ? 'bg-success-soft text-success-ink' 
                         : attainmentPct >= 85 
@@ -243,7 +243,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                     }`}>
                       {attainmentPct.toFixed(1)}% Attained
                     </div>
-                    <div className="text-[11px] font-bold text-muted-foreground mt-1">
+                    <div className="text-xs font-bold text-muted-foreground mt-1">
                       {formatEAV(ytdRev)} / {formatEAV(userTarget)}
                     </div>
                   </div>
@@ -258,34 +258,34 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                     >
                       <div className="flex justify-between items-center border-b border-border/50 pb-1 mb-1.5">
                         <div className="flex items-center gap-1">
-                          <span className="font-black text-xs text-foreground">{q.label}</span>
+                          <span className="font-semibold text-xs text-foreground">{q.label}</span>
                           {q.isCurrent && (
                             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" title="Active Quarter" />
                           )}
                         </div>
-                        <span className="text-[9px] font-bold text-muted-foreground">{q.range}</span>
+                        <span className="text-xs font-bold text-muted-foreground">{q.range}</span>
                       </div>
 
                       <div className="space-y-1 text-xs">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-semibold text-muted-foreground">Calls:</span>
+                          <span className="text-xs font-semibold text-muted-foreground">Calls:</span>
                           <span className={getStatusColor(q.stats.calls, TARGET_CALLS)}>
                             {q.stats.calls || 0}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-semibold text-muted-foreground">Appts:</span>
+                          <span className="text-xs font-semibold text-muted-foreground">Appts:</span>
                           <span className={getStatusColor(q.stats.appointments, TARGET_APPTS)}>
                             {q.stats.appointments || 0}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-semibold text-muted-foreground">Deals:</span>
+                          <span className="text-xs font-semibold text-muted-foreground">Deals:</span>
                           <span className="font-bold text-foreground">{q.stats.successfulDeals || 0}</span>
                         </div>
                         <div className="flex justify-between items-center pt-1 border-t border-border/35">
-                          <span className="text-[10px] font-semibold text-muted-foreground">Rev:</span>
-                          <span className={`text-[11px] ${getStatusColor(q.stats.revenue, q.stats.targetRevenue)}`}>
+                          <span className="text-xs font-semibold text-muted-foreground">Rev:</span>
+                          <span className={`text-xs ${getStatusColor(q.stats.revenue, q.stats.targetRevenue)}`}>
                             {formatEAV(q.stats.revenue || 0)}
                           </span>
                         </div>
@@ -296,7 +296,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
 
                 {/* Card Footer Summary with Expand Button */}
                 <div className="pt-2.5 border-t border-border/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-muted-foreground font-semibold bg-secondary/30 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-3 px-4 sm:px-5 rounded-b-2xl">
-                  <div className="flex items-center gap-3 text-foreground font-bold text-[11px] sm:text-xs">
+                  <div className="flex items-center gap-3 text-foreground font-bold text-xs sm:text-xs">
                     <span>📞 {totalCalls} Calls</span>
                     <span>📅 {totalApps} Appts</span>
                     <span>🏆 {totalDeals} Deals</span>
@@ -324,7 +324,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                     <button
                       type="button"
                       onClick={() => setModalUser(row)}
-                      className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground py-0.5 px-1.5 rounded hover:bg-border/70"
+                      className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground py-0.5 px-1.5 rounded hover:bg-border/70"
                       title="Focus Modal"
                     >
                       <Maximize2 className="w-3 h-3" />
@@ -338,20 +338,20 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                   <div className="mt-3 pt-3 border-t border-accent/15 text-xs space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                       <div className="p-2 bg-secondary/60 rounded-xl border border-border/80">
-                        <span className="text-[10px] font-semibold text-muted-foreground block">Calls Run-Rate</span>
-                        <span className="font-black text-foreground">{(totalCalls / Math.max(1, finProgress.financialMonthIndex)).toFixed(1)}/mo</span>
+                        <span className="text-xs font-semibold text-muted-foreground block">Calls Run-Rate</span>
+                        <span className="font-semibold text-foreground">{(totalCalls / Math.max(1, finProgress.financialMonthIndex)).toFixed(1)}/mo</span>
                       </div>
                       <div className="p-2 bg-secondary/60 rounded-xl border border-border/80">
-                        <span className="text-[10px] font-semibold text-muted-foreground block">Appts Run-Rate</span>
-                        <span className="font-black text-foreground">{(totalApps / Math.max(1, finProgress.financialMonthIndex)).toFixed(1)}/mo</span>
+                        <span className="text-xs font-semibold text-muted-foreground block">Appts Run-Rate</span>
+                        <span className="font-semibold text-foreground">{(totalApps / Math.max(1, finProgress.financialMonthIndex)).toFixed(1)}/mo</span>
                       </div>
                       <div className="p-2 bg-secondary/60 rounded-xl border border-border/80">
-                        <span className="text-[10px] font-semibold text-muted-foreground block">Deals Closed</span>
-                        <span className="font-black text-foreground">{totalDeals} Won</span>
+                        <span className="text-xs font-semibold text-muted-foreground block">Deals Closed</span>
+                        <span className="font-semibold text-foreground">{totalDeals} Won</span>
                       </div>
                       <div className="p-2 bg-secondary/60 rounded-xl border border-border/80">
-                        <span className="text-[10px] font-semibold text-muted-foreground block">Avg Deal Size</span>
-                        <span className="font-black text-foreground">{totalDeals > 0 ? formatEAV(ytdRev / totalDeals) : '$0'}</span>
+                        <span className="text-xs font-semibold text-muted-foreground block">Avg Deal Size</span>
+                        <span className="font-semibold text-foreground">{totalDeals > 0 ? formatEAV(ytdRev / totalDeals) : '$0'}</span>
                       </div>
                     </div>
                   </div>
@@ -372,13 +372,13 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
       <div className={`overflow-x-auto ${viewMode === 'TABLE' ? 'block' : 'hidden'} print:block`}>
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-secondary text-foreground/85 text-[10px] uppercase font-black tracking-widest border-b border-border">
+            <tr className="bg-secondary text-foreground/85 text-xs font-semibold border-b border-border">
               <th className="p-3 whitespace-nowrap sticky left-0 bg-secondary border-r border-border z-10 w-48">
                 Team Member
               </th>
               <th className={`p-3 text-center border-r border-border min-w-[260px] ${finProgress.currentQuarter === 'Q1' ? 'bg-accent/5' : ''}`}>
-                Q1 (Apr - Jun) {finProgress.currentQuarter === 'Q1' && <span className="text-accent font-black">• ACTIVE</span>}
-                <div className="grid grid-cols-4 gap-2 text-[9px] mt-1 text-muted-foreground font-bold">
+                Q1 (Apr - Jun) {finProgress.currentQuarter === 'Q1' && <span className="text-accent font-semibold">• ACTIVE</span>}
+                <div className="grid grid-cols-4 gap-2 text-xs mt-1 text-muted-foreground font-bold">
                   <span className="text-right">Calls (120)</span>
                   <span className="text-right">Appts (108)</span>
                   <span className="text-right">Deals</span>
@@ -386,8 +386,8 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                 </div>
               </th>
               <th className={`p-3 text-center border-r border-border min-w-[260px] ${finProgress.currentQuarter === 'Q2' ? 'bg-accent/5' : ''}`}>
-                Q2 (Jul - Sep) {finProgress.currentQuarter === 'Q2' && <span className="text-accent font-black">• ACTIVE</span>}
-                <div className="grid grid-cols-4 gap-2 text-[9px] mt-1 text-muted-foreground font-bold">
+                Q2 (Jul - Sep) {finProgress.currentQuarter === 'Q2' && <span className="text-accent font-semibold">• ACTIVE</span>}
+                <div className="grid grid-cols-4 gap-2 text-xs mt-1 text-muted-foreground font-bold">
                   <span className="text-right">Calls (120)</span>
                   <span className="text-right">Appts (108)</span>
                   <span className="text-right">Deals</span>
@@ -395,8 +395,8 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                 </div>
               </th>
               <th className={`p-3 text-center border-r border-border min-w-[260px] ${finProgress.currentQuarter === 'Q3' ? 'bg-accent/5' : ''}`}>
-                Q3 (Oct - Dec) {finProgress.currentQuarter === 'Q3' && <span className="text-accent font-black">• ACTIVE</span>}
-                <div className="grid grid-cols-4 gap-2 text-[9px] mt-1 text-muted-foreground font-bold">
+                Q3 (Oct - Dec) {finProgress.currentQuarter === 'Q3' && <span className="text-accent font-semibold">• ACTIVE</span>}
+                <div className="grid grid-cols-4 gap-2 text-xs mt-1 text-muted-foreground font-bold">
                   <span className="text-right">Calls (120)</span>
                   <span className="text-right">Appts (108)</span>
                   <span className="text-right">Deals</span>
@@ -404,8 +404,8 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                 </div>
               </th>
               <th className={`p-3 text-center min-w-[260px] ${finProgress.currentQuarter === 'Q4' ? 'bg-accent/5' : ''}`}>
-                Q4 (Jan - Mar) {finProgress.currentQuarter === 'Q4' && <span className="text-accent font-black">• ACTIVE</span>}
-                <div className="grid grid-cols-4 gap-2 text-[9px] mt-1 text-muted-foreground font-bold">
+                Q4 (Jan - Mar) {finProgress.currentQuarter === 'Q4' && <span className="text-accent font-semibold">• ACTIVE</span>}
+                <div className="grid grid-cols-4 gap-2 text-xs mt-1 text-muted-foreground font-bold">
                   <span className="text-right">Calls (120)</span>
                   <span className="text-right">Appts (108)</span>
                   <span className="text-right">Deals</span>
@@ -418,8 +418,8 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             {data.map((row) => (
               <tr key={row.user.uid || row.user.name} className="hover:bg-secondary/60 transition-colors group">
                 <td className="p-3 sticky left-0 bg-card group-hover:bg-secondary/60 border-r border-border z-10">
-                  <div className="font-black text-foreground text-sm whitespace-nowrap">{row.user.name}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-0.5">
+                  <div className="font-semibold text-foreground text-sm whitespace-nowrap">{row.user.name}</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide font-bold mt-0.5">
                     {row.user.role?.replace('_', ' ')}
                   </div>
                 </td>
@@ -447,14 +447,14 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
             <div>
               <div className="flex items-start justify-between border-b border-border/60 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-accent text-accent-foreground font-black flex items-center justify-center text-lg shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-accent text-accent-foreground font-bold flex items-center justify-center text-lg shadow-sm">
                     {modalUser.user.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                   </div>
                   <div>
-                    <Badge variant="outline" className="text-[10px] font-bold uppercase py-0 px-2 bg-accent/10 text-primary border-accent/25">
+                    <Badge variant="outline" className="text-xs font-bold uppercase py-0 px-2 bg-accent/10 text-primary border-accent/25">
                       {modalUser.user.role?.replace('_', ' ')}
                     </Badge>
-                    <h3 className="font-black text-foreground text-xl mt-0.5">{modalUser.user.name}</h3>
+                    <h3 className="font-black tabular-nums text-foreground text-xl mt-0.5">{modalUser.user.name}</h3>
                   </div>
                 </div>
                 <button 
@@ -479,8 +479,8 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                     }`}
                   >
                     <div className="flex justify-between items-center mb-2 pb-1 border-b border-border/60">
-                      <span className="font-black text-xs text-foreground">{q.label}</span>
-                      {q.isCurrent && <span className="text-[9px] font-black uppercase text-primary bg-accent/15 px-1.5 py-0.5 rounded">Active</span>}
+                      <span className="font-semibold text-xs text-foreground">{q.label}</span>
+                      {q.isCurrent && <span className="text-xs font-semibold text-primary bg-accent/15 px-1.5 py-0.5 rounded">Active</span>}
                     </div>
                     <div className="space-y-1.5 text-xs">
                       <div className="flex justify-between">
@@ -497,7 +497,7 @@ export function QuarterlyPerformanceTable({ data, year, referenceDate }: Quarter
                       </div>
                       <div className="flex justify-between pt-1 border-t border-border/60">
                         <span className="text-muted-foreground font-medium">Revenue:</span>
-                        <span className="font-black text-primary">{formatCurrency(q.stats.revenue)}</span>
+                        <span className="font-semibold text-primary">{formatCurrency(q.stats.revenue)}</span>
                       </div>
                     </div>
                   </div>

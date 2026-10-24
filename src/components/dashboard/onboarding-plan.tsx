@@ -128,7 +128,7 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-accent">{Math.round(progress)}%</div>
-          <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Complete</div>
+          <div className="text-xs uppercase font-bold text-muted-foreground tracking-wide">Complete</div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -171,13 +171,13 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
                     </div>
                   </div>
                   <div className="md:col-span-4 bg-primary/5 rounded-xl p-6 border border-primary/10">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4 flex items-center gap-1">
+                    <h4 className="text-xs font-bold text-primary mb-4 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
                       Success Markers
                     </h4>
                     <ul className="space-y-3">
                       {activePlan[phase]?.markers?.map((marker: string, i: number) => (
-                        <li key={i} className="text-[11px] font-bold text-muted-foreground flex items-center gap-3">
+                        <li key={i} className="text-xs font-bold text-muted-foreground flex items-center gap-3">
                           <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
                           {marker}
                         </li>
@@ -194,7 +194,7 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
         <div className="gm-print-only hidden space-y-6">
           {[30, 60, 90].map(phase => (
             <div key={phase} className="border-t pt-4 first:border-t-0 first:pt-0">
-              <h3 className="font-black text-xs uppercase text-accent tracking-widest mb-3">
+              <h3 className="font-bold text-xs text-accent mb-3">
                 {phase === 30 ? 'Phase 1: First 30 Days' : phase === 60 ? 'Phase 2: Days 31-60' : 'Phase 3: Days 61-90'} ({activePlan[phase]?.focus})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -215,10 +215,10 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
                   ))}
                 </div>
                 <div className="md:col-span-4 bg-secondary/60 p-4 rounded-xl border border-border/60">
-                  <h4 className="text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-2">Success Markers</h4>
+                  <h4 className="text-xs font-bold text-muted-foreground mb-2">Success Markers</h4>
                   <ul className="space-y-1.5">
                     {activePlan[phase]?.markers?.map((marker: string, i: number) => (
-                      <li key={i} className="text-[10px] font-medium text-foreground/75 flex items-start gap-2">
+                      <li key={i} className="text-xs font-medium text-foreground/75 flex items-start gap-2">
                         <span className="text-accent mt-1 shrink-0">•</span>
                         <span>{marker}</span>
                       </li>

@@ -80,42 +80,42 @@ export function DuplicateManager() {
     }
   };
 
-  if (isLoading) return <div className="flex flex-col items-center justify-center py-12 gap-3"><Loader2 className="w-8 h-8 animate-spin text-primary" /><p className="text-xs font-black uppercase text-muted-foreground">Scanning Nodes...</p></div>;
+  if (isLoading) return <div className="flex flex-col items-center justify-center py-12 gap-3"><Loader2 className="w-8 h-8 animate-spin text-primary" /><p className="text-xs font-semibold text-muted-foreground">Scanning Nodes...</p></div>;
 
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardHeader className="bg-panel text-panel-foreground pb-6">
-          <CardTitle className="text-xl font-black tracking-tight flex items-center gap-2"><Database className="w-5 h-5" /> Duplicate Manager</CardTitle>
+          <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2"><Database className="w-5 h-5" /> Duplicate Manager</CardTitle>
           <CardDescription className="text-panel-foreground/60 font-medium">Cross-referencing {allReviews?.length || 0} records.</CardDescription>
         </CardHeader>
         <CardContent className="pt-8">
           {duplicates.length === 0 ? (
             <div className="text-center py-20 bg-success-soft rounded-2xl border-2 border-dashed border-success/15">
               <CheckCircle2 className="w-12 h-12 text-success mx-auto mb-4" />
-              <p className="text-sm font-black text-success-ink uppercase tracking-widest">Data Integrity: Verified</p>
+              <p className="text-sm font-semibold text-success-ink">Data Integrity: Verified</p>
             </div>
           ) : (
             <div className="space-y-6">
               <div className="flex items-center justify-between bg-warning-soft p-4 rounded-xl border border-warning/15">
                 <div className="flex items-center gap-3">
                   <div className="bg-warning p-2 rounded-lg text-warning-foreground shadow-lg"><AlertTriangle className="w-5 h-5" /></div>
-                  <div><p className="text-sm font-black text-warning-ink uppercase">Redundancy Detected</p><p className="text-[11px] text-warning-ink font-bold">{duplicates.length} clusters found.</p></div>
+                  <div><p className="text-sm font-semibold text-warning-ink">Redundancy Detected</p><p className="text-xs text-warning-ink font-bold">{duplicates.length} clusters found.</p></div>
                 </div>
-                <Button onClick={() => setShowConfirm(true)} disabled={isPurging} className="bg-warning text-warning-foreground font-black text-xs uppercase shadow-lg">
+                <Button onClick={() => setShowConfirm(true)} disabled={isPurging} className="bg-warning text-warning-foreground font-semibold text-xs shadow-lg">
                   {isPurging ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />} SMART PURGE
                 </Button>
               </div>
               <ScrollArea className="h-[500px] border rounded-2xl bg-card shadow-inner">
                 <div className="overflow-x-auto">
                   <Table className="min-w-[600px]">
-                  <TableHeader className="bg-secondary/60"><TableRow className="uppercase text-[9px] font-black tracking-widest"><TableHead className="pl-6">Account Identification</TableHead><TableHead>Audit Reason</TableHead><TableHead>Owners</TableHead><TableHead className="text-right pr-6">Status</TableHead></TableRow></TableHeader>
+                  <TableHeader className="bg-secondary/60"><TableRow className="text-xs font-semibold"><TableHead className="pl-6">Account Identification</TableHead><TableHead>Audit Reason</TableHead><TableHead>Owners</TableHead><TableHead className="text-right pr-6">Status</TableHead></TableRow></TableHeader>
                   <TableBody>{duplicates.map((group, idx) => (
                     <TableRow key={idx} className="group hover:bg-secondary/60">
-                      <TableCell className="pl-6 py-4"><p className="text-xs font-black text-primary uppercase">{group.items[0].pipeline}</p><p className="text-[9px] text-muted-foreground font-mono">Code: {group.items[0].accountMasterCode || 'MISSING'}</p></TableCell>
-                      <TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{group.key.startsWith('code_') ? 'Code Collision' : 'Name Collision'}</Badge></TableCell>
-                      <TableCell><div className="flex flex-wrap gap-1">{Array.from(new Set(group.items.map((i: any) => userMap[i.userId] || 'Unknown'))).map((name, i) => (<Badge key={i} variant="secondary" className="text-[7px] font-bold h-4"><User className="w-2 h-2 mr-1" /> {String(name)}</Badge>))}</div></TableCell>
-                      <TableCell className="text-right pr-6"><span className="text-[9px] font-black text-destructive bg-danger-soft px-2 py-0.5 rounded-full border border-destructive/15 uppercase">{group.items.length} Redundant</span></TableCell>
+                      <TableCell className="pl-6 py-4"><p className="text-xs font-semibold text-primary">{group.items[0].pipeline}</p><p className="text-xs text-muted-foreground font-mono">Code: {group.items[0].accountMasterCode || 'MISSING'}</p></TableCell>
+                      <TableCell><Badge variant="outline" className="text-xs font-semibold border-accent/20 text-accent">{group.key.startsWith('code_') ? 'Code Collision' : 'Name Collision'}</Badge></TableCell>
+                      <TableCell><div className="flex flex-wrap gap-1">{Array.from(new Set(group.items.map((i: any) => userMap[i.userId] || 'Unknown'))).map((name, i) => (<Badge key={i} variant="secondary" className="text-xs font-bold h-4"><User className="w-2 h-2 mr-1" /> {String(name)}</Badge>))}</div></TableCell>
+                      <TableCell className="text-right pr-6"><span className="text-xs font-semibold text-destructive bg-danger-soft px-2 py-0.5 rounded-full border border-destructive/15">{group.items.length} Redundant</span></TableCell>
                     </TableRow>
                   ))}</TableBody>
                 </Table>
@@ -128,8 +128,8 @@ export function DuplicateManager() {
 
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent className="rounded-3xl p-8">
-          <AlertDialogHeader><AlertDialogTitle className="text-2xl font-black uppercase">Execute Smart Purge?</AlertDialogTitle><AlertDialogDescription className="text-sm font-bold leading-relaxed">This will delete redundant records across the territory and preserve the most recent updates for each account.</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel className="font-black h-12 rounded-xl">CANCEL</AlertDialogCancel><AlertDialogAction onClick={handlePurgeDuplicates} className="bg-warning font-black h-12 rounded-xl">EXECUTE PURGE</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogHeader><AlertDialogTitle className="text-2xl font-bold">Execute Smart Purge?</AlertDialogTitle><AlertDialogDescription className="text-sm font-bold leading-relaxed">This will delete redundant records across the territory and preserve the most recent updates for each account.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel className="font-semibold h-12 rounded-xl">CANCEL</AlertDialogCancel><AlertDialogAction onClick={handlePurgeDuplicates} className="bg-warning font-semibold h-12 rounded-xl">EXECUTE PURGE</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

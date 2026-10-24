@@ -429,7 +429,7 @@ export function ManageTimeView() {
       {/* Header section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:mb-8 print:flex-row print:border-b-2 print:border-foreground/30 print:pb-4">
         <div>
-          <h1 className="text-3xl font-black text-foreground tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3">
             <Clock className="w-8 h-8 text-accent print:text-foreground" />
             Time Management Matrix
             {isViewOnly && <span className="text-sm font-normal bg-warning-soft text-warning-ink px-2 py-1 rounded ml-2">{historyPlan ? 'Viewing an older plan (read-only)' : "Viewing User's Plan"}</span>}
@@ -512,10 +512,10 @@ export function ManageTimeView() {
                           {u.name}
                         </button>
                         {u.attention > 0 && (
-                          <span title="Overdue or due today" className="text-[10px] font-bold bg-danger-soft text-destructive px-1.5 py-0.5 rounded shrink-0">{u.attention} due</span>
+                          <span title="Overdue or due today" className="text-xs font-bold bg-danger-soft text-destructive px-1.5 py-0.5 rounded shrink-0">{u.attention} due</span>
                         )}
                         {u.stale > 0 && (
-                          <span title="Do Now tasks untouched 2+ days" className="text-[10px] font-bold bg-warning-soft text-warning-ink px-1.5 py-0.5 rounded shrink-0">{u.stale} stale</span>
+                          <span title="Do Now tasks untouched 2+ days" className="text-xs font-bold bg-warning-soft text-warning-ink px-1.5 py-0.5 rounded shrink-0">{u.stale} stale</span>
                         )}
                         {(u.attention > 0 || u.stale > 0) && (
                           <Button size="sm" variant="ghost" disabled={nudgedIds[u.id]} onClick={() => nudgeUser(u)} className="h-7 px-2 text-xs text-primary shrink-0" title="Send a Team Nudge">
@@ -600,7 +600,7 @@ export function ManageTimeView() {
 
           {inboxTasks.length > 0 && (
             <div className="mt-4 space-y-3">
-              <h3 className="font-semibold text-foreground/85 text-sm uppercase tracking-wider mb-2">Uncategorized Tasks ({inboxTasks.length})</h3>
+              <h3 className="font-semibold text-foreground/85 text-sm mb-2">Uncategorized Tasks ({inboxTasks.length})</h3>
               <div className="space-y-3">
                 {inboxTasks.map((task) => (
                   <div key={task.id} data-task-id={task.id} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-lg border shadow-sm transition-all ${flashId === task.id ? 'ring-2 ring-destructive ring-offset-2 ' : ''}${task.completed ? 'bg-secondary/60 border-border opacity-60' : 'bg-card border-border hover:border-accent/25'}`}>
@@ -671,7 +671,7 @@ export function ManageTimeView() {
             <Card key={quadrant.id} className={`border-2 shadow-sm flex flex-col h-full print:shadow-none print:border-2 print:border-border ${quadrant.borderColorClass}`}>
               <CardHeader className={`pb-2 pt-3 ${quadrant.bgColorClass} print:bg-transparent print:border-b-2 print:border-border rounded-t-xl print:rounded-none flex-row justify-between items-start`}>
                 <div>
-                  <CardTitle className={`flex items-center gap-2 text-lg font-black ${quadrant.colorClass} print:text-foreground`}>
+                  <CardTitle className={`flex items-center gap-2 text-lg font-bold ${quadrant.colorClass} print:text-foreground`}>
                     <quadrant.icon className="w-5 h-5" />
                     {quadrant.title}
                   </CardTitle>

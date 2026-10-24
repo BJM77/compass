@@ -55,7 +55,7 @@ export function TodayWidget() {
           {rows.map(({ t, overdue }) => (
             <li key={t.id} className="flex items-center justify-between gap-3 py-1.5 min-w-0">
               <span className="text-xs font-bold text-foreground truncate">{t.text}</span>
-              <span className={cn('shrink-0 text-[10px] font-black uppercase tracking-wide', overdue ? 'text-destructive' : 'text-warning')}>
+              <span className={cn('shrink-0 text-xs font-semibold', overdue ? 'text-destructive' : 'text-warning')}>
                 {overdue ? 'Overdue · ' : ''}{formatPerth(t.dueAt as number, { weekday: 'short', hour: 'numeric', minute: '2-digit' })}
               </span>
             </li>
@@ -120,23 +120,23 @@ export function WeeklyRhythmWidget() {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-primary text-primary-foreground p-4 flex items-start justify-between gap-3">
+        <div className="rounded-2xl bg-panel text-panel-foreground p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <FileDown className="w-4 h-4 text-destructive" />
-            <p className="mt-2 text-[11px] font-black uppercase tracking-wider">Thursday TWTW</p>
-            <p className="text-[10px] text-muted-foreground font-bold">Week {currentWeek.split('-')[1]}</p>
+            <p className="mt-2 text-xs font-semibold">Thursday TWTW</p>
+            <p className="text-xs text-panel-foreground/60 font-medium">Week {currentWeek.split('-')[1]}</p>
           </div>
-          <Badge className={cn('border-none font-bold text-[8px] uppercase shrink-0', twtwStatus === 'SUBMITTED' ? 'bg-success text-success' : 'bg-destructive text-destructive')}>
+          <Badge className={cn('border-none font-bold text-xs uppercase shrink-0', twtwStatus === 'SUBMITTED' ? 'bg-success-fill/25 text-panel-foreground' : 'bg-destructive/30 text-panel-foreground')}>
             {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due: Thursday Morning'}
           </Badge>
         </div>
-        <div className="rounded-2xl bg-primary text-primary-foreground p-4 flex items-start justify-between gap-3">
+        <div className="rounded-2xl bg-panel text-panel-foreground p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <ListChecks className="w-4 h-4 text-warning" />
-            <p className="mt-2 text-[11px] font-black uppercase tracking-wider">Friday FW</p>
-            <p className="text-[10px] text-muted-foreground font-bold">Next-week activity · Week {nextWeek.split('-')[1]}</p>
+            <p className="mt-2 text-xs font-semibold">Friday FW</p>
+            <p className="text-xs text-panel-foreground/60 font-medium">Next-week activity · Week {nextWeek.split('-')[1]}</p>
           </div>
-          <Badge className={cn('border-none font-bold text-[8px] uppercase shrink-0', fwStatus === 'SUBMITTED' ? 'bg-success text-success' : fwStatus === 'DRAFT' ? 'bg-warning text-warning' : 'bg-destructive text-destructive')}>
+          <Badge className={cn('border-none font-bold text-xs uppercase shrink-0', fwStatus === 'SUBMITTED' ? 'bg-success-fill/25 text-panel-foreground' : fwStatus === 'DRAFT' ? 'bg-warning/30 text-panel-foreground' : 'bg-destructive/30 text-panel-foreground')}>
             {fwStatus === 'SUBMITTED' ? 'Done' : fwStatus === 'DRAFT' ? 'Draft' : 'Due: Friday Morning'}
           </Badge>
         </div>
@@ -173,13 +173,13 @@ export function VerticalsWidget() {
         <Stat label="Unclaimed" value={snap.unclaimed} />
       </div>
       <div>
-        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Top suggested WA prospects</p>
+        <p className="text-xs font-semibold text-muted-foreground mb-1">Top suggested WA prospects</p>
         {top.length ? (
           <ul className="divide-y divide-border">
             {top.map(s => (
               <li key={s.id} className="flex items-center justify-between gap-3 py-1.5 min-w-0">
                 <span className="text-xs font-bold text-foreground truncate">{s.company}</span>
-                <span className="shrink-0 text-[10px] font-bold text-muted-foreground truncate max-w-[45%]">{VERTICALS.find(v => v.id === s.vertical)?.short || s.vertical} · {s.region}</span>
+                <span className="shrink-0 text-xs font-bold text-muted-foreground truncate max-w-[45%]">{VERTICALS.find(v => v.id === s.vertical)?.short || s.vertical} · {s.region}</span>
               </li>
             ))}
           </ul>
@@ -205,20 +205,20 @@ export function FuelWidget() {
       <div className="flex items-baseline gap-2">
         <Fuel className="w-4 h-4 text-info self-center" />
         <span className="text-2xl font-black text-info tabular-nums">{snap.tgePct != null ? fmt(snap.tgePct) : '—'}</span>
-        <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">TGE Express Parcels Road</span>
+        <span className="text-xs font-semibold text-muted-foreground">TGE Express Parcels Road</span>
       </div>
       <ul className="divide-y divide-border">
         {snap.competitors.map(c => (
           <li key={c.id} className="flex items-center justify-between gap-2 py-1 text-xs min-w-0">
             <span className="font-bold text-foreground truncate">{c.name}{c.manual ? ' (manual)' : ''}</span>
-            <span className="shrink-0 font-black tabular-nums">
+            <span className="shrink-0 font-semibold tabular-nums">
               {fmt(c.pct)}
-              {c.diff != null && <span className={cn('ml-1.5 text-[10px]', c.diff > 0 ? 'text-success' : c.diff < 0 ? 'text-destructive' : 'text-muted-foreground')}>{c.diff > 0 ? '+' : ''}{c.diff.toFixed(2)}</span>}
+              {c.diff != null && <span className={cn('ml-1.5 text-xs', c.diff > 0 ? 'text-success' : c.diff < 0 ? 'text-destructive' : 'text-muted-foreground')}>{c.diff > 0 ? '+' : ''}{c.diff.toFixed(2)}</span>}
             </span>
           </li>
         ))}
       </ul>
-      <p className="text-[10px] font-bold text-muted-foreground">
+      <p className="text-xs font-bold text-muted-foreground">
         {snap.stale && <AlertTriangle className="inline w-3 h-3 text-warning mr-1" />}
         {snap.lastChecked ? `Last checked ${formatPerth(snap.lastChecked, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} AWST` : 'Not checked yet'}
       </p>
@@ -237,7 +237,7 @@ export function FactFindingWidget() {
       <Stat label="Open fact finds" value={snap.open} tone={snap.open ? 'default' : 'warn'} />
       <div className="flex flex-wrap gap-1.5">
         {snap.byStage.filter(s => s.count > 0).map(s => (
-          <Badge key={s.stage} variant="outline" className="text-[9px] font-black uppercase">{s.stage} · {s.count}</Badge>
+          <Badge key={s.stage} variant="outline" className="text-xs font-semibold">{s.stage} · {s.count}</Badge>
         ))}
       </div>
       {snap.latest.length ? (
@@ -245,7 +245,7 @@ export function FactFindingWidget() {
           {snap.latest.map(d => (
             <li key={d.id} className="flex items-center justify-between gap-2 py-1 min-w-0">
               <span className="text-xs font-bold text-foreground truncate">{d.companyName}</span>
-              <span className="shrink-0 text-[10px] font-bold text-muted-foreground">{d.stage || 'New'}</span>
+              <span className="shrink-0 text-xs font-bold text-muted-foreground">{d.stage || 'New'}</span>
             </li>
           ))}
         </ul>
@@ -294,7 +294,7 @@ export function CallPlansWidget() {
   const lastPlan = useMemo(() => Math.max(0, ...(callPlans || []).map((p: any) => tsMs(p.createdAt))), [callPlans]);
 
   const List = ({ items }: { items: string[] }) => (
-    <ul className="mt-1 space-y-0.5">{items.slice(0, 3).map((n, i) => <li key={i} className="text-xs font-bold text-foreground truncate">{n}</li>)}{items.length > 3 && <li className="text-[10px] text-muted-foreground">+{items.length - 3} more</li>}</ul>
+    <ul className="mt-1 space-y-0.5">{items.slice(0, 3).map((n, i) => <li key={i} className="text-xs font-bold text-foreground truncate">{n}</li>)}{items.length > 3 && <li className="text-xs text-muted-foreground">+{items.length - 3} more</li>}</ul>
   );
   return (
     <div className="space-y-3">
@@ -302,8 +302,8 @@ export function CallPlansWidget() {
         <Stat label="Call plans due" value={gaps.callPlansDue.length} tone={gaps.callPlansDue.length ? 'warn' : 'good'} />
         <Stat label="White space due" value={gaps.whiteSpaceDue.length} tone={gaps.whiteSpaceDue.length ? 'warn' : 'good'} />
       </div>
-      {gaps.callPlansDue.length > 0 && <div><p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Needs a call plan</p><List items={gaps.callPlansDue} /></div>}
-      {gaps.whiteSpaceDue.length > 0 && <div><p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Needs white space</p><List items={gaps.whiteSpaceDue} /></div>}
+      {gaps.callPlansDue.length > 0 && <div><p className="text-xs font-semibold text-muted-foreground">Needs a call plan</p><List items={gaps.callPlansDue} /></div>}
+      {gaps.whiteSpaceDue.length > 0 && <div><p className="text-xs font-semibold text-muted-foreground">Needs white space</p><List items={gaps.whiteSpaceDue} /></div>}
       {gaps.callPlansDue.length === 0 && gaps.whiteSpaceDue.length === 0 && (
         <EmptyLine><CheckCircle2 className="inline w-3.5 h-3.5 text-success mr-1" />Top-8 accounts are covered.{lastPlan ? ` Last call plan ${formatPerth(lastPlan, { day: 'numeric', month: 'short' })}.` : ''}</EmptyLine>
       )}

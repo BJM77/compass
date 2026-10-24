@@ -45,7 +45,7 @@ const PAIN_CLASS: Record<PainScore, string> = {
 export function PainBadge({ p, onClick }: { p?: PainSignals | null; onClick?: () => void }) {
   if (!p) return null;
   return (
-    <button type="button" onClick={onClick} title="Delivery-pain check" className={cn('inline-flex items-center gap-1 text-[10px] font-bold border rounded-full px-2 py-0.5', PAIN_CLASS[p.score])}>
+    <button type="button" onClick={onClick} title="Delivery-pain check" className={cn('inline-flex items-center gap-1 text-xs font-bold border rounded-full px-2 py-0.5', PAIN_CLASS[p.score])}>
       <ShieldAlert className="w-3 h-3" />{PAIN_LABEL[p.score]}{p.carrier ? ` · ${p.carrier}` : ''}
     </button>
   );
@@ -84,7 +84,7 @@ export function PainDialog({ target, onClose }: { target: PainTarget | null; onC
           <div className="space-y-3 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <PainBadge p={shown} />
-              <span className="text-[11px] text-muted-foreground">Checked {new Date(shown.checkedAt).toLocaleDateString('en-AU', { timeZone: 'Australia/Perth' })} (Perth)</span>
+              <span className="text-xs text-muted-foreground">Checked {new Date(shown.checkedAt).toLocaleDateString('en-AU', { timeZone: 'Australia/Perth' })} (Perth)</span>
             </div>
             {shown.noSignal ? <p className="text-foreground/75">No public delivery-pain signal found.</p> : (
               <ul className="space-y-2">
@@ -93,7 +93,7 @@ export function PainDialog({ target, onClose }: { target: PainTarget | null; onC
                     <p className="text-foreground break-words">{f.text}</p>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {f.sources.map(s => (
-                        <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 break-all">
+                        <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="text-xs text-primary hover:underline inline-flex items-center gap-0.5 break-all">
                           {s.title || new URL(s.url).hostname}<ExternalLink className="w-3 h-3 shrink-0" />
                         </a>
                       ))}
@@ -102,7 +102,7 @@ export function PainDialog({ target, onClose }: { target: PainTarget | null; onC
                 ))}
               </ul>
             )}
-            {shown.opening && <div className="rounded bg-accent/10 border border-accent/15 p-2"><p className="text-[11px] font-bold text-primary">Suggested opener (TGE Parcel)</p><p className="text-foreground">{shown.opening}</p></div>}
+            {shown.opening && <div className="rounded bg-accent/10 border border-accent/15 p-2"><p className="text-xs font-bold text-primary">Suggested opener (TGE Parcel)</p><p className="text-foreground">{shown.opening}</p></div>}
           </div>
         ) : !loading && <p className="text-sm text-foreground/75">Not checked yet.</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
@@ -218,15 +218,15 @@ export function LookalikeFinder({ prospects, canAdd, uid, myName, dismissals }: 
                           {copied === l.company ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                       </div>
-                      <p className="text-[11px] text-muted-foreground break-words">{l.sector}{l.region ? ` · ${l.region}` : ''}{l.size ? ` · ${l.size}` : ''}</p>
+                      <p className="text-xs text-muted-foreground break-words">{l.sector}{l.region ? ` · ${l.region}` : ''}{l.size ? ` · ${l.size}` : ''}</p>
                     </div>
-                    <span className="shrink-0 text-[10px] font-bold uppercase border rounded-full px-1.5 py-0.5">{l.confidence}</span>
+                    <span className="shrink-0 text-xs font-bold uppercase border rounded-full px-1.5 py-0.5">{l.confidence}</span>
                   </div>
                   <p className="text-xs text-foreground/85 break-words">{l.why}</p>
-                  <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                  <div className="flex flex-wrap items-center gap-1 text-xs">
                     <Badge variant="outline">{label(VERTICALS, l.vertical)}</Badge>
                     <Badge variant="outline">{label(BELTS, l.belt)}</Badge>
-                    <a href={l.website} target="_blank" rel="noopener noreferrer nofollow" className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 break-all">{l.website.replace(/^https:\/\//, '')}<ExternalLink className="w-3 h-3" /></a>
+                    <a href={l.website} target="_blank" rel="noopener noreferrer nofollow" className="text-xs text-primary hover:underline inline-flex items-center gap-0.5 break-all">{l.website.replace(/^https:\/\//, '')}<ExternalLink className="w-3 h-3" /></a>
                     <span className="text-muted-foreground">{l.verifiedBy === 'grounded' ? 'seen in search sources' : 'domain verified'}</span>
                     <div className="flex-1" />
                     {trading ? <Badge variant="outline" className="text-info border-info/25 bg-info-soft"><CheckCircle2 className="w-3 h-3 mr-1" />Trading with TGE</Badge>

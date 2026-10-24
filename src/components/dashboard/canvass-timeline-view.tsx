@@ -204,7 +204,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-accent" />
                   <span className="font-bold text-sm text-foreground">{group.userName}</span>
-                  <Badge variant="secondary" className="text-[10px] bg-accent/15 text-primary font-bold">
+                  <Badge variant="secondary" className="text-xs bg-accent/15 text-primary font-bold">
                     {group.dateTitle}
                   </Badge>
                 </div>
@@ -244,11 +244,11 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-sm text-foreground">{lead.companyName}</span>
                                 {lead.inSalesforce ? (
-                                  <Badge className="bg-success-soft text-success-ink text-[10px] gap-1">
+                                  <Badge className="bg-success-soft text-success-ink text-xs gap-1">
                                     <CheckCircle2 className="h-3 w-3" /> Salesforce
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="text-[10px]">Draft</Badge>
+                                  <Badge variant="outline" className="text-xs">Draft</Badge>
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground mt-0.5">
@@ -262,7 +262,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
                                 {formattedTime}
                               </div>
                               {lead.timeSincePrevMinutes !== undefined && (
-                                <p className="text-[10px] text-warning-ink font-semibold mt-0.5">
+                                <p className="text-xs text-warning-ink font-semibold mt-0.5">
                                   ⏱️ +{lead.timeSincePrevMinutes} min since prev visit
                                 </p>
                               )}
@@ -270,7 +270,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
                           </div>
 
                           {/* Timestamps & Address Details */}
-                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-[11px] text-foreground/75">
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-xs text-foreground/75">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-3.5 w-3.5 text-destructive shrink-0" />
                               <span>{[lead.addressLine1, lead.suburb, lead.state].filter(Boolean).join(', ') || 'On-site'}</span>

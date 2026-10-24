@@ -21,7 +21,7 @@ export function TopCustomersCompany({ data }: { data: TopCustomer[] }) {
             <Landmark className="w-5 h-5" />
           </span>
           <div>
-            <h3 className="font-black text-foreground tracking-tight text-base sm:text-lg uppercase">
+            <h3 className="font-bold text-foreground tracking-tight text-base sm:text-lg">
               Top 10 Traders (Company-Wide)
             </h3>
             <p className="text-xs text-muted-foreground font-medium">
@@ -48,7 +48,7 @@ export function TopCustomersCompany({ data }: { data: TopCustomer[] }) {
 
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
                     idx === 0 ? 'bg-accent text-accent-foreground shadow-xs' :
                     idx === 1 ? 'bg-accent/20 text-primary' :
                     idx === 2 ? 'bg-accent/15 text-primary' :
@@ -60,7 +60,7 @@ export function TopCustomersCompany({ data }: { data: TopCustomer[] }) {
                     {item.companyName}
                   </span>
                 </div>
-                <div className="font-black text-primary text-sm">
+                <div className="font-semibold text-primary text-sm">
                   {formatCurrency(item.revenue)}
                 </div>
               </div>

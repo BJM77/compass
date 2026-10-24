@@ -22,7 +22,7 @@ export function DueChip({ task }: { task: Task }) {
     <span
       title={`Due ${formatPerth(task.dueAt, { dateStyle: 'full', timeStyle: 'short' })} (Perth time)`}
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shrink-0 whitespace-nowrap',
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide shrink-0 whitespace-nowrap',
         task.completed ? 'bg-secondary text-muted-foreground line-through'
           : status === 'overdue' ? 'bg-danger-soft text-destructive border border-destructive/25'
           : status === 'today' ? 'bg-warning-soft text-warning-ink border border-warning/25'
@@ -59,7 +59,7 @@ export function TaskDueControls({
           variant="ghost"
           size="sm"
           title="Set due date & reminders"
-          className={cn('text-muted-foreground hover:text-accent print:hidden', compact ? 'h-6 px-1.5 text-[11px]' : 'h-8 px-2 text-xs')}
+          className={cn('text-muted-foreground hover:text-accent print:hidden', compact ? 'h-6 px-1.5 text-xs' : 'h-8 px-2 text-xs')}
         >
           <CalendarClock className={compact ? 'w-3 h-3 mr-1' : 'w-4 h-4 mr-1'} />
           {task.dueAt ? 'Edit due' : 'Due date'}
@@ -67,7 +67,7 @@ export function TaskDueControls({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 space-y-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Due (Perth time)</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Due (Perth time)</p>
           <div className="grid grid-cols-3 gap-1.5">
             <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setDue(quickPick('today5pm'))}>Today 5pm</Button>
             <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setDue(quickPick('tomorrow9am'))}>Tmrw 9am</Button>
@@ -97,7 +97,7 @@ export function TaskDueControls({
               Due <strong>{formatPerth(task.dueAt, { weekday: 'long', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</strong> AWST
             </p>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1"><BellRing className="w-3 h-3" /> Push reminders</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1.5 flex items-center gap-1"><BellRing className="w-3 h-3" /> Push reminders</p>
               <div className="space-y-1">
                 {REMINDER_OFFSETS.map(r => (
                   <label key={r.id} className="flex items-center gap-2 text-xs cursor-pointer">
@@ -106,7 +106,7 @@ export function TaskDueControls({
                   </label>
                 ))}
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1">Enable notifications in Settings → Notifications.</p>
+              <p className="text-xs text-muted-foreground mt-1">Enable notifications in Settings → Notifications.</p>
             </div>
             <div className="flex items-center justify-between gap-2 pt-1 border-t">
               <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => downloadIcs(task)}>

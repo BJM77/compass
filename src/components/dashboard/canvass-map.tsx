@@ -145,7 +145,7 @@ export default function CanvassMap({ leads }: MapProps) {
             <div>
               <h2 className="text-base font-bold flex items-center gap-2">
                 Canvassing Territory Footprint
-                <Badge className="bg-info text-info-foreground hover:bg-info/90 border-none text-[10px]">
+                <Badge className="bg-info text-info-foreground hover:bg-info/90 border-none text-xs">
                   {validLeads.length} Visited Locations Plotted
                 </Badge>
               </h2>
@@ -192,7 +192,7 @@ export default function CanvassMap({ leads }: MapProps) {
             <div className="flex items-center gap-2 text-xs text-panel-foreground/60 mb-2">
               <MapPin className="h-3.5 w-3.5 text-gold" />
               <span className="font-semibold text-panel-foreground/50">Visited Suburbs ({suburbStats.length}):</span>
-              <span className="text-[11px] text-panel-foreground/60">Click a suburb to zoom into that zone</span>
+              <span className="text-xs text-panel-foreground/60">Click a suburb to zoom into that zone</span>
             </div>
             <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
               {suburbStats.map(s => {
@@ -208,8 +208,8 @@ export default function CanvassMap({ leads }: MapProps) {
                     }`}
                   >
                     <span>{s.name}</span>
-                    {s.state && <span className="opacity-60 text-[10px] uppercase">({s.state})</span>}
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-panel text-panel-foreground font-bold' : 'bg-panel/90 text-panel-foreground/90'}`}>
+                    {s.state && <span className="opacity-60 text-xs uppercase">({s.state})</span>}
+                    <span className={`text-xs px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-panel text-panel-foreground font-bold' : 'bg-panel/90 text-panel-foreground/90'}`}>
                       {s.count}
                     </span>
                   </button>
@@ -220,7 +220,7 @@ export default function CanvassMap({ leads }: MapProps) {
         )}
 
         {missingGpsCount > 0 && (
-          <div className="text-[11px] text-panel-foreground/60 bg-panel/45 px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <div className="text-xs text-panel-foreground/60 bg-panel/45 px-3 py-1.5 rounded-lg flex items-center gap-2">
             <Compass className="h-3.5 w-3.5 text-gold shrink-0" />
             <span>
               {validLeads.length} leads plotted with GPS. ({missingGpsCount} leads logged without coordinates are listed in the Table view).
@@ -278,7 +278,7 @@ export default function CanvassMap({ leads }: MapProps) {
                           </div>
                           <Badge 
                             variant="outline" 
-                            className={`text-[9px] px-1.5 py-0 shrink-0 ${
+                            className={`text-xs px-1.5 py-0 shrink-0 ${
                               lead.inSalesforce 
                                 ? 'bg-success-soft text-success-ink border-success/40' 
                                 : 'bg-warning-soft text-warning-ink border-warning/40'
@@ -293,7 +293,7 @@ export default function CanvassMap({ leads }: MapProps) {
                         </div>
                       </div>
 
-                      <div className="text-[11px] text-foreground/75 space-y-1.5">
+                      <div className="text-xs text-foreground/75 space-y-1.5">
                         <div className="flex items-start gap-1.5">
                           <MapPin className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
                           <span className="leading-tight">
@@ -310,7 +310,7 @@ export default function CanvassMap({ leads }: MapProps) {
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between pt-1 text-[10px] text-muted-foreground border-t border-border/60">
+                        <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground border-t border-border/60">
                           <div className="flex items-center gap-1">
                             <User className="h-3 w-3 text-muted-foreground" />
                             <span>Rep: <strong>{lead.userName || 'Unknown'}</strong></span>
@@ -326,11 +326,11 @@ export default function CanvassMap({ leads }: MapProps) {
 
                       {lead.businessUnit && (
                         <div className="flex flex-wrap gap-1 pt-1">
-                          <Badge variant="secondary" className="text-[9px] px-1.5 py-0 font-normal">
+                          <Badge variant="secondary" className="text-xs px-1.5 py-0 font-normal">
                             {lead.businessUnit}
                           </Badge>
                           {lead.estimatedRevenue && (
-                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 text-success border-success/40 font-semibold">
+                            <Badge variant="outline" className="text-xs px-1.5 py-0 text-success border-success/40 font-semibold">
                               ${lead.estimatedRevenue.toLocaleString()}/yr
                             </Badge>
                           )}
@@ -340,7 +340,7 @@ export default function CanvassMap({ leads }: MapProps) {
                       <div className="pt-2 border-t flex flex-col gap-1.5">
                         <Button 
                           size="sm" 
-                          className="w-full h-7 text-[11px] bg-info hover:bg-info/90 text-info-foreground font-semibold gap-1 shadow-xs"
+                          className="w-full h-7 text-xs bg-info hover:bg-info/90 text-info-foreground font-semibold gap-1 shadow-xs"
                           onClick={() => {
                             openSalesforceCreateLead({
                               companyName: lead.companyName,
@@ -367,7 +367,7 @@ export default function CanvassMap({ leads }: MapProps) {
                           href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[10px] text-center text-muted-foreground hover:text-info font-medium py-0.5 flex items-center justify-center gap-1"
+                          className="text-xs text-center text-muted-foreground hover:text-info font-medium py-0.5 flex items-center justify-center gap-1"
                         >
                           <Navigation className="h-3 w-3" />
                           <span>Get Directions (Google Maps)</span>
