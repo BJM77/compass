@@ -39,6 +39,7 @@ import { WhitespaceAnalysis } from './whitespace-analysis';
 import { WhitespaceViewer } from './document-viewers';
 import { printHtmlInNewWindow } from '@/lib/print-utils';
 import { exportElementToPdf } from '@/lib/export-utils';
+import { FactFindingOwnerActions, FactFindingMessages } from './fact-finding-owner-actions';
 
 const CARRIER_SERVICES = [
   // Next Available
@@ -701,6 +702,13 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setIsEditingOwner(true)}>
                         <Edit2 className="h-3 w-3 text-slate-500" />
                       </Button>
+                      <FactFindingOwnerActions
+                        className="ml-1"
+                        factFindingId={docId}
+                        ownerId={formData.userId}
+                        ownerName={users?.find((u: any) => u.id === formData.userId)?.name}
+                        companyName={formData.companyName}
+                      />
                     </div>
                   )}
                 </div>
@@ -792,6 +800,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
         
         {/* Main Form Content */}
         <div className="lg:col-span-12 space-y-6">
+          {docId && <div className="print:hidden"><FactFindingMessages factFindingId={docId} ownerId={formData.userId} /></div>}
           
           <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where, serverTimestamp, updateDoc, doc, limit } from 'firebase/firestore';
+import { collection, query, orderBy, where, serverTimestamp, updateDoc, doc, limit, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { FactFindingDoc } from '@/types/crm';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { useNavigation } from '@/contexts/navigation-context';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import { useSharedOwnerDocs } from '@/hooks/use-data-shares';
 import { SharedBadge } from './shared-badge';
+import { FactFindingOwnerActions } from './fact-finding-owner-actions';
 
 function getSalesforceSearchUrl(companyName: string) {
   if (!companyName) return '#';
@@ -77,6 +78,22 @@ export function FactFindingHub() {
 
   const db = useFirestore();
   const { user, isLeader, profile } = useAuth();
+
+  // Deep link by id (bell notification / Manage Time follow-up): { docId } -> open the record.
+  const deepLinkId: string | undefined = viewParams?.docId;
+  useEffect(() => {
+    if (!deepLinkId || viewParams?.doc || !db) return;
+    let cancelled = false;
+    getDoc(doc(db, 'factFindingDocs', deepLinkId))
+      .then(snap => {
+        if (cancelled) return;
+        if (snap.exists()) navigateTo('FACT_FINDING', { doc: { id: snap.id, ...snap.data() } });
+        else navigateTo('FACT_FINDING');
+      })
+      .catch(() => { if (!cancelled) navigateTo('FACT_FINDING'); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId, db]);
 
   // Query docs
   const docsQuery = useMemoFirebase(() => {
@@ -499,6 +516,7 @@ export function FactFindingHub() {
                       <div className="flex items-center gap-1 text-xs text-slate-600 font-medium min-w-0">
                         <User className="w-3 h-3 text-slate-400 shrink-0" />
                         <span className="truncate">{owner}</span>
+                        <FactFindingOwnerActions className="ml-1 shrink-0" factFindingId={doc.id} ownerId={doc.userId} ownerName={userMap[doc.userId]} companyName={doc.companyName} />
                       </div>
                       <div className="text-xs text-slate-600 min-w-0 truncate">{doc.freightType || '-'}</div>
                       <div className="font-black text-indigo-600 text-sm ml-auto nav:ml-0 nav:text-right truncate">{formatFactFindValue(doc.weeklyAmount)}</div>
@@ -607,7 +625,10 @@ export function FactFindingHub() {
                     </div>
                   </CardContent>
                   <CardFooter className="relative z-10 bg-slate-50/50 border-t border-slate-100 py-3 flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{doc.businessModel || 'B2B'}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{doc.businessModel || 'B2B'}</span>
+                      <FactFindingOwnerActions factFindingId={doc.id} ownerId={doc.userId} ownerName={userMap[doc.userId]} companyName={doc.companyName} />
+                    </span>
                     <span className="text-xs font-black text-indigo-600 flex items-center gap-1"><span className="text-[10px] text-slate-500 font-bold uppercase">EAV</span> {doc.weeklyAmount || 'N/A'}</span>
                   </CardFooter>
                 </Card>
