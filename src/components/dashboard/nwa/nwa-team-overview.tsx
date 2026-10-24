@@ -1,19 +1,25 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, doc as docRef, query, where } from 'firebase/firestore';
 import { Eye, EyeOff, History } from 'lucide-react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
+import { usePipelineData } from '@/contexts/pipeline-context';
 import { useTeamUsers } from '@/hooks/use-team-users';
-import { cn } from '@/lib/utils';
+import { cn, getPreviousWeekKey } from '@/lib/utils';
 import { type NwaColor } from '@/lib/nwa-colors';
 import { buildTeamMembers, memberHasContent, type TeamMemberNwa } from '@/lib/nwa-team';
 import {
   HANDOVER_STATUS_LABEL, NWA_MEETING_MINUTES, NWA_SECTIONS_AM, PIPELINE_GROUPS, RENEWAL_STATUS_LABEL, RENEWAL_TYPE_LABEL, RISK_STATUS_LABEL,
-  type NwaSectionDef, type NwaSectionId,
-  isAmRole, isSubmittedStatus, kpiDefsFor, nwaDueState, sectionComplete,
+  type NwaLeaderNotes, type NwaSectionDef, type NwaSectionId,
+  isAmRole, isSubmittedStatus, kpiDefsFor, latestCrmUploadMs, nwaDueState, recentWeeks, sectionComplete,
 } from '@/lib/nwa';
+import { LeaderNotesView, openTwtw, weekRangeLabel } from './nwa-readonly';
+import { formatPerth } from '@/lib/time-mgmt';
+
+/** Weeks counted for each person's on-time rate (ending with the week just reviewed). */
+const ON_TIME_WEEKS = 8;
 import { AgendaBar, EmptyHint, NWA_SCROLL_MT, OutcomeBadge, SectionCard, type AgendaItem } from './nwa-ui';
 
 const money = (n: number) => `$${Math.round(n || 0).toLocaleString('en-AU')}`;
@@ -27,7 +33,9 @@ const anchor = (id: string) => `nwa-team-${id}`;
 /** Status label for the legend. */
 function statusInfo(m: TeamMemberNwa, planWeek: string): { label: string; cls: string } {
   if (m.legacy) return { label: 'Old Friday FW', cls: 'bg-surface-2 text-muted-foreground' };
-  if (isSubmittedStatus(m.status)) return { label: 'Submitted', cls: 'bg-success-soft text-success-ink' };
+  if (isSubmittedStatus(m.status)) return m.late
+    ? { label: 'Submitted · Late', cls: 'bg-warning-soft text-warning-ink' }
+    : { label: 'Submitted', cls: 'bg-success-soft text-success-ink' };
   const due = nwaDueState(planWeek, m.status);
   if (due === 'overdue') return { label: m.status === 'DRAFT' ? 'Draft · overdue' : 'Overdue', cls: 'bg-danger-soft text-destructive' };
   if (m.status === 'DRAFT') return { label: 'Draft', cls: 'bg-warning-soft text-warning-ink' };
@@ -94,15 +102,17 @@ function SectionBody({ m, id, reviewWeek, planWeek }: { m: TeamMemberNwa; id: Nw
           <Field label="Closed opportunities" value={p.wins.closedOpportunities} />
           <Field label="Positive feedback" value={p.wins.positiveFeedback} />
           <Field label="Team recognition" value={p.wins.teamRecognition} />
-          {has(p.wins.shoutOut.teammate) && <Field label="Shout-out" value={`${p.wins.shoutOut.teammate}${has(p.wins.shoutOut.reason) ? `: ${p.wins.shoutOut.reason}` : ''}`} />}
+          {m.winsSource === 'stored' && <p className="text-xs text-muted-foreground md:col-span-2">Entered on an earlier version of the form.</p>}
         </div>
       );
+    case 'shoutout':
+      return <p><span className="font-semibold">{p.wins.shoutOut.teammate || 'Teammate'}</span>{has(p.wins.shoutOut.reason) ? `: ${p.wins.shoutOut.reason}` : ''}</p>;
     case 'appointments':
       return (
         <ul className="space-y-1.5">
           {p.appointments.filter(a => has(a.customer)).map(a => (
             <Line key={a.id}>
-              <span className="font-medium">{a.customer}</span><Meta parts={[a.date, a.meetingType]} />
+              <span className="font-medium">{a.customer}</span><Meta parts={[a.date, a.source === 'crm' ? 'Salesforce' : a.meetingType && `${a.meetingType} (old form)`]} />
               {[['Why', a.purpose], ['Outcome', a.desiredOutcome], ['Support', a.supportRequired]].filter(([, v]) => has(v)).map(([k, v]) => (
                 <p key={k} className="text-xs text-muted-foreground"><span className="font-semibold">{k}:</span> {v}</p>
               ))}
@@ -113,6 +123,7 @@ function SectionBody({ m, id, reviewWeek, planWeek }: { m: TeamMemberNwa; id: Nw
     case 'pipeline':
       return (
         <div className="space-y-3">
+          {has(m.leaderNotes.pipeline) && <Field label="Leader note" value={m.leaderNotes.pipeline} />}
           {PIPELINE_GROUPS.filter(g => g.key !== 'handedOver').map(g => {
             const rows = p.pipeline[g.key].filter(r => has(r.account));
             if (!rows.length) return null;
@@ -221,6 +232,7 @@ function SectionBody({ m, id, reviewWeek, planWeek }: { m: TeamMemberNwa; id: Nw
               </tbody>
             </table>
           </div>
+          {has(m.leaderNotes.kpis) && <Field label="Leader note" value={m.leaderNotes.kpis} />}
           <Field label="Key focus metrics" value={p.keyFocusMetrics} />
           <Field label="Individual commitment" value={p.individualCommitment} />
         </div>
@@ -246,6 +258,8 @@ function SectionBody({ m, id, reviewWeek, planWeek }: { m: TeamMemberNwa; id: Nw
           <Field label="Resources required" value={p.challenges.resourcesRequired} />
         </div>
       );
+    case 'updates':
+      return <Field label="Leader note" value={m.leaderNotes.updates} />;
     case 'commitments':
       return (
         <ul className="space-y-1.5">
@@ -265,28 +279,49 @@ function SectionBody({ m, id, reviewWeek, planWeek }: { m: TeamMemberNwa; id: Nw
  * Business updates are team-wide, so they are shown once (passed in by the NWA form).
  */
 export function NwaTeamOverview({
-  planWeek, reviewWeek, excludeUserId, businessUpdates, businessUpdatesComplete,
+  planWeek, reviewWeek, excludeUserId, businessUpdates, businessUpdatesComplete, teamNotes, live = true,
 }: {
   planWeek: string;
   reviewWeek: string;
   excludeUserId?: string;
   businessUpdates: React.ReactNode;
   businessUpdatesComplete?: boolean;
+  /** Team-wide leader notes (pipeline / KPI focus) for the plan week. */
+  teamNotes?: NwaLeaderNotes;
+  /** Current week: open plans follow live CRM data and current targets. */
+  live?: boolean;
 }) {
   const db = useFirestore();
   const { isLeader } = useAuth();
   const { teamUsers, isLoading: usersLoading } = useTeamUsers();
+  const { pipelineReviews } = usePipelineData();
   const [hidden, setHidden] = useState<Set<string>>(new Set());
 
-  // Rules: leaders (isAdmin) may read every weeklyCommitments doc. The view is only rendered for leaders.
+  // Rules: leaders (isAdmin) may read every weeklyCommitments, twiwSubmissions, crmActivities and
+  // nwaLeaderNotes doc. The view is only rendered for leaders. Equality filters only (no composite index).
+  const historyWeeks = useMemo(() => recentWeeks(reviewWeek, ON_TIME_WEEKS, getPreviousWeekKey), [reviewWeek]);
   const q = useMemoFirebase(
-    () => (db && isLeader ? query(collection(db, 'weeklyCommitments'), where('week', 'in', [planWeek, reviewWeek])) : null),
-    [db, isLeader, planWeek, reviewWeek],
+    () => (db && isLeader ? query(collection(db, 'weeklyCommitments'), where('week', 'in', Array.from(new Set([planWeek, ...historyWeeks])))) : null),
+    [db, isLeader, planWeek, historyWeeks],
   );
   const { data: docs, isLoading: docsLoading } = useCollection<any>(q);
+  const twtwQ = useMemoFirebase(() => (db && isLeader ? query(collection(db, 'twiwSubmissions'), where('week', '==', reviewWeek)) : null), [db, isLeader, reviewWeek]);
+  const { data: twtwDocs } = useCollection<any>(twtwQ);
+  const crmQ = useMemoFirebase(() => (db && isLeader ? query(collection(db, 'crmActivities'), where('type', '==', 'APP'), where('week', '==', planWeek)) : null), [db, isLeader, planWeek]);
+  const { data: crmActs } = useCollection<any>(crmQ);
+  const notesQ = useMemoFirebase(() => (db && isLeader ? query(collection(db, 'nwaLeaderNotes'), where('week', '==', planWeek)) : null), [db, isLeader, planWeek]);
+  const { data: leaderNotes } = useCollection<any>(notesQ);
+  const targetsRef = useMemoFirebase(() => (db ? docRef(db, 'appSettings', 'nwaKpiTargets') : null), [db]);
+  const { data: teamTargets } = useDoc<any>(targetsRef);
+  const globalRef = useMemoFirebase(() => (db ? docRef(db, 'appSettings', 'global') : null), [db]);
+  const { data: globalSettings } = useDoc<any>(globalRef);
+  const latestUpload = latestCrmUploadMs(globalSettings?.lastCrmSync, crmActs || []);
 
   const users = useMemo(() => teamUsers.filter(u => u.id !== excludeUserId), [teamUsers, excludeUserId]);
-  const members = useMemo(() => buildTeamMembers(users, docs || [], planWeek, reviewWeek), [users, docs, planWeek, reviewWeek]);
+  const members = useMemo(() => buildTeamMembers(users, docs || [], planWeek, reviewWeek, {
+    twtwDocs: twtwDocs || [], crmActivities: crmActs || [], deals: pipelineReviews || [], leaderNotes: leaderNotes || [],
+    teamTargets: teamTargets ?? null, live, historyWeeks,
+  }), [users, docs, planWeek, reviewWeek, twtwDocs, crmActs, pipelineReviews, leaderNotes, teamTargets, live, historyWeeks]);
   const visible = members.filter(m => !hidden.has(m.user.id));
   const submittedCount = members.filter(m => isSubmittedStatus(m.status)).length;
 
@@ -298,6 +333,7 @@ export function NwaTeamOverview({
 
   const sectionDone = (id: NwaSectionId): boolean => {
     if (id === 'updates') return !!businessUpdatesComplete;
+    if (id === 'challenges') return false;
     const relevant = visible.filter(m => id !== 'accounts' || isAmRole(m.user.role));
     return relevant.length > 0 && relevant.every(m => !m.legacy && sectionComplete(m.plan, id, m.user.role));
   };
@@ -313,7 +349,18 @@ export function NwaTeamOverview({
   }
   if (!members.length) return <EmptyHint>No BDMs or account managers found for the team.</EmptyHint>;
 
-  const renderPeople = (id: NwaSectionId | 'review', emptyText: string) => {
+  const upload = latestUpload ? formatPerth(latestUpload, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : null;
+  const emptyTextFor = (id: NwaSectionId): React.ReactNode => {
+    switch (id) {
+      case 'accounts': return 'No account health items this week.';
+      case 'wins': return <>No TWTWs for week {weekNo(reviewWeek)} yet for the people shown. <button type="button" className="font-semibold text-accent underline" onClick={openTwtw}>Open TWTW</button></>;
+      case 'appointments': return `No appointments in the Salesforce upload for ${weekRangeLabel(planWeek)}. ${upload ? `Latest upload: ${upload} (Perth).` : 'No Salesforce upload found yet.'}`;
+      case 'pipeline': return 'Nothing in the latest CRM upload for the people shown.';
+      default: return 'Nothing entered yet for the people shown.';
+    }
+  };
+
+  const renderPeople = (id: NwaSectionId | 'review', emptyText: React.ReactNode) => {
     const withContent = visible.filter(m => memberHasContent(m, id) && (id !== 'accounts' || isAmRole(m.user.role) || memberHasContent(m, 'accounts')));
     if (!withContent.length) return <EmptyHint>{emptyText}</EmptyHint>;
     return (
@@ -332,7 +379,7 @@ export function NwaTeamOverview({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-foreground">Whole team · week {weekNo(planWeek)}</h2>
-            <p className="text-sm text-muted-foreground">{submittedCount} of {members.length} submitted. Tap a person to show or hide their items. Choose someone in the team list to edit their TWA or add a manager note.</p>
+            <p className="text-sm text-muted-foreground">{submittedCount} of {members.length} submitted{members.some(m => m.late) ? ` (${members.filter(m => m.late).length} late)` : ''}. On-time rate covers the last {ON_TIME_WEEKS} weeks. Tap a person to show or hide their items. Choose someone in the team list to edit their TWA or add a manager note.</p>
           </div>
           <div className="flex gap-2 text-xs">
             <button type="button" className="rounded-full border border-border px-3 py-1 font-medium hover:bg-surface-2" onClick={() => setHidden(new Set())}>Show all</button>
@@ -357,6 +404,11 @@ export function NwaTeamOverview({
                 <span className="font-semibold">{m.user.name}</span>
                 <span className="text-xs opacity-80">{isAmRole(m.user.role) ? 'AM' : 'BDM'}</span>
                 <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', st.cls)}>{st.label}</span>
+                {m.onTime && (
+                  <span className="text-[11px] font-medium opacity-80" title={`Last ${m.onTime.total} weeks: ${m.onTime.onTime} on time, ${m.onTime.late} late, ${m.onTime.missed} not submitted`}>
+                    {m.onTime.pct}% on time
+                  </span>
+                )}
               </button>
             );
           })}
@@ -378,9 +430,13 @@ export function NwaTeamOverview({
 
       {TEAM_SECTIONS.map(s => (
         <SectionCard key={s.id} id={anchor(s.id)} section={s} complete={sectionDone(s.id)}>
-          {s.id === 'updates'
-            ? businessUpdates
-            : renderPeople(s.id, s.id === 'accounts' ? 'No account health items this week.' : 'Nothing entered yet for the people shown.')}
+          {(s.id === 'pipeline' || s.id === 'kpis') && <LeaderNotesView field={s.id} team={teamNotes} />}
+          {s.id === 'updates' ? (
+            <>
+              {businessUpdates}
+              {visible.some(m => memberHasContent(m, 'updates')) && renderPeople('updates', '')}
+            </>
+          ) : renderPeople(s.id, emptyTextFor(s.id))}
         </SectionCard>
       ))}
     </div>

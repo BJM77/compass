@@ -15,6 +15,8 @@ export interface UnifiedTeamUser {
   linkedIds: string[];
   /** Admin-set colour for the whole-team NWA view (users/{uid}.nwaColor, a palette id). */
   nwaColor?: string;
+  /** Leader-set weekly KPI targets for this person (users/{uid}.nwaKpiTargets); blank keys use the team target. */
+  nwaKpiTargets?: Record<string, number>;
 }
 
 /**
@@ -57,6 +59,7 @@ export function useTeamUsers(): { teamUsers: UnifiedTeamUser[]; isLoading: boole
           target: u.target || u.revenueTarget || 1000000,
           linkedIds: [u.id],
           ...(typeof u.nwaColor === 'string' && u.nwaColor ? { nwaColor: u.nwaColor } : {}),
+          ...(u.nwaKpiTargets && typeof u.nwaKpiTargets === 'object' ? { nwaKpiTargets: u.nwaKpiTargets } : {}),
         });
       } else {
         const existing = userMap.get(normName)!;

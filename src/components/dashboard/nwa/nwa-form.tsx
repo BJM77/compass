@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import {
-  AlertTriangle, ArrowRight, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, FileClock, History, Lock, Megaphone, Plus, Save, Send, Sparkles, Target, Trash2, Users,
+  AlertTriangle, ArrowRight, ChevronDown, ChevronLeft, ChevronRight, FileClock, History, Lock, Plus, Save, Send, Trash2, Users,
 } from 'lucide-react';
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
@@ -18,19 +18,21 @@ import { Progress } from '@/components/ui/progress';
 import { cn, formatEAV, getNextWeekKey, getPreviousWeekKey } from '@/lib/utils';
 import { formatPerth } from '@/lib/time-mgmt';
 import {
-  KPI_TARGET_KEYS, NWA_ACCOUNTS_OPTIONAL, NWA_MEETING_MINUTES, PIPELINE_GROUPS, STALL_DAYS,
-  type KpiTargetSource, type NwaAppointment, type NwaBusinessUpdates, type NwaCommitment, type NwaDealRow, type NwaKpiTargets, type NwaPlan,
-  type NwaSectionId, type PipelineKey,
-  accountOptions, accountSignals, buildNwaPayload, businessUpdatesDocId, callPlanToAppointment, carryForwardAccounts, closedWonLines,
-  computeActuals, dealToRow, emptyDealRow, emptyNwaPlan, followThroughScore, followThroughTrend, hasBusinessUpdates, isAmRole,
-  isLegacyFridayDoc, isSubmittedStatus, kpiDefsFor, kpiRoleGroup, latestDeals, legacyFridaySnapshot, mapStoredNwa, mergeCommitmentReview,
-  nwaDueAt, nwaDueState, nwaId, nwaMeetingAt, nwaSectionsFor, pipelineSuggestions, previousCommitmentsFrom, resolveBusinessUpdates,
-  resolveKpiTargets, sectionComplete, signalToAtRiskRow, averageScore,
+  NWA_ACCOUNTS_OPTIONAL, NWA_MEETING_MINUTES, PIPELINE_GROUPS, STALL_DAYS,
+  type KpiTargetSource, type NwaBusinessUpdates, type NwaCommitment, type NwaKpiTargets, type NwaLeaderNotes, type NwaPlan,
+  type NwaSectionId,
+  accountOptions, accountSignals, applyAutoSections, buildNwaPayload, businessUpdatesDocId, carryForwardAccounts, closedWonLines,
+  computeActuals, crmAppointmentsForWeek, emptyLeaderNotes, emptyNwaPlan, followThroughScore, followThroughTrend, hasBusinessUpdates, isAmRole,
+  isLegacyFridayDoc, isSubmittedStatus, kpiDefsFor, latestCrmUploadMs, latestDeals, leaderNotesDocId, legacyFridaySnapshot, mapLeaderNotes,
+  mapStoredNwa, mergeCommitmentReview, nwaDueAt, nwaDueState, nwaId, nwaMeetingAt, nwaSectionsFor, pipelineSuggestions, previousCommitmentsFrom,
+  requiredProgress, resolveBusinessUpdates, resolveKpiTargets, sectionComplete, signalToAtRiskRow, averageScore, teamLeaderNotes,
 } from '@/lib/nwa';
 import {
   AgendaBar, NWA_SCROLL_MT, DueChip, EmptyHint, FieldLabel, FollowThroughBars, OutcomeToggle, ScoreChip, SectionCard, StatTile, SubHeading, TimeChip,
 } from './nwa-ui';
 import { LegacyFridaySummary } from './nwa-legacy';
+import { AppointmentsView, BusinessUpdatesView, DealRowsView, LeaderNotesView, WinsView } from './nwa-readonly';
+import { NwaLeaderPanel } from './nwa-leader-panel';
 import { AccountMgmtEditor, HandoverEditor } from './nwa-accounts';
 import { NwaTeamOverview } from './nwa-team-overview';
 
@@ -85,12 +87,16 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
   const [history, setHistory] = useState<any[]>([]);
   const [progress, setProgress] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<'draft' | 'submit' | 'note' | 'updates' | null>(null);
+  const [saving, setSaving] = useState<'draft' | 'submit' | 'note' | null>(null);
   const [dirty, setDirty] = useState(false);
   const [managerNote, setManagerNote] = useState('');
-  const prefilled = useRef({ wins: false, appts: false, atRisk: false });
+  const prefilled = useRef({ atRisk: false });
+  // Auto-filled sources: the rep's TWTW for reviewWeek, Salesforce APP activities for planWeek, leader notes.
+  const [twtwDoc, setTwtwDoc] = useState<any>(null);
+  const [crmActs, setCrmActs] = useState<any[]>([]);
+  const [lastCrmSync, setLastCrmSync] = useState<any>(null);
+  const [personNotes, setPersonNotes] = useState<NwaLeaderNotes>(emptyLeaderNotes());
   const [targetSource, setTargetSource] = useState<Record<keyof NwaKpiTargets, KpiTargetSource> | null>(null);
-  const [teamTargetsDoc, setTeamTargetsDoc] = useState<any>(null);
   // Legacy Friday FW doc being converted to an NWA (snapshot of the original fields, kept on save).
   const [legacyConversion, setLegacyConversion] = useState<Record<string, any> | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
@@ -118,15 +124,20 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     if (!db || !activeUserId) return;
     let cancelled = false;
     setLoading(true);
-    prefilled.current = { wins: false, appts: false, atRisk: false };
+    prefilled.current = { atRisk: false };
     setLegacyConversion(null);
     setShowOriginal(false);
     (async () => {
       // Target sources are optional: a missing doc or a permissions error falls back to defaults.
       const safeGet = (path: [string, string]) => getDoc(doc(db, path[0], path[1])).then(d => (d.exists() ? d.data() : null)).catch(() => null);
       try {
-        const [userDoc, statsDoc, teamTargets] = await Promise.all([
+        const [userDoc, statsDoc, teamTargets, globalSettings, leaderNotes, crm] = await Promise.all([
           safeGet(['users', activeUserId]), safeGet(['bdmStats', activeUserId]), safeGet(['appSettings', 'nwaKpiTargets']),
+          safeGet(['appSettings', 'global']), safeGet(['nwaLeaderNotes', leaderNotesDocId(activeUserId, planWeek)]),
+          // Salesforce upload: this person's activities tagged with the plan week (rules need the userId filter).
+          getDocs(query(collection(db, 'crmActivities'), where('userId', '==', activeUserId), where('week', '==', planWeek)))
+            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })))
+            .catch(() => [] as any[]),
         ]);
         const [planSnap, prevSnap, histSnap, twtwSnap, progSnap] = await Promise.all([
           getDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${planWeek}`)),
@@ -150,8 +161,14 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
           twtwActions.slice(0, 3).forEach((t: string, i: number) => { fresh.topPriorities[i] = t; });
           return fresh;
         })();
-        setTargetSource(data ? null : resolved.source);
-        setTeamTargetsDoc(teamTargets);
+        // Targets are leader-maintained: a plan that is still open follows the current person / team targets.
+        const targetsLive = !data || (!isSubmittedStatus(data.status) && planWeek >= currentPlanWeek);
+        if (targetsLive) mapped.kpiTargets = resolved.targets;
+        setTargetSource(targetsLive ? resolved.source : null);
+        setTwtwDoc(twtw || null);
+        setCrmActs(crm);
+        setLastCrmSync(globalSettings?.lastCrmSync ?? null);
+        setPersonNotes(mapLeaderNotes(leaderNotes));
         mapped.commitmentReview = mergeCommitmentReview(mapped.commitmentReview, previousCommitmentsFrom(prev));
         setStored(data);
         setPrevDoc(prev);
@@ -167,16 +184,14 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
       }
     })();
     return () => { cancelled = true; };
-  }, [db, activeUserId, activeRole, planWeek, reviewWeek, toast]);
+  }, [db, activeUserId, activeRole, planWeek, reviewWeek, currentPlanWeek, toast]);
 
   // ─── CRM and call plan data ────────────────────────────────────────────────
   const deals = useMemo(() => latestDeals((pipelineReviews || []).filter((d: any) => d.userId === activeUserId)), [pipelineReviews, activeUserId]);
   const suggestions = useMemo(() => pipelineSuggestions(deals, reviewWeek), [deals, reviewWeek]);
   const activity = useMemo(() => (weeklyProgresses || []).filter((p: any) => p.userId === activeUserId && p.week === reviewWeek), [weeklyProgresses, activeUserId, reviewWeek]);
 
-  const planCallPlansQ = useMemoFirebase(() => (db && activeUserId ? query(collection(db, 'callPlans'), where('userId', '==', activeUserId), where('week', '==', planWeek)) : null), [db, activeUserId, planWeek]);
   const reviewCallPlansQ = useMemoFirebase(() => (db && activeUserId ? query(collection(db, 'callPlans'), where('userId', '==', activeUserId), where('week', '==', reviewWeek)) : null), [db, activeUserId, reviewWeek]);
-  const { data: planCallPlans } = useCollection<any>(planCallPlansQ);
   const { data: reviewCallPlans } = useCollection<any>(reviewCallPlansQ);
 
   const actuals = useMemo(() => computeActuals({
@@ -191,17 +206,9 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
   }, [teamUsers, activeUserId, activeUserName]);
   const lastTargets = useMemo(() => (prevDoc ? mapStoredNwa(prevDoc, activeRole).kpiTargets : null), [prevDoc, activeRole]);
 
-  // Pre-fill a new plan: closed won deals into wins, call plans into appointments.
+  // Pre-fill a new plan (wins, appointments and pipeline are auto-filled below, never typed).
   useEffect(() => {
     if (loading || stored || readOnly) return;
-    if (!prefilled.current.wins && suggestions.closedWon.length) {
-      prefilled.current.wins = true;
-      setPlan(p => (p.wins.closedOpportunities ? p : { ...p, wins: { ...p.wins, closedOpportunities: closedWonLines(suggestions.closedWon) } }));
-    }
-    if (!prefilled.current.appts && planCallPlans?.length) {
-      prefilled.current.appts = true;
-      setPlan(p => (p.appointments.length ? p : { ...p, appointments: planCallPlans.map(callPlanToAppointment) }));
-    }
     // Account managers: CRM-flagged at-risk accounts (top 5) on a new plan.
     if (isAm && !prefilled.current.atRisk && signals.length) {
       prefilled.current.atRisk = true;
@@ -211,7 +218,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         return add.length ? { ...p, accounts: { ...p.accounts, atRisk: [...p.accounts.atRisk, ...add] } } : p;
       });
     }
-  }, [loading, stored, readOnly, suggestions.closedWon, planCallPlans, isAm, signals]);
+  }, [loading, stored, readOnly, isAm, signals]);
 
   // ─── Business updates (leader-owned, team-wide) ────────────────────────────
   // One doc per week (appSettings/nwaBusinessUpdates_{week}); the old shared doc's byWeek map is the fallback.
@@ -220,26 +227,8 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
   const { data: updatesDoc } = useDoc<any>(updatesRef);
   const { data: legacyUpdatesDoc } = useDoc<any>(legacyUpdatesRef);
   const savedUpdates = useMemo(() => resolveBusinessUpdates(updatesDoc, legacyUpdatesDoc, planWeek), [updatesDoc, legacyUpdatesDoc, planWeek]);
-  const [updatesDraft, setUpdatesDraft] = useState<NwaBusinessUpdates>(savedUpdates);
-  const [editingUpdates, setEditingUpdates] = useState(false);
-  useEffect(() => { if (!editingUpdates) setUpdatesDraft(savedUpdates); }, [savedUpdates, editingUpdates]);
-
-  const saveUpdates = async () => {
-    if (!db || !isLeader) return;
-    setSaving('updates');
-    try {
-      const { updatedBy: _b, updatedAt: _a, ...fields } = updatesDraft;
-      await setDoc(doc(db, 'appSettings', businessUpdatesDocId(planWeek)), {
-        ...fields, week: planWeek, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp(),
-      }, { merge: true });
-      setEditingUpdates(false);
-      toast({ title: 'Business updates saved', description: `Everyone will see them on the week ${weekNo(planWeek)} TWA.` });
-    } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Couldn’t save updates', description: err?.message || 'Only leaders can edit business updates.' });
-    } finally {
-      setSaving(null);
-    }
-  };
+  // Team-wide leader sections live on the same per-week doc (teamPipeline / teamKpis).
+  const teamNotes = useMemo(() => teamLeaderNotes(updatesDoc), [updatesDoc]);
 
   // ─── Derived ───────────────────────────────────────────────────────────────
   const dueState = nwaDueState(planWeek, status);
@@ -252,8 +241,19 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     return followThroughTrend(docs);
   }, [history, planWeek, plan.commitmentReview]);
   const avgScore = averageScore(trend);
-  const completeIds = sections.filter(s => sectionComplete(plan, s.id, activeRole)).map(s => s.id);
-  const completePct = Math.round((completeIds.length / sections.length) * 100);
+  // The plan as shown, saved and counted: wins from the TWTW, appointments from Salesforce, pipeline from CRM.
+  const liveWeek = !submitted && !isPastWeek;
+  const crmAppointments = useMemo(() => crmAppointmentsForWeek(crmActs, planWeek, [activeUserId]), [crmActs, planWeek, activeUserId]);
+  const closedWonText = useMemo(() => closedWonLines(suggestions.closedWon), [suggestions.closedWon]);
+  const auto = useMemo(() => applyAutoSections(plan, {
+    twtw: twtwDoc, closedWonText, crmAppointments, suggestions, live: liveWeek && !readOnly,
+  }), [plan, twtwDoc, closedWonText, crmAppointments, suggestions, liveWeek, readOnly]);
+  const view = auto.plan;
+  const latestUpload = useMemo(() => latestCrmUploadMs(lastCrmSync, crmActs), [lastCrmSync, crmActs]);
+  const completeIds = sections.filter(s => sectionComplete(view, s.id, activeRole)).map(s => s.id);
+  // Progress and submit count only what reps fill in: shout-out, top 3 priorities and commitments.
+  const required = requiredProgress(view, activeRole);
+  const completePct = required.pct;
   const hasAccountData = plan.accounts.atRisk.length + plan.accounts.renewals.length + plan.accounts.growth.length > 0;
   const lastTargetFor = (k: keyof NwaKpiTargets) => (lastTargets ? lastTargets[k] : 0);
 
@@ -267,29 +267,12 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     toast({ title: 'Started a TWA from the Friday FW', description: 'The original is kept and stays viewable. Save a draft to keep the conversion.' });
   };
 
-  const saveTeamTargets = async () => {
-    if (!db || !isLeader) return;
-    const group = kpiRoleGroup(activeRole);
-    const keys = kpiDefs.map(k => k.target);
-    const values = Object.fromEntries(KPI_TARGET_KEYS.filter(k => keys.includes(k)).map(k => [k, Number(plan.kpiTargets[k]) || 0]));
-    try {
-      await setDoc(doc(db, 'appSettings', 'nwaKpiTargets'), {
-        byRole: { [group]: { ...values, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp() } },
-      }, { merge: true });
-      setTeamTargetsDoc((d: any) => ({ ...(d || {}), byRole: { ...(d?.byRole || {}), [group]: values } }));
-      toast({ title: `${group} team targets saved`, description: 'New TWAs for this role start with these targets unless a person has their own.' });
-    } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Couldn’t save team targets', description: err?.message || 'Only leaders can set team targets.' });
-    }
-  };
-
   // ─── Save / submit ─────────────────────────────────────────────────────────
   const persist = async (mode: 'draft' | 'submit') => {
     if (!db || !activeUserId) return;
     if (mode === 'submit') {
-      const missing = sections.filter(s => s.id !== 'updates' && !sectionComplete(plan, s.id, activeRole));
-      if (missing.some(s => s.id === 'priorities' || s.id === 'commitments')) {
-        toast({ variant: 'destructive', title: 'Almost there', description: 'Add your top 3 priorities and at least one commitment before submitting.' });
+      if (required.missing.length) {
+        toast({ variant: 'destructive', title: 'Almost there', description: `Complete ${required.missing.map(m => m.title).join(', ')} before submitting.` });
         return;
       }
     }
@@ -302,7 +285,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         userName: activeUserName,
         week: planWeek,
         reviewWeek,
-        ...buildNwaPayload(plan, { kpiActuals: actuals, role: activeRole }),
+        ...buildNwaPayload(view, { kpiActuals: actuals, role: activeRole }),
         ...(legacyConversion && !stored?.legacyFriday ? { legacyFriday: legacyConversion, convertedFromLegacyAt: serverTimestamp(), convertedFromLegacyBy: profile?.name || user?.email || activeUserName } : {}),
         status: nextStatus,
         dueAt: dueAt ?? null,
@@ -311,19 +294,19 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         ...(!stored ? { createdAt: serverTimestamp() } : {}),
       }, { merge: true });
       if (mode === 'submit') {
-        const c = plan.challenges;
+        const c = view.challenges;
         await setDoc(doc(db, 'weeklyReports', `${activeUserId}_${reviewWeek}`), {
           userId: activeUserId,
           userName: activeUserName,
           week: reviewWeek,
           nwaSubmitted: true,
           nwaFormVersion: 'NWA_V2',
-          weeklyNotes: [plan.wins.customerWins, plan.wins.positiveFeedback].filter(Boolean).join('\n'),
+          weeklyNotes: [view.wins.customerWins, view.wins.positiveFeedback].filter(Boolean).join('\n'),
           roadblocks: [c.slowingProgress, c.customerIssues, c.internalIssues].filter(Boolean).join('\n'),
           supportNeeded: c.resourcesRequired,
           summary: {
             totalEAV: suggestions.progressing.reduce((s, d) => s + (Number(d.value) || 0), 0) + actuals.revenue,
-            newOpportunitiesCount: plan.pipeline.created.filter(r => r.account.trim()).length,
+            newOpportunitiesCount: view.pipeline.created.filter(r => r.account.trim()).length,
             signedPaperworkCount: actuals.deals,
             newBusinessCount: actuals.deals,
             callsMade: actuals.calls,
@@ -337,7 +320,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         }, { merge: true });
       }
       setStored((s: any) => ({
-        ...(s || {}), ...buildNwaPayload(plan, { kpiActuals: actuals, role: activeRole }), status: nextStatus, formVersion: 'NWA_V2',
+        ...(s || {}), ...buildNwaPayload(view, { kpiActuals: actuals, role: activeRole }), status: nextStatus, formVersion: 'NWA_V2',
         ...(legacyConversion && !s?.legacyFriday ? { legacyFriday: legacyConversion } : {}),
       }));
       setLegacyConversion(null);
@@ -373,20 +356,6 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     }
   };
 
-  // ─── Row helpers ────────────────────────────────────────────────────────────
-  const setDealRows = (key: PipelineKey, rows: NwaDealRow[]) => update(p => ({ ...p, pipeline: { ...p.pipeline, [key]: rows } }));
-  const addDeals = (key: PipelineKey, ds: any[]) => update(p => {
-    const have = new Set(Object.values(p.pipeline).flat().map(r => r.crmId).filter(Boolean));
-    const rows = ds.filter(d => !have.has(d.id)).map(d => dealToRow(d));
-    return rows.length ? { ...p, pipeline: { ...p.pipeline, [key]: [...p.pipeline[key], ...rows] } } : p;
-  });
-  const usedCrmIds = new Set(Object.values(plan.pipeline).flat().map(r => r.crmId).filter(Boolean) as string[]);
-  const suggestionFor: Record<PipelineKey, any[]> = {
-    progressing: suggestions.progressing,
-    stalled: suggestions.stalled,
-    created: suggestions.created,
-    handedOver: [],
-  };
   const teammateNames = useMemo(() => teamUsers.map(u => u.name).filter(n => n && n !== activeUserName), [teamUsers, activeUserName]);
 
   const teamView = isLeader && selectedRepId === userId && teamMode;
@@ -394,21 +363,11 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     { anchorId: 'nwa-review', title: 'Last week’s commitments' },
     ...sections.map(s => ({ anchorId: `nwa-${s.id}`, step: s.step, title: s.title, minutes: s.minutes, complete: completeIds.includes(s.id) })),
   ];
-  const updatesActions = isLeader && !editingUpdates
-    ? <Button variant="outline" size="sm" onClick={() => setEditingUpdates(true)}><Megaphone className="mr-1.5 h-4 w-4" />Edit</Button>
-    : undefined;
-  const businessUpdatesBody = editingUpdates ? (
-    <div className="space-y-4">
-      <BusinessUpdateFields value={updatesDraft} onChange={setUpdatesDraft} />
-      <div className="flex gap-2">
-        <Button onClick={saveUpdates} disabled={saving === 'updates'}>{saving === 'updates' ? 'Saving…' : 'Save for everyone'}</Button>
-        <Button variant="ghost" onClick={() => { setEditingUpdates(false); setUpdatesDraft(savedUpdates); }}>Cancel</Button>
-      </div>
-    </div>
-  ) : hasBusinessUpdates(savedUpdates) ? (
+  const leaderEditHint = isLeader ? 'Leaders edit this once for the week under Whole team → Leader inputs.' : 'Your leader hasn’t posted updates for this week yet.';
+  const businessUpdatesBody = hasBusinessUpdates(savedUpdates) ? (
     <BusinessUpdatesView value={savedUpdates} />
   ) : (
-    <EmptyHint>{isLeader ? 'No updates yet. Add them once and everyone sees them read-only.' : 'Your leader hasn’t posted updates for this week yet.'}</EmptyHint>
+    <EmptyHint>{isLeader ? 'No updates yet. Add them under Whole team → Leader inputs; everyone sees them read-only.' : leaderEditHint}</EmptyHint>
   );
 
   if (!activeUserId) return null;
@@ -460,8 +419,8 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
           )}
           {!teamView && (
             <div className="ml-auto flex min-w-[180px] items-center gap-3">
-              <Progress value={completePct} className="h-2 w-32" aria-label="Sections complete" />
-              <span className="text-xs font-medium text-muted-foreground">{completeIds.length} of {sections.length} sections</span>
+              <Progress value={completePct} className="h-2 w-32" aria-label="Required sections complete" />
+              <span className="text-xs font-medium text-muted-foreground">{required.done.length} of {required.total} required sections</span>
             </div>
           )}
         </div>
@@ -474,13 +433,18 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
       </div>
 
       {teamView ? (
+        <div className="space-y-6">
+        <NwaLeaderPanel planWeek={planWeek} updatesDoc={updatesDoc} savedUpdates={savedUpdates} />
         <NwaTeamOverview
           planWeek={planWeek}
           reviewWeek={reviewWeek}
           excludeUserId={userId}
           businessUpdates={businessUpdatesBody}
           businessUpdatesComplete={hasBusinessUpdates(savedUpdates)}
+          teamNotes={teamNotes}
+          live={!isPastWeek}
         />
+        </div>
       ) : loading ? (
         <div className="space-y-4">{[0, 1, 2].map(i => <div key={i} className="h-40 animate-pulse rounded-2xl bg-surface-2/60" />)}</div>
       ) : legacy ? (
@@ -549,112 +513,58 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
               </div>
             </section>
 
-            {/* 1. Wins */}
+            {/* Wins (auto, from the TWTW) */}
             <SectionCard section={sec('wins')} complete={completeIds.includes('wins')}>
-              <div className="grid gap-4 md:grid-cols-2">
-                {([
-                  ['customerWins', 'Customer wins', 'What went well with customers?'],
-                  ['closedOpportunities', 'Closed opportunities', 'Pre-filled from CRM closed won deals'],
-                  ['positiveFeedback', 'Positive feedback', 'Quotes or feedback worth sharing'],
-                  ['teamRecognition', 'Team recognition', 'Who helped you get there?'],
-                ] as const).map(([key, label, hint]) => (
-                  <div key={key} className="space-y-2">
-                    <FieldLabel htmlFor={`win-${key}`} hint={hint}>{label}</FieldLabel>
-                    <Textarea id={`win-${key}`} rows={3} disabled={readOnly} value={plan.wins[key]} onChange={e => update(p => ({ ...p, wins: { ...p.wins, [key]: e.target.value } }))} />
-                  </div>
-                ))}
-              </div>
-              {suggestions.closedWon.length > 0 && !readOnly && (
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <Sparkles className="h-3.5 w-3.5 text-accent" /> {suggestions.closedWon.length} closed won in CRM for week {weekNo(reviewWeek)}
-                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => update(p => ({ ...p, wins: { ...p.wins, closedOpportunities: closedWonLines(suggestions.closedWon) } }))}>Refresh from CRM</Button>
+              <WinsView wins={view.wins} source={auto.winsSource} reviewWeek={reviewWeek} showTwtwLink={isOwn} />
+            </SectionCard>
+
+            {/* Shout out (required) */}
+            <SectionCard section={sec('shoutout')} complete={completeIds.includes('shoutout')}>
+              <div className="grid gap-3 md:grid-cols-[220px_minmax(0,1fr)]">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="nwa-shout-who">Teammate</FieldLabel>
+                  <Input id="nwa-shout-who" list="nwa-teammates" placeholder="Who?" disabled={readOnly} value={plan.wins.shoutOut.teammate} onChange={e => update(p => ({ ...p, wins: { ...p.wins, shoutOut: { ...p.wins.shoutOut, teammate: e.target.value } } }))} />
                 </div>
-              )}
-              <div className="rounded-xl border border-gold/40 bg-gold/10 p-4">
-                <SubHeading hint="Call out a teammate in the meeting.">Shout-out</SubHeading>
-                <div className="mt-3 grid gap-3 md:grid-cols-[220px_minmax(0,1fr)]">
-                  <Input list="nwa-teammates" placeholder="Teammate" disabled={readOnly} value={plan.wins.shoutOut.teammate} onChange={e => update(p => ({ ...p, wins: { ...p.wins, shoutOut: { ...p.wins.shoutOut, teammate: e.target.value } } }))} />
-                  <Input placeholder="What for?" disabled={readOnly} value={plan.wins.shoutOut.reason} onChange={e => update(p => ({ ...p, wins: { ...p.wins, shoutOut: { ...p.wins.shoutOut, reason: e.target.value } } }))} />
-                  <datalist id="nwa-teammates">{teammateNames.map(n => <option key={n} value={n} />)}</datalist>
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="nwa-shout-why">What for?</FieldLabel>
+                  <Input id="nwa-shout-why" placeholder="One line is enough" disabled={readOnly} value={plan.wins.shoutOut.reason} onChange={e => update(p => ({ ...p, wins: { ...p.wins, shoutOut: { ...p.wins.shoutOut, reason: e.target.value } } }))} />
                 </div>
+                <datalist id="nwa-teammates">{teammateNames.map(n => <option key={n} value={n} />)}</datalist>
               </div>
             </SectionCard>
 
-            {/* 2. Appointments */}
-            <SectionCard
-              section={sec('appointments')}
-              complete={completeIds.includes('appointments')}
-              actions={!readOnly && (planCallPlans?.length || 0) > 0 ? (
-                <Button variant="outline" size="sm" onClick={() => update(p => {
-                  const have = new Set(p.appointments.map(a => a.customer.toLowerCase()));
-                  const add = (planCallPlans || []).map(callPlanToAppointment).filter(a => a.customer && !have.has(a.customer.toLowerCase()));
-                  return { ...p, appointments: [...p.appointments, ...add] };
-                })}><CalendarDays className="mr-1.5 h-4 w-4" />Add from call plans</Button>
-              ) : undefined}
-            >
-              {plan.appointments.length === 0 && <EmptyHint>No appointments yet. Call plans for week {weekNo(planWeek)} appear here automatically.</EmptyHint>}
-              <div className="space-y-3">
-                {plan.appointments.map((a, i) => (
-                  <AppointmentRow key={a.id} a={a} readOnly={readOnly}
-                    onChange={next => update(p => ({ ...p, appointments: p.appointments.map((x, j) => (j === i ? next : x)) }))}
-                    onRemove={() => update(p => ({ ...p, appointments: p.appointments.filter((_, j) => j !== i) }))} />
-                ))}
-              </div>
-              {!readOnly && (
-                <Button variant="outline" size="sm" onClick={() => update(p => ({ ...p, appointments: [...p.appointments, { id: nwaId('appt'), customer: '', date: '', meetingType: 'Face to face', purpose: '', desiredOutcome: '', supportRequired: '', source: 'manual' }] }))}>
-                  <Plus className="mr-1.5 h-4 w-4" />Add appointment
-                </Button>
-              )}
+            {/* Appointments (auto, from the Salesforce upload) */}
+            <SectionCard section={sec('appointments')} complete={completeIds.includes('appointments')}>
+              <AppointmentsView appointments={view.appointments} planWeek={planWeek} latestUploadMs={latestUpload} />
             </SectionCard>
 
-            {/* 3. Pipeline */}
+            {/* Pipeline (auto, from CRM; leader notes) */}
             <SectionCard section={sec('pipeline')} complete={completeIds.includes('pipeline')}>
-              {PIPELINE_GROUPS.filter(g => g.key !== 'handedOver').map(g => {
-                const rows = plan.pipeline[g.key];
-                const avail = suggestionFor[g.key].filter(d => !usedCrmIds.has(d.id));
-                return (
-                  <div key={g.key} className="space-y-3">
-                    <SubHeading
-                      hint={g.hint}
-                      right={g.key === 'stalled' && suggestions.stalled.length > 0 ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning-ink">
-                          <AlertTriangle className="h-3.5 w-3.5" />{suggestions.stalled.length} flagged in CRM
-                        </span>
-                      ) : undefined}
-                    >{g.title}</SubHeading>
-                    {rows.map((r, i) => (
-                      <DealRowEditor key={r.id} row={r} notePlaceholder={g.notePlaceholder} readOnly={readOnly} stalled={g.key === 'stalled'}
-                        onChange={next => setDealRows(g.key, rows.map((x, j) => (j === i ? next : x)))}
-                        onRemove={() => setDealRows(g.key, rows.filter((_, j) => j !== i))} />
-                    ))}
-                    {!readOnly && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setDealRows(g.key, [...rows, emptyDealRow()])}><Plus className="mr-1.5 h-4 w-4" />Add</Button>
-                        {avail.length > 0 && (
-                          <>
-                            {g.key === 'stalled' && avail.length > 1 && (
-                              <Button variant="secondary" size="sm" onClick={() => addDeals('stalled', avail)}>Add all {avail.length} flagged</Button>
-                            )}
-                            {avail.slice(0, 6).map(d => (
-                              <button key={d.id} type="button" onClick={() => addDeals(g.key, [d])}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2/50 px-3 py-1 text-xs font-medium text-foreground hover:bg-surface-2">
-                                <Plus className="h-3 w-3" />{d.opportunityName || d.pipeline}
-                                {Number(d.value) > 0 && <span className="text-muted-foreground">{formatEAV(Number(d.value))}</span>}
-                              </button>
-                            ))}
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              <div className="space-y-3">
-                <SubHeading hint={PIPELINE_GROUPS.find(g => g.key === 'handedOver')?.hint || 'Accounts moving to or from a teammate.'}>Accounts handed over</SubHeading>
-                <HandoverEditor value={plan.accounts.handovers} readOnly={readOnly} options={acctOptions} people={people}
-                  defaultFrom={{ id: activeUserId, name: activeUserName }}
-                  onChange={rows => update(p => ({ ...p, accounts: { ...p.accounts, handovers: rows } }))} />
-              </div>
+              <LeaderNotesView field="pipeline" team={teamNotes} person={personNotes} personName={isOwn ? undefined : activeUserName} />
+              {PIPELINE_GROUPS.filter(g => g.key !== 'handedOver').map(g => (
+                <div key={g.key} className="space-y-3">
+                  <SubHeading
+                    hint={g.hint}
+                    right={g.key === 'stalled' && suggestions.stalled.length > 0 ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning-ink">
+                        <AlertTriangle className="h-3.5 w-3.5" />{suggestions.stalled.length} flagged in CRM
+                      </span>
+                    ) : undefined}
+                  >{g.title}</SubHeading>
+                  <DealRowsView rows={view.pipeline[g.key]} empty="Nothing in the latest CRM upload." />
+                </div>
+              ))}
+              {(view.accounts.handovers.length > 0 || view.pipeline.handedOver.some(r => r.account.trim())) && (
+                <div className="space-y-3">
+                  <SubHeading hint="Recorded on an earlier version of this form.">Accounts handed over</SubHeading>
+                  <DealRowsView rows={view.pipeline.handedOver} />
+                  {view.accounts.handovers.length > 0 && (
+                    <HandoverEditor value={view.accounts.handovers} readOnly options={acctOptions} people={people}
+                      defaultFrom={{ id: activeUserId, name: activeUserName }} onChange={() => undefined} />
+                  )}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">From the latest CRM pipeline upload. Leaders add pipeline and handover notes once a week under Whole team → Leader inputs.</p>
             </SectionCard>
 
             {/* Account management: an agenda item for account managers, optional for BDMs */}
@@ -703,10 +613,8 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
                               </div>
                             )}
                           </td>
-                          <td className="py-2">
-                            <Input type="number" min={0} inputMode="numeric" className="h-9 w-32" disabled={readOnly} aria-label={`${k.label} target`}
-                              value={plan.kpiTargets[k.target] || ''}
-                              onChange={e => update(p => ({ ...p, kpiTargets: { ...p.kpiTargets, [k.target]: Number(e.target.value) || 0 } }))} />
+                          <td className="py-3 tabular-nums font-semibold text-foreground">
+                            {plan.kpiTargets[k.target] ? (k.currency ? money(plan.kpiTargets[k.target] || 0) : plan.kpiTargets[k.target]) : '–'}
                           </td>
                         </tr>
                       );
@@ -720,23 +628,16 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
                     ? <>Actuals come from CRM activity and meetings for week {weekNo(reviewWeek)}; renewals and revenue retained count rows marked agreed or saved above.</>
                     : <>Actuals come from CRM activity, call plans and closed won deals for week {weekNo(reviewWeek)}.</>}
                   {targetSource && <> Targets: {Array.from(new Set(kpiDefs.map(k => TARGET_SOURCE_LABEL[targetSource[k.target]]))).join(', ')}.</>}
+                  {' '}Targets are set by your leader.
                 </p>
-                {isLeader && !readOnly && (
-                  <Button variant="outline" size="sm" onClick={saveTeamTargets} title={teamTargetsDoc?.byRole?.[kpiRoleGroup(activeRole)] ? 'Replaces the current team targets' : undefined}>
-                    <Target className="mr-1.5 h-4 w-4" />Save as {kpiRoleGroup(activeRole)} team targets
-                  </Button>
-                )}
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <FieldLabel htmlFor="nwa-focus" hint="The one or two numbers that matter most this week.">Key focus metrics</FieldLabel>
-                  <Textarea id="nwa-focus" rows={2} disabled={readOnly} value={plan.keyFocusMetrics} onChange={e => update(p => ({ ...p, keyFocusMetrics: e.target.value }))} />
+              <LeaderNotesView field="kpis" team={teamNotes} person={personNotes} personName={isOwn ? undefined : activeUserName} />
+              {(plan.keyFocusMetrics.trim() || plan.individualCommitment.trim()) && (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {plan.keyFocusMetrics.trim() && <div className="rounded-xl bg-surface-2/50 p-3"><p className="text-sm font-semibold text-foreground">Key focus metrics</p><p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{plan.keyFocusMetrics}</p></div>}
+                  {plan.individualCommitment.trim() && <div className="rounded-xl bg-surface-2/50 p-3"><p className="text-sm font-semibold text-foreground">Individual commitment</p><p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{plan.individualCommitment}</p></div>}
                 </div>
-                <div className="space-y-2">
-                  <FieldLabel htmlFor="nwa-indiv" hint="What you personally commit to hitting.">Individual commitment</FieldLabel>
-                  <Textarea id="nwa-indiv" rows={2} disabled={readOnly} value={plan.individualCommitment} onChange={e => update(p => ({ ...p, individualCommitment: e.target.value }))} />
-                </div>
-              </div>
+              )}
             </SectionCard>
 
             {/* 5. Priorities */}
@@ -774,8 +675,9 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
             </SectionCard>
 
             {/* 7. Business updates */}
-            <SectionCard section={sec('updates')} actions={updatesActions}>
+            <SectionCard section={sec('updates')} complete={completeIds.includes('updates')}>
               {businessUpdatesBody}
+              <LeaderNotesView field="updates" team={teamNotes} person={personNotes} personName={isOwn ? undefined : activeUserName} />
             </SectionCard>
 
             {/* 8. Commitments */}
@@ -817,7 +719,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <StatTile label="Stalled deals" value={suggestions.stalled.length} sub={`${STALL_DAYS}+ days, no movement`} tone={suggestions.stalled.length ? 'warn' : 'good'} />
               <StatTile label="Closed won" value={suggestions.closedWon.length} sub={money(actuals.revenue)} tone={suggestions.closedWon.length ? 'good' : 'default'} />
-              <StatTile label="Appointments booked" value={plan.appointments.filter(a => a.customer).length} sub={`Week ${weekNo(planWeek)}`} />
+              <StatTile label="Appointments booked" value={view.appointments.filter(a => a.customer).length} sub={`Week ${weekNo(planWeek)}`} />
               <StatTile label="Follow-through" value={avgScore === null ? '–' : `${avgScore}%`} sub={`Last ${trend.length} weeks`} tone={avgScore === null ? 'default' : avgScore >= 80 ? 'good' : avgScore >= 50 ? 'warn' : 'bad'} />
             </div>
           </div>
@@ -848,53 +750,6 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
-function AppointmentRow({ a, readOnly, onChange, onRemove }: { a: NwaAppointment; readOnly: boolean; onChange: (a: NwaAppointment) => void; onRemove: () => void }) {
-  const set = (patch: Partial<NwaAppointment>) => onChange({ ...a, ...patch });
-  return (
-    <div className="rounded-xl border border-border p-4">
-      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_160px_auto]">
-        <Input aria-label="Customer" placeholder="Customer" disabled={readOnly} value={a.customer} onChange={e => set({ customer: e.target.value })} />
-        <Input aria-label="Date" type="date" disabled={readOnly} value={a.date} onChange={e => set({ date: e.target.value })} />
-        <Input aria-label="Meeting type" placeholder="Meeting type" disabled={readOnly} value={a.meetingType} onChange={e => set({ meetingType: e.target.value })} />
-        <div className="flex items-center justify-end gap-2">
-          {a.source === 'callPlan' && <span className="rounded-full bg-info-soft px-2 py-0.5 text-xs font-medium text-info">Call plan</span>}
-          {!readOnly && <Button variant="ghost" size="icon" aria-label="Remove appointment" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>}
-        </div>
-      </div>
-      <div className="mt-3 grid gap-3 md:grid-cols-3">
-        <Textarea rows={2} aria-label="Why we’re meeting" placeholder="Why we’re meeting" disabled={readOnly} value={a.purpose} onChange={e => set({ purpose: e.target.value })} />
-        <Textarea rows={2} aria-label="Desired outcome" placeholder="Desired outcome" disabled={readOnly} value={a.desiredOutcome} onChange={e => set({ desiredOutcome: e.target.value })} />
-        <Textarea rows={2} aria-label="Support required" placeholder="Support required" disabled={readOnly} value={a.supportRequired} onChange={e => set({ supportRequired: e.target.value })} />
-      </div>
-    </div>
-  );
-}
-
-function DealRowEditor({ row, notePlaceholder, readOnly, stalled, onChange, onRemove }: {
-  row: NwaDealRow; notePlaceholder: string; readOnly: boolean; stalled: boolean; onChange: (r: NwaDealRow) => void; onRemove: () => void;
-}) {
-  const set = (patch: Partial<NwaDealRow>) => onChange({ ...row, ...patch });
-  return (
-    <div className={cn('rounded-xl border p-3', row.autoFlagged ? 'border-warning/50 bg-warning-soft/30' : 'border-border')}>
-      <div className="grid gap-2 md:grid-cols-[minmax(0,1.4fr)_120px_minmax(0,1.2fr)_150px_auto]">
-        <Input aria-label="Account" placeholder="Account / opportunity" disabled={readOnly} value={row.account} onChange={e => set({ account: e.target.value })} />
-        <Input aria-label="Value" type="number" min={0} placeholder="Value $" disabled={readOnly} value={row.value || ''} onChange={e => set({ value: Number(e.target.value) || 0 })} />
-        <Input aria-label="Next step" placeholder="Next step" disabled={readOnly} value={row.nextStep} onChange={e => set({ nextStep: e.target.value })} />
-        <Input aria-label="Next step date" type="date" disabled={readOnly} value={row.nextStepDate} onChange={e => set({ nextStepDate: e.target.value })} />
-        {!readOnly ? <Button variant="ghost" size="icon" aria-label="Remove" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button> : <span />}
-      </div>
-      <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center">
-        <Input aria-label={notePlaceholder} placeholder={notePlaceholder} disabled={readOnly} value={row.note} onChange={e => set({ note: e.target.value })} className={cn(stalled && !row.note && 'border-warning/60')} />
-        {typeof row.daysWithoutMovement === 'number' && (
-          <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold', row.autoFlagged ? 'bg-warning-soft text-warning-ink' : 'bg-surface-2 text-muted-foreground')}>
-            {row.daysWithoutMovement} days without movement
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function CommitmentRow({ c, readOnly, defaultOwner, onChange, onRemove }: { c: NwaCommitment; readOnly: boolean; defaultOwner: string; onChange: (c: NwaCommitment) => void; onRemove: () => void }) {
   return (
     <div className="grid gap-2 rounded-xl border border-border p-3 md:grid-cols-[minmax(0,1fr)_180px_160px_auto]">
@@ -906,37 +761,4 @@ function CommitmentRow({ c, readOnly, defaultOwner, onChange, onRemove }: { c: N
   );
 }
 
-const UPDATE_FIELDS: { key: 'pricingChanges' | 'productUpdates' | 'competitorActivity' | 'other'; label: string }[] = [
-  { key: 'pricingChanges', label: 'Pricing changes' },
-  { key: 'productUpdates', label: 'Product updates' },
-  { key: 'competitorActivity', label: 'Competitor activity' },
-  { key: 'other', label: 'Other' },
-];
-
-function BusinessUpdateFields({ value, onChange }: { value: NwaBusinessUpdates; onChange: (v: NwaBusinessUpdates) => void }) {
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {UPDATE_FIELDS.map(f => (
-        <div key={f.key} className="space-y-2">
-          <FieldLabel htmlFor={`bu-${f.key}`}>{f.label}</FieldLabel>
-          <Textarea id={`bu-${f.key}`} rows={3} value={value[f.key]} onChange={e => onChange({ ...value, [f.key]: e.target.value })} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function BusinessUpdatesView({ value, large }: { value: NwaBusinessUpdates; large?: boolean }) {
-  return (
-    <div className={cn('grid gap-4', large ? 'md:grid-cols-2' : 'md:grid-cols-2')}>
-      {UPDATE_FIELDS.filter(f => value[f.key]?.trim()).map(f => (
-        <div key={f.key} className="rounded-xl bg-surface-2/50 p-4">
-          <p className={cn('font-semibold text-foreground', large ? 'text-base' : 'text-sm')}>{f.label}</p>
-          <p className={cn('mt-1 whitespace-pre-wrap text-muted-foreground', large ? 'text-lg' : 'text-sm')}>{value[f.key]}</p>
-        </div>
-      ))}
-      {value.updatedBy && <p className="text-xs text-muted-foreground md:col-span-2">Posted by {value.updatedBy}</p>}
-    </div>
-  );
-}
-
+export { BusinessUpdatesView } from './nwa-readonly';

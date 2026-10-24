@@ -3,8 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { CommitmentOutcome, NwaDueState, NwaSectionDef } from '@/lib/nwa';
-import { NWA_DUE_LABEL } from '@/lib/nwa';
+import type { CommitmentOutcome, NwaDueState, NwaSectionDef, NwaSectionEntry } from '@/lib/nwa';
+import { NWA_DUE_LABEL, NWA_ENTRY_LABEL } from '@/lib/nwa';
 
 /** Suggested time for an agenda item. */
 export function TimeChip({ minutes, className }: { minutes: number; className?: string }) {
@@ -25,6 +25,18 @@ export function FieldLabel({ htmlFor, children, hint }: { htmlFor?: string; chil
   );
 }
 
+const ENTRY_TONE: Record<NwaSectionEntry, string> = {
+  required: 'bg-cta/15 text-cta',
+  optional: 'bg-surface-2 text-muted-foreground',
+  auto: 'bg-info-soft text-info',
+  leader: 'bg-accent/15 text-accent',
+};
+
+/** Who fills a section in: Required / Optional / Auto-filled / Leader. */
+export function EntryBadge({ entry }: { entry: NwaSectionEntry }) {
+  return <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', ENTRY_TONE[entry])}>{NWA_ENTRY_LABEL[entry]}</span>;
+}
+
 /** Numbered agenda card with title, description and time chip. */
 export function SectionCard({
   section, complete, children, actions, id, collapsed,
@@ -40,7 +52,10 @@ export function SectionCard({
             {complete ? <CheckCircle2 className="h-4 w-4" aria-label="Complete" /> : section.step || <Circle className="h-4 w-4" aria-label="Optional" />}
           </span>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-foreground">{section.title}</h2>
+            <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold text-foreground">
+              {section.title}
+              {section.entry && <EntryBadge entry={section.entry} />}
+            </h2>
             <p className="text-sm text-muted-foreground">{section.description}</p>
           </div>
         </div>

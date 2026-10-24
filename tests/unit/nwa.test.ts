@@ -10,8 +10,8 @@ import { getWeekForDate, getNextWeekKey } from '@/lib/utils';
 
 describe('NWA agenda', () => {
   test('sections follow the 45-minute agenda', () => {
-    expect(NWA_SECTIONS.map(s => s.id)).toEqual(['wins', 'appointments', 'pipeline', 'kpis', 'priorities', 'challenges', 'updates', 'commitments']);
-    expect(NWA_SECTIONS.map(s => s.minutes)).toEqual([5, 8, 10, 5, 5, 5, 4, 3]);
+    expect(NWA_SECTIONS.map(s => s.id)).toEqual(['wins', 'shoutout', 'appointments', 'pipeline', 'kpis', 'priorities', 'challenges', 'updates', 'commitments']);
+    expect(NWA_SECTIONS.map(s => s.minutes)).toEqual([4, 2, 8, 9, 5, 5, 5, 4, 3]);
     expect(NWA_SECTIONS.reduce((s, x) => s + x.minutes, 0)).toBe(NWA_MEETING_MINUTES);
   });
 });

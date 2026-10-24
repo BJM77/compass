@@ -10,9 +10,9 @@ import { getCurrentWeek, getNwaReviewWeek, getPerthWeekKey, getWeekForDate } fro
 
 describe('role-based sections', () => {
   test('AM agenda adds account management and still fits 45 minutes', () => {
-    expect(NWA_SECTIONS_AM.map(s => s.id)).toEqual(['wins', 'appointments', 'pipeline', 'accounts', 'kpis', 'priorities', 'challenges', 'updates', 'commitments']);
+    expect(NWA_SECTIONS_AM.map(s => s.id)).toEqual(['wins', 'shoutout', 'appointments', 'pipeline', 'accounts', 'kpis', 'priorities', 'challenges', 'updates', 'commitments']);
     expect(NWA_SECTIONS_AM.reduce((t, s) => t + s.minutes, 0)).toBe(NWA_MEETING_MINUTES);
-    expect(NWA_SECTIONS_AM.map(s => s.step)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(NWA_SECTIONS_AM.map(s => s.step)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
   test('sections by role', () => {
     expect(isAmRole('ACCOUNT_MANAGER')).toBe(true);
