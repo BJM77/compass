@@ -9,15 +9,19 @@ import {
 
 export const CATCH_UP_MS = 72 * 60 * 60 * 1000;
 
-/** Config for TWTW / Friday FW nudges (see README in functions/). */
+/** Config for TWTW / NWA (Next Week's Activity: due Sunday 8pm, Monday meeting) nudges (see README in functions/). */
 export type NudgeConfig = {
   twtwEnabled: boolean;
   /** 0=Sun … 4=Thu. TWTW is the "Thursday TWTW" in the app. */
   twtwDueWeekday: number;
   twtwHour: number;
   fwEnabled: boolean;
+  /** Overdue nudge: Monday morning, before the NWA meeting. */
   fwWeekday: number;
   fwHour: number;
+  /** Reminder the evening the NWA is due (Sunday 8pm Perth). */
+  fwDueWeekday: number;
+  fwDueHour: number;
 };
 
 export const DEFAULT_NUDGE_CONFIG: NudgeConfig = {
@@ -25,9 +29,19 @@ export const DEFAULT_NUDGE_CONFIG: NudgeConfig = {
   twtwDueWeekday: 4,
   twtwHour: 13,
   fwEnabled: true,
-  fwWeekday: 5,
-  fwHour: 11,
+  /** NWA is due Sunday 8pm and reviewed in the Monday meeting: overdue nudge 7am Monday Perth. */
+  fwWeekday: 1,
+  fwHour: 7,
+  /**
+   * "NWA due 8pm tonight" reminder from 4pm Sunday Perth, stopping before 7pm (FW_DUE_CUTOFF_HOUR).
+   * It is the one nudge exempt from the weekdaysOnly preference; the user's allowed hours still apply.
+   */
+  fwDueWeekday: 0,
+  fwDueHour: 16,
 };
+
+/** The Sunday NWA reminder is not sent from this hour (Perth): an hour before the 8pm due time. */
+export const FW_DUE_CUTOFF_HOUR = 19;
 
 export const DIGEST_HOUR = 8;
 /** Digests/nudges not sent by this hour on the day are dropped (stale). */
@@ -42,10 +56,13 @@ function hm(s: string, fallback: number): number {
   return m ? +m[1] * 60 + +m[2] : fallback;
 }
 
-/** True if `now` falls inside the user's allowed (non-quiet) window. */
-export function withinAllowedWindow(prefs: NotificationPrefs, now: number): boolean {
+/**
+ * True if `now` falls inside the user's allowed (non-quiet) window.
+ * ignoreWeekdaysOnly: used only for the Sunday "NWA due tonight" reminder.
+ */
+export function withinAllowedWindow(prefs: NotificationPrefs, now: number, opts: { ignoreWeekdaysOnly?: boolean } = {}): boolean {
   const p = perthParts(now);
-  if (prefs.weekdaysOnly && (p.weekday === 0 || p.weekday === 6)) return false;
+  if (prefs.weekdaysOnly && !opts.ignoreWeekdaysOnly && (p.weekday === 0 || p.weekday === 6)) return false;
   const mins = p.hour * 60 + p.minute;
   const start = hm(prefs.allowedStart, 7 * 60);
   const end = hm(prefs.allowedEnd, 18 * 60);
@@ -72,6 +89,21 @@ export function perthWeekKey(now: number): string {
 export function perthDateKey(now: number): string {
   const p = perthParts(now);
   return `${p.year}${String(p.month).padStart(2, '0')}${String(p.day).padStart(2, '0')}`;
+}
+
+/**
+ * What may be sent to this user right now: everything, only the Sunday NWA due reminder
+ * (weekend, weekdaysOnly on, inside allowed hours), or nothing.
+ */
+export function notificationGate(prefs: NotificationPrefs, now: number): 'all' | 'fwDueOnly' | 'none' {
+  if (!prefs.enabled) return 'none';
+  if (withinAllowedWindow(prefs, now)) return 'all';
+  if (withinAllowedWindow(prefs, now, { ignoreWeekdaysOnly: true })) return 'fwDueOnly';
+  return 'none';
+}
+
+export function isFwDueKey(key: string): boolean {
+  return key.startsWith('fw_due_');
 }
 
 export type PendingNotification = {
@@ -142,14 +174,36 @@ export const TWTW_ROLES = ['BDM', 'ACCOUNT_MANAGER', 'AM', 'GUEST'];
 export const FW_ROLES = ['BDM', 'ACCOUNT_MANAGER', 'AM'];
 
 /** Which deadline nudges are in their window right now (submission checks happen in index.ts). */
-export function deadlineWindows(role: string, prefs: NotificationPrefs, cfg: NudgeConfig, now: number): { twtw: boolean; fw: boolean } {
-  if (!prefs.deadlineNudges) return { twtw: false, fw: false };
+export function deadlineWindows(role: string, prefs: NotificationPrefs, cfg: NudgeConfig, now: number): { twtw: boolean; fw: boolean; fwDue: boolean } {
+  if (!prefs.deadlineNudges) return { twtw: false, fw: false, fwDue: false };
   const p = perthParts(now);
   const inWin = (wd: number, h: number) => p.weekday === wd && p.hour >= h && p.hour < SAME_DAY_CUTOFF_HOUR;
   return {
     twtw: cfg.twtwEnabled && TWTW_ROLES.includes(role) && inWin(cfg.twtwDueWeekday, cfg.twtwHour),
     fw: cfg.fwEnabled && FW_ROLES.includes(role) && inWin(cfg.fwWeekday, cfg.fwHour),
+    fwDue: cfg.fwEnabled && FW_ROLES.includes(role)
+      && p.weekday === cfg.fwDueWeekday && p.hour >= cfg.fwDueHour && p.hour < Math.min(FW_DUE_CUTOFF_HOUR, SAME_DAY_CUTOFF_HOUR + 1),
   };
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * NWA week keys for a deadline nudge. The NWA submitted on Sunday/Monday plans the week starting
+ * that Monday (weeklyCommitments/{uid}_{planWeek}) and reviews the week just finished
+ * (weeklyReports/{uid}_{reviewWeek}).
+ */
+export function nwaWeeks(now: number): { planWeek: string; reviewWeek: string } {
+  const p = perthParts(now);
+  if (p.weekday === 0) return { planWeek: perthWeekKey(now + DAY_MS), reviewWeek: perthWeekKey(now) };
+  return { planWeek: perthWeekKey(now), reviewWeek: perthWeekKey(now - 7 * DAY_MS) };
+}
+
+export const NWA_SUBMITTED_STATUSES = ['SUBMITTED', 'REVIEWED_BY_ADMIN'];
+
+/** True if the NWA counts as submitted: the plan doc is submitted/reviewed, or the legacy weekly report has submittedAt. */
+export function nwaSubmitted(planStatus: unknown, reportSubmittedAt: unknown): boolean {
+  return NWA_SUBMITTED_STATUSES.includes(String(planStatus || '')) || !!reportSubmittedAt;
 }
 
 /** Tomorrow 9am Perth. */

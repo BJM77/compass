@@ -34,6 +34,7 @@ const TWIWView = dynamic(() => import('@/components/dashboard/twiw-view').then(m
 const DemoDashView = dynamic(() => import('@/components/dashboard/demo-dash-view').then(m => m.DemoDashView), { loading: () => <ViewSkeleton /> });
 const SystemBroadcast = dynamic(() => import('@/components/dashboard/system-broadcast').then(m => m.SystemBroadcast), { loading: () => <ViewSkeleton /> });
 const FridayPerformanceReview = dynamic(() => import('@/components/dashboard/friday-performance-review').then(m => m.FridayPerformanceReview), { loading: () => <ViewSkeleton /> });
+const NwaTeamMeeting = dynamic(() => import('@/components/dashboard/nwa/nwa-team-meeting').then(m => m.NwaTeamMeeting), { loading: () => <ViewSkeleton /> });
 const PlaybookView = dynamic(() => import('@/components/dashboard/playbook-view').then(m => m.PlaybookView), { loading: () => <ViewSkeleton /> });
 const ActualSpendView = dynamic(() => import('@/components/dashboard/actual-spend-view').then(m => m.ActualSpendView), { loading: () => <ViewSkeleton /> });
 const StrategicRepository = dynamic(() => import('@/components/dashboard/strategic-repository').then(m => m.StrategicRepository), { loading: () => <ViewSkeleton /> });
@@ -71,7 +72,7 @@ import { useRouter } from 'next/navigation';
 import { collection, getDocs, doc } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { getCurrentWeek } from '@/lib/utils';
+import { getCurrentWeek, getNwaReviewWeek } from '@/lib/utils';
 import { PipelineProvider, usePipelineData } from '@/contexts/pipeline-context';
 import { NavigationProvider, useNavigation } from '@/contexts/navigation-context';
 import { getNavigationForUser, findGroupIdForView, DEFAULT_COLLAPSED_GROUPS, DashboardView } from '@/lib/navigation';
@@ -163,7 +164,8 @@ function DashboardContent() {
     if (activeView === 'OPS_REPORT') return <div className="w-full p-4 md:p-8"><OpsReportForm /></div>;
     if (activeView === 'OPS_REVIEW' && isLeader) return <div className="w-full p-4 md:p-8"><OpsReviewLedger /></div>;
     if (activeView === 'TWIW') return <div className="w-full p-4 md:p-8"><TWIWView userId={activeUserId || ''} isLeader={isLeader} /></div>;
-    if (activeView === 'FRIDAY_FW') return <div className="w-full p-4 md:p-8"><FridayPerformanceReview userId={activeUserId || ''} userName={profile?.name || ''} userRole={profile?.role || 'BDM'} userState={profile?.state || 'WA'} selectedWeek={getCurrentWeek()} /></div>;
+    if (activeView === 'FRIDAY_FW') return <div className="w-full p-4 md:p-8"><FridayPerformanceReview userId={activeUserId || ''} userName={profile?.name || ''} userRole={profile?.role || 'BDM'} userState={profile?.state || 'WA'} selectedWeek={getNwaReviewWeek()} /></div>;
+    if (activeView === 'NWA_MEETING' && isLeader) return <div className="w-full p-4 md:p-8"><NwaTeamMeeting /></div>;
     if (activeView === 'DEMO_DASH') return <div className="w-full p-4 md:p-8"><DemoDashView /></div>;
     if (activeView === 'BROADCAST' && isLeader) return <div className="w-full p-4 md:p-8 max-w-xl mx-auto"><SystemBroadcast /></div>;
     if (activeView === 'STRATEGIC_REPOSITORY' && isLeader) return <div className="w-full p-4 md:p-8"><StrategicRepository /></div>;

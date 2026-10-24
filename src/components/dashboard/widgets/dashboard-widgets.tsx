@@ -10,8 +10,9 @@ import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { useTeamUsers } from '@/hooks/use-team-users';
 import { useVerticalDismissals } from '@/hooks/use-vertical-dismissals';
 import { Badge } from '@/components/ui/badge';
-import { cn, formatEAV, getCurrentWeek, getNextWeekKey } from '@/lib/utils';
+import { cn, formatEAV, getCurrentWeek, getNextWeekKey, getNwaReviewWeek } from '@/lib/utils';
 import { computeMomentum } from '@/lib/momentum';
+import { nwaDueState, NWA_DUE_LABEL } from '@/lib/nwa';
 import { mergeContinuousPlans, formatPerth, type Task } from '@/lib/time-mgmt';
 import { VERTICALS, tsMs, type VerticalProspect } from '@/lib/verticals';
 import { WA_SUGGESTED_PROSPECTS } from '@/data/wa-suggested-prospects';
@@ -109,13 +110,16 @@ export function WeeklyRhythmWidget() {
   const { userId } = useWidgetContext();
   const db = useFirestore();
   const currentWeek = getCurrentWeek();
-  const nextWeek = getNextWeekKey(currentWeek);
+  const nextWeek = getNextWeekKey(getNwaReviewWeek());
   const twtwRef = useMemoFirebase(() => (db && userId ? doc(db, 'twiwSubmissions', `${userId}_${currentWeek}`) : null), [db, userId, currentWeek]);
   const fwRef = useMemoFirebase(() => (db && userId ? doc(db, 'weeklyCommitments', `${userId}_${nextWeek}`) : null), [db, userId, nextWeek]);
   const { data: twtw } = useDoc<any>(twtwRef);
   const { data: fw } = useDoc<any>(fwRef);
   const twtwStatus = twtw?.status || 'NOT_STARTED';
   const fwStatus = fw?.status || 'NOT_STARTED';
+  const fwDue = nwaDueState(nextWeek, fwStatus);
+  const fwLabel = fwDue === 'submitted' ? (fwStatus === 'REVIEWED_BY_ADMIN' ? 'Reviewed' : 'Done') : fwDue === 'overdue' ? 'Overdue' : fwStatus === 'DRAFT' ? 'Draft · due Sun 8pm' : NWA_DUE_LABEL;
+  const fwTone = fwDue === 'submitted' ? 'bg-success-fill/25' : fwDue === 'overdue' ? 'bg-destructive/30' : fwStatus === 'DRAFT' || fwDue === 'due_soon' ? 'bg-warning/30' : 'bg-panel-foreground/15';
 
   return (
     <div className="space-y-3">
@@ -133,17 +137,17 @@ export function WeeklyRhythmWidget() {
         <div className="rounded-2xl bg-panel text-panel-foreground p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <ListChecks className="w-4 h-4 text-warning" />
-            <p className="mt-2 text-xs font-semibold">Friday FW</p>
-            <p className="text-xs text-panel-foreground/60 font-medium">Next-week activity · Week {nextWeek.split('-')[1]}</p>
+            <p className="mt-2 text-xs font-semibold">Next Week's Activity (NWA)</p>
+            <p className="text-xs text-panel-foreground/60 font-medium">Monday review · Week {nextWeek.split('-')[1]}</p>
           </div>
-          <Badge className={cn('border-none font-bold text-xs uppercase shrink-0', fwStatus === 'SUBMITTED' ? 'bg-success-fill/25 text-panel-foreground' : fwStatus === 'DRAFT' ? 'bg-warning/30 text-panel-foreground' : 'bg-destructive/30 text-panel-foreground')}>
-            {fwStatus === 'SUBMITTED' ? 'Done' : fwStatus === 'DRAFT' ? 'Draft' : 'Due: Friday Morning'}
+          <Badge className={cn('border-none font-bold text-xs uppercase shrink-0 text-panel-foreground', fwTone)}>
+            {fwLabel}
           </Badge>
         </div>
       </div>
       <div className="flex flex-wrap gap-4">
         <WidgetLink view="TWIW">Open TWTW</WidgetLink>
-        <WidgetLink view="FRIDAY_FW">Open Friday FW</WidgetLink>
+        <WidgetLink view="FRIDAY_FW">Open NWA</WidgetLink>
       </div>
     </div>
   );
