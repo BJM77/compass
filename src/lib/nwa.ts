@@ -585,3 +585,28 @@ export function businessUpdatesFor(doc: any, planWeek: string): NwaBusinessUpdat
 export function hasBusinessUpdates(u: NwaBusinessUpdates): boolean {
   return !!(u.pricingChanges || u.productUpdates || u.competitorActivity || u.other).trim();
 }
+
+// ─── CRM / call plan adapters ───────────────────────────────────────────────
+/** pipelineReviews can hold one snapshot per week; keep the latest snapshot of each deal. */
+export function latestDeals(deals: any[]): any[] {
+  const byKey = new Map<string, any>();
+  for (const d of deals || []) {
+    const key = str(d?.salesforceId) || `${str(d?.pipeline)}|${str(d?.opportunityName)}` || str(d?.id);
+    const prev = byKey.get(key);
+    if (!prev || str(d?.week) > str(prev?.week)) byKey.set(key, d);
+  }
+  return Array.from(byKey.values());
+}
+
+export function callPlanToAppointment(cp: any): NwaAppointment {
+  return {
+    id: nwaId('appt'),
+    customer: str(cp?.customerName) || str(cp?.companyName) || str(cp?.accountName),
+    date: toDateInput(cp?.date ?? cp?.meetingDate),
+    meetingType: str(cp?.meetingType) || 'Face to face',
+    purpose: str(cp?.objective) || str(cp?.purpose),
+    desiredOutcome: str(cp?.desiredOutcome),
+    supportRequired: '',
+    source: 'callPlan',
+  };
+}

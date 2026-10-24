@@ -179,3 +179,21 @@ describe('backward compatibility', () => {
     expect(businessUpdatesFor(null, '2026-31').productUpdates).toBe('');
   });
 });
+
+describe('CRM adapters', () => {
+  test('latestDeals keeps the newest weekly snapshot', async () => {
+    const { latestDeals } = await import('@/lib/nwa');
+    const out = latestDeals([
+      { salesforceId: 'X', week: '2026-29', stage: 'Proposal' },
+      { salesforceId: 'X', week: '2026-30', stage: 'Negotiation' },
+      { pipeline: 'P', opportunityName: 'O', week: '2026-30' },
+    ]);
+    expect(out).toHaveLength(2);
+    expect(out.find(d => d.salesforceId === 'X').stage).toBe('Negotiation');
+  });
+  test('callPlanToAppointment maps call plan fields', async () => {
+    const { callPlanToAppointment } = await import('@/lib/nwa');
+    expect(callPlanToAppointment({ customerName: 'Acme', date: '2026-10-27', objective: 'Renewal' }))
+      .toMatchObject({ customer: 'Acme', date: '2026-10-27', purpose: 'Renewal', source: 'callPlan' });
+  });
+});
