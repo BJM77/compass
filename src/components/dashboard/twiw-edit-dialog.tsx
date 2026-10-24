@@ -15,7 +15,8 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TwiwSubmissionSchema, validateDocument } from '@/lib/schemas';
 
-const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
+// Parcel business units only. Older submissions may still carry 'Freight' in businessUnits; it is kept as saved.
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium'];
 
 export function TwiwEditDialog({ submission, open, onOpenChange }: { submission: any, open: boolean, onOpenChange: (open: boolean) => void }) {
   const db = useFirestore();

@@ -62,7 +62,8 @@ interface WinItem {
   isStarred?: boolean;
 }
 
-const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
+// Parcel business units only. Older submissions may still carry 'Freight' in businessUnits; it is kept as saved.
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium'];
 
 interface RiskItem {
   id: string;

@@ -54,7 +54,8 @@ interface WinItem {
   isStarred?: boolean;
 }
 
-const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium', 'Freight'];
+// Parcel business units only. Older submissions may still carry 'Freight' in businessUnits; it is kept as saved.
+const BUSINESS_UNITS = ['Road Express', 'Ecommerce', 'Priority B2B', 'Courier', 'Premium'];
 
 interface RiskItem {
   id: string;
@@ -508,7 +509,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
       { id: 'r1', account: 'GLOBAL CARRIERS', value: 80000, mitigation: 'Reviewing rates & negotiating spot discounts.', salespersonName: activeUserName }
     ]);
     setMajorUpdates([
-      { id: 'm1', customer: 'BHP Billiton', value: 340000, businessUnits: ['Freight'], updateText: 'Contract negotiations advanced.', salespersonName: activeUserName }
+      { id: 'm1', customer: 'BHP Billiton', value: 340000, businessUnits: ['Road Express'], updateText: 'Contract negotiations advanced.', salespersonName: activeUserName }
     ]);
     setProjectedWins([
       { id: 'p1', account: 'ZENITH MANUFACTURING', value: 280000, expectedDate: format(new Date(), 'dd-MM-yyyy'), updateText: 'Proposals finalized', salespersonName: activeUserName }
