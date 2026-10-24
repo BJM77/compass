@@ -526,6 +526,8 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 </p>
                 <p className="text-xs font-semibold text-primary mt-2 mb-1">{plan.accountName}</p>
                 <p className="text-xs text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
+                {plan.aboutThem && <p className="mt-1 text-xs text-muted-foreground line-clamp-2" title={plan.aboutThem}><span className="font-semibold text-foreground">About them:</span> {plan.aboutThem}</p>}
+                {plan.aboutUs && <p className="mt-1 text-xs text-muted-foreground line-clamp-2" title={plan.aboutUs}><span className="font-semibold text-foreground">About us:</span> {plan.aboutUs}</p>}
                 {isLeader && plan.userId && plan.userId !== 'TEAM_NODE' && (
                   <div className="flex items-center gap-1.5 mt-2">
                     <UserIcon className="w-3 h-3 text-accent" />
@@ -571,6 +573,8 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
                 </div>
                 <p className="text-xs font-semibold text-primary mt-2 mb-1">{plan.accountName}</p>
                 <p className="text-xs text-muted-foreground font-medium italic line-clamp-1">"{plan.objective}"</p>
+                {plan.aboutThem && <p className="mt-1 text-xs text-muted-foreground line-clamp-2" title={plan.aboutThem}><span className="font-semibold text-foreground">About them:</span> {plan.aboutThem}</p>}
+                {plan.aboutUs && <p className="mt-1 text-xs text-muted-foreground line-clamp-2" title={plan.aboutUs}><span className="font-semibold text-foreground">About us:</span> {plan.aboutUs}</p>}
                 <p className="text-xs text-muted-foreground font-bold mt-1">
                   {plan.createdAt?.toDate ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : ''}
                 </p>
