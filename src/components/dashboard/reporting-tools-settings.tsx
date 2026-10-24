@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LayoutDashboard, FileText, Database, Plus, Trash2, Edit2, Eye, Activity, Calculator, TableProperties } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export interface CustomDashboard {
   id: string;
@@ -143,7 +144,7 @@ export function ReportingToolsSettings({
                </div>
             ))}
             {!(dashboards?.length) && (
-              <div className="p-8 text-center text-xs text-muted-foreground font-bold uppercase">No dashboards yet.</div>
+              <EmptyState compact className="m-4" title="No dashboards yet" description="Dashboards you add will appear here." />
             )}
           </CardContent>
         </Card>

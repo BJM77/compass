@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 
 import type { ActualSpendRecord, PipelineReview, UserProfile, AccountMapping } from '@/types/crm';
 import { formatCurrency, getCurrentWeek } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export function AlignCustomer() {
   const db = useFirestore();
@@ -378,7 +379,7 @@ export function AlignCustomer() {
           ) : (
             <ScrollArea className="h-[75vh]">
               {filteredAccounts.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">No accounts found matching the criteria.</div>
+                <EmptyState title="No accounts found" description="No accounts match the current criteria." />
               ) : (
                 <div className="min-w-[800px] divide-y">
                   <div className="grid grid-cols-12 gap-4 p-4 text-xs font-semibold text-muted-foreground bg-secondary/60 sticky top-0 z-10">

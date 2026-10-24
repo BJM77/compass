@@ -36,6 +36,7 @@ import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { CRMSummaryPanel } from './crm-summary-panel';
 import { usePipelineData } from '@/contexts/pipeline-context';
 import { useReportDiagnostic } from '@/hooks/use-diagnostics';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface LeaderDashboardProps {
   onSimulate?: (userId: string) => void;
@@ -489,7 +490,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
                   ))}
                   {filteredRevRecords.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-12 font-bold text-muted-foreground">No matching records found.</TableCell>
+                      <TableCell colSpan={4} className="p-4"><EmptyState compact className="border-none" title="No matching records" description="Try a different search or filter." /></TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -543,7 +544,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
                   ))}
                   {filteredActivityRecords.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-12 font-bold text-muted-foreground">No matching activity data found.</TableCell>
+                      <TableCell colSpan={3} className="p-4"><EmptyState compact className="border-none" title="No matching activity" description="Try a different search or filter." /></TableCell>
                     </TableRow>
                   )}
                 </TableBody>

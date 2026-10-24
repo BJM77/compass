@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format, isSameDay } from 'date-fns';
 import { Search, Calendar, FileSearch, ArrowUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface FFNote {
   docId: string;
@@ -210,7 +211,7 @@ export function FFAdminHub() {
                 {isLoading ? (
                   <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Loading notes...</TableCell></TableRow>
                 ) : filteredAndSortedNotes.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-12 text-muted-foreground font-medium bg-secondary/30">No notes found matching your criteria.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="p-4"><EmptyState compact className="border-none" title="No notes found" description="No notes match your criteria." /></TableCell></TableRow>
                 ) : (
                   filteredAndSortedNotes.map((note, idx) => (
                     <TableRow key={idx} className="hover:bg-secondary/30 transition-colors">
