@@ -421,6 +421,7 @@ service cloud.firestore {
 
     // ─── Verticals prospects ─────────────────────────────────────────────────────
     // Staff read all. BDMs/admins source, claim, score, tag and convert.
+    // Leaders may assign an owner from BDMs or AMs; an AM owner works the lead like a BDM owner.
     // AMs read all and may only edit growth notes on leads routed to them.
     // Claims lapse after 30 days with no activity (lastActivityAt).
     function isBdm() { return myRole() == 'BDM'; }
@@ -494,6 +495,11 @@ service cloud.firestore {
         // Current owner (claim not lapsed), or any BDM on an unclaimed/lapsed prospect (incl. claiming it)
         || (isBdm()
             && (resource.data.get('ownerUid', null) == request.auth.uid || prospectOpenToMe())
+            && prospectOwnerOk())
+        // AM a leader assigned as owner (claim not lapsed): may work it or release it, never claim open ones
+        || (isAmRole()
+            && resource.data.get('ownerUid', null) == request.auth.uid
+            && !prospectClaimLapsed()
             && prospectOwnerOk())
         // Assigned AM: growth notes only
         || (isAmRole()

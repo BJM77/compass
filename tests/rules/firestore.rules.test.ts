@@ -356,6 +356,23 @@ describe('Verticals: verticalProspects', () => {
     await assertFails(updateDoc(doc(db(AM), 'verticalProspects', 'n'), { amNotes: 'x', lastActivityAt: serverTimestamp() }));
   });
 
+  test('AM assigned as owner by a leader can work and release it, not claim others', async () => {
+    await seed('ao', { ...base({ sfStatus: 'NOT_IN_SF' }), createdAt: daysAgo(2), lastActivityAt: daysAgo(1) });
+    await assertSucceeds(updateDoc(doc(db(LEADER), 'verticalProspects', 'ao'), { ownerUid: AM, ownerName: 'Amy', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
+    const r = doc(db(AM), 'verticalProspects', 'ao');
+    await assertSucceeds(updateDoc(r, { notes: 'Called ops manager', lastActivityAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(r, { scores: { frequency: true, freightFit: false, regionalNeed: false, carrierPain: false, growth: false }, score: 1, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(r, { ownerUid: BDM, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db(BDM), 'verticalProspects', 'ao'), { notes: 'hijack', lastActivityAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(r, { ownerUid: null, ownerName: null, claimedAt: null, lastActivityAt: serverTimestamp() }));
+    // Once released, the AM can't edit or re-claim it
+    await assertFails(updateDoc(r, { ownerUid: AM, lastActivityAt: serverTimestamp() }));
+    await assertFails(updateDoc(r, { notes: 'x', lastActivityAt: serverTimestamp() }));
+    // A lapsed AM-owned claim is no longer editable by that AM
+    await seed('al', { ...base({ sfStatus: 'NOT_IN_SF', ownerUid: AM, ownerName: 'Amy' }), claimedAt: daysAgo(40), createdAt: daysAgo(40), lastActivityAt: daysAgo(31) });
+    await assertFails(updateDoc(doc(db(AM), 'verticalProspects', 'al'), { notes: 'late', lastActivityAt: serverTimestamp() }));
+  });
+
   test('admins override/reassign; delete by owner or admin only', async () => {
     await seed('a', { ...base({ sfStatus: 'NOT_IN_SF', ownerUid: BDM }), createdAt: daysAgo(2), lastActivityAt: daysAgo(1) });
     await assertSucceeds(updateDoc(doc(db(GM), 'verticalProspects', 'a'), { ownerUid: BDM2, ownerName: 'Bob', claimedAt: serverTimestamp(), lastActivityAt: serverTimestamp() }));
