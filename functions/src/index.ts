@@ -3,7 +3,7 @@
  *
  *  - sendTimeNotifications (every 5 min, australia-southeast1): task reminders
  *    (15 min before / 8am morning-of / day before), snoozes, stale Do Now
- *    escalations, 8am daily digest, TWTW + NWA (Monday) deadline nudges, and
+ *    escalations, 8am daily digest, TWTW + NWA (due Sun 8pm, overdue Mon) nudges, and
  *    pushes for leader "Team Nudges" – all respecting each user's quiet hours.
  *  - notificationAction (HTTPS): Snooze 1h / Tomorrow / Mark done from a
  *    notification. Authenticated by a random, single-use, expiring action token
@@ -22,7 +22,7 @@ import { Task, NotificationPrefs, mergeContinuousPlans } from './shared/time-mgm
 import { runFuelRefresh, type DbLike, type FetchLike } from './shared/fuel-surcharges';
 import {
   PendingNotification, mergePrefs, withinAllowedWindow, taskNotifications, digestNotification,
-  deadlineWindows, perthWeekKey, applyAction, DEFAULT_NUDGE_CONFIG, NudgeConfig,
+  deadlineWindows, perthWeekKey, nwaWeeks, nwaSubmitted, applyAction, DEFAULT_NUDGE_CONFIG, NudgeConfig,
 } from './logic';
 
 initializeApp();
@@ -102,7 +102,7 @@ async function processUser(ctx: Ctx, uid: string, prefs: NotificationPrefs, cfg:
   if (digest) pending.push(digest);
 
   const win = deadlineWindows(role, prefs, cfg, now);
-  if (win.twtw || win.fw) {
+  if (win.twtw || win.fw || win.fwDue) {
     const week = perthWeekKey(now);
     if (win.twtw) {
       const s = await db.collection('twiwSubmissions').doc(`${uid}_${week}`).get();
@@ -110,12 +110,20 @@ async function processUser(ctx: Ctx, uid: string, prefs: NotificationPrefs, cfg:
         pending.push({ key: `twtw_${week}`, kind: 'twtw', title: 'TWTW due today', body: "Your TWTW for this week hasn't been submitted yet.", link: '/dashboard?view=TWIW' });
       }
     }
-    if (win.fw) {
-      // Monday NWA reviews the week just finished (weeklyReports keyed by that week).
-      const reviewWeek = perthWeekKey(now - 7 * 24 * 60 * 60 * 1000);
-      const r = await db.collection('weeklyReports').doc(`${uid}_${reviewWeek}`).get();
-      if (!r.exists || !r.get('submittedAt')) {
-        pending.push({ key: `fw_${reviewWeek}`, kind: 'fw', title: 'NWA due this morning', body: "Your Next Weeks Activity (NWA) hasn't been submitted yet for today's meeting.", link: '/dashboard?view=FRIDAY_FW' });
+    if (win.fw || win.fwDue) {
+      // NWA plans planWeek (weeklyCommitments/{uid}_{planWeek}) and reviews reviewWeek (weeklyReports/{uid}_{reviewWeek}).
+      const { planWeek, reviewWeek } = nwaWeeks(now);
+      const [plan, report] = await Promise.all([
+        db.collection('weeklyCommitments').doc(`${uid}_${planWeek}`).get(),
+        db.collection('weeklyReports').doc(`${uid}_${reviewWeek}`).get(),
+      ]);
+      if (!nwaSubmitted(plan.exists ? plan.get('status') : null, report.exists ? report.get('submittedAt') : null)) {
+        if (win.fwDue) {
+          pending.push({ key: `fw_due_${planWeek}`, kind: 'fw', title: 'NWA due 8pm tonight', body: "Your Next Week's Activity (NWA) for Monday's meeting is due at 8pm tonight.", link: '/dashboard?view=FRIDAY_FW' });
+        }
+        if (win.fw) {
+          pending.push({ key: `fw_${reviewWeek}`, kind: 'fw', title: 'NWA overdue', body: "Your Next Week's Activity (NWA) was due Sunday 8pm. Please submit it before this morning's meeting.", link: '/dashboard?view=FRIDAY_FW' });
+        }
       }
     }
   }

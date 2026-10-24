@@ -23,7 +23,10 @@ All times are **Australia/Perth (AWST, UTC+8)**.
 
 ### Deadline nudges: how submissions are detected
 - **TWTW**: `twiwSubmissions/{uid}_{week}` with `status == 'SUBMITTED'`. The app labels it "Thursday TWTW", so the nudge goes out at **1pm on Thursday** by default.
-- **NWA (Next Weeks Activity, formerly Friday FW)**: `weeklyReports/{uid}_{reviewedWeek}` with `submittedAt` set, where the reviewed week is the week just finished. The nudge goes out at **7am on Mondays** (before the Monday NWA meeting).
+- **NWA (Next Week's Activity, formerly Friday FW)**: due **Sunday 8pm Perth** for the Monday 45-minute NWA meeting. It counts as submitted when `weeklyCommitments/{uid}_{planWeek}` has `status` `SUBMITTED` or `REVIEWED_BY_ADMIN`, or (for older submissions) `weeklyReports/{uid}_{reviewWeek}` has `submittedAt`. `planWeek` is the week starting that Monday and `reviewWeek` is the week just finished.
+  - **Due reminder**: 4pm Sunday ("NWA due 8pm tonight", key `fw_due_{planWeek}`). Users with *weekdays only* quiet hours (the default) won't get it, because Sunday is outside their window.
+  - **Overdue nudge**: 7am Monday, before the meeting ("NWA overdue", key `fw_{reviewWeek}`).
+  - Both are switched by `FW_NUDGE_ENABLED` and go to BDM and AM roles.
 - `week` uses the app's financial-year week key (`getWeekForDate`), computed in Perth time.
 - There's no stored "TWTW due day" setting in the app, so the TWTW day is behind flags. Set them in `functions/.env.<projectId>`:
   ```
