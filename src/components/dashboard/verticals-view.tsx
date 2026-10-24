@@ -104,7 +104,7 @@ function ProspectDialog({ open, onOpenChange, initial, onSave }: {
                 const on = f.freightProfile.includes(fp.id);
                 return (
                   <button key={fp.id} type="button" onClick={() => set('freightProfile', on ? f.freightProfile.filter(x => x !== fp.id) : [...f.freightProfile, fp.id])}
-                    className={cn('px-2.5 py-1 rounded-full border text-xs font-semibold', on ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200')}>
+                    className={cn('px-2.5 py-1 rounded-full border text-xs font-semibold', on ? 'bg-accent text-accent-foreground border-accent' : 'bg-card text-foreground/75 border-border')}>
                     {fp.label}
                   </button>
                 );
@@ -319,20 +319,20 @@ export function VerticalsView() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1 min-w-0">
                 <a href={getSalesforceSearchUrl(p.company)} target="_blank" rel="noopener noreferrer" title="Search Salesforce"
-                  className="font-black text-slate-900 hover:text-indigo-700 hover:underline truncate">
+                  className="font-black text-foreground hover:text-primary hover:underline truncate">
                   {p.company}
                 </a>
-                <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
+                <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
                 <button type="button" onClick={() => copy(p.company, `n-${p.id}`, 'Company name copied')} title="Copy name" aria-label="Copy company name"
-                  className="shrink-0 p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700">
-                  {copied === `n-${p.id}` ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  className="shrink-0 p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground/85">
+                  {copied === `n-${p.id}` ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </div>
               {(p.contactName || p.contactTitle) && (
-                <p className="text-xs text-slate-600 truncate">{[p.contactName, p.contactTitle].filter(Boolean).join(' · ')}</p>
+                <p className="text-xs text-foreground/75 truncate">{[p.contactName, p.contactTitle].filter(Boolean).join(' · ')}</p>
               )}
             </div>
-            <span className="shrink-0 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-black px-2 py-0.5" title="Lead score">{p.score || 0}/5</span>
+            <span className="shrink-0 rounded-full bg-accent/10 text-primary border border-accent/25 text-[11px] font-black px-2 py-0.5" title="Lead score">{p.score || 0}/5</span>
           </div>
 
           <div className="flex flex-wrap gap-1 text-[10px]">
@@ -343,11 +343,11 @@ export function VerticalsView() {
             <PainBadge p={p.painSignals} onClick={() => setPainTarget({ company: p.company, prospectId: p.id, existing: p.painSignals })} />
             {!p.painSignals && (
               <button type="button" onClick={() => setPainTarget({ company: p.company, prospectId: p.id })}
-                className="inline-flex items-center gap-1 text-[10px] font-bold border border-dashed rounded-full px-2 py-0.5 text-slate-600 hover:bg-slate-50">
+                className="inline-flex items-center gap-1 text-[10px] font-bold border border-dashed rounded-full px-2 py-0.5 text-foreground/75 hover:bg-secondary/60">
                 Check delivery pain
               </button>
             )}
-            {p.convertedAt && <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100">Fact Finding</Badge>}
+            {p.convertedAt && <Badge className="bg-success-soft text-success-ink border-success/25 hover:bg-success-soft">Fact Finding</Badge>}
           </div>
 
           {/* SF status */}
@@ -364,20 +364,20 @@ export function VerticalsView() {
           {/* Owner / claim */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {p.sfStatus === 'EXISTING_AM' ? (
-              <span className="flex items-center gap-1 text-blue-800"><Lock className="w-3.5 h-3.5" /> AM opportunity: {p.amUid ? userName(p.amUid) : 'no AM assigned'}</span>
+              <span className="flex items-center gap-1 text-info"><Lock className="w-3.5 h-3.5" /> AM opportunity: {p.amUid ? userName(p.amUid) : 'no AM assigned'}</span>
             ) : p.ownerUid && !expired ? (
-              <span className="text-slate-600">Claimed by <strong>{p.ownerName || userName(p.ownerUid)}</strong></span>
+              <span className="text-foreground/75">Claimed by <strong>{p.ownerName || userName(p.ownerUid)}</strong></span>
             ) : p.ownerUid && expired ? (
-              <span className="text-amber-700 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Claim lapsed ({p.ownerName}): 30+ days no activity</span>
+              <span className="text-warning-ink flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Claim lapsed ({p.ownerName}): 30+ days no activity</span>
             ) : (
-              <span className="text-slate-500">Unclaimed</span>
+              <span className="text-muted-foreground">Unclaimed</span>
             )}
             {canClaim(p) && (
               <Button size="sm" className="h-7 text-xs" onClick={() => update(p, { ownerUid: uid, ownerName: myName, claimedAt: serverTimestamp() }, 'Claimed')}>
                 <Flag className="w-3.5 h-3.5 mr-1" /> Claim
               </Button>
             )}
-            {isBdm && unchecked && !p.ownerUid && <span className="text-[11px] text-slate-400">Set SF status to claim/score</span>}
+            {isBdm && unchecked && !p.ownerUid && <span className="text-[11px] text-muted-foreground">Set SF status to claim/score</span>}
             {(isOwner(p) || (isAdmin && p.ownerUid)) && p.sfStatus !== 'EXISTING_AM' && (
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => update(p, { ownerUid: null, ownerName: null, claimedAt: null }, 'Released')}>Release</Button>
             )}
@@ -392,7 +392,7 @@ export function VerticalsView() {
           {/* AM assignment */}
           {p.sfStatus === 'EXISTING_AM' && editable && (
             <div className="flex items-center gap-2 text-xs">
-              <UserPlus className="w-3.5 h-3.5 text-blue-700 shrink-0" />
+              <UserPlus className="w-3.5 h-3.5 text-info shrink-0" />
               <Select value={p.amUid || ''} onValueChange={v => update(p, { amUid: v, amName: users.find(u => u.id === v)?.name || null }, 'AM assigned')}>
                 <SelectTrigger className="h-7 w-auto min-w-[140px] text-xs"><SelectValue placeholder="Assign AM…" /></SelectTrigger>
                 <SelectContent>{amUsers.length ? amUsers.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>) : <SelectItem value="__none" disabled>No AM users</SelectItem>}</SelectContent>
@@ -410,8 +410,8 @@ export function VerticalsView() {
             ))}
           </div>
 
-          {p.notes && <p className="text-xs text-slate-600 whitespace-pre-wrap break-words line-clamp-3">{p.notes}</p>}
-          {p.amNotes && <p className="text-xs text-blue-900 bg-blue-50 rounded p-2 whitespace-pre-wrap break-words"><strong>AM notes:</strong> {p.amNotes}</p>}
+          {p.notes && <p className="text-xs text-foreground/75 whitespace-pre-wrap break-words line-clamp-3">{p.notes}</p>}
+          {p.amNotes && <p className="text-xs text-info bg-info-soft rounded p-2 whitespace-pre-wrap break-words"><strong>AM notes:</strong> {p.amNotes}</p>}
 
           {/* Actions */}
           <div className="flex flex-wrap gap-1.5 pt-1 border-t">
@@ -429,7 +429,7 @@ export function VerticalsView() {
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDialog({ mode: 'edit', p })}><Pencil className="w-3.5 h-3.5 mr-1" /> Edit</Button>
             )}
             {canDelete(p) && (
-              <Button size="sm" variant="ghost" className="h-7 text-xs text-red-600" onClick={async () => {
+              <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={async () => {
                 if (!confirm(`Delete ${p.company}?`)) return;
                 try { await deleteDoc(doc(db, 'verticalProspects', p.id)); } catch { toast({ title: 'Delete failed', variant: 'destructive' }); }
               }}><Trash2 className="w-3.5 h-3.5" /></Button>
@@ -447,30 +447,30 @@ export function VerticalsView() {
     const date = savedDate(p.createdAt);
     const contact = [p.contactName, p.contactTitle].filter(Boolean).join(' · ');
     return (
-      <div className="min-w-0 rounded-md border bg-white shadow-sm">
+      <div className="min-w-0 rounded-md border bg-card shadow-sm">
         <div className={cn('grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 items-center px-3 py-2 min-w-0', LIST_COLS)}>
           <div className="flex items-center gap-1 min-w-0">
             <button type="button" onClick={() => setExpandedId(open ? null : p.id)} aria-expanded={open} aria-label={open ? 'Hide details' : 'Show details and actions'}
               title={open ? 'Hide details' : 'Show details and actions'}
-              className="shrink-0 p-0.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700">
+              className="shrink-0 p-0.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground/85">
               {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
             <a href={getSalesforceSearchUrl(p.company)} target="_blank" rel="noopener noreferrer" title="Search Salesforce"
-              className="font-bold text-sm text-slate-900 hover:text-indigo-700 hover:underline truncate min-w-0">
+              className="font-bold text-sm text-foreground hover:text-primary hover:underline truncate min-w-0">
               {p.company}
             </a>
-            <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
+            <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
           </div>
-          <span className="md:hidden shrink-0 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-black px-2 py-0.5">{p.score || 0}/5</span>
-          <p className="md:hidden col-span-2 pl-6 text-[11px] text-slate-500 truncate">
+          <span className="md:hidden shrink-0 rounded-full bg-accent/10 text-primary border border-accent/25 text-[11px] font-black px-2 py-0.5">{p.score || 0}/5</span>
+          <p className="md:hidden col-span-2 pl-6 text-[11px] text-muted-foreground truncate">
             {[label(VERTICALS, p.vertical), label(BELTS, p.belt), sf.label, date].filter(Boolean).join(' · ')}
           </p>
-          <span className="hidden md:block text-xs text-slate-700 truncate" title={label(VERTICALS, p.vertical)}>{label(VERTICALS, p.vertical)}</span>
-          <span className="hidden md:block text-xs text-slate-700 truncate" title={label(BELTS, p.belt)}>{label(BELTS, p.belt)}</span>
+          <span className="hidden md:block text-xs text-foreground/85 truncate" title={label(VERTICALS, p.vertical)}>{label(VERTICALS, p.vertical)}</span>
+          <span className="hidden md:block text-xs text-foreground/85 truncate" title={label(BELTS, p.belt)}>{label(BELTS, p.belt)}</span>
           <span className={cn('hidden md:inline-block max-w-[9rem] truncate rounded-full border text-[10px] font-bold px-2 py-0.5', sf.className)} title={sf.label}>{sf.label}</span>
-          <span className="hidden md:block text-xs text-slate-600 truncate" title={contact}>{contact || '-'}</span>
-          <span className="hidden md:block text-xs text-slate-500 whitespace-nowrap">{date || '-'}</span>
-          <span className="hidden md:inline-block rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-black px-2 py-0.5 whitespace-nowrap">{p.score || 0}/5</span>
+          <span className="hidden md:block text-xs text-foreground/75 truncate" title={contact}>{contact || '-'}</span>
+          <span className="hidden md:block text-xs text-muted-foreground whitespace-nowrap">{date || '-'}</span>
+          <span className="hidden md:inline-block rounded-full bg-accent/10 text-primary border border-accent/25 text-[11px] font-black px-2 py-0.5 whitespace-nowrap">{p.score || 0}/5</span>
         </div>
         {open && <div className="border-t p-2 min-w-0"><ProspectCard p={p} /></div>}
       </div>
@@ -483,10 +483,10 @@ export function VerticalsView() {
     <div className="max-w-7xl mx-auto space-y-6 min-w-0">
       <div className="flex flex-col lg:flex-row gap-4 lg:items-start justify-between min-w-0">
         <div className="min-w-0">
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <Factory className="w-7 h-7 text-indigo-600 shrink-0" /> Verticals
+          <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight flex items-center gap-2">
+            <Factory className="w-7 h-7 text-accent shrink-0" /> Verticals
           </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
             WA Parcel prospecting by vertical: satchels, parcels, cartons, skids, single pallets and small multi-pallet customers. Source leads, check Salesforce, score, claim, and convert to Fact Finding.
           </p>
         </div>
@@ -494,14 +494,14 @@ export function VerticalsView() {
         {/* Leaderboard */}
         <Card className="w-full lg:w-[460px] shrink-0">
           <CardHeader className="py-3 px-4">
-            <CardTitle className="text-sm flex items-center gap-2"><Trophy className="w-4 h-4 text-amber-500" /> This week (from Monday, Perth time)</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2"><Trophy className="w-4 h-4 text-warning" /> This week (from Monday, Perth time)</CardTitle>
           </CardHeader>
           <CardContent className="px-2 pb-3 overflow-x-auto">
             {leaderboard.length === 0 ? (
-              <p className="text-xs text-slate-500 px-2">No activity yet this week.</p>
+              <p className="text-xs text-muted-foreground px-2">No activity yet this week.</p>
             ) : (
               <table className="w-full text-xs">
-                <thead><tr className="text-slate-500">
+                <thead><tr className="text-muted-foreground">
                   <th className="text-left font-semibold px-2 py-1">Rep</th>
                   <th className="px-1" title="Prospects sourced">Src</th>
                   <th className="px-1" title="Salesforce checked">SF</th>
@@ -509,7 +509,7 @@ export function VerticalsView() {
                   <th className="px-1" title="Claimed">Clm</th>
                 </tr></thead>
                 <tbody>{leaderboard.map((r, i) => (
-                  <tr key={r.id} className={cn(r.id === uid && 'bg-indigo-50')}>
+                  <tr key={r.id} className={cn(r.id === uid && 'bg-accent/10')}>
                     <td className="px-2 py-1 font-semibold truncate max-w-[140px]">{i + 1}. {r.name}</td>
                     <td className="text-center">{r.sourced}</td><td className="text-center">{r.checked}</td>
                     <td className="text-center">{r.ff}</td><td className="text-center">{r.claimed}</td>
@@ -523,13 +523,13 @@ export function VerticalsView() {
 
       {/* AM growth leads */}
       {isAmUser && (
-        <Card className="border-blue-200">
+        <Card className="border-info/25">
           <CardHeader className="py-3 px-4">
-            <CardTitle className="text-base flex items-center gap-2"><Briefcase className="w-4 h-4 text-blue-700" /> AM growth leads ({amLeads.length})</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Briefcase className="w-4 h-4 text-info" /> AM growth leads ({amLeads.length})</CardTitle>
             <CardDescription>Existing customers routed to you from Verticals. Add growth notes as you work them.</CardDescription>
           </CardHeader>
           <CardContent className="px-3 pb-3">
-            {amLeads.length === 0 ? <p className="text-sm text-slate-500">No routed leads yet.</p> : (
+            {amLeads.length === 0 ? <p className="text-sm text-muted-foreground">No routed leads yet.</p> : (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">{amLeads.map(p => <ProspectCard key={p.id} p={p} />)}</div>
             )}
           </CardContent>
@@ -550,13 +550,13 @@ export function VerticalsView() {
               <CardContent className="px-3 pb-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
                 {LEAD_SOURCES[v.id].map(s => (
                   <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
-                    className="group block min-w-0 rounded-lg border border-slate-200 bg-white p-3 hover:border-indigo-300 hover:shadow-sm">
+                    className="group block min-w-0 rounded-lg border border-border bg-card p-3 hover:border-accent/40 hover:shadow-sm">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="font-bold text-sm text-slate-900 truncate group-hover:text-indigo-700">{s.label}</span>
-                      <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="font-bold text-sm text-foreground truncate group-hover:text-primary">{s.label}</span>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">{s.description}</p>
-                    {s.flag && <p className="text-[10px] text-amber-700 mt-1 flex gap-1"><Info className="w-3 h-3 shrink-0 mt-px" />{s.flag}</p>}
+                    <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
+                    {s.flag && <p className="text-[10px] text-warning-ink mt-1 flex gap-1"><Info className="w-3 h-3 shrink-0 mt-px" />{s.flag}</p>}
                   </a>
                 ))}
               </CardContent>
@@ -567,17 +567,17 @@ export function VerticalsView() {
             {/* Google Maps by belt */}
             <Card>
               <CardHeader className="py-3 px-4">
-                <CardTitle className="text-base flex items-center gap-2"><MapPin className="w-4 h-4 text-red-500" /> Google Maps by industrial belt</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2"><MapPin className="w-4 h-4 text-destructive" /> Google Maps by industrial belt</CardTitle>
                 <CardDescription>Searches &quot;{MAPS_KEYWORDS[v.id][0]}&quot; and similar terms in each suburb.</CardDescription>
               </CardHeader>
               <CardContent className="px-3 pb-3 space-y-3">
                 {METRO_BELTS.map(b => (
                   <div key={b.id} className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-wider text-slate-500 mb-1">{b.label}</p>
+                    <p className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-1">{b.label}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {b.suburbs.map(sub => (
                         <a key={sub} href={mapsSearchUrl(MAPS_KEYWORDS[v.id][0], sub)} target="_blank" rel="noopener noreferrer"
-                          className="text-xs px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:border-red-300 hover:text-red-700">
+                          className="text-xs px-2.5 py-1 rounded-full border border-border bg-card hover:border-destructive/40 hover:text-destructive">
                           {sub}
                         </a>
                       ))}
@@ -585,10 +585,10 @@ export function VerticalsView() {
                   </div>
                 ))}
                 <div className="flex flex-wrap gap-1.5 pt-1 border-t">
-                  <span className="text-[11px] text-slate-500 w-full">More keywords (whole metro):</span>
+                  <span className="text-[11px] text-muted-foreground w-full">More keywords (whole metro):</span>
                   {MAPS_KEYWORDS[v.id].map(k => (
                     <a key={k} href={mapsSearchUrl(k, 'Perth')} target="_blank" rel="noopener noreferrer"
-                      className="text-xs px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 hover:border-red-300">{k}</a>
+                      className="text-xs px-2.5 py-1 rounded-full border border-border bg-secondary/60 hover:border-destructive/40">{k}</a>
                   ))}
                 </div>
               </CardContent>
@@ -596,21 +596,21 @@ export function VerticalsView() {
 
             {/* Playbook */}
             <Card>
-              <CardHeader className="py-3 px-4"><CardTitle className="text-base flex items-center gap-2"><BookOpen className="w-4 h-4 text-indigo-600" /> {v.label} playbook</CardTitle></CardHeader>
+              <CardHeader className="py-3 px-4"><CardTitle className="text-base flex items-center gap-2"><BookOpen className="w-4 h-4 text-accent" /> {v.label} playbook</CardTitle></CardHeader>
               <CardContent className="px-4 pb-4 space-y-3 text-sm">
-                <p className="text-xs rounded-md border border-amber-200 bg-amber-50 text-amber-900 p-2 flex gap-1.5"><Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />{PARCEL_SCOPE}</p>
-                <p className="text-slate-800">{pb.pitch}</p>
+                <p className="text-xs rounded-md border border-warning/25 bg-warning-soft text-warning-ink p-2 flex gap-1.5"><Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />{PARCEL_SCOPE}</p>
+                <p className="text-foreground">{pb.pitch}</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div><p className="font-bold text-xs uppercase text-slate-500 mb-1">Pains</p><ul className="list-disc pl-4 space-y-0.5 text-xs">{pb.pains.map(x => <li key={x}>{x}</li>)}</ul></div>
-                  <div><p className="font-bold text-xs uppercase text-slate-500 mb-1">Decision-makers</p><ul className="list-disc pl-4 space-y-0.5 text-xs">{pb.titles.map(x => <li key={x}>{x}</li>)}</ul></div>
-                  <div><p className="font-bold text-xs uppercase text-slate-500 mb-1">Outreach steps</p><ol className="list-decimal pl-4 space-y-0.5 text-xs">{pb.steps.map(x => <li key={x}>{x}</li>)}</ol></div>
+                  <div><p className="font-bold text-xs uppercase text-muted-foreground mb-1">Pains</p><ul className="list-disc pl-4 space-y-0.5 text-xs">{pb.pains.map(x => <li key={x}>{x}</li>)}</ul></div>
+                  <div><p className="font-bold text-xs uppercase text-muted-foreground mb-1">Decision-makers</p><ul className="list-disc pl-4 space-y-0.5 text-xs">{pb.titles.map(x => <li key={x}>{x}</li>)}</ul></div>
+                  <div><p className="font-bold text-xs uppercase text-muted-foreground mb-1">Outreach steps</p><ol className="list-decimal pl-4 space-y-0.5 text-xs">{pb.steps.map(x => <li key={x}>{x}</li>)}</ol></div>
                 </div>
                 <div>
-                  <p className="font-bold text-xs uppercase text-slate-500 mb-1">Templates</p>
+                  <p className="font-bold text-xs uppercase text-muted-foreground mb-1">Templates</p>
                   <div className="flex flex-wrap gap-1.5">
                     {templatesFor(v.id).map(t => (
                       <Button key={t.id} size="sm" variant="outline" className="h-8 text-xs" onClick={() => copy(t.body, `t-${v.id}-${t.id}`, `${t.label} copied`)}>
-                        {copied === `t-${v.id}-${t.id}` ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <ClipboardCopy className="w-3.5 h-3.5 mr-1" />}
+                        {copied === `t-${v.id}-${t.id}` ? <Check className="w-3.5 h-3.5 mr-1 text-success" /> : <ClipboardCopy className="w-3.5 h-3.5 mr-1" />}
                         {t.label}
                       </Button>
                     ))}
@@ -630,11 +630,11 @@ export function VerticalsView() {
         <CardHeader className="py-3 px-4 flex-row items-center justify-between gap-2 space-y-0">
           <CardTitle className="text-base">Prospects ({filtered.length})</CardTitle>
           <div className="flex items-center gap-2 shrink-0">
-            <div className="inline-flex rounded-md border bg-white p-0.5" role="group" aria-label="Prospect view">
+            <div className="inline-flex rounded-md border bg-card p-0.5" role="group" aria-label="Prospect view">
               {([['cards', 'Cards', LayoutGrid], ['list', 'List', List]] as const).map(([id, text, Icon]) => (
                 <button key={id} type="button" onClick={() => chooseView(id)} aria-pressed={view === id} title={`${text} view`}
                   className={cn('inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-bold',
-                    view === id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100')}>
+                    view === id ? 'bg-panel text-panel-foreground' : 'text-foreground/75 hover:bg-secondary')}>
                   <Icon className="w-3.5 h-3.5" /><span className="hidden sm:inline">{text}</span>
                 </button>
               ))}
@@ -645,12 +645,12 @@ export function VerticalsView() {
         <CardContent className="px-3 pb-4 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
             <div className="relative sm:col-span-2 lg:col-span-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input placeholder="Search company, contact…" value={search} onChange={e => setSearch(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Escape' && search) { e.preventDefault(); setSearch(''); } }} className="pl-9 pr-10 h-10" />
               {search && (
                 <button type="button" onClick={() => setSearch('')} aria-label="Clear search" title="Clear search"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground/85 hover:bg-secondary">
                   <X className="w-4 h-4" />
                 </button>
               )}
@@ -681,10 +681,10 @@ export function VerticalsView() {
             )}
           </div>
           {filtered.length === 0 ? (
-            <p className="text-sm text-slate-500 py-6 text-center">No prospects match.{canSource ? ' Add one from a lead source above.' : ''}</p>
+            <p className="text-sm text-muted-foreground py-6 text-center">No prospects match.{canSource ? ' Add one from a lead source above.' : ''}</p>
           ) : view === 'list' ? (
             <div className="space-y-1.5 min-w-0">
-              <div className={cn('hidden md:grid gap-x-3 px-3 text-[10px] font-black uppercase tracking-wide text-slate-500', LIST_COLS)}>
+              <div className={cn('hidden md:grid gap-x-3 px-3 text-[10px] font-black uppercase tracking-wide text-muted-foreground', LIST_COLS)}>
                 <span>Company</span><span>Vertical</span><span>Location</span><span>SF status</span><span>Contact</span><span>Saved</span><span>Score</span>
               </div>
               {filtered.map(p => <ProspectRow key={p.id} p={p} />)}

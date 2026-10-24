@@ -327,16 +327,16 @@ export function BdAmReview() {
       {/* ------------------------------------------------------------- */}
       {/* Header & Controls Section */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-6">
+      <div className="bg-card border border-border/80 rounded-3xl p-6 shadow-sm space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600">
+              <div className="p-2.5 bg-accent/10 border border-accent/15 rounded-2xl text-accent">
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">BD/AM Review</h1>
-                <p className="text-xs font-semibold text-slate-500">
+                <h1 className="text-2xl font-black text-foreground tracking-tight">BD/AM Review</h1>
+                <p className="text-xs font-semibold text-muted-foreground">
                   Comprehensive performance summary & strategic operational breakdown for reps and teams.
                 </p>
               </div>
@@ -346,9 +346,9 @@ export function BdAmReview() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Team Member Filter (BDMs & AMs only) */}
             <div className="w-full sm:w-64">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Account Manager / BDM</label>
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider mb-1 block">Account Manager / BDM</label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="h-10 bg-slate-50 border-slate-200 rounded-xl font-bold text-slate-700 text-xs">
+                <SelectTrigger className="h-10 bg-secondary/60 border-border rounded-xl font-bold text-foreground/85 text-xs">
                   <SelectValue placeholder="Select Team Member" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -364,9 +364,9 @@ export function BdAmReview() {
 
             {/* Date Preset Selector */}
             <div className="w-full sm:w-48">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Time Period</label>
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider mb-1 block">Time Period</label>
               <Select value={datePreset} onValueChange={(val: DatePreset) => setDatePreset(val)}>
-                <SelectTrigger className="h-10 bg-slate-50 border-slate-200 rounded-xl font-bold text-slate-700 text-xs">
+                <SelectTrigger className="h-10 bg-secondary/60 border-border rounded-xl font-bold text-foreground/85 text-xs">
                   <SelectValue placeholder="Select Period" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -383,37 +383,37 @@ export function BdAmReview() {
 
         {/* Custom Date Inputs if CUSTOM selected */}
         {datePreset === 'CUSTOM' && (
-          <div className="flex flex-wrap items-center gap-4 p-4 bg-slate-50 border border-slate-200/60 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+          <div className="flex flex-wrap items-center gap-4 p-4 bg-secondary/60 border border-border/60 rounded-2xl animate-in slide-in-from-top-2 duration-300">
             <div className="flex items-center gap-2">
-              <label className="text-xs font-bold text-slate-600">From:</label>
+              <label className="text-xs font-bold text-foreground/75">From:</label>
               <Input 
                 type="date" 
                 value={customStartDate} 
                 onChange={e => setCustomStartDate(e.target.value)}
-                className="h-9 w-40 text-xs font-bold bg-white rounded-xl border-slate-200"
+                className="h-9 w-40 text-xs font-bold bg-card rounded-xl border-border"
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-xs font-bold text-slate-600">To:</label>
+              <label className="text-xs font-bold text-foreground/75">To:</label>
               <Input 
                 type="date" 
                 value={customEndDate} 
                 onChange={e => setCustomEndDate(e.target.value)}
-                className="h-9 w-40 text-xs font-bold bg-white rounded-xl border-slate-200"
+                className="h-9 w-40 text-xs font-bold bg-card rounded-xl border-border"
               />
             </div>
           </div>
         )}
 
         {/* Selected Context Summary Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-100 text-xs font-semibold text-slate-500">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-border/60 text-xs font-semibold text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-indigo-500" />
-            <span>Range: <strong className="text-slate-900 font-bold">{format(dateRange.start, 'dd MMM yyyy')} — {format(dateRange.end, 'dd MMM yyyy')}</strong></span>
+            <Calendar className="w-4 h-4 text-accent" />
+            <span>Range: <strong className="text-foreground font-bold">{format(dateRange.start, 'dd MMM yyyy')} — {format(dateRange.end, 'dd MMM yyyy')}</strong></span>
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-emerald-500" />
-            <span>Target context: <strong className="text-slate-900 font-bold">{selectedUserObj ? selectedUserObj.name : 'All BDMs & AMs'}</strong></span>
+            <Filter className="w-4 h-4 text-success" />
+            <span>Target context: <strong className="text-foreground font-bold">{selectedUserObj ? selectedUserObj.name : 'All BDMs & AMs'}</strong></span>
           </div>
         </div>
       </div>
@@ -423,56 +423,56 @@ export function BdAmReview() {
       {/* ------------------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Calls Card */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Logged Calls</p>
-              <h3 className="text-2xl font-black text-slate-900">{activityMetrics.calls}</h3>
-              <p className="text-[10px] font-bold text-slate-500">{activityMetrics.callPlansCreated} Call Plans Prepared</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Logged Calls</p>
+              <h3 className="text-2xl font-black text-foreground">{activityMetrics.calls}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground">{activityMetrics.callPlansCreated} Call Plans Prepared</p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <div className="w-12 h-12 rounded-2xl bg-info-soft border border-info/15 flex items-center justify-center text-info">
               <PhoneCall className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
 
         {/* Appointments Card */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Appointments / Meetings</p>
-              <h3 className="text-2xl font-black text-slate-900">{activityMetrics.appointments}</h3>
-              <p className="text-[10px] font-bold text-slate-500">Held or Scheduled</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Appointments / Meetings</p>
+              <h3 className="text-2xl font-black text-foreground">{activityMetrics.appointments}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground">Held or Scheduled</p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+            <div className="w-12 h-12 rounded-2xl bg-chart-5/10 border border-chart-5/15 flex items-center justify-center text-chart-5">
               <CalendarCheck className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
 
         {/* Active Deals Count Card */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Opportunities</p>
-              <h3 className="text-2xl font-black text-slate-900">{processedOpportunities.length}</h3>
-              <p className="text-[10px] font-bold text-emerald-600 font-semibold">{formatEAV(totalActivePipelineValue)} Total EAV</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Active Opportunities</p>
+              <h3 className="text-2xl font-black text-foreground">{processedOpportunities.length}</h3>
+              <p className="text-[10px] font-bold text-success font-semibold">{formatEAV(totalActivePipelineValue)} Total EAV</p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <div className="w-12 h-12 rounded-2xl bg-success-soft border border-success/15 flex items-center justify-center text-success">
               <Target className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
 
         {/* Key Wins Recorded */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">TWTW Wins Reported</p>
-              <h3 className="text-2xl font-black text-slate-900">{aggregatedTwiwData.wins.length}</h3>
-              <p className="text-[10px] font-bold text-slate-500">{aggregatedTwiwData.projectedWins.length} 30-Day Projected</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">TWTW Wins Reported</p>
+              <h3 className="text-2xl font-black text-foreground">{aggregatedTwiwData.wins.length}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground">{aggregatedTwiwData.projectedWins.length} 30-Day Projected</p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <div className="w-12 h-12 rounded-2xl bg-warning-soft border border-warning/15 flex items-center justify-center text-warning-ink">
               <Trophy className="w-6 h-6" />
             </div>
           </CardContent>
@@ -485,32 +485,32 @@ export function BdAmReview() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Thursday TWTW Wins */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white overflow-hidden">
-          <CardHeader className="bg-emerald-50/50 border-b border-emerald-100 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-emerald-900 flex items-center justify-between">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
+          <CardHeader className="bg-success-soft/50 border-b border-success/15 py-4">
+            <CardTitle className="text-sm font-black uppercase tracking-wider text-success-ink flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-emerald-600" /> TWTW Wins
+                <Trophy className="w-4 h-4 text-success" /> TWTW Wins
               </span>
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 font-bold">{aggregatedTwiwData.wins.length}</Badge>
+              <Badge variant="secondary" className="bg-success-soft text-success-ink font-bold">{aggregatedTwiwData.wins.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-3 max-h-[360px] overflow-y-auto">
             {aggregatedTwiwData.wins.length === 0 ? (
-              <div className="text-center py-10 text-xs font-bold text-slate-400">
+              <div className="text-center py-10 text-xs font-bold text-muted-foreground">
                 No TWTW Wins recorded for this period.
               </div>
             ) : (
               aggregatedTwiwData.wins.map((w, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-1">
+                <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-800">{w.customer}</span>
-                    <span className="font-black text-xs text-emerald-600">{formatEAV(w.value)}</span>
+                    <span className="font-bold text-xs text-foreground">{w.customer}</span>
+                    <span className="font-black text-xs text-success">{formatEAV(w.value)}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-bold">Rep: {w.repName} {w.week ? `(${w.week})` : ''}</div>
+                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {w.repName} {w.week ? `(${w.week})` : ''}</div>
                   {w.businessUnits && w.businessUnits.length > 0 && (
-                    <div className="text-[9px] font-bold text-slate-500">BU: {w.businessUnits.join(', ')}</div>
+                    <div className="text-[9px] font-bold text-muted-foreground">BU: {w.businessUnits.join(', ')}</div>
                   )}
-                  {w.updateText && <p className="text-xs text-slate-600 mt-1">{w.updateText}</p>}
+                  {w.updateText && <p className="text-xs text-foreground/75 mt-1">{w.updateText}</p>}
                 </div>
               ))
             )}
@@ -518,29 +518,29 @@ export function BdAmReview() {
         </Card>
 
         {/* Risks & Barriers */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white overflow-hidden">
-          <CardHeader className="bg-rose-50/50 border-b border-rose-100 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-rose-900 flex items-center justify-between">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
+          <CardHeader className="bg-danger-soft/50 border-b border-destructive/15 py-4">
+            <CardTitle className="text-sm font-black uppercase tracking-wider text-destructive flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-600" /> Risks & Barriers
+                <AlertTriangle className="w-4 h-4 text-destructive" /> Risks & Barriers
               </span>
-              <Badge variant="secondary" className="bg-rose-100 text-rose-800 font-bold">{aggregatedTwiwData.risks.length}</Badge>
+              <Badge variant="secondary" className="bg-danger-soft text-destructive font-bold">{aggregatedTwiwData.risks.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-3 max-h-[360px] overflow-y-auto">
             {aggregatedTwiwData.risks.length === 0 ? (
-              <div className="text-center py-10 text-xs font-bold text-slate-400">
+              <div className="text-center py-10 text-xs font-bold text-muted-foreground">
                 No Churn Risks or Barriers flagged for this period.
               </div>
             ) : (
               aggregatedTwiwData.risks.map((r, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-1">
+                <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-800">{r.account}</span>
-                    <span className="font-black text-xs text-rose-600">{formatEAV(r.value)}</span>
+                    <span className="font-bold text-xs text-foreground">{r.account}</span>
+                    <span className="font-black text-xs text-destructive">{formatEAV(r.value)}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-bold">Rep: {r.repName} {r.week ? `(${r.week})` : ''}</div>
-                  {r.mitigation && <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">Mitigation:</strong> {r.mitigation}</p>}
+                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {r.repName} {r.week ? `(${r.week})` : ''}</div>
+                  {r.mitigation && <p className="text-xs text-foreground/75 mt-1"><strong className="text-foreground/85">Mitigation:</strong> {r.mitigation}</p>}
                 </div>
               ))
             )}
@@ -548,29 +548,29 @@ export function BdAmReview() {
         </Card>
 
         {/* 30 Day Projected Wins */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white overflow-hidden">
-          <CardHeader className="bg-purple-50/50 border-b border-purple-100 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-purple-900 flex items-center justify-between">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
+          <CardHeader className="bg-chart-5/5 border-b border-chart-5/15 py-4">
+            <CardTitle className="text-sm font-black uppercase tracking-wider text-chart-5 flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Rocket className="w-4 h-4 text-purple-600" /> 30 Day Projected Wins
+                <Rocket className="w-4 h-4 text-chart-5" /> 30 Day Projected Wins
               </span>
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800 font-bold">{aggregatedTwiwData.projectedWins.length}</Badge>
+              <Badge variant="secondary" className="bg-chart-5/15 text-chart-5 font-bold">{aggregatedTwiwData.projectedWins.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-3 max-h-[360px] overflow-y-auto">
             {aggregatedTwiwData.projectedWins.length === 0 ? (
-              <div className="text-center py-10 text-xs font-bold text-slate-400">
+              <div className="text-center py-10 text-xs font-bold text-muted-foreground">
                 No projected wins recorded for this period.
               </div>
             ) : (
               aggregatedTwiwData.projectedWins.map((p, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-1">
+                <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-800">{p.account}</span>
-                    <span className="font-black text-xs text-purple-600">{formatEAV(p.value)}</span>
+                    <span className="font-bold text-xs text-foreground">{p.account}</span>
+                    <span className="font-black text-xs text-chart-5">{formatEAV(p.value)}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-bold">Rep: {p.repName} {p.expectedDate ? `| Close: ${p.expectedDate}` : ''}</div>
-                  {p.updateText && <p className="text-xs text-slate-600 mt-1">{p.updateText}</p>}
+                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {p.repName} {p.expectedDate ? `| Close: ${p.expectedDate}` : ''}</div>
+                  {p.updateText && <p className="text-xs text-foreground/75 mt-1">{p.updateText}</p>}
                 </div>
               ))
             )}
@@ -578,32 +578,32 @@ export function BdAmReview() {
         </Card>
 
         {/* Major Pipeline & Customer Updates */}
-        <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white overflow-hidden">
-          <CardHeader className="bg-blue-50/50 border-b border-blue-100 py-4">
-            <CardTitle className="text-sm font-black uppercase tracking-wider text-blue-900 flex items-center justify-between">
+        <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
+          <CardHeader className="bg-info-soft/50 border-b border-info/15 py-4">
+            <CardTitle className="text-sm font-black uppercase tracking-wider text-info flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-blue-600" /> Major Pipeline & Customer Updates
+                <Building className="w-4 h-4 text-info" /> Major Pipeline & Customer Updates
               </span>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-bold">{aggregatedTwiwData.majorUpdates.length}</Badge>
+              <Badge variant="secondary" className="bg-info-soft text-info font-bold">{aggregatedTwiwData.majorUpdates.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-3 max-h-[360px] overflow-y-auto">
             {aggregatedTwiwData.majorUpdates.length === 0 ? (
-              <div className="text-center py-10 text-xs font-bold text-slate-400">
+              <div className="text-center py-10 text-xs font-bold text-muted-foreground">
                 No major updates recorded for this period.
               </div>
             ) : (
               aggregatedTwiwData.majorUpdates.map((m, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-1">
+                <div key={idx} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-800">{m.customer}</span>
-                    {m.value > 0 && <span className="font-black text-xs text-blue-600">{formatEAV(m.value)}</span>}
+                    <span className="font-bold text-xs text-foreground">{m.customer}</span>
+                    {m.value > 0 && <span className="font-black text-xs text-info">{formatEAV(m.value)}</span>}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-bold">Rep: {m.repName} {m.week ? `(${m.week})` : ''}</div>
+                  <div className="text-[10px] text-muted-foreground font-bold">Rep: {m.repName} {m.week ? `(${m.week})` : ''}</div>
                   {m.businessUnits && m.businessUnits.length > 0 && (
-                    <div className="text-[9px] font-bold text-slate-500">BU: {m.businessUnits.join(', ')}</div>
+                    <div className="text-[9px] font-bold text-muted-foreground">BU: {m.businessUnits.join(', ')}</div>
                   )}
-                  {m.updateText && <p className="text-xs text-slate-600 mt-1">{m.updateText}</p>}
+                  {m.updateText && <p className="text-xs text-foreground/75 mt-1">{m.updateText}</p>}
                 </div>
               ))
             )}
@@ -615,18 +615,18 @@ export function BdAmReview() {
       {/* ------------------------------------------------------------- */}
       {/* Active Opportunities Table with Search, Filter & Column Sorting */}
       {/* ------------------------------------------------------------- */}
-      <Card className="border-slate-200/80 shadow-sm rounded-3xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 space-y-4">
+      <Card className="border-border/80 shadow-sm rounded-3xl bg-card overflow-hidden">
+        <CardHeader className="bg-secondary/35 border-b border-border/60 py-4 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+              <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
                 <Target className="w-4 h-4 text-primary" /> Active Opportunities Ledger
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Live deals currently active in the sales pipeline
               </CardDescription>
             </div>
-            <Badge className="bg-primary text-white font-black text-xs px-3 py-1 self-start sm:self-auto">
+            <Badge className="bg-primary text-primary-foreground font-black text-xs px-3 py-1 self-start sm:self-auto">
               {processedOpportunities.length} Deals ({formatEAV(totalActivePipelineValue)})
             </Badge>
           </div>
@@ -635,19 +635,19 @@ export function BdAmReview() {
           <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
             {/* Search Input */}
             <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
               <Input
                 placeholder="Search account, rep, BU..."
                 value={ledgerSearch}
                 onChange={e => setLedgerSearch(e.target.value)}
-                className="pl-9 h-9 text-xs font-semibold bg-white border-slate-200 rounded-xl"
+                className="pl-9 h-9 text-xs font-semibold bg-card border-border rounded-xl"
               />
             </div>
 
             {/* Stage Dropdown Filter */}
             <div className="w-full sm:w-56">
               <Select value={ledgerStageFilter} onValueChange={setLedgerStageFilter}>
-                <SelectTrigger className="h-9 bg-white border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+                <SelectTrigger className="h-9 bg-card border-border rounded-xl text-xs font-semibold text-foreground/85">
                   <SelectValue placeholder="Filter by Stage" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -663,75 +663,75 @@ export function BdAmReview() {
 
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50 border-b border-slate-200">
-              <TableRow className="uppercase text-[9px] font-black tracking-widest text-slate-500 select-none">
-                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('pipeline')}>
+            <TableHeader className="bg-secondary/60 border-b border-border">
+              <TableRow className="uppercase text-[9px] font-black tracking-widest text-muted-foreground select-none">
+                <TableHead className="p-3 cursor-pointer hover:bg-secondary transition-colors" onClick={() => handleSortToggle('pipeline')}>
                   <div className="flex items-center gap-1.5">
                     <span>Opportunity / Account</span>
-                    {sortField === 'pipeline' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                    {sortField === 'pipeline' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground/70" />}
                   </div>
                 </TableHead>
-                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('userName')}>
+                <TableHead className="p-3 cursor-pointer hover:bg-secondary transition-colors" onClick={() => handleSortToggle('userName')}>
                   <div className="flex items-center gap-1.5">
                     <span>Rep</span>
-                    {sortField === 'userName' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                    {sortField === 'userName' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground/70" />}
                   </div>
                 </TableHead>
-                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('stage')}>
+                <TableHead className="p-3 cursor-pointer hover:bg-secondary transition-colors" onClick={() => handleSortToggle('stage')}>
                   <div className="flex items-center gap-1.5">
                     <span>Stage</span>
-                    {sortField === 'stage' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                    {sortField === 'stage' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground/70" />}
                   </div>
                 </TableHead>
-                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('value')}>
+                <TableHead className="p-3 cursor-pointer hover:bg-secondary transition-colors" onClick={() => handleSortToggle('value')}>
                   <div className="flex items-center gap-1.5">
                     <span>EAV Value</span>
-                    {sortField === 'value' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                    {sortField === 'value' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground/70" />}
                   </div>
                 </TableHead>
-                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('probability')}>
+                <TableHead className="p-3 cursor-pointer hover:bg-secondary transition-colors" onClick={() => handleSortToggle('probability')}>
                   <div className="flex items-center gap-1.5">
                     <span>Prob.</span>
-                    {sortField === 'probability' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                    {sortField === 'probability' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground/70" />}
                   </div>
                 </TableHead>
-                <TableHead className="p-3 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => handleSortToggle('expectedDate')}>
+                <TableHead className="p-3 cursor-pointer hover:bg-secondary transition-colors" onClick={() => handleSortToggle('expectedDate')}>
                   <div className="flex items-center gap-1.5">
                     <span>Expected Close</span>
-                    {sortField === 'expectedDate' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-indigo-600" /> : <ArrowDown className="w-3 h-3 text-indigo-600" />) : <ArrowUpDown className="w-3 h-3 text-slate-300" />}
+                    {sortField === 'expectedDate' ? (sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground/70" />}
                   </div>
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-slate-100 bg-white">
+            <TableBody className="divide-y divide-border/60 bg-card">
               {processedOpportunities.map((deal: any, idx: number) => (
                 <TableRow key={deal.id || `deal-${idx}`}>
                   <TableCell className="p-3">
-                    <p className="font-bold text-xs text-slate-900">{deal.pipeline || 'Unnamed Deal'}</p>
-                    <p className="text-[10px] text-slate-400 font-medium">{deal.accountMasterCode ? `Master: ${deal.accountMasterCode}` : deal.businessUnit || 'General'}</p>
+                    <p className="font-bold text-xs text-foreground">{deal.pipeline || 'Unnamed Deal'}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">{deal.accountMasterCode ? `Master: ${deal.accountMasterCode}` : deal.businessUnit || 'General'}</p>
                   </TableCell>
                   <TableCell className="p-3">
-                    <span className="text-xs font-bold text-slate-700">{deal.userName || normalizeBdmName(deal.userId, deal.userId)}</span>
+                    <span className="text-xs font-bold text-foreground/85">{deal.userName || normalizeBdmName(deal.userId, deal.userId)}</span>
                   </TableCell>
                   <TableCell className="p-3">
-                    <Badge variant="outline" className="text-[10px] font-bold bg-slate-50 border-slate-200">
+                    <Badge variant="outline" className="text-[10px] font-bold bg-secondary/60 border-border">
                       {deal.stage || 'Discovery'}
                     </Badge>
                   </TableCell>
                   <TableCell className="p-3">
-                    <span className="text-xs font-black text-emerald-600">{formatEAV(deal.value || 0)}</span>
+                    <span className="text-xs font-black text-success">{formatEAV(deal.value || 0)}</span>
                   </TableCell>
                   <TableCell className="p-3">
-                    <span className="text-xs font-bold text-slate-600">{deal.probability ? `${deal.probability}%` : 'N/A'}</span>
+                    <span className="text-xs font-bold text-foreground/75">{deal.probability ? `${deal.probability}%` : 'N/A'}</span>
                   </TableCell>
                   <TableCell className="p-3">
-                    <span className="text-xs font-bold text-slate-500">{deal.expectedDate || 'Unset'}</span>
+                    <span className="text-xs font-bold text-muted-foreground">{deal.expectedDate || 'Unset'}</span>
                   </TableCell>
                 </TableRow>
               ))}
               {processedOpportunities.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs font-bold uppercase tracking-widest">
                     No active opportunities match the selected criteria.
                   </TableCell>
                 </TableRow>

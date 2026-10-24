@@ -88,7 +88,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase">Full Year Target</Label><Input type="number" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} required /></div>
-                    <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase text-indigo-600">Manual YTD Target Override (Optional)</Label><Input type="number" placeholder="e.g. 5768380" value={formData.manualYtdTarget} onChange={e => setFormData({...formData, manualYtdTarget: e.target.value})} /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-muted-foreground uppercase text-accent">Manual YTD Target Override (Optional)</Label><Input type="number" placeholder="e.g. 5768380" value={formData.manualYtdTarget} onChange={e => setFormData({...formData, manualYtdTarget: e.target.value})} /></div>
                   </div>
                 </div>
                 <Button type="submit" className="w-full bg-primary font-bold h-12 uppercase" disabled={isSaving}>{isSaving ? <Loader2 className="animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Sync Node</>}</Button>
@@ -99,19 +99,19 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
       )}
       <div className={!isGM ? "lg:col-span-12" : "lg:col-span-7"}>
         <Card className="border-none shadow-xl overflow-hidden">
-          <CardHeader className="border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><ShieldCheck className="text-green-600" /> Registry</CardTitle></CardHeader>
+          <CardHeader className="border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><ShieldCheck className="text-success" /> Registry</CardTitle></CardHeader>
           <CardContent className="p-0">
             {isLoading ? <div className="py-20 text-center"><Loader2 className="animate-spin mx-auto" /></div> : (
               <ScrollArea className="h-[680px]">
                 <div className="divide-y">{users?.filter(u => Number(u.target) > 0).map(u => (
-                  <div key={u.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                  <div key={u.id} className="p-6 flex items-center justify-between hover:bg-secondary/60 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
+                      <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold">{(u.name || 'U').charAt(0)}</div>
                       <div>
                         <div className="font-bold uppercase">{u.name} <Badge className="bg-accent text-[9px] uppercase ml-2">{u.role}</Badge></div>
                         <div className="text-[10px] text-muted-foreground font-black uppercase mt-1">
                           <Mail className="w-3 h-3 inline mr-1" />{u.email} • <Map className="w-3 h-3 inline mx-1" />{u.territory} ({u.state || 'WA'}) • Target: ${(Number(u.target) || 0).toLocaleString()} 
-                          {Number(u.manualYtdTarget) > 0 && <span className="text-indigo-600 ml-1">• YTD Override: ${(Number(u.manualYtdTarget)).toLocaleString()}</span>}
+                          {Number(u.manualYtdTarget) > 0 && <span className="text-accent ml-1">• YTD Override: ${(Number(u.manualYtdTarget)).toLocaleString()}</span>}
                         </div>
                       </div>
                     </div>
@@ -130,7 +130,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                       {isGM && (
                         <>
                           <Button size="icon" variant="ghost" onClick={() => handleEdit(u)} title="Edit User"><Edit3 className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="ghost" className="text-red-400" onClick={() => handleRemove(u)} title="Remove User"><Trash2 className="w-4 h-4" /></Button>
+                          <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleRemove(u)} title="Remove User"><Trash2 className="w-4 h-4" /></Button>
                         </>
                       )}
                     </div>

@@ -181,7 +181,7 @@ export function DashboardDesigner() {
                     setDragIndex(null); setOverIndex(null);
                   }}
                   className={cn(
-                    'flex flex-wrap items-center gap-3 rounded-xl border bg-white px-3 py-2.5 transition-colors',
+                    'flex flex-wrap items-center gap-3 rounded-xl border bg-card px-3 py-2.5 transition-colors',
                     !w.visible && 'opacity-60 bg-muted',
                     overIndex === index && dragIndex !== null && dragIndex !== index && 'border-primary ring-1 ring-primary',
                     locked && 'pointer-events-none opacity-70',
@@ -203,7 +203,7 @@ export function DashboardDesigner() {
                         type="button"
                         onClick={() => update(index, { width: n })}
                         aria-pressed={w.width === n}
-                        className={cn('h-7 w-8 rounded-md border text-[10px] font-black', w.width === n ? 'bg-primary text-primary-foreground border-primary' : 'bg-white text-muted-foreground hover:bg-muted')}
+                        className={cn('h-7 w-8 rounded-md border text-[10px] font-black', w.width === n ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground hover:bg-muted')}
                         title={`${n} column${n > 1 ? 's' : ''} wide`}
                       >{n}</button>
                     ))}

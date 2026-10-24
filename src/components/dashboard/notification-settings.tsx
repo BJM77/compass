@@ -15,10 +15,10 @@ import { VAPID_KEY, enablePush, disablePushOnThisDevice, pushSupported, isIosNot
 
 function Row({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-3 border-b border-slate-100 last:border-0">
+    <div className="flex items-start justify-between gap-4 py-3 border-b border-border/60 last:border-0">
       <div className="min-w-0">
-        <p className="text-sm font-bold text-slate-800">{label}</p>
-        {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+        <p className="text-sm font-bold text-foreground">{label}</p>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -80,21 +80,21 @@ export function NotificationSettings() {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 pb-2">
-        <BellRing className="w-4 h-4 text-indigo-600" />
-        <p className="text-sm font-black uppercase tracking-wide text-slate-800">Push notifications</p>
+        <BellRing className="w-4 h-4 text-accent" />
+        <p className="text-sm font-black uppercase tracking-wide text-foreground">Push notifications</p>
       </div>
 
       {!VAPID_KEY ? (
-        <p className="text-xs text-slate-500 bg-slate-50 border rounded-md p-3">
+        <p className="text-xs text-muted-foreground bg-secondary/60 border rounded-md p-3">
           Push notifications are not configured yet (an admin needs to set <code>NEXT_PUBLIC_FIREBASE_VAPID_KEY</code>).
         </p>
       ) : isIosNotInstalled() ? (
-        <p className="text-xs text-slate-600 bg-amber-50 border border-amber-200 rounded-md p-3 flex gap-2">
-          <Smartphone className="w-4 h-4 shrink-0 text-amber-700" />
+        <p className="text-xs text-foreground/75 bg-warning-soft border border-warning/25 rounded-md p-3 flex gap-2">
+          <Smartphone className="w-4 h-4 shrink-0 text-warning-ink" />
           On iPhone/iPad, tap Share → <strong>Add to Home Screen</strong>, open BDM Compass from the Home Screen icon, then enable notifications here (iOS 16.4+).
         </p>
       ) : !pushSupported() ? (
-        <p className="text-xs text-slate-500">This browser doesn&apos;t support push notifications.</p>
+        <p className="text-xs text-muted-foreground">This browser doesn&apos;t support push notifications.</p>
       ) : null}
 
       <Row
@@ -114,7 +114,7 @@ export function NotificationSettings() {
         <div className="flex items-center gap-1.5">
           <Input type="time" aria-label="Allowed from" className="h-8 w-[110px] text-xs" value={prefs.allowedStart}
             onChange={e => e.target.value && save({ allowedStart: e.target.value })} />
-          <span className="text-xs text-slate-400">to</span>
+          <span className="text-xs text-muted-foreground">to</span>
           <Input type="time" aria-label="Allowed until" className="h-8 w-[110px] text-xs" value={prefs.allowedEnd}
             onChange={e => e.target.value && save({ allowedEnd: e.target.value })} />
         </div>
@@ -131,7 +131,7 @@ export function NotificationSettings() {
       <Row label="Stale Do Now alerts" description={'Push when a Do Now task has been untouched for 2+ days ("Delegate or Delete?").'}>
         <Switch checked={prefs.escalation} onCheckedChange={v => save({ escalation: v })} />
       </Row>
-      <Label className="block text-[10px] text-slate-400 pt-1">All times are Australia/Perth (AWST).</Label>
+      <Label className="block text-[10px] text-muted-foreground pt-1">All times are Australia/Perth (AWST).</Label>
     </div>
   );
 }

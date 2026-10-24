@@ -104,6 +104,10 @@ export default {
           foreground: 'hsl(var(--info-foreground))',
           soft: 'hsl(var(--info-soft))',
         },
+        panel: {
+          DEFAULT: 'hsl(var(--panel))',
+          foreground: 'hsl(var(--panel-foreground))',
+        },
         gold: {
           DEFAULT: 'hsl(var(--gold))',
           foreground: 'hsl(var(--gold-foreground))',

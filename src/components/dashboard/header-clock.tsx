@@ -27,9 +27,9 @@ export function HeaderClock() {
     <time
       dateTime={now.toISOString()}
       title={full}
-      className="flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-lg bg-slate-50 border border-slate-200/70 px-2 py-1 text-xs font-bold tabular-nums text-slate-700"
+      className="flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-lg bg-secondary/60 border border-border/70 px-2 py-1 text-xs font-bold tabular-nums text-foreground/85"
     >
-      <Clock className="w-3.5 h-3.5 text-indigo-600" />
+      <Clock className="w-3.5 h-3.5 text-accent" />
       {isMobileNav ? shortFmt.format(now) : full}
     </time>
   );

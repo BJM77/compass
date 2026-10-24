@@ -132,7 +132,7 @@ export function AdminCallPlanning({ userId }: AdminCallPlanningProps) {
         {isLeader && (
           <Dialog open={isCreatingTeamPlan} onOpenChange={setIsCreatingTeamPlan}>
             <DialogTrigger asChild>
-              <Button className="bg-accent hover:bg-accent/90 text-white font-semibold text-xs h-11 px-6 shadow-lg shadow-accent/20 gap-2">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-xs h-11 px-6 shadow-lg shadow-accent/20 gap-2">
                 <Users className="w-4 h-4" /> CREATE TEAM BLUEPRINT
               </Button>
             </DialogTrigger>
@@ -300,7 +300,7 @@ export function AdminCallPlanning({ userId }: AdminCallPlanningProps) {
       </Card>
 
       <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 flex items-start gap-4">
-        <div className="bg-primary p-2 rounded-xl text-white">
+        <div className="bg-primary p-2 rounded-xl text-primary-foreground">
           <ShieldCheck className="w-5 h-5" />
         </div>
         <div className="space-y-1">

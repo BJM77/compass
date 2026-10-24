@@ -229,7 +229,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                 Wk {currentWeek.split('-')[1]}
               </p>
               <div className="h-4 w-px bg-border" />
-              <Badge variant={selectedCount > 8 ? "destructive" : "outline"} className={cn("text-xs font-semibold h-5 px-3 border-accent/30", selectedCount === 8 && "bg-accent text-white")}>
+              <Badge variant={selectedCount > 8 ? "destructive" : "outline"} className={cn("text-xs font-semibold h-5 px-3 border-accent/30", selectedCount === 8 && "bg-accent text-accent-foreground")}>
                  Selection: {selectedCount} / 8
               </Badge>
             </div>
@@ -291,7 +291,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                   return (
                     <TableRow key={row.id} className={cn("hover:bg-secondary/60 transition-colors group", row.isReviewSelected && "bg-accent/5")}>
                       <TableCell className="text-center">
-                        <button onClick={() => toggleSelection(row)} className={`p-2.5 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-white shadow-lg' : 'text-border hover:text-muted-foreground/60'}`}>
+                        <button onClick={() => toggleSelection(row)} className={`p-2.5 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-accent-foreground shadow-lg' : 'text-border hover:text-muted-foreground/60'}`}>
                           <Star className={`w-5 h-5 ${row.isReviewSelected && "fill-current"}`} />
                         </button>
                       </TableCell>
@@ -304,7 +304,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 <span className={`text-xs font-semibold ${momentum.color}`}>{momentum.score}</span>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent className="bg-primary text-white font-bold text-xs">{momentum.reason}</TooltipContent>
+                            <TooltipContent className="bg-primary text-primary-foreground font-bold text-xs">{momentum.reason}</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
@@ -316,7 +316,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 <span>Health: {health.score}%</span>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent className="bg-primary text-white p-3.5 max-w-[280px] rounded-xl space-y-2.5 border border-primary/80 shadow-xl">
+                            <TooltipContent className="bg-primary text-primary-foreground p-3.5 max-w-[280px] rounded-xl space-y-2.5 border border-primary/80 shadow-xl">
                               <p className="font-semibold text-xs text-muted-foreground border-b border-primary/80 pb-1.5 flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-accent inline-block animate-pulse" />
                                 Deal Health Diagnosis
@@ -329,7 +329,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 <span>Whitespace (15%):</span> <span className="text-right text-white">{health.breakdown.whitespace}/15</span>
                               </div>
                               {health.alerts.length > 0 && (
-                                <div className="border-t border-slate-850 pt-2 space-y-1">
+                                <div className="border-t border-foreground/30 pt-2 space-y-1">
                                   <p className="text-xs font-semibold text-destructive">Improvement Areas:</p>
                                   {health.alerts.map((a, idx) => (
                                     <p key={idx} className="text-xs leading-relaxed text-muted-foreground">• {a}</p>
@@ -337,7 +337,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                                 </div>
                               )}
                               {health.positives.length > 0 && (
-                                <div className="border-t border-slate-855 pt-2 space-y-1">
+                                <div className="border-t border-foreground/30 pt-2 space-y-1">
                                   <p className="text-xs font-semibold text-success">Strengths:</p>
                                   {health.positives.map((p, idx) => (
                                     <p key={idx} className="text-xs leading-relaxed text-muted-foreground">• {p}</p>
@@ -501,7 +501,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                   {/* Header Actions */}
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => toggleSelection(row)} className={`p-2 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-white shadow-md' : 'bg-card border text-muted-foreground/60 hover:text-muted-foreground'}`}>
+                      <button onClick={() => toggleSelection(row)} className={`p-2 rounded-xl transition-all ${row.isReviewSelected ? 'bg-accent text-accent-foreground shadow-md' : 'bg-card border text-muted-foreground/60 hover:text-muted-foreground'}`}>
                         <Star className={`w-4 h-4 ${row.isReviewSelected && "fill-current"}`} />
                       </button>
                       <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${momentum.bg}`}>
@@ -580,7 +580,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
                               detail: { view: 'CALL_PLANNING', params: { type: 'top8', data: row } }
                             }));
                           }}
-                          className="text-xs text-accent hover:text-indigo-850 font-semibold hover:underline"
+                          className="text-xs text-accent hover:text-primary font-semibold hover:underline"
                         >
                           Plan Call
                         </button>
@@ -692,7 +692,7 @@ export function PipelineReviewTable({ userId, readOnly, filterType = 'opportunit
 
           <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setWinLossDialogOpen(false)} className="font-semibold h-11 text-xs">Cancel</Button>
-            <Button onClick={handleSaveWinLoss} className="bg-primary hover:bg-primary/95 text-white font-semibold h-11 text-xs px-6">Save & Close Deal</Button>
+            <Button onClick={handleSaveWinLoss} className="bg-primary hover:bg-primary/95 text-primary-foreground font-semibold h-11 text-xs px-6">Save & Close Deal</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

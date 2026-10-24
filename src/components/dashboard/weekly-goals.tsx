@@ -451,7 +451,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSaving} className="font-bold h-12 px-6 shadow-sm gap-2 border-primary/20 text-primary">
             {isSavingDraft ? 'Saving Draft...' : 'Save Draft'}
           </Button>
-          <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-bold h-12 px-8 shadow-xl gap-2 text-white">
+          <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-bold h-12 px-8 shadow-xl gap-2 text-primary-foreground">
             {isSaving ? 'Synchronising...' : hasExistingPlan ? 'Update Plan' : 'Commit Weekly Plan'}
           </Button>
         </div>
@@ -462,7 +462,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
         
         {/* Monthly SMART Goal Panel */}
         <Card className="border border-border shadow-md md:col-span-2">
-          <CardHeader className="bg-primary text-white flex flex-row items-center justify-between py-4">
+          <CardHeader className="bg-primary text-primary-foreground flex flex-row items-center justify-between py-4">
             <CardTitle className="text-xs font-semibold flex items-center gap-2 text-accent">
               <Star className="w-4 h-4" />
               Monthly SMART Goal ({format(new Date(), 'MMMM yyyy')})
@@ -471,7 +471,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
           <CardContent className="p-6">
             {hasGoalForMonth ? (
               <div className="bg-accent/5 border border-accent/20 rounded-2xl p-5 space-y-3">
-                <Badge className="bg-accent text-white font-semibold text-xs">Submitted Goal</Badge>
+                <Badge className="bg-accent text-accent-foreground font-semibold text-xs">Submitted Goal</Badge>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-foreground">
                   <p>🎯 <span className="text-muted-foreground text-xs ml-1">Specific:</span> {smartGoal.specific || 'None'}</p>
                   <p>📊 <span className="text-muted-foreground text-xs ml-1">Measurable:</span> {smartGoal.measurable || 'None'}</p>
@@ -509,7 +509,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
                     <Input placeholder="When is the deadline?" value={smartGoal.timebound} onChange={e => setSmartGoal({...smartGoal, timebound: e.target.value})} className="h-9 text-xs font-semibold rounded-xl" />
                   </div>
                 </div>
-                <Button onClick={handleSaveSmartGoal} disabled={submittingGoal} className="bg-accent hover:bg-accent/90 text-white font-semibold text-xs rounded-xl h-10 px-5">
+                <Button onClick={handleSaveSmartGoal} disabled={submittingGoal} className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-xs rounded-xl h-10 px-5">
                   Submit SMART Goal
                 </Button>
               </div>
@@ -519,7 +519,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
 
         {/* Tallies Card */}
         <Card className="border border-border shadow-md">
-          <CardHeader className="bg-primary text-white py-4">
+          <CardHeader className="bg-primary text-primary-foreground py-4">
             <CardTitle className="text-xs font-semibold text-accent flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Strategic Tallies
@@ -665,7 +665,7 @@ export function WeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; user
         {/* Right Side: Salesforce Pipeline swimlanes */}
         <div className="space-y-6">
           <Card className="border border-border shadow-md bg-card rounded-3xl overflow-hidden">
-            <CardHeader className="bg-primary text-white flex flex-row items-center justify-between py-5">
+            <CardHeader className="bg-primary text-primary-foreground flex flex-row items-center justify-between py-5">
               <div>
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accent" />

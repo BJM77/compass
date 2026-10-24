@@ -263,7 +263,7 @@ export default function LoginPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button type="submit" className="w-full bg-accent hover:bg-accent/90 shadow-lg shadow-accent/20 h-11 font-bold text-white mt-2" disabled={loading}>
+                  <Button type="submit" className="w-full bg-accent hover:bg-accent/90 shadow-lg shadow-accent/20 h-11 font-bold text-accent-foreground mt-2" disabled={loading}>
                     {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Access Guest Portal"}
                   </Button>
                 </form>

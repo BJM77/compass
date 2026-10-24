@@ -119,10 +119,10 @@ export function ReportingToolsSettings({
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row gap-6 lg:h-[700px]">
         {/* Left Pane: Dashboards */}
-        <Card className="w-full lg:w-1/3 flex flex-col border-slate-200 shadow-sm overflow-hidden h-[300px] lg:h-auto">
-          <CardHeader className="bg-slate-50 border-b p-4">
+        <Card className="w-full lg:w-1/3 flex flex-col border-border shadow-sm overflow-hidden h-[300px] lg:h-auto">
+          <CardHeader className="bg-secondary/60 border-b p-4">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-800">Custom Dashboards</CardTitle>
+              <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Custom Dashboards</CardTitle>
               <Button size="sm" variant="ghost" onClick={addDashboard} className="h-7 w-7 p-0"><Plus className="w-4 h-4" /></Button>
             </div>
           </CardHeader>
@@ -132,30 +132,30 @@ export function ReportingToolsSettings({
                  key={dash.id}
                  onClick={() => setActiveDashId(dash.id)}
                  className={`p-3 rounded-lg cursor-pointer flex justify-between items-center group transition-all text-sm
-                   ${activeDashId === dash.id ? 'bg-primary text-primary-foreground shadow' : 'hover:bg-slate-100 text-slate-700'}
+                   ${activeDashId === dash.id ? 'bg-primary text-primary-foreground shadow' : 'hover:bg-secondary text-foreground/85'}
                  `}
                >
                  <span className="font-bold truncate pr-4">{dash.name}</span>
                  <Trash2 
-                   className={`w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${activeDashId === dash.id ? 'text-primary-foreground/50 hover:text-white' : 'text-slate-400 hover:text-red-500'}`} 
+                   className={`w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${activeDashId === dash.id ? 'text-primary-foreground/50 hover:text-white' : 'text-muted-foreground hover:text-destructive'}`} 
                    onClick={(e) => { e.stopPropagation(); removeDashboard(dash.id); }} 
                  />
                </div>
             ))}
             {!(dashboards?.length) && (
-              <div className="p-8 text-center text-xs text-slate-400 font-bold uppercase">No dashboards yet.</div>
+              <div className="p-8 text-center text-xs text-muted-foreground font-bold uppercase">No dashboards yet.</div>
             )}
           </CardContent>
         </Card>
 
         {/* Right Pane: Canvas */}
-        <Card className="flex-1 flex flex-col border-slate-200 shadow-sm overflow-hidden h-[500px] lg:h-auto">
+        <Card className="flex-1 flex flex-col border-border shadow-sm overflow-hidden h-[500px] lg:h-auto">
           {activeDash ? (
             <>
-              <CardHeader className="bg-slate-50 border-b p-6 space-y-4">
+              <CardHeader className="bg-secondary/60 border-b p-6 space-y-4">
                 <div className="flex flex-col lg:flex-row items-start justify-between gap-4">
                   <div className="space-y-2 flex-1 w-full max-w-md">
-                     <Label className="text-[10px] font-black uppercase text-slate-500">Dashboard Title</Label>
+                     <Label className="text-[10px] font-black uppercase text-muted-foreground">Dashboard Title</Label>
                      <Input 
                        value={activeDash.name} 
                        onChange={e => updateDashboard(activeDash.id, 'name', e.target.value)}
@@ -163,7 +163,7 @@ export function ReportingToolsSettings({
                      />
                   </div>
                   <div className="space-y-2 lg:text-right w-full lg:w-auto">
-                     <Label className="text-[10px] font-black uppercase text-slate-500 flex lg:justify-end gap-1"><Eye className="w-3 h-3"/> Visible To</Label>
+                     <Label className="text-[10px] font-black uppercase text-muted-foreground flex lg:justify-end gap-1"><Eye className="w-3 h-3"/> Visible To</Label>
                      <div className="flex gap-2">
                        {['BDM', 'LEADER', 'GM'].map(role => {
                          const isActive = activeDash.visibleTo.includes(role);
@@ -171,7 +171,7 @@ export function ReportingToolsSettings({
                            <Badge
                              key={role}
                              onClick={() => toggleDashVisibility(activeDash.id, role)}
-                             className={`cursor-pointer transition-colors px-3 py-1 font-black text-[10px] border ${isActive ? 'bg-primary text-white border-primary' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+                             className={`cursor-pointer transition-colors px-3 py-1 font-black text-[10px] border ${isActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-panel-foreground/60 border-border hover:border-border'}`}
                            >
                              {role}
                            </Badge>
@@ -181,33 +181,33 @@ export function ReportingToolsSettings({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 flex-1 overflow-y-auto bg-slate-50/50">
+              <CardContent className="p-6 flex-1 overflow-y-auto bg-secondary/30">
                  <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-sm font-black uppercase text-slate-700">Dashboard Canvas</h3>
+                   <h3 className="text-sm font-black uppercase text-foreground/85">Dashboard Canvas</h3>
                    <Button size="sm" onClick={() => setShowWidgetDialog(true)} className="gap-2 font-bold text-xs"><Plus className="w-3.5 h-3.5" /> Add Widget</Button>
                  </div>
                  
                  {activeWidgets.length === 0 ? (
-                   <div className="border-2 border-dashed border-slate-200 rounded-2xl h-40 flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest bg-white">
+                   <div className="border-2 border-dashed border-border rounded-2xl h-40 flex items-center justify-center text-muted-foreground text-xs font-bold uppercase tracking-widest bg-card">
                      Empty Canvas. Add a widget.
                    </div>
                  ) : (
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {activeWidgets.map(w => (
-                       <div key={w.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 relative group">
+                       <div key={w.id} className="bg-card p-4 rounded-xl shadow-sm border border-border relative group">
                          <div className="flex justify-between items-start mb-3">
                            <div className="flex items-center gap-2">
-                             {w.type === 'kpi' ? <Activity className="w-4 h-4 text-emerald-500" /> : <TableProperties className="w-4 h-4 text-blue-500" />}
-                             <span className="font-bold text-sm text-slate-800 truncate pr-2">{w.name}</span>
+                             {w.type === 'kpi' ? <Activity className="w-4 h-4 text-success" /> : <TableProperties className="w-4 h-4 text-info" />}
+                             <span className="font-bold text-sm text-foreground truncate pr-2">{w.name}</span>
                            </div>
-                           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-slate-400 opacity-0 group-hover:opacity-100" onClick={() => removeWidget(w.id)}>
-                             <Trash2 className="w-3.5 h-3.5 hover:text-red-500" />
+                           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground opacity-0 group-hover:opacity-100" onClick={() => removeWidget(w.id)}>
+                             <Trash2 className="w-3.5 h-3.5 hover:text-destructive" />
                            </Button>
                          </div>
                          <div className="space-y-1.5 text-xs">
-                           <div className="flex justify-between text-slate-500"><span className="uppercase font-bold text-[9px]">Source:</span> <span className="font-medium truncate pl-2">{DATA_SOURCES.find(d=>d.id===w.dataSource)?.label}</span></div>
-                           <div className="flex justify-between text-slate-500"><span className="uppercase font-bold text-[9px]">Field:</span> <span className="font-medium truncate pl-2">{w.field}</span></div>
-                           <div className="flex justify-between text-slate-500"><span className="uppercase font-bold text-[9px]">Calculation:</span> <span className="font-bold uppercase text-[9px] bg-slate-100 px-1.5 py-0.5 rounded">{w.calculation}</span></div>
+                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-[9px]">Source:</span> <span className="font-medium truncate pl-2">{DATA_SOURCES.find(d=>d.id===w.dataSource)?.label}</span></div>
+                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-[9px]">Field:</span> <span className="font-medium truncate pl-2">{w.field}</span></div>
+                           <div className="flex justify-between text-muted-foreground"><span className="uppercase font-bold text-[9px]">Calculation:</span> <span className="font-bold uppercase text-[9px] bg-secondary px-1.5 py-0.5 rounded">{w.calculation}</span></div>
                          </div>
                        </div>
                      ))}
@@ -216,7 +216,7 @@ export function ReportingToolsSettings({
               </CardContent>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-400 text-xs font-bold uppercase">
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-xs font-bold uppercase">
               Select or create a dashboard
             </div>
           )}
@@ -226,20 +226,20 @@ export function ReportingToolsSettings({
       <Dialog open={showWidgetDialog} onOpenChange={setShowWidgetDialog}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-widest text-slate-800">Configure New Widget</DialogTitle>
+            <DialogTitle className="font-black uppercase tracking-widest text-foreground">Configure New Widget</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
             {/* Left Column: Form Controls */}
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-500">Widget Name</Label>
-                <Input placeholder="e.g. Total Revenue" value={newWidget.name || ''} onChange={e => setNewWidget({...newWidget, name: e.target.value})} className="font-bold border-slate-200" />
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">Widget Name</Label>
+                <Input placeholder="e.g. Total Revenue" value={newWidget.name || ''} onChange={e => setNewWidget({...newWidget, name: e.target.value})} className="font-bold border-border" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-slate-500">Widget Type</Label>
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Widget Type</Label>
                   <Select value={newWidget.type} onValueChange={v => setNewWidget({...newWidget, type: v, calculation: v === 'table' ? 'none' : 'sum'})}>
-                    <SelectTrigger className="font-bold border-slate-200"><SelectValue/></SelectTrigger>
+                    <SelectTrigger className="font-bold border-border"><SelectValue/></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="kpi" className="font-bold">KPI Metric Card</SelectItem>
                       <SelectItem value="table" className="font-bold">Data Table</SelectItem>
@@ -247,9 +247,9 @@ export function ReportingToolsSettings({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-slate-500">Data Source</Label>
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Data Source</Label>
                   <Select value={newWidget.dataSource} onValueChange={v => setNewWidget({...newWidget, dataSource: v, field: ''})}>
-                    <SelectTrigger className="font-bold border-slate-200"><SelectValue/></SelectTrigger>
+                    <SelectTrigger className="font-bold border-border"><SelectValue/></SelectTrigger>
                     <SelectContent>
                       {DATA_SOURCES.map(d => <SelectItem key={d.id} value={d.id} className="font-bold">{d.label}</SelectItem>)}
                     </SelectContent>
@@ -259,9 +259,9 @@ export function ReportingToolsSettings({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-slate-500">Target Field</Label>
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Target Field</Label>
                   <Select value={newWidget.field} onValueChange={v => setNewWidget({...newWidget, field: v})}>
-                    <SelectTrigger className="font-bold border-slate-200"><SelectValue placeholder="Select..."/></SelectTrigger>
+                    <SelectTrigger className="font-bold border-border"><SelectValue placeholder="Select..."/></SelectTrigger>
                     <SelectContent>
                       {DICTIONARY[newWidget.dataSource || 'opportunities'].map(f => <SelectItem key={f} value={f} className="font-bold">{f}</SelectItem>)}
                     </SelectContent>
@@ -270,9 +270,9 @@ export function ReportingToolsSettings({
                 
                 {newWidget.type === 'kpi' && (
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-slate-500">Calculation</Label>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Calculation</Label>
                     <Select value={newWidget.calculation} onValueChange={v => setNewWidget({...newWidget, calculation: v})}>
-                      <SelectTrigger className="font-bold border-slate-200"><SelectValue/></SelectTrigger>
+                      <SelectTrigger className="font-bold border-border"><SelectValue/></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="sum" className="font-bold">Sum (Total)</SelectItem>
                         <SelectItem value="count" className="font-bold">Count</SelectItem>
@@ -286,27 +286,27 @@ export function ReportingToolsSettings({
             </div>
 
             {/* Right Column: Live Interactive Preview */}
-            <div className="flex flex-col justify-center bg-slate-50 p-6 rounded-2xl border border-slate-100 min-h-[220px]">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 text-center">Live Widget Preview</p>
+            <div className="flex flex-col justify-center bg-secondary/60 p-6 rounded-2xl border border-border/60 min-h-[220px]">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 text-center">Live Widget Preview</p>
               
               {newWidget.type === 'kpi' ? (
-                <Card className="border-none shadow-md bg-white w-full">
+                <Card className="border-none shadow-md bg-card w-full">
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest truncate max-w-[80%]">{newWidget.name || 'Untitled KPI'}</p>
                       <Activity className="w-3.5 h-3.5 text-accent opacity-50" />
                     </div>
-                    <h3 className="text-2xl font-black tracking-tighter text-slate-800">
+                    <h3 className="text-2xl font-black tracking-tighter text-foreground">
                       {newWidget.calculation === 'count' ? '42' : newWidget.calculation === 'avg' ? '$2.4M' : '$128.5M'}
                     </h3>
-                    <p className="text-[9px] mt-1.5 font-bold text-slate-400 capitalize">
+                    <p className="text-[9px] mt-1.5 font-bold text-muted-foreground capitalize">
                       {newWidget.calculation || 'sum'} of {newWidget.field || 'Amount'}
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="border-none shadow-md bg-white w-full overflow-hidden">
-                  <CardHeader className="bg-slate-50 border-b py-2.5 px-4">
+                <Card className="border-none shadow-md bg-card w-full overflow-hidden">
+                  <CardHeader className="bg-secondary/60 border-b py-2.5 px-4">
                     <CardTitle className="text-[10px] font-black uppercase tracking-tight flex items-center gap-1.5">
                       <TableProperties className="w-3.5 h-3.5 text-primary" />
                       {newWidget.name || 'Untitled Table'}
@@ -314,22 +314,22 @@ export function ReportingToolsSettings({
                   </CardHeader>
                   <CardContent className="p-0">
                     <table className="w-full text-[10px]">
-                      <thead className="bg-slate-100 uppercase text-[8px] font-black tracking-widest text-slate-500">
+                      <thead className="bg-secondary uppercase text-[8px] font-black tracking-widest text-muted-foreground">
                         <tr>
                           <th className="px-3 py-1.5 text-left">Entity</th>
                           <th className="px-3 py-1.5 text-left">Owner</th>
                           <th className="px-3 py-1.5 text-right">{newWidget.field || 'Amount'}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50">
+                      <tbody className="divide-y divide-border/60">
+                        <tr className="hover:bg-secondary/60">
                           <td className="px-3 py-1.5 font-bold truncate max-w-[80px]">Acme Deal</td>
-                          <td className="px-3 py-1.5 text-slate-500">John Doe</td>
+                          <td className="px-3 py-1.5 text-muted-foreground">John Doe</td>
                           <td className="px-3 py-1.5 text-right font-black text-primary">$4.50M</td>
                         </tr>
-                        <tr className="hover:bg-slate-50">
+                        <tr className="hover:bg-secondary/60">
                           <td className="px-3 py-1.5 font-bold truncate max-w-[80px]">Stark Corp</td>
-                          <td className="px-3 py-1.5 text-slate-500">Tony Stark</td>
+                          <td className="px-3 py-1.5 text-muted-foreground">Tony Stark</td>
                           <td className="px-3 py-1.5 text-right font-black text-primary">$18.2M</td>
                         </tr>
                       </tbody>

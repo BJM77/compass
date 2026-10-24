@@ -41,7 +41,7 @@ export function AITeamInsights({ input }: AITeamInsightsProps) {
           <Button 
             onClick={runAnalysis} 
             disabled={loading}
-            className="bg-accent text-white hover:bg-accent/90"
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
             Generate Insights
@@ -86,7 +86,7 @@ export function AITeamInsights({ input }: AITeamInsightsProps) {
                 <p className="text-sm leading-relaxed opacity-90">{analysis.strategicAnalysis}</p>
               </div>
               <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-red-400 mb-2 flex items-center gap-2">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-destructive mb-2 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" /> Risk & Mitigation
                 </h4>
                 <p className="text-sm leading-relaxed opacity-90">{analysis.potentialRisks}</p>

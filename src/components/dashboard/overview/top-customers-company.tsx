@@ -14,17 +14,17 @@ export function TopCustomersCompany({ data }: { data: TopCustomer[] }) {
   const maxRevenue = top10.length > 0 ? top10[0].revenue : 1;
 
   return (
-    <div className="bg-white rounded-2xl shadow-xs border border-slate-200 p-5 sm:p-6 print:shadow-none print:border-none print:p-0">
+    <div className="bg-card rounded-2xl shadow-xs border border-border p-5 sm:p-6 print:shadow-none print:border-none print:p-0">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+          <span className="p-1.5 bg-accent/10 text-accent rounded-lg">
             <Landmark className="w-5 h-5" />
           </span>
           <div>
-            <h3 className="font-black text-slate-900 tracking-tight text-base sm:text-lg uppercase">
+            <h3 className="font-black text-foreground tracking-tight text-base sm:text-lg uppercase">
               Top 10 Traders (Company-Wide)
             </h3>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-muted-foreground font-medium">
               Ranked by total actual spend booked across all accounts.
             </p>
           </div>
@@ -38,29 +38,29 @@ export function TopCustomersCompany({ data }: { data: TopCustomer[] }) {
           return (
             <div 
               key={idx} 
-              className="p-2.5 hover:bg-slate-50 rounded-xl transition-colors border border-slate-100/80 bg-slate-50/40 relative overflow-hidden"
+              className="p-2.5 hover:bg-secondary/60 rounded-xl transition-colors border border-border/50 bg-secondary/25 relative overflow-hidden"
             >
               {/* Background fill bar */}
               <div 
-                className="absolute top-0 left-0 bottom-0 bg-indigo-50/70 -z-0 rounded-xl transition-all duration-700"
+                className="absolute top-0 left-0 bottom-0 bg-accent/5 -z-0 rounded-xl transition-all duration-700"
                 style={{ width: `${barWidth}%` }}
               />
 
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-                    idx === 0 ? 'bg-indigo-600 text-white shadow-xs' :
-                    idx === 1 ? 'bg-indigo-200 text-indigo-900' :
-                    idx === 2 ? 'bg-indigo-100 text-indigo-800' :
-                    'bg-slate-200/80 text-slate-600'
+                    idx === 0 ? 'bg-accent text-accent-foreground shadow-xs' :
+                    idx === 1 ? 'bg-accent/20 text-primary' :
+                    idx === 2 ? 'bg-accent/15 text-primary' :
+                    'bg-border/80 text-foreground/75'
                   }`}>
                     {idx + 1}
                   </div>
-                  <span className="font-bold text-slate-850 text-sm truncate max-w-[180px] sm:max-w-[260px]" title={item.companyName}>
+                  <span className="font-bold text-foreground text-sm truncate max-w-[180px] sm:max-w-[260px]" title={item.companyName}>
                     {item.companyName}
                   </span>
                 </div>
-                <div className="font-black text-indigo-700 text-sm">
+                <div className="font-black text-primary text-sm">
                   {formatCurrency(item.revenue)}
                 </div>
               </div>
@@ -68,7 +68,7 @@ export function TopCustomersCompany({ data }: { data: TopCustomer[] }) {
           );
         })}
         {top10.length === 0 && (
-          <div className="text-center py-8 text-slate-400 font-medium text-sm">
+          <div className="text-center py-8 text-muted-foreground font-medium text-sm">
             No customer actual spend data available.
           </div>
         )}

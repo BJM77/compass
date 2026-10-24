@@ -11,8 +11,8 @@ export function computeMomentum(deal: {
     return { 
       score: 'DEAD', 
       reason: 'Rolled over 3+ weeks, barriers unchanged',
-      color: 'text-red-700',
-      bg: 'bg-red-100 border-red-200'
+      color: 'text-destructive',
+      bg: 'bg-danger-soft border-destructive/25'
     };
   }
 
@@ -20,8 +20,8 @@ export function computeMomentum(deal: {
     return { 
       score: 'STALLING', 
       reason: `${deal.daysInStage} days in stage`,
-      color: 'text-orange-700',
-      bg: 'bg-orange-100 border-orange-200'
+      color: 'text-warning-ink',
+      bg: 'bg-warning-soft border-warning/25'
     };
   }
 
@@ -29,15 +29,15 @@ export function computeMomentum(deal: {
     return { 
       score: 'HOT', 
       reason: 'Recent activity detected',
-      color: 'text-green-700',
-      bg: 'bg-green-100 border-green-200'
+      color: 'text-success-ink',
+      bg: 'bg-success-soft border-success/25'
     };
   }
 
   return { 
     score: 'MOVING', 
     reason: 'Normal progression',
-    color: 'text-blue-700',
-    bg: 'bg-blue-100 border-blue-200'
+    color: 'text-info',
+    bg: 'bg-info-soft border-info/25'
   };
 }

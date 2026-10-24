@@ -93,8 +93,8 @@ export function VoiceActionLogger({ userId, userName }: { userId: string, userNa
   };
 
   return (
-    <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-accent/20 transition-colors">
-      {isRecording && <div className="absolute inset-0 bg-red-500/5 animate-pulse pointer-events-none" />}
+    <div className="bg-card border-2 border-border/60 rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-accent/20 transition-colors">
+      {isRecording && <div className="absolute inset-0 bg-destructive/5 animate-pulse pointer-events-none" />}
       
       <div className="flex items-center justify-between mb-4 relative z-10">
         <div>
@@ -108,7 +108,7 @@ export function VoiceActionLogger({ userId, userName }: { userId: string, userNa
         <Button 
           onClick={toggleRecording}
           size="icon"
-          className={`rounded-full w-12 h-12 shadow-lg transition-all duration-300 ${isRecording ? 'bg-red-500 hover:bg-red-600 scale-110 shadow-red-200' : 'bg-slate-900 hover:bg-slate-800'}`}
+          className={`rounded-full w-12 h-12 shadow-lg transition-all duration-300 ${isRecording ? 'bg-destructive hover:bg-destructive/90 scale-110 shadow-destructive/20' : 'bg-panel hover:bg-panel/80'}`}
         >
           {isRecording ? <MicOff className="w-5 h-5 text-white" /> : <Mic className="w-5 h-5 text-white" />}
         </Button>
@@ -119,7 +119,7 @@ export function VoiceActionLogger({ userId, userName }: { userId: string, userNa
           value={transcript}
           onChange={(e) => setTranscript(e.target.value)}
           placeholder="Tap microphone to dictate outcome..."
-          className="min-h-[100px] text-xs font-medium border-slate-200 bg-slate-50 focus:bg-white resize-none shadow-inner"
+          className="min-h-[100px] text-xs font-medium border-border bg-secondary/60 focus:bg-card resize-none shadow-inner"
         />
         
         <div className="flex justify-end">

@@ -513,8 +513,8 @@ export function OverviewHub() {
   if (isLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-80 space-y-3">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
-        <p className="text-sm font-semibold text-slate-500">Loading Executive Team Overview...</p>
+        <Loader2 className="w-10 h-10 animate-spin text-accent" />
+        <p className="text-sm font-semibold text-muted-foreground">Loading Executive Team Overview...</p>
       </div>
     );
   }
@@ -535,22 +535,22 @@ export function OverviewHub() {
     <div className="space-y-6 pb-12 animate-in fade-in slide-in-from-bottom-3 duration-500">
       
       {/* Header & Filter Toolbar */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm print:hidden">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-card p-5 rounded-2xl border border-border shadow-sm print:hidden">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+            <span className="p-2 bg-accent/10 text-accent rounded-xl">
               <LayoutDashboard className="w-6 h-6" />
             </span>
             <div>
               <div className="flex items-center gap-2.5">
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                   Executive Overview
                 </h2>
-                <Badge className="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-wider">
+                <Badge className="bg-accent text-accent-foreground font-black text-[10px] uppercase tracking-wider">
                   {finProgress.currentQuarter} • {finProgress.monthName}
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-0.5">
                 Team Scorecard, Target Attainment & Activity Analysis for Account Managers and BDMs.
               </p>
             </div>
@@ -559,11 +559,11 @@ export function OverviewHub() {
 
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           {/* Role Filter Pills */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold border border-slate-200">
+          <div className="flex items-center bg-secondary p-1 rounded-xl text-xs font-bold border border-border">
             <button
               onClick={() => setRoleFilter('ALL')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                roleFilter === 'ALL' ? 'bg-white text-indigo-600 shadow-xs font-black' : 'text-slate-600 hover:text-slate-900'
+                roleFilter === 'ALL' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               All Team ({quarterlyData.length})
@@ -571,7 +571,7 @@ export function OverviewHub() {
             <button
               onClick={() => setRoleFilter('ACCOUNT_MANAGER')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                roleFilter === 'ACCOUNT_MANAGER' ? 'bg-white text-indigo-600 shadow-xs font-black' : 'text-slate-600 hover:text-slate-900'
+                roleFilter === 'ACCOUNT_MANAGER' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               Account Managers
@@ -579,7 +579,7 @@ export function OverviewHub() {
             <button
               onClick={() => setRoleFilter('BDM')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                roleFilter === 'BDM' ? 'bg-white text-indigo-600 shadow-xs font-black' : 'text-slate-600 hover:text-slate-900'
+                roleFilter === 'BDM' ? 'bg-card text-accent shadow-xs font-black' : 'text-foreground/75 hover:text-foreground'
               }`}
             >
               BDMs
@@ -588,7 +588,7 @@ export function OverviewHub() {
 
           <Button 
             onClick={handleExportPDF} 
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold tracking-wide shadow-sm text-xs sm:text-sm h-9"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold tracking-wide shadow-sm text-xs sm:text-sm h-9"
           >
             <Download className="w-4 h-4 mr-1.5" />
             Export PDF Report
@@ -598,8 +598,8 @@ export function OverviewHub() {
 
       {/* Print-only Header */}
       <div className="hidden print:block mb-6 border-b pb-4">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Executive Team Performance Report</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
+        <h1 className="text-3xl font-black text-foreground tracking-tight">Executive Team Performance Report</h1>
+        <p className="text-sm text-muted-foreground font-medium mt-1">
           Financial Position: {finProgress.currentQuarter} ({finProgress.monthName}) • Generated {new Date().toLocaleDateString()}
         </p>
       </div>
@@ -607,39 +607,39 @@ export function OverviewHub() {
       {/* Executive KPI Metric Cards Section */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 print:grid-cols-4">
         {/* Card 1: Team Roster */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Staff</span>
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Staff</span>
+            <div className="p-2 bg-info-soft text-info rounded-xl">
               <Users className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">{summaryKpis.totalReps}</div>
-            <p className="text-[11px] font-semibold text-slate-400 mt-0.5">AMs & BDMs Active</p>
+            <div className="text-2xl sm:text-3xl font-black text-foreground">{summaryKpis.totalReps}</div>
+            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">AMs & BDMs Active</p>
           </div>
         </div>
 
         {/* Card 2: Team Revenue & Pacing */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">YTD Revenue</span>
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">YTD Revenue</span>
+            <div className="p-2 bg-success-soft text-success rounded-xl">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">{formatEAV(summaryKpis.totalRevenue)}</div>
+            <div className="text-2xl sm:text-3xl font-black text-foreground">{formatEAV(summaryKpis.totalRevenue)}</div>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-[11px] font-bold text-slate-500">
+              <span className="text-[11px] font-bold text-muted-foreground">
                 Paced: {formatEAV(totalPacedTarget)}
               </span>
               <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${
                 isTeamAhead 
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                  ? 'bg-success-soft text-success-ink border-success/25' 
                   : isTeamAtRisk 
-                  ? 'bg-amber-50 text-amber-700 border-amber-200' 
-                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                  ? 'bg-warning-soft text-warning-ink border-warning/25' 
+                  : 'bg-danger-soft text-destructive border-destructive/25'
               }`}>
                 {teamPacingPct}% Pace
               </span>
@@ -648,32 +648,32 @@ export function OverviewHub() {
         </div>
 
         {/* Card 3: Team Outreach Activity */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Outreach</span>
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Outreach</span>
+            <div className="p-2 bg-accent/10 text-accent rounded-xl">
               <PhoneCall className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">{summaryKpis.totalCalls}</div>
-            <p className="text-[11px] font-semibold text-slate-400 mt-0.5">
+            <div className="text-2xl sm:text-3xl font-black text-foreground">{summaryKpis.totalCalls}</div>
+            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">
               {summaryKpis.totalApps} Appointments Logged
             </p>
           </div>
         </div>
 
         {/* Card 4: Active Pipeline */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Pipeline</span>
-            <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Pipeline</span>
+            <div className="p-2 bg-warning-soft text-warning-ink rounded-xl">
               <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">{formatEAV(summaryKpis.totalPipeline)}</div>
-            <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Total Qualified Deals</p>
+            <div className="text-2xl sm:text-3xl font-black text-foreground">{formatEAV(summaryKpis.totalPipeline)}</div>
+            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">Total Qualified Deals</p>
           </div>
         </div>
       </div>

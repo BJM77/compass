@@ -41,7 +41,7 @@ export function KPICard({ title, value, subtitle, status, icon, info, className,
               </CardTitle>
             </TooltipTrigger>
             {info && (
-              <TooltipContent side="top" className="bg-primary text-white border-none p-2 md:p-3 max-w-[180px] md:max-w-[200px] rounded-xl shadow-2xl">
+              <TooltipContent side="top" className="bg-primary text-primary-foreground border-none p-2 md:p-3 max-w-[180px] md:max-w-[200px] rounded-xl shadow-2xl">
                 <p className="text-xs font-bold leading-relaxed">{info}</p>
               </TooltipContent>
             )}

@@ -229,27 +229,27 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
   const renderKPIReview = () => {
     if (!isRegisteredUser) return null;
     return (
-      <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white mb-6">
-        <CardHeader className="bg-slate-50/50 border-b py-4">
+      <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card mb-6">
+        <CardHeader className="bg-secondary/30 border-b py-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                <Target className="w-4 h-4 text-emerald-600" /> Weekly KPI Review (vs Previous Friday's Plan)
+              <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+                <Target className="w-4 h-4 text-success" /> Weekly KPI Review (vs Previous Friday's Plan)
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Review your performance against the KPI targets set last Friday
               </CardDescription>
             </div>
-            <Badge className="bg-slate-100 text-slate-600 font-black text-[9px] uppercase">Week {previousWeek.split('-')[1]} Targets</Badge>
+            <Badge className="bg-secondary text-foreground/75 font-black text-[9px] uppercase">Week {previousWeek.split('-')[1]} Targets</Badge>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-blue-500" /><div className="text-[9px] font-black uppercase text-slate-500">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-purple-500" /><div className="text-[9px] font-black uppercase text-slate-500">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-amber-500" /><div className="text-[9px] font-black uppercase text-slate-500">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-xl font-black text-slate-800">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
-            <div className="space-y-2"><div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-500" /><div className="text-[9px] font-black uppercase text-slate-500">Revenue</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Target</div><div className="text-lg font-black text-slate-800">${(kpiReview.revenueTarget / 1000).toFixed(0)}K</div></div><div className="flex-1"><div className="text-[8px] font-bold text-slate-400 uppercase">Actual</div><Input type="number" value={kpiReview.revenueActual || ''} onChange={(e) => updateKPI('revenueActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-info" /><div className="text-[9px] font-black uppercase text-muted-foreground">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Target</div><div className="text-xl font-black text-foreground">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-success" /><div className="text-[9px] font-black uppercase text-muted-foreground">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Target</div><div className="text-xl font-black text-foreground">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-chart-5" /><div className="text-[9px] font-black uppercase text-muted-foreground">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Target</div><div className="text-xl font-black text-foreground">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-warning" /><div className="text-[9px] font-black uppercase text-muted-foreground">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Target</div><div className="text-xl font-black text-foreground">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
+            <div className="space-y-2"><div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-success" /><div className="text-[9px] font-black uppercase text-muted-foreground">Revenue</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Target</div><div className="text-lg font-black text-foreground">${(kpiReview.revenueTarget / 1000).toFixed(0)}K</div></div><div className="flex-1"><div className="text-[8px] font-bold text-muted-foreground uppercase">Actual</div><Input type="number" value={kpiReview.revenueActual || ''} onChange={(e) => updateKPI('revenueActual', parseInt(e.target.value) || 0)} className="h-9 text-lg font-black w-full" placeholder="0" /></div></div></div>
           </div>
 
         </CardContent>
@@ -1920,8 +1920,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
     if (item.isHidden && !showHiddenItems) return null;
     return (
       <div key={`${subId}-${type}-${item.id}`} className={cn(
-        "relative group p-2 mb-2 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-200 transition-all",
-        item.isHidden && "opacity-50 border-dashed bg-slate-100/50"
+        "relative group p-2 mb-2 bg-secondary/60 border border-border/60 rounded-lg hover:border-border transition-all",
+        item.isHidden && "opacity-50 border-dashed bg-secondary/50"
       )}>
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-10 print-actions" data-print-hidden="true">
           {isLeader && (
@@ -1930,8 +1930,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                 size="icon" 
                 variant="secondary" 
                 className={cn(
-                  "w-6 h-6 shadow-sm border bg-white", 
-                  item.isStarred ? "border-amber-400 text-amber-500" : "border-slate-200 text-slate-400 hover:text-amber-500"
+                  "w-6 h-6 shadow-sm border bg-card", 
+                  item.isStarred ? "border-warning text-warning" : "border-border text-muted-foreground hover:text-warning"
                 )} 
                 onClick={() => toggleItemState(subId, type as any, item.id, 'isStarred')}
               >
@@ -1940,7 +1940,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <Button 
                 size="icon" 
                 variant="secondary" 
-                className={cn("w-6 h-6 shadow-sm border bg-white hover:text-slate-600", item.isHidden ? "border-red-400 text-red-500" : "border-slate-200 text-slate-400")} 
+                className={cn("w-6 h-6 shadow-sm border bg-card hover:text-foreground/75", item.isHidden ? "border-destructive text-destructive" : "border-border text-muted-foreground")} 
                 onClick={() => toggleItemState(subId, type as any, item.id, 'isHidden')}
               >
                 {item.isHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -1948,7 +1948,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               <Button 
                 size="icon" 
                 variant="secondary" 
-                className="w-6 h-6 shadow-sm border border-red-200 bg-white hover:bg-red-50 text-red-400 hover:text-red-600" 
+                className="w-6 h-6 shadow-sm border border-destructive/25 bg-card hover:bg-danger-soft text-destructive hover:text-destructive" 
                 onClick={() => deleteItem(subId, type as any, item.id)}
               >
                 <Trash2 className="w-3 h-3" />
@@ -1956,7 +1956,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             </>
           )}
         </div>
-        <div className={cn("pr-8", item.isHidden && "line-through text-slate-400")}>
+        <div className={cn("pr-8", item.isHidden && "line-through text-muted-foreground")}>
           {content}
         </div>
       </div>
@@ -2033,44 +2033,44 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
     return (
       <div className="space-y-6">
         {isLeader && (
-          <Card className="border shadow-md bg-white">
-            <CardHeader className="bg-slate-50/50 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between py-5 gap-4">
+          <Card className="border shadow-md bg-card">
+            <CardHeader className="bg-secondary/30 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between py-5 gap-4">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-indigo-600" /> Master Executive TWTW Collation
+                <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+                  <Users className="w-4 h-4 text-accent" /> Master Executive TWTW Collation
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
                   How executive reports look with combined registered data vs guest data
                 </CardDescription>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
-                <div className="flex items-center gap-2 mr-4 bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 shadow-sm">
+                <div className="flex items-center gap-2 mr-4 bg-secondary/60 border border-border/60 rounded-xl px-3 py-1.5 shadow-sm">
                   <input
                     type="checkbox"
                     id="show-hidden-toggle"
                     checked={showHiddenItems}
                     onChange={(e) => setShowHiddenItems(e.target.checked)}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                    className="h-3.5 w-3.5 rounded border-border text-accent focus:ring-accent cursor-pointer"
                   />
-                  <label htmlFor="show-hidden-toggle" className="text-[9px] font-black text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                  <label htmlFor="show-hidden-toggle" className="text-[9px] font-black text-muted-foreground uppercase tracking-wider cursor-pointer select-none">
                     Show Hidden
                   </label>
                 </div>
                 <Button 
                   onClick={handleExportPdf}
-                  className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
                   <ClipboardCheck className="w-4 h-4" /> Export to Landscape PDF
                 </Button>
                 <Button 
                   onClick={handleExportOversizedPdf}
-                  className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
                   <FileText className="w-4 h-4" /> Export PDF
                 </Button>
                 <Button 
                   onClick={handleExportCondensedPdf}
-                  className="bg-primary hover:bg-primary/90 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
                   <FileText className="w-4 h-4" /> Export to Condensed PDF
                 </Button>
@@ -2079,21 +2079,21 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             <CardContent className="p-0">
               <div className="p-6 space-y-12 max-h-[800px] overflow-y-auto">
                 {Object.entries(submissionsByState).length === 0 ? (
-                  <div className="text-center py-24 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  <div className="text-center py-24 text-muted-foreground text-xs font-bold uppercase tracking-widest">
                     No submissions available to collate yet.
                   </div>
                 ) : (
                   Object.entries(submissionsByState).map(([state, subs]) => (
                     <div key={state} className="space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <h3 className="text-lg font-black uppercase text-slate-800 flex items-center gap-2">
-                          {state} Region <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-500 font-black">{subs.length} Reps</Badge>
+                      <div className="flex items-center justify-between border-b border-border pb-2">
+                        <h3 className="text-lg font-black uppercase text-foreground flex items-center gap-2">
+                          {state} Region <Badge variant="secondary" className="ml-2 bg-secondary text-muted-foreground font-black">{subs.length} Reps</Badge>
                         </h3>
                         {isLeader && (
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="text-[9px] uppercase font-black text-red-600 border-red-200 hover:bg-red-50"
+                            className="text-[9px] uppercase font-black text-destructive border-destructive/25 hover:bg-danger-soft"
                             onClick={() => {
                               if (confirm(`⚠️ Delete ALL submissions for ${state} region? This cannot be undone.`)) {
                                 subs.forEach(sub => handleDeleteSubmission(sub.id));
@@ -2105,10 +2105,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                         )}
                       </div>
                       
-                      <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                      <div className="overflow-x-auto border border-border rounded-xl">
                         <table className="w-full text-xs text-left">
-                          <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
+                          <thead className="bg-secondary/60 border-b border-border">
+                            <tr className="uppercase text-[9px] font-black tracking-widest text-muted-foreground">
                               <th className="p-3 w-[18%]">Key Wins</th>
                               <th className="p-3 w-[18%]">Churn Risk</th>
                               <th className="p-3 w-[18%]">Major Updates</th>
@@ -2117,71 +2117,71 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                               {isLeader && <th className="p-3 w-[10%] text-center print-actions" data-print-hidden="true">Actions</th>}
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 bg-white">
+                          <tbody className="divide-y divide-border/60 bg-card">
                             {subs.map((sub, idx) => (
                               <tr key={idx} className="align-top relative group">
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.wins || []).map((w: any) => renderItem(w, 'wins', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{w.customer}</div>
-                                      <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{w.salespersonName || 'N/A'}</div>
-                                      {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {w.businessUnits.join(', ')}</div>}
+                                      <div className="font-bold text-foreground">{w.customer}</div>
+                                      <div className="text-success font-semibold">{formatEAV(w.value)}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{w.salespersonName || 'N/A'}</div>
+                                      {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-1">BU: {w.businessUnits.join(', ')}</div>}
                                       {w.updateText && <div className="mt-1">{w.updateText}</div>}
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.risks || []).map((r: any) => renderItem(r, 'risks', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{r.account}</div>
-                                      <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{r.salespersonName || 'N/A'}</div>
-                                      <div className="mt-1 text-slate-500">Mitigation: {r.mitigation}</div>
+                                      <div className="font-bold text-foreground">{r.account}</div>
+                                      <div className="text-destructive font-semibold">{formatEAV(r.value)}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{r.salespersonName || 'N/A'}</div>
+                                      <div className="mt-1 text-muted-foreground">Mitigation: {r.mitigation}</div>
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {sub.updates && (
-                                    <div className="p-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
+                                    <div className="p-2 mb-2 bg-warning-soft border border-warning/15 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
                                   )}
                                   {(sub.majorUpdates || []).map((m: any) => renderItem(m, 'majorUpdates', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{m.customer}</div>
-                                      {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
-                                      <div className="text-[10px] text-slate-500 mt-1">{m.salespersonName || 'N/A'}</div>
-                                      {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {m.businessUnits.join(', ')}</div>}
+                                      <div className="font-bold text-foreground">{m.customer}</div>
+                                      {m.value > 0 && <div className="text-info font-semibold">{formatEAV(m.value)}</div>}
+                                      <div className="text-[10px] text-muted-foreground mt-1">{m.salespersonName || 'N/A'}</div>
+                                      {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-1">BU: {m.businessUnits.join(', ')}</div>}
                                       {m.updateText && <div className="mt-1">{m.updateText}</div>}
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.projectedWins || []).map((p: any) => renderItem(p, 'projectedWins', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{p.account}</div>
-                                      <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
-                                      {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {p.businessUnits.join(', ')}</div>}
+                                      <div className="font-bold text-foreground">{p.account}</div>
+                                      <div className="text-info font-semibold">{formatEAV(p.value)}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{p.salespersonName || 'N/A'}</div>
+                                      {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-1">BU: {p.businessUnits.join(', ')}</div>}
                                       {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.priorities || []).map((p: any) => renderItem(p, 'priorities', sub.id, (
                                     <>
                                       <div>{p.text}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{p.salespersonName || 'N/A'}</div>
                                     </>
                                   )))}
-                                  {(sub.priorities || []).length === 0 && <div className="text-[10px] text-slate-400 font-medium italic">-</div>}
+                                  {(sub.priorities || []).length === 0 && <div className="text-[10px] text-muted-foreground font-medium italic">-</div>}
                                 </td>
                                 {isLeader && (
                                   <td className="p-3 print-actions" data-print-hidden="true">
                                     <div className="flex flex-col gap-1.5">
-                                      <Button size="sm" variant="outline" className="w-full text-[9px] uppercase font-black h-7 border-indigo-200 text-indigo-600 hover:bg-indigo-50" onClick={() => handleEditSubmission(sub)}>
+                                      <Button size="sm" variant="outline" className="w-full text-[9px] uppercase font-black h-7 border-accent/25 text-accent hover:bg-accent/10" onClick={() => handleEditSubmission(sub)}>
                                         <Edit3 className="w-3 h-3 mr-1" /> Edit
                                       </Button>
-                                      <Button size="sm" variant="destructive" className="w-full text-[9px] uppercase font-black h-7 bg-red-600 hover:bg-red-700" onClick={() => handleDeleteSubmission(sub.id)}>
+                                      <Button size="sm" variant="destructive" className="w-full text-[9px] uppercase font-black h-7 bg-destructive hover:bg-destructive/90" onClick={() => handleDeleteSubmission(sub.id)}>
                                         <Trash2 className="w-3 h-3 mr-1" /> Delete
                                       </Button>
                                     </div>
@@ -2209,7 +2209,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
       
       {/* Main Tabs */}
       <Tabs defaultValue="thursday" className="w-full">
-        <TabsList className="bg-white border p-1.5 rounded-2xl shadow-sm mb-6 w-full md:w-auto flex flex-col md:flex-row gap-1">
+        <TabsList className="bg-card border p-1.5 rounded-2xl shadow-sm mb-6 w-full md:w-auto flex flex-col md:flex-row gap-1">
           <TabsTrigger value="thursday" className="font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5 py-2 px-4">
             <Calendar className="w-3.5 h-3.5" /> Thursday TWTW
           </TabsTrigger>
@@ -2232,15 +2232,15 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
         <TabsContent value="guide" className="mt-0 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="border shadow-md">
-              <CardHeader className="bg-slate-50 border-b py-4">
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-800 text-[10px]">1</span>
+              <CardHeader className="bg-secondary/60 border-b py-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/85 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-border flex items-center justify-center font-black text-foreground text-[10px]">1</span>
                   Friday Combined pack
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-5 space-y-3 text-xs font-medium text-slate-600 leading-relaxed">
+              <CardContent className="p-5 space-y-3 text-xs font-medium text-foreground/75 leading-relaxed">
                 <p>Monday Planning and Friday Synthesis are completed in a **single Friday session**.</p>
-                <p className="bg-slate-50 p-2.5 rounded-xl border font-bold text-slate-700">
+                <p className="bg-secondary/60 p-2.5 rounded-xl border font-bold text-foreground/85">
                   BDMs tick off this week's checklist and mark focus accounts as Won/Lost/Working. Uncompleted items roll over automatically. They then draft next week's goals.
                 </p>
                 <p>This creates a single clean database log for the week, which pre-fills the next Thursday's TWTW report.</p>
@@ -2248,15 +2248,15 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             </Card>
 
             <Card className="border shadow-md">
-              <CardHeader className="bg-indigo-50 border-b border-indigo-100 py-4">
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-indigo-900 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center font-black text-white text-[10px]">2</span>
+              <CardHeader className="bg-accent/10 border-b border-accent/15 py-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-accent flex items-center justify-center font-black text-accent-foreground text-[10px]">2</span>
                   Thursday TWTW Pre-fill
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-5 space-y-3 text-xs font-medium text-indigo-950/80 leading-relaxed">
+              <CardContent className="p-5 space-y-3 text-xs font-medium text-primary/80 leading-relaxed">
                 <p>On Thursday afternoon, the TWTW report is sent to executives.</p>
-                <p className="bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100 font-bold text-indigo-900">
+                <p className="bg-accent/5 p-2.5 rounded-xl border border-accent/15 font-bold text-primary">
                   Instead of double-typing, the system pre-populates Thursday's TWTW priorities and focus accounts directly from what they planned on the previous Friday.
                 </p>
                 <p>Closed Won CRM deals are suggested as wins, and stalled deals are suggested as risks. The BDM simply keeps, modifies, or deletes the suggested items.</p>
@@ -2264,15 +2264,15 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             </Card>
 
             <Card className="border shadow-md">
-              <CardHeader className="bg-emerald-50 border-b border-emerald-100 py-4">
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-emerald-950 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center font-black text-white text-[10px]">3</span>
+              <CardHeader className="bg-success-soft border-b border-success/15 py-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-success-ink flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-success-fill flex items-center justify-center font-black text-success-foreground text-[10px]">3</span>
                   Role-Aware Context
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-5 space-y-3 text-xs font-medium text-emerald-950/80 leading-relaxed">
+              <CardContent className="p-5 space-y-3 text-xs font-medium text-success-ink/80 leading-relaxed">
                 <p>Different interfaces for guest and registered users:</p>
-                <ul className="space-y-1.5 list-disc pl-4 font-bold text-emerald-900">
+                <ul className="space-y-1.5 list-disc pl-4 font-bold text-success-ink">
                   <li>**Guest Users** see only standard TWTW questions (Wins, Risks, Updates, Projected, Priorities) with email and SF links hidden.</li>
                   <li>**Registered Staff** see standard TWTW questions *plus* internal KPI actuals, focus account updates, and management support lists.</li>
                 </ul>
@@ -2280,27 +2280,27 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             </Card>
           </div>
 
-          <Card className="border shadow-md bg-white">
+          <Card className="border shadow-md bg-card">
             <CardHeader><CardTitle className="text-sm font-black uppercase tracking-wider">Benefits Summary</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
               <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-black text-xs uppercase tracking-tight text-slate-800">Zero Duplication</h4>
+                  <h4 className="font-black text-xs uppercase tracking-tight text-foreground">Zero Duplication</h4>
                   <p className="text-[11px] text-muted-foreground mt-0.5">BDMs never type the same account name, action, or roadblock twice. Data rolls forward logically.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-black text-xs uppercase tracking-tight text-slate-800">Time-Aware Automation</h4>
+                  <h4 className="font-black text-xs uppercase tracking-tight text-foreground">Time-Aware Automation</h4>
                   <p className="text-[11px] text-muted-foreground mt-0.5">Forms are context-aware based on the day. Friday focus edits directly affect next week's pre-fills.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-black text-xs uppercase tracking-tight text-slate-800">Consolidated Executive View</h4>
+                  <h4 className="font-black text-xs uppercase tracking-tight text-foreground">Consolidated Executive View</h4>
                   <p className="text-[11px] text-muted-foreground mt-0.5">All details roll up into a single 6-column landscape report that prints cleanly onto landscape PDF.</p>
                 </div>
               </div>
@@ -2310,10 +2310,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
         <TabsContent value="friday" className="mt-0">
           {!user || profile?.role === 'GUEST' ? (
-            <Card className="border shadow-md bg-white p-12 text-center">
+            <Card className="border shadow-md bg-card p-12 text-center">
               <div className="flex flex-col items-center gap-4">
-                <Shield className="w-16 h-16 text-slate-300" />
-                <h3 className="text-xl font-black text-slate-600 uppercase tracking-tight">Access Restricted</h3>
+                <Shield className="w-16 h-16 text-muted-foreground/70" />
+                <h3 className="text-xl font-black text-foreground/75 uppercase tracking-tight">Access Restricted</h3>
                 <p className="text-sm text-muted-foreground max-w-md">
                   The Friday Performance Review is only available to registered team members. 
                   Please log in with your corporate credentials to access this feature.
@@ -2334,21 +2334,21 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
         {/* --- TAB 2: INTERACTIVE SIMULATOR --- */}
         <TabsContent value="thursday" className="mt-0">
                 <div className="space-y-6">
-                  <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden gap-4">
+                  <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-panel text-panel-foreground p-6 rounded-3xl shadow-xl relative overflow-hidden gap-4">
                     <div className="absolute top-0 right-0 p-8 opacity-5"><TrendingUp className="w-32 h-32" /></div>
                     <div className="relative z-10 space-y-1">
-                      <Badge className="bg-indigo-600 text-white font-black text-[9px] uppercase tracking-widest px-2.5 mb-1">
+                      <Badge className="bg-accent text-accent-foreground font-black text-[9px] uppercase tracking-widest px-2.5 mb-1">
                         Thursday Afternoon Deadline
                       </Badge>
                       <h3 className="text-xl font-black uppercase tracking-tight">The Week That Was (TWTW)</h3>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                      <p className="text-[10px] text-panel-foreground/60 font-bold uppercase tracking-wider">
                         Role View: Registered Staff (Extended Context)
                       </p>
                     </div>
                     <div className="flex gap-2 relative z-10 w-full sm:w-auto">
                       <Button 
                         onClick={handleLoadPreviousFridayData}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest h-12 px-5 rounded-2xl shadow-lg w-full sm:w-auto gap-2"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground font-black text-xs uppercase tracking-widest h-12 px-5 rounded-2xl shadow-lg w-full sm:w-auto gap-2"
                       >
                         <RefreshCw className="w-4 h-4" /> Load Previous Friday Data
                       </Button>
@@ -2360,20 +2360,20 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                   {isRegisteredUser && renderKPIReview()}
                   
                   {isGuest && (
-                    <Card className="border-slate-200 shadow-sm rounded-3xl overflow-hidden bg-white mb-6">
-                      <CardHeader className="bg-slate-50/50 border-b py-4">
+                    <Card className="border-border shadow-sm rounded-3xl overflow-hidden bg-card mb-6">
+                      <CardHeader className="bg-secondary/30 border-b py-4">
                         <div className="flex items-center gap-2">
-                          <Shield className="w-5 h-5 text-slate-400" />
-                          <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-600">Guest Access</CardTitle>
+                          <Shield className="w-5 h-5 text-muted-foreground" />
+                          <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground/75">Guest Access</CardTitle>
                         </div>
                       </CardHeader>
                       <CardContent className="p-6 text-center">
                         <div className="flex flex-col items-center gap-4 py-8">
-                          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><Shield className="w-8 h-8 text-slate-400" /></div>
+                          <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center"><Shield className="w-8 h-8 text-muted-foreground" /></div>
                           <div className="space-y-2 max-w-md">
-                            <h3 className="text-lg font-black text-slate-700">TWTW Report</h3>
-                            <p className="text-sm text-slate-500">As a guest user, you can submit your weekly TWTW report. KPI tracking and advanced features are available for registered BDM and AM users.</p>
-                            <Badge className="bg-emerald-500/10 text-emerald-600 font-black text-[9px] uppercase mt-2">Submit your weekly update below</Badge>
+                            <h3 className="text-lg font-black text-foreground/85">TWTW Report</h3>
+                            <p className="text-sm text-muted-foreground">As a guest user, you can submit your weekly TWTW report. KPI tracking and advanced features are available for registered BDM and AM users.</p>
+                            <Badge className="bg-success-fill/10 text-success font-black text-[9px] uppercase mt-2">Submit your weekly update below</Badge>
                           </div>
                         </div>
                       </CardContent>
@@ -2382,16 +2382,16 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Key Wins */}
                   <Card className="border shadow-md">
-                    <CardHeader className="bg-slate-50 border-b py-4">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                        <Award className="w-4 h-4 text-emerald-500" /> Key Wins
+                    <CardHeader className="bg-secondary/60 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/85 flex items-center gap-2">
+                        <Award className="w-4 h-4 text-success" /> Key Wins
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 space-y-4">
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-border/60 text-muted-foreground">
                               <th className="text-left pb-2 w-[25%]">Customer</th>
                               <th className="text-right pb-2 w-[15%]">EAV ($)</th>
                               <th className="text-left pb-2 w-[20%]">Business Unit</th>
@@ -2400,7 +2400,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                               <th className="text-center pb-2 w-[5%]">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-50">
+                          <tbody className="divide-y divide-border/60">
                             {wins.map((w) => (
                               <tr key={w.id}>
                                 <td className="py-2 pr-2">
@@ -2408,7 +2408,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={w.customer} 
                                     onChange={(e) => updateWinField(w.id, 'customer', e.target.value)} 
                                     placeholder="e.g. Acme Corp" 
-                                    className={cn("h-8 text-xs font-semibold", !w.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs font-semibold", !w.customer?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2417,11 +2417,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={w.value || ''} 
                                     onChange={(e) => updateWinField(w.id, 'value', parseFloat(e.target.value) || 0)} 
                                     placeholder="Value" 
-                                    className={cn("h-8 text-xs font-black text-right text-emerald-600", (!w.value || w.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs font-black text-right text-success", (!w.value || w.value <= 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
-                                  <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (w.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
+                                  <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (w.businessUnits || []).length === 0 && "border border-destructive bg-danger-soft/10")}>
                                     {BUSINESS_UNITS.map(bu => (
                                       <Badge 
                                         key={bu} 
@@ -2440,10 +2440,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                       value={w.updateText || ''} 
                                       onChange={(e) => updateWinField(w.id, 'updateText', e.target.value)} 
                                       placeholder="e.g. Signed contract win" 
-                                      className={cn("h-8 text-xs", !w.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                      className={cn("h-8 text-xs", !w.updateText?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                       maxLength={200}
                                     />
-                                    <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(w.updateText || '').length}/200</div>
+                                    <div className="absolute -bottom-3 right-0 text-[8px] text-muted-foreground font-bold">{(w.updateText || '').length}/200</div>
                                   </div>
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2451,11 +2451,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={w.salespersonName} 
                                     onChange={(e) => updateWinField(w.id, 'salespersonName', e.target.value)} 
                                     placeholder="Name" 
-                                    className={cn("h-8 text-xs", !w.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs", !w.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">
-                                  <Button variant="ghost" size="icon" onClick={() => removeWinRow(w.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                  <Button variant="ghost" size="icon" onClick={() => removeWinRow(w.id)} className="h-8 w-8 text-destructive rounded-xl">
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </Button>
                                 </td>
@@ -2463,7 +2463,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             ))}
                             {wins.length === 0 && (
                               <tr>
-                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-muted-foreground bg-secondary/20 rounded-xl">
                                   No Wins reported yet. Add a custom row.
                                 </td>
                               </tr>
@@ -2471,7 +2471,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           </tbody>
                         </table>
                       </div>
-                      <Button onClick={addWinRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                      <Button onClick={addWinRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-border">
                         <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Win
                       </Button>
                     </CardContent>
@@ -2479,16 +2479,16 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Churn Risks */}
                   <Card className="border shadow-md">
-                    <CardHeader className="bg-slate-50 border-b py-4">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-rose-500" /> Churn Risk Flags
+                    <CardHeader className="bg-secondary/60 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/85 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-destructive" /> Churn Risk Flags
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 space-y-4">
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-border/60 text-muted-foreground">
                               <th className="text-left pb-2 w-[35%]">Account / Cust</th>
                               <th className="text-right pb-2 w-[20%]">Value at Risk ($)</th>
                               <th className="text-left pb-2 w-[20%]">Mitigation</th>
@@ -2496,7 +2496,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                               <th className="text-center pb-2 w-[5%]">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-50">
+                          <tbody className="divide-y divide-border/60">
                             {risks.map((r) => (
                               <tr key={r.id}>
                                 <td className="py-2 pr-2">
@@ -2504,7 +2504,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.account} 
                                     onChange={(e) => updateRiskField(r.id, 'account', e.target.value)} 
                                     placeholder="e.g. Acme Corp" 
-                                    className={cn("h-8 text-xs font-semibold", !r.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs font-semibold", !r.account?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2513,7 +2513,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.value || ''} 
                                     onChange={(e) => updateRiskField(r.id, 'value', parseFloat(e.target.value) || 0)} 
                                     placeholder="Value" 
-                                    className={cn("h-8 text-xs font-black text-right text-rose-600", (!r.value || r.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs font-black text-right text-destructive", (!r.value || r.value <= 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2521,7 +2521,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.mitigation} 
                                     onChange={(e) => updateRiskField(r.id, 'mitigation', e.target.value)} 
                                     placeholder="e.g. Setup review meeting" 
-                                    className={cn("h-8 text-xs", !r.mitigation?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs", !r.mitigation?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2529,11 +2529,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={r.salespersonName} 
                                     onChange={(e) => updateRiskField(r.id, 'salespersonName', e.target.value)} 
                                     placeholder="Name" 
-                                    className={cn("h-8 text-xs", !r.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs", !r.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">
-                                  <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                  <Button variant="ghost" size="icon" onClick={() => removeRiskRow(r.id)} className="h-8 w-8 text-destructive rounded-xl">
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </Button>
                                 </td>
@@ -2541,7 +2541,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             ))}
                             {risks.length === 0 && (
                               <tr>
-                                <td colSpan={5} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                <td colSpan={5} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-muted-foreground bg-secondary/20 rounded-xl">
                                   No Risks flagged yet. Add a custom row.
                                 </td>
                               </tr>
@@ -2549,7 +2549,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           </tbody>
                         </table>
                       </div>
-                      <Button onClick={addRiskRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                      <Button onClick={addRiskRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-border">
                         <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Risk
                       </Button>
                     </CardContent>
@@ -2557,22 +2557,22 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Major Pipeline & Customer Updates */}
                   <Card className="border shadow-md">
-                    <CardHeader className="bg-slate-50 border-b py-4">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700">
+                    <CardHeader className="bg-secondary/60 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/85">
                         Major Pipeline &amp; Customer Updates
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
                       {updates && majorUpdates.length === 0 && (
-                        <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                          <p className="text-xs text-amber-800 font-medium mb-1">Legacy Update Format (Read-Only):</p>
-                          <p className="text-xs text-amber-700 whitespace-pre-wrap">{typeof updates === 'string' ? updates : JSON.stringify(updates)}</p>
+                        <div className="mb-4 p-3 bg-warning-soft border border-warning/15 rounded-xl">
+                          <p className="text-xs text-warning-ink font-medium mb-1">Legacy Update Format (Read-Only):</p>
+                          <p className="text-xs text-warning-ink whitespace-pre-wrap">{typeof updates === 'string' ? updates : JSON.stringify(updates)}</p>
                         </div>
                       )}
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-border/60 text-muted-foreground">
                               <th className="text-left pb-2 w-[25%]">Customer</th>
                               <th className="text-right pb-2 w-[15%]">EAV ($)</th>
                               <th className="text-left pb-2 w-[20%]">Business Unit</th>
@@ -2581,7 +2581,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                               <th className="text-center pb-2 w-[5%]">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-50">
+                          <tbody className="divide-y divide-border/60">
                             {majorUpdates.map((m) => (
                               <tr key={m.id}>
                                 <td className="py-2 pr-2">
@@ -2589,7 +2589,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={m.customer} 
                                     onChange={(e) => updateMajorUpdateField(m.id, 'customer', e.target.value)} 
                                     placeholder="e.g. Acme Corp" 
-                                    className={cn("h-8 text-xs font-semibold", !m.customer?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs font-semibold", !m.customer?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2598,11 +2598,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={m.value || ''} 
                                     onChange={(e) => updateMajorUpdateField(m.id, 'value', parseFloat(e.target.value) || 0)} 
                                     placeholder="Value" 
-                                    className="h-8 text-xs font-black text-right text-emerald-600"
+                                    className="h-8 text-xs font-black text-right text-success"
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
-                                  <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (m.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
+                                  <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (m.businessUnits || []).length === 0 && "border border-destructive bg-danger-soft/10")}>
                                     {BUSINESS_UNITS.map(bu => (
                                       <Badge 
                                         key={bu} 
@@ -2621,10 +2621,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                       value={m.updateText || ''} 
                                       onChange={(e) => updateMajorUpdateField(m.id, 'updateText', e.target.value)} 
                                       placeholder="e.g. Signed contract win" 
-                                      className={cn("h-8 text-xs", !m.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                      className={cn("h-8 text-xs", !m.updateText?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                       maxLength={200}
                                     />
-                                    <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(m.updateText || '').length}/200</div>
+                                    <div className="absolute -bottom-3 right-0 text-[8px] text-muted-foreground font-bold">{(m.updateText || '').length}/200</div>
                                   </div>
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2632,11 +2632,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={m.salespersonName} 
                                     onChange={(e) => updateMajorUpdateField(m.id, 'salespersonName', e.target.value)} 
                                     placeholder="Name" 
-                                    className={cn("h-8 text-xs", !m.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs", !m.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">
-                                  <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                  <Button variant="ghost" size="icon" onClick={() => removeMajorUpdateRow(m.id)} className="h-8 w-8 text-destructive rounded-xl">
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </Button>
                                 </td>
@@ -2644,7 +2644,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             ))}
                             {majorUpdates.length === 0 && (
                               <tr>
-                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-muted-foreground bg-secondary/20 rounded-xl">
                                   No updates reported yet. Add a custom row.
                                 </td>
                               </tr>
@@ -2652,7 +2652,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           </tbody>
                         </table>
                       </div>
-                      <Button onClick={addMajorUpdateRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                      <Button onClick={addMajorUpdateRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-border">
                         <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Update
                       </Button>
                     </CardContent>
@@ -2660,16 +2660,16 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* 30 Day Projected Wins */}
                   <Card className="border shadow-md">
-                    <CardHeader className="bg-slate-50 border-b py-4">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-blue-500" /> 30 Day Projected Wins
+                    <CardHeader className="bg-secondary/60 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/85 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-info" /> 30 Day Projected Wins
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 space-y-4">
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-border/60 text-muted-foreground">
                               <th className="text-left pb-2 w-[30%]">Account / Cust</th>
                               <th className="text-right pb-2 w-[15%]">EAV ($)</th>
                               <th className="text-left pb-2 pl-2 w-[15%]">BU</th>
@@ -2678,7 +2678,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                               <th className="text-center pb-2 w-[5%]">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-50">
+                          <tbody className="divide-y divide-border/60">
                             {projectedWins.map((p) => {
                               return (
                               <tr key={p.id}>
@@ -2687,7 +2687,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                        value={p.account} 
                                        onChange={(e) => updateProjectedField(p.id, 'account', e.target.value)} 
                                        placeholder="e.g. Acme Corp" 
-                                       className={cn("h-8 text-xs font-semibold", !p.account?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                       className={cn("h-8 text-xs font-semibold", !p.account?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                      />
                                    </td>
                                    <td className="py-2 pr-2">
@@ -2696,11 +2696,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                        value={p.value || ''} 
                                        onChange={(e) => updateProjectedField(p.id, 'value', parseFloat(e.target.value) || 0)} 
                                        placeholder="Value" 
-                                       className={cn("h-8 text-xs font-black text-right text-blue-600", (!p.value || p.value <= 0) && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                       className={cn("h-8 text-xs font-black text-right text-info", (!p.value || p.value <= 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                      />
                                    </td>
                                    <td className="py-2 pl-2 pr-2">
-                                     <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (p.businessUnits || []).length === 0 && "border border-red-500 bg-red-50/10")}>
+                                     <div className={cn("flex flex-wrap gap-1 p-1 rounded-xl transition-all", (p.businessUnits || []).length === 0 && "border border-destructive bg-danger-soft/10")}>
                                        {BUSINESS_UNITS.map(bu => (
                                          <Badge 
                                            key={bu} 
@@ -2719,10 +2719,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                          value={p.updateText || ''} 
                                          onChange={(e) => updateProjectedField(p.id, 'updateText', e.target.value)} 
                                          placeholder="Update" 
-                                         className={cn("h-8 text-xs", !p.updateText?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                         className={cn("h-8 text-xs", !p.updateText?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                          maxLength={200}
                                        />
-                                       <div className="absolute -bottom-3 right-0 text-[8px] text-slate-400 font-bold">{(p.updateText || '').length}/200</div>
+                                       <div className="absolute -bottom-3 right-0 text-[8px] text-muted-foreground font-bold">{(p.updateText || '').length}/200</div>
                                      </div>
                                    </td>
                                    <td className="py-2 pr-2">
@@ -2730,11 +2730,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                        value={p.salespersonName} 
                                        onChange={(e) => updateProjectedField(p.id, 'salespersonName', e.target.value)} 
                                        placeholder="Name" 
-                                       className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                       className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                      />
                                    </td>
                                   <td className="py-2 text-center">
-                                    <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                    <Button variant="ghost" size="icon" onClick={() => removeProjectedRow(p.id)} className="h-8 w-8 text-destructive rounded-xl">
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </Button>
                                   </td>
@@ -2743,7 +2743,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             })}
                             {projectedWins.length === 0 && (
                               <tr>
-                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                <td colSpan={6} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-muted-foreground bg-secondary/20 rounded-xl">
                                   No projected wins found. Add a custom row.
                                 </td>
                               </tr>
@@ -2751,7 +2751,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           </tbody>
                         </table>
                       </div>
-                      <Button onClick={addProjectedRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                      <Button onClick={addProjectedRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-border">
                         <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom Projected Win
                       </Button>
                     </CardContent>
@@ -2759,8 +2759,8 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Priorities */}
                   <Card className="border shadow-md">
-                    <CardHeader className="bg-slate-50 border-b py-4">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
+                    <CardHeader className="bg-secondary/60 border-b py-4">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/85 flex items-center gap-2">
                         <Target className="w-4 h-4 text-accent" /> Priorities for Week Ahead
                       </CardTitle>
                     </CardHeader>
@@ -2768,13 +2768,13 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-slate-100 text-slate-400">
+                            <tr className="uppercase text-[9px] font-black tracking-widest border-b border-border/60 text-muted-foreground">
                               <th className="text-left pb-2 w-[60%]">Priority</th>
                               <th className="text-left pb-2 w-[30%]">Salesperson</th>
                               <th className="text-center pb-2 w-[10%]">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-50">
+                          <tbody className="divide-y divide-border/60">
                             {priorities.map((p) => (
                               <tr key={p.id}>
                                 <td className="py-2 pr-2">
@@ -2782,7 +2782,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={p.text} 
                                     onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
                                     placeholder="e.g. Focus on Neerabup zone wins" 
-                                    className={cn("h-8 text-xs font-semibold", !p.text?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs font-semibold", !p.text?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 pr-2">
@@ -2790,11 +2790,11 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                     value={p.salespersonName} 
                                     onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
                                     placeholder="Salesperson" 
-                                    className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-red-500 focus-visible:ring-red-500 bg-red-50/10")}
+                                    className={cn("h-8 text-xs", !p.salespersonName?.trim() && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")}
                                   />
                                 </td>
                                 <td className="py-2 text-center">
-                                  <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-8 w-8 text-red-500 rounded-xl">
+                                  <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-8 w-8 text-destructive rounded-xl">
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </Button>
                                 </td>
@@ -2802,7 +2802,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             ))}
                             {priorities.length === 0 && (
                               <tr>
-                                <td colSpan={3} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50/30 rounded-xl">
+                                <td colSpan={3} className="text-center py-6 text-[10px] uppercase font-black tracking-widest text-muted-foreground bg-secondary/20 rounded-xl">
                                   No priorities added yet. Add a custom row.
                                 </td>
                               </tr>
@@ -2814,36 +2814,36 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                       {/* Mobile Stacked View */}
                       <div className="block sm:hidden space-y-4">
                         {priorities.map((p, idx) => (
-                          <div key={p.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 relative">
+                          <div key={p.id} className="p-3 bg-secondary/60 border border-border/60 rounded-2xl space-y-2 relative">
                             <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-black uppercase text-slate-400">Priority #{idx + 1}</span>
-                              <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-6 w-6 text-red-500 rounded-lg">
+                              <span className="text-[10px] font-black uppercase text-muted-foreground">Priority #{idx + 1}</span>
+                              <Button variant="ghost" size="icon" onClick={() => removePriority(p.id)} className="h-6 w-6 text-destructive rounded-lg">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
                             </div>
                             <div className="space-y-1">
-                              <label className="text-[9px] font-black uppercase text-slate-400">Priority</label>
+                              <label className="text-[9px] font-black uppercase text-muted-foreground">Priority</label>
                               <Input 
                                 value={p.text} 
                                 onChange={(e) => updatePriorityField(p.id, 'text', e.target.value)} 
                                 placeholder="e.g. Focus on Neerabup zone wins" 
-                                className="h-8 text-xs font-semibold bg-white"
+                                className="h-8 text-xs font-semibold bg-card"
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="text-[9px] font-black uppercase text-slate-400">Salesperson</label>
+                              <label className="text-[9px] font-black uppercase text-muted-foreground">Salesperson</label>
                               <Input 
                                 value={p.salespersonName} 
                                 onChange={(e) => updatePriorityField(p.id, 'salespersonName', e.target.value)} 
                                 placeholder="Name" 
-                                className="h-8 text-xs bg-white"
+                                className="h-8 text-xs bg-card"
                               />
                             </div>
                           </div>
                         ))}
                       </div>
 
-                      <Button onClick={addPriorityRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-slate-200">
+                      <Button onClick={addPriorityRow} variant="outline" size="sm" className="w-full text-[10px] font-black uppercase rounded-xl border-border">
                         <Plus className="w-4 h-4 mr-2" /> Add Custom Priority
                       </Button>
                     </CardContent>
@@ -2854,40 +2854,40 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                     <div className="space-y-6 animate-in slide-in-from-top-4 duration-300">
                       
                       {/* KPI Performance Section */}
-                      <Card className="border border-indigo-100 shadow-md">
-                        <CardHeader className="bg-indigo-900 text-indigo-100 py-4 rounded-t-3xl">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                      <Card className="border border-accent/15 shadow-md">
+                        <CardHeader className="bg-accent/90 text-panel-foreground/80 py-4 rounded-t-3xl">
+                          <CardTitle className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
                             <Phone className="w-4 h-4" /> BDM Metrics Log (Monday/Friday KPI Actuals)
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div className="space-y-1 bg-slate-50 border p-3 rounded-xl">
+                            <div className="space-y-1 bg-secondary/60 border p-3 rounded-xl">
                               <span className="text-[8px] font-black uppercase text-muted-foreground">Calls Made</span>
                               <div className="flex items-center gap-1.5">
                                 <Input type="number" value={twtwKpiActuals.callsMade} onChange={e => setTwtwKpiActuals({ ...twtwKpiActuals, callsMade: parseInt(e.target.value) || 0 })} className="h-8 text-xs font-black w-14" />
-                                <span className="text-[10px] font-bold text-slate-400">/ {twtwKpiActuals.callsToMake} Target</span>
+                                <span className="text-[10px] font-bold text-muted-foreground">/ {twtwKpiActuals.callsToMake} Target</span>
                               </div>
                             </div>
-                            <div className="space-y-1 bg-slate-50 border p-3 rounded-xl">
+                            <div className="space-y-1 bg-secondary/60 border p-3 rounded-xl">
                               <span className="text-[8px] font-black uppercase text-muted-foreground">Appts Held</span>
                               <div className="flex items-center gap-1.5">
                                 <Input type="number" value={twtwKpiActuals.appointmentsSet} onChange={e => setTwtwKpiActuals({ ...twtwKpiActuals, appointmentsSet: parseInt(e.target.value) || 0 })} className="h-8 text-xs font-black w-14" />
-                                <span className="text-[10px] font-bold text-slate-400">/ {twtwKpiActuals.appointmentsToSet} Target</span>
+                                <span className="text-[10px] font-bold text-muted-foreground">/ {twtwKpiActuals.appointmentsToSet} Target</span>
                               </div>
                             </div>
-                            <div className="space-y-1 bg-slate-50 border p-3 rounded-xl">
+                            <div className="space-y-1 bg-secondary/60 border p-3 rounded-xl">
                               <span className="text-[8px] font-black uppercase text-muted-foreground">Proposals Sent</span>
                               <div className="flex items-center gap-1.5">
                                 <Input type="number" value={twtwKpiActuals.proposalsSent} onChange={e => setTwtwKpiActuals({ ...twtwKpiActuals, proposalsSent: parseInt(e.target.value) || 0 })} className="h-8 text-xs font-black w-14" />
-                                <span className="text-[10px] font-bold text-slate-400">/ {twtwKpiActuals.proposalsToSend} Target</span>
+                                <span className="text-[10px] font-bold text-muted-foreground">/ {twtwKpiActuals.proposalsToSend} Target</span>
                               </div>
                             </div>
-                            <div className="space-y-1 bg-slate-50 border p-3 rounded-xl">
+                            <div className="space-y-1 bg-secondary/60 border p-3 rounded-xl">
                               <span className="text-[8px] font-black uppercase text-muted-foreground">Deals Closed</span>
                               <div className="flex items-center gap-1.5">
                                 <Input type="number" value={twtwKpiActuals.dealsClosed} onChange={e => setTwtwKpiActuals({ ...twtwKpiActuals, dealsClosed: parseInt(e.target.value) || 0 })} className="h-8 text-xs font-black w-14" />
-                                <span className="text-[10px] font-bold text-slate-400">/ {twtwKpiActuals.dealsToClose} Target</span>
+                                <span className="text-[10px] font-bold text-muted-foreground">/ {twtwKpiActuals.dealsToClose} Target</span>
                               </div>
                             </div>
                           </div>
@@ -2895,9 +2895,9 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                       </Card>
 
                       {/* Phase A Integration: Review Monday Commitments */}
-                      <Card className="border border-indigo-100 shadow-md">
-                        <CardHeader className="bg-indigo-900 text-indigo-100 py-4 rounded-t-3xl">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                      <Card className="border border-accent/15 shadow-md">
+                        <CardHeader className="bg-accent/90 text-panel-foreground/80 py-4 rounded-t-3xl">
+                          <CardTitle className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
                             <ClipboardCheck className="w-4 h-4" /> This Weeks Actions
                           </CardTitle>
                         </CardHeader>
@@ -2905,20 +2905,20 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-wider">Ticking off items removes them from rollover. Uncompleted actions roll to next week.</p>
                           <div className="space-y-3">
                             {currentWeekActions.map((c, idx) => (
-                              <div key={idx} className={cn("p-4 bg-white rounded-2xl border transition-all duration-300 shadow-sm space-y-3", c.completed ? "border-emerald-100 bg-emerald-50/20" : "border-slate-200")}>
+                              <div key={idx} className={cn("p-4 bg-card rounded-2xl border transition-all duration-300 shadow-sm space-y-3", c.completed ? "border-success/15 bg-success-soft/20" : "border-border")}>
                                 <div className="flex items-start gap-4">
                                   <input
                                     type="checkbox"
                                     checked={c.completed}
                                     onChange={(e) => handleFridayActionCheckbox(idx, e.target.checked)}
-                                    className="w-5 h-5 mt-0.5 accent-indigo-600 rounded cursor-pointer"
+                                    className="w-5 h-5 mt-0.5 accent-accent rounded cursor-pointer"
                                   />
                                   <div className="flex-1 space-y-2">
                                     <div className="flex items-center justify-between">
-                                      <span className={cn("text-xs font-bold", c.completed ? "text-slate-500 line-through" : "text-slate-700")}>
+                                      <span className={cn("text-xs font-bold", c.completed ? "text-muted-foreground line-through" : "text-foreground/85")}>
                                         {c.text}
                                       </span>
-                                      <Badge variant="outline" className={cn("text-[9px] font-black uppercase", c.completed ? "bg-emerald-100 text-emerald-800 border-none" : "bg-slate-100 text-slate-600 border-none")}>
+                                      <Badge variant="outline" className={cn("text-[9px] font-black uppercase", c.completed ? "bg-success-soft text-success-ink border-none" : "bg-secondary text-foreground/75 border-none")}>
                                         {c.completed ? 'Completed' : 'In Progress (Rolls Over)'}
                                       </Badge>
                                     </div>
@@ -2930,7 +2930,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                         updated[idx].update = e.target.value;
                                         setCurrentWeekActions(updated);
                                       }}
-                                      className="h-8 text-xs bg-slate-50/50"
+                                      className="h-8 text-xs bg-secondary/30"
                                     />
                                   </div>
                                 </div>
@@ -2946,28 +2946,28 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                       </Card>
 
                       {/* Phase A Integration: Focus Accounts Performance */}
-                      <Card className="border border-indigo-100 shadow-md">
-                        <CardHeader className="bg-indigo-900 text-indigo-100 py-4 rounded-t-3xl">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                      <Card className="border border-accent/15 shadow-md">
+                        <CardHeader className="bg-accent/90 text-panel-foreground/80 py-4 rounded-t-3xl">
+                          <CardTitle className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
                             <Target className="w-4 h-4 font-black" /> Focus Account Progress Review
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-4">
                           {currentWeekFocusAccounts.map((acc, index) => (
-                            <div key={acc.id} className={cn("p-4 bg-slate-50 border rounded-2xl space-y-3 transition-all",
-                              acc.status === 'WON' && "border-emerald-100 bg-emerald-50/10",
-                              acc.status === 'LOST' && "border-red-100 bg-red-50/10",
-                              acc.status === 'WORKING' && "border-slate-200"
+                            <div key={acc.id} className={cn("p-4 bg-secondary/60 border rounded-2xl space-y-3 transition-all",
+                              acc.status === 'WON' && "border-success/15 bg-success-soft/10",
+                              acc.status === 'LOST' && "border-destructive/15 bg-danger-soft/10",
+                              acc.status === 'WORKING' && "border-border"
                             )}>
                               <div className="flex justify-between items-center">
                                 <div>
-                                  <h4 className="text-xs font-black text-slate-800 uppercase">{acc.accountName}</h4>
-                                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{acc.actionType} • ${acc.eav?.toLocaleString() || 0} EAV</p>
+                                  <h4 className="text-xs font-black text-foreground uppercase">{acc.accountName}</h4>
+                                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">{acc.actionType} • ${acc.eav?.toLocaleString() || 0} EAV</p>
                                 </div>
                                 <select 
                                   value={acc.status || 'WORKING'} 
                                   onChange={e => handleFridayFocusAccountStatusChange(index, e.target.value as any)}
-                                  className="text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border bg-white cursor-pointer"
+                                  className="text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border bg-card cursor-pointer"
                                 >
                                   <option value="WORKING">Working (Rollover)</option>
                                   <option value="WON">Won (Archive)</option>
@@ -2982,7 +2982,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                                   list[index].update = e.target.value;
                                   setCurrentWeekFocusAccounts(list);
                                 }}
-                                className="h-8 text-xs bg-white" 
+                                className="h-8 text-xs bg-card" 
                               />
                             </div>
                           ))}
@@ -2997,7 +2997,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                       {/* Roadblocks and support */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-red-600 tracking-wider flex items-center gap-1">
+                          <label className="text-[10px] font-black uppercase text-destructive tracking-wider flex items-center gap-1">
                             <AlertTriangle className="w-3.5 h-3.5" /> Roadblocks (Registered)
                           </label>
                           <Textarea 
@@ -3008,7 +3008,7 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-blue-600 tracking-wider flex items-center gap-1">
+                          <label className="text-[10px] font-black uppercase text-info tracking-wider flex items-center gap-1">
                             <LifeBuoy className="w-3.5 h-3.5" /> Management Support Needed
                           </label>
                           <Textarea 
@@ -3025,22 +3025,22 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                   {/* Submission actions */}
                   <div className="flex flex-col items-end gap-3 pt-6 border-t">
                     <div className="flex justify-end gap-3">
-                      <Button variant="outline" onClick={() => handleTwtwSubmit('DRAFT')} className="font-black h-12 px-6 uppercase tracking-wider text-xs border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                      <Button variant="outline" onClick={() => handleTwtwSubmit('DRAFT')} className="font-black h-12 px-6 uppercase tracking-wider text-xs border-accent/25 text-accent hover:bg-accent/10">
                         Save Draft
                       </Button>
                       <Button 
                         onClick={() => handleTwtwSubmit('SUBMITTED')} 
                         disabled={!isTwtwFormComplete}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 uppercase tracking-wider text-xs shadow-lg shadow-indigo-100 disabled:opacity-40"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-12 px-8 uppercase tracking-wider text-xs shadow-lg shadow-accent/20 disabled:opacity-40"
                       >
                         {twtwStatus === 'SUBMITTED' ? 'Update Submission' : 'Submit TWTW Report'}
                       </Button>
                     </div>
 
                     {!isTwtwFormComplete && (
-                      <div className="w-full max-w-md p-4 bg-rose-50 border border-rose-100 rounded-2xl space-y-1.5 mt-2">
-                        <p className="text-[10px] font-black uppercase text-rose-600 tracking-wider text-left">Required to Submit:</p>
-                        <ul className="text-[10px] text-slate-600 space-y-0.5 list-disc pl-4 text-left font-medium">
+                      <div className="w-full max-w-md p-4 bg-danger-soft border border-destructive/15 rounded-2xl space-y-1.5 mt-2">
+                        <p className="text-[10px] font-black uppercase text-destructive tracking-wider text-left">Required to Submit:</p>
+                        <ul className="text-[10px] text-foreground/75 space-y-0.5 list-disc pl-4 text-left font-medium">
                           {!wins.every(w => w.customer?.trim() && (w.value || 0) > 0 && w.businessUnits?.length > 0 && w.updateText?.trim() && w.salespersonName?.trim()) && <li>Complete all fields in added Key Wins rows</li>}
                           {!risks.every(r => r.account?.trim() && (r.value || 0) > 0 && r.mitigation?.trim() && r.salespersonName?.trim()) && <li>Complete all fields in added Churn Risks rows</li>}
                           {!majorUpdates.every(m => m.customer?.trim() && m.businessUnits?.length > 0 && m.updateText?.trim() && m.salespersonName?.trim()) && <li>Complete all fields in added Major Updates rows</li>}
@@ -3066,44 +3066,44 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
         {isLeader && (
         <TabsContent value="collation" className="mt-0">
-          <Card className="border shadow-md bg-white">
-            <CardHeader className="bg-slate-50/50 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between py-5 gap-4">
+          <Card className="border shadow-md bg-card">
+            <CardHeader className="bg-secondary/30 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between py-5 gap-4">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-indigo-600" /> Master Executive TWTW Collation
+                <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+                  <Users className="w-4 h-4 text-accent" /> Master Executive TWTW Collation
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
                   How executive reports look with combined registered data vs guest data
                 </CardDescription>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
-                <div className="flex items-center gap-2 mr-4 bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 shadow-sm">
+                <div className="flex items-center gap-2 mr-4 bg-secondary/60 border border-border/60 rounded-xl px-3 py-1.5 shadow-sm">
                   <input
                     type="checkbox"
                     id="show-hidden-toggle"
                     checked={showHiddenItems}
                     onChange={(e) => setShowHiddenItems(e.target.checked)}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                    className="h-3.5 w-3.5 rounded border-border text-accent focus:ring-accent cursor-pointer"
                   />
-                  <label htmlFor="show-hidden-toggle" className="text-[9px] font-black text-slate-500 uppercase tracking-wider tracking-widest cursor-pointer select-none">
+                  <label htmlFor="show-hidden-toggle" className="text-[9px] font-black text-muted-foreground uppercase tracking-wider tracking-widest cursor-pointer select-none">
                     Show Hidden
                   </label>
                 </div>
                 <Button 
                   onClick={handleExportPdf}
-                  className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
                   <ClipboardCheck className="w-4 h-4" /> Export to Landscape PDF
                 </Button>
                 <Button 
                   onClick={handleExportOversizedPdf}
-                  className="bg-indigo-600 hover:bg-indigo-750 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
                   <FileText className="w-4 h-4" /> Export PDF
                 </Button>
                 <Button 
                   onClick={handleExportCondensedPdf}
-                  className="bg-primary hover:bg-primary/90 text-white font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-black h-10 text-[10px] uppercase tracking-widest rounded-xl gap-2 shadow-md w-full sm:w-auto"
                 >
                   <FileText className="w-4 h-4" /> Export to Condensed PDF
                 </Button>
@@ -3111,27 +3111,27 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
             </CardHeader>
             <CardContent className="p-0 flex flex-col md:flex-row h-[800px]">
               {/* Sidebar for Submitted Users */}
-              <div className="w-full md:w-64 border-r border-slate-200 bg-slate-50/50 p-4 overflow-y-auto shrink-0 print:hidden">
-                 <h4 className="text-xs font-black uppercase text-slate-500 mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-indigo-500" /> Submitted Reports</h4>
+              <div className="w-full md:w-64 border-r border-border bg-secondary/30 p-4 overflow-y-auto shrink-0 print:hidden">
+                 <h4 className="text-xs font-black uppercase text-muted-foreground mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-accent" /> Submitted Reports</h4>
                  <div className="space-y-2">
-                   {(allSubmissions || []).length === 0 && <p className="text-[10px] text-slate-400 italic">No submissions yet.</p>}
+                   {(allSubmissions || []).length === 0 && <p className="text-[10px] text-muted-foreground italic">No submissions yet.</p>}
                    {(allSubmissions || []).map(sub => (
-                     <div key={sub.id} className="p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm flex items-center justify-between">
+                     <div key={sub.id} className="p-2.5 bg-card border border-border rounded-lg shadow-sm flex items-center justify-between">
                        <div className="min-w-0">
-                         <p className="text-xs font-bold text-slate-800 truncate">{sub.userName}</p>
+                         <p className="text-xs font-bold text-foreground truncate">{sub.userName}</p>
                          <div className="flex gap-1.5 mt-1">
-                           <Badge variant="outline" className="text-[8px] font-black uppercase px-1 py-0 border-slate-200 text-slate-500">{sub.state || 'WA'}</Badge>
+                           <Badge variant="outline" className="text-[8px] font-black uppercase px-1 py-0 border-border text-muted-foreground">{sub.state || 'WA'}</Badge>
                            {sub.isGuest || sub.userRole === 'GUEST' ? (
-                             <Badge variant="secondary" className="text-[8px] font-black uppercase px-1 py-0 bg-amber-100 text-amber-700">Guest</Badge>
+                             <Badge variant="secondary" className="text-[8px] font-black uppercase px-1 py-0 bg-warning-soft text-warning-ink">Guest</Badge>
                            ) : (
-                             <Badge variant="secondary" className="text-[8px] font-black uppercase px-1 py-0 bg-indigo-100 text-indigo-700">Reg</Badge>
+                             <Badge variant="secondary" className="text-[8px] font-black uppercase px-1 py-0 bg-accent/15 text-primary">Reg</Badge>
                            )}
                          </div>
                        </div>
                        {sub.status === 'DRAFT' ? (
-                         <Badge variant="secondary" className="text-[7px] font-black uppercase px-1 py-0 bg-slate-100 text-slate-500">Draft</Badge>
+                         <Badge variant="secondary" className="text-[7px] font-black uppercase px-1 py-0 bg-secondary text-muted-foreground">Draft</Badge>
                        ) : (
-                         <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                         <Check className="w-3.5 h-3.5 text-success shrink-0" />
                        )}
                      </div>
                    ))}
@@ -3139,17 +3139,17 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
               </div>
 
               {/* Main Collation Area */}
-              <div className="flex-1 collation-print-area p-6 space-y-12 overflow-y-auto bg-white">
+              <div className="flex-1 collation-print-area p-6 space-y-12 overflow-y-auto bg-card">
                 {Object.entries(submissionsByState).length === 0 ? (
-                   <div className="text-center py-24 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                   <div className="text-center py-24 text-muted-foreground text-xs font-bold uppercase tracking-widest">
                      No submissions available to collate yet.
                    </div>
                 ) : (
                   Object.entries(submissionsByState).map(([state, subs]) => (
                     <div key={state} className="space-y-4 region-section">
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <h3 className="text-lg font-black uppercase text-slate-800 flex items-center gap-2">
-                          {state} Region <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-500 font-black">{subs.length} Reps</Badge>
+                      <div className="flex items-center justify-between border-b border-border pb-2">
+                        <h3 className="text-lg font-black uppercase text-foreground flex items-center gap-2">
+                          {state} Region <Badge variant="secondary" className="ml-2 bg-secondary text-muted-foreground font-black">{subs.length} Reps</Badge>
                         </h3>
                         {isLeader && (
                           <Button 
@@ -3168,10 +3168,10 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                         )}
                       </div>
                       
-                      <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                      <div className="overflow-x-auto border border-border rounded-xl">
                         <table className="w-full text-xs text-left">
-                          <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr className="uppercase text-[9px] font-black tracking-widest text-slate-500">
+                          <thead className="bg-secondary/60 border-b border-border">
+                            <tr className="uppercase text-[9px] font-black tracking-widest text-muted-foreground">
                             <th className="p-3 w-[18%]">Key Wins</th>
                             <th className="p-3 w-[18%]">Churn Risk</th>
                             <th className="p-3 w-[18%]">Major Updates</th>
@@ -3180,71 +3180,71 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                             {isLeader && <th className="p-3 w-[10%] text-center print-actions" data-print-hidden="true">Actions</th>}
                           </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 bg-white">
+                          <tbody className="divide-y divide-border/60 bg-card">
                             {subs.map((sub, idx) => (
                               <tr key={idx} className="align-top relative group">
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.wins || []).map((w: any) => renderItem(w, 'wins', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{w.customer}</div>
-                                      <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{w.salespersonName || 'N/A'}</div>
-                                      {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {w.businessUnits.join(', ')}</div>}
+                                      <div className="font-bold text-foreground">{w.customer}</div>
+                                      <div className="text-success font-semibold">{formatEAV(w.value)}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{w.salespersonName || 'N/A'}</div>
+                                      {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-1">BU: {w.businessUnits.join(', ')}</div>}
                                       {w.updateText && <div className="mt-1">{w.updateText}</div>}
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.risks || []).map((r: any) => renderItem(r, 'risks', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{r.account}</div>
-                                      <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{r.salespersonName || 'N/A'}</div>
-                                      <div className="mt-1 text-slate-500">Mitigation: {r.mitigation}</div>
+                                      <div className="font-bold text-foreground">{r.account}</div>
+                                      <div className="text-destructive font-semibold">{formatEAV(r.value)}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{r.salespersonName || 'N/A'}</div>
+                                      <div className="mt-1 text-muted-foreground">Mitigation: {r.mitigation}</div>
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {sub.updates && (
-                                    <div className="p-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
+                                    <div className="p-2 mb-2 bg-warning-soft border border-warning/15 rounded-lg whitespace-pre-wrap">{sub.updates}</div>
                                   )}
                                   {(sub.majorUpdates || []).map((m: any) => renderItem(m, 'majorUpdates', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{m.customer}</div>
-                                      {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
-                                      <div className="text-[10px] text-slate-500 mt-1">{m.salespersonName || 'N/A'}</div>
-                                      {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {m.businessUnits.join(', ')}</div>}
+                                      <div className="font-bold text-foreground">{m.customer}</div>
+                                      {m.value > 0 && <div className="text-info font-semibold">{formatEAV(m.value)}</div>}
+                                      <div className="text-[10px] text-muted-foreground mt-1">{m.salespersonName || 'N/A'}</div>
+                                      {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-1">BU: {m.businessUnits.join(', ')}</div>}
                                       {m.updateText && <div className="mt-1">{m.updateText}</div>}
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.projectedWins || []).map((p: any) => renderItem(p, 'projectedWins', sub.id, (
                                     <>
-                                      <div className="font-bold text-slate-800">{p.account}</div>
-                                      <div className="text-blue-600 font-semibold">{formatEAV(p.value)}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
-                                      {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-1">BU: {p.businessUnits.join(', ')}</div>}
+                                      <div className="font-bold text-foreground">{p.account}</div>
+                                      <div className="text-info font-semibold">{formatEAV(p.value)}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{p.salespersonName || 'N/A'}</div>
+                                      {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-1">BU: {p.businessUnits.join(', ')}</div>}
                                       {p.updateText && <div className="mt-1 text-[10px]">{p.updateText}</div>}
                                     </>
                                   )))}
                                 </td>
-                                <td className="p-3 text-slate-600">
+                                <td className="p-3 text-foreground/75">
                                   {(sub.priorities || []).map((p: any) => renderItem(p, 'priorities', sub.id, (
                                     <>
                                       <div>{p.text}</div>
-                                      <div className="text-[10px] text-slate-500 mt-1">{p.salespersonName || 'N/A'}</div>
+                                      <div className="text-[10px] text-muted-foreground mt-1">{p.salespersonName || 'N/A'}</div>
                                     </>
                                   )))}
-                                  {(sub.priorities || []).length === 0 && <div className="text-[10px] text-slate-400 font-medium italic">-</div>}
+                                  {(sub.priorities || []).length === 0 && <div className="text-[10px] text-muted-foreground font-medium italic">-</div>}
                                 </td>
                                 {isLeader && (
                                   <td className="p-3 print-actions" data-print-hidden="true">
                                     <div className="flex flex-col gap-1.5">
-                                      <Button size="sm" variant="outline" className="w-full text-[9px] uppercase font-black h-7 border-indigo-200 text-indigo-600 hover:bg-indigo-50" onClick={() => handleEditSubmission(sub)}>
+                                      <Button size="sm" variant="outline" className="w-full text-[9px] uppercase font-black h-7 border-accent/25 text-accent hover:bg-accent/10" onClick={() => handleEditSubmission(sub)}>
                                         <Edit3 className="w-3 h-3 mr-1" /> Edit
                                       </Button>
-                                      <Button size="sm" variant="destructive" className="w-full text-[9px] uppercase font-black h-7 bg-red-600 hover:bg-red-700" onClick={() => handleDeleteSubmission(sub.id)}>
+                                      <Button size="sm" variant="destructive" className="w-full text-[9px] uppercase font-black h-7 bg-destructive hover:bg-destructive/90" onClick={() => handleDeleteSubmission(sub.id)}>
                                         <Trash2 className="w-3 h-3 mr-1" /> Delete
                                       </Button>
                                     </div>
@@ -3295,12 +3295,12 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
           return (
             <TabsContent value="standouts" className="mt-0">
               <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
+                <div className="bg-gradient-to-r from-warning to-warning-ink rounded-3xl p-6 md:p-8 text-white dark:text-background dark:text-background shadow-lg relative overflow-hidden flex items-center justify-between">
                   <div className="relative z-10 space-y-2">
                     <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
-                      <Star className="w-8 h-8 fill-current text-amber-200" /> Key Standouts
+                      <Star className="w-8 h-8 fill-current text-gold" /> Key Standouts
                     </h2>
-                    <p className="text-amber-100 font-medium max-w-xl text-sm leading-relaxed">
+                    <p className="text-warning/40 font-medium max-w-xl text-sm leading-relaxed">
                       A curated selection of the most significant wins, risks, and updates highlighted across all submissions.
                     </p>
                   </div>
@@ -3309,26 +3309,26 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                   {/* Wins Column */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
-                      Key Wins <Badge className="bg-emerald-100 text-emerald-700 font-black">{starredWins.length}</Badge>
+                    <h3 className="text-sm font-black uppercase text-foreground border-b pb-2 flex items-center justify-between">
+                      Key Wins <Badge className="bg-success-soft text-success-ink font-black">{starredWins.length}</Badge>
                     </h3>
                     {starredWins.map(w => (
-                      <Card key={w.id} className="border-amber-200 bg-amber-50 shadow-sm relative group">
+                      <Card key={w.id} className="border-warning/25 bg-warning-soft shadow-sm relative group">
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
                           onClick={() => toggleItemState(w.subId, 'wins', w.id, 'isStarred')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                         <CardContent className="p-4 space-y-2">
-                          <Badge variant="outline" className="text-[8px] bg-white font-black">{w.state}</Badge>
-                          <div className="font-bold text-slate-800 leading-snug">{w.customer}</div>
-                          <div className="text-emerald-600 font-semibold">{formatEAV(w.value)}</div>
-                          <div className="text-[10px] text-slate-500">{w.salespersonName || 'N/A'}</div>
-                          {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
-                          {w.updateText && <div className="text-xs text-slate-600 mt-2">{w.updateText}</div>}
+                          <Badge variant="outline" className="text-[8px] bg-card font-black">{w.state}</Badge>
+                          <div className="font-bold text-foreground leading-snug">{w.customer}</div>
+                          <div className="text-success font-semibold">{formatEAV(w.value)}</div>
+                          <div className="text-[10px] text-muted-foreground">{w.salespersonName || 'N/A'}</div>
+                          {w.businessUnits && w.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-2 font-bold">BU: {w.businessUnits.join(', ')}</div>}
+                          {w.updateText && <div className="text-xs text-foreground/75 mt-2">{w.updateText}</div>}
                         </CardContent>
                       </Card>
                     ))}
@@ -3336,26 +3336,26 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Risks Column */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
-                      Churn Risks <Badge className="bg-rose-100 text-rose-700 font-black">{starredRisks.length}</Badge>
+                    <h3 className="text-sm font-black uppercase text-foreground border-b pb-2 flex items-center justify-between">
+                      Churn Risks <Badge className="bg-danger-soft text-destructive font-black">{starredRisks.length}</Badge>
                     </h3>
                     {starredRisks.map(r => (
-                      <Card key={r.id} className="border-rose-200 bg-rose-50 shadow-sm relative group">
+                      <Card key={r.id} className="border-destructive/25 bg-danger-soft shadow-sm relative group">
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
                           onClick={() => toggleItemState(r.subId, 'risks', r.id, 'isStarred')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                         <CardContent className="p-4 space-y-2">
-                          <Badge variant="outline" className="text-[8px] bg-white font-black">{r.state}</Badge>
-                          <div className="font-bold text-slate-800 leading-snug">{r.account}</div>
-                          <div className="text-rose-600 font-semibold">{formatEAV(r.value)}</div>
-                          <div className="text-[10px] text-slate-500">{r.salespersonName || 'N/A'}</div>
-                          {r.businessUnits && r.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
-                  <div className="text-xs text-slate-600 mt-2">Mitigation: {r.mitigation}</div>
+                          <Badge variant="outline" className="text-[8px] bg-card font-black">{r.state}</Badge>
+                          <div className="font-bold text-foreground leading-snug">{r.account}</div>
+                          <div className="text-destructive font-semibold">{formatEAV(r.value)}</div>
+                          <div className="text-[10px] text-muted-foreground">{r.salespersonName || 'N/A'}</div>
+                          {r.businessUnits && r.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-2 font-bold">BU: {r.businessUnits.join(', ')}</div>}
+                  <div className="text-xs text-foreground/75 mt-2">Mitigation: {r.mitigation}</div>
                         </CardContent>
                       </Card>
                     ))}
@@ -3363,26 +3363,26 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Updates Column */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
-                      Major Updates <Badge className="bg-blue-100 text-blue-700 font-black">{starredUpdates.length}</Badge>
+                    <h3 className="text-sm font-black uppercase text-foreground border-b pb-2 flex items-center justify-between">
+                      Major Updates <Badge className="bg-info-soft text-info font-black">{starredUpdates.length}</Badge>
                     </h3>
                     {starredUpdates.map(m => (
-                      <Card key={m.id} className="border-blue-200 bg-blue-50 shadow-sm relative group">
+                      <Card key={m.id} className="border-info/25 bg-info-soft shadow-sm relative group">
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
                           onClick={() => toggleItemState(m.subId, 'majorUpdates', m.id, 'isStarred')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                         <CardContent className="p-4 space-y-2">
-                          <Badge variant="outline" className="text-[8px] bg-white font-black">{m.state}</Badge>
-                          <div className="font-bold text-slate-800 leading-snug">{m.customer}</div>
-                          {m.value > 0 && <div className="text-blue-600 font-semibold">{formatEAV(m.value)}</div>}
-                          <div className="text-[10px] text-slate-500">{m.salespersonName || 'N/A'}</div>
-                          {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
-                  {m.updateText && <div className="text-xs text-slate-600 mt-2">{m.updateText}</div>}
+                          <Badge variant="outline" className="text-[8px] bg-card font-black">{m.state}</Badge>
+                          <div className="font-bold text-foreground leading-snug">{m.customer}</div>
+                          {m.value > 0 && <div className="text-info font-semibold">{formatEAV(m.value)}</div>}
+                          <div className="text-[10px] text-muted-foreground">{m.salespersonName || 'N/A'}</div>
+                          {m.businessUnits && m.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-2 font-bold">BU: {m.businessUnits.join(', ')}</div>}
+                  {m.updateText && <div className="text-xs text-foreground/75 mt-2">{m.updateText}</div>}
                         </CardContent>
                       </Card>
                     ))}
@@ -3390,26 +3390,26 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Projected Column */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
-                      30 Day Projected <Badge className="bg-purple-100 text-purple-700 font-black">{starredProjected.length}</Badge>
+                    <h3 className="text-sm font-black uppercase text-foreground border-b pb-2 flex items-center justify-between">
+                      30 Day Projected <Badge className="bg-chart-5/15 text-chart-5 font-black">{starredProjected.length}</Badge>
                     </h3>
                     {starredProjected.map(p => (
-                      <Card key={p.id} className="border-purple-200 bg-purple-50 shadow-sm relative group">
+                      <Card key={p.id} className="border-chart-5/25 bg-chart-5/10 shadow-sm relative group">
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
                           onClick={() => toggleItemState(p.subId, 'projectedWins', p.id, 'isStarred')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                         <CardContent className="p-4 space-y-2">
-                          <Badge variant="outline" className="text-[8px] bg-white font-black">{p.state}</Badge>
-                          <div className="font-bold text-slate-800 leading-snug">{p.account}</div>
-                          <div className="text-purple-600 font-semibold">{formatEAV(p.value)}</div>
-                          <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
-                          {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-slate-400 mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
-                          {p.updateText && <div className="text-xs text-slate-600 mt-1">{p.updateText}</div>}
+                          <Badge variant="outline" className="text-[8px] bg-card font-black">{p.state}</Badge>
+                          <div className="font-bold text-foreground leading-snug">{p.account}</div>
+                          <div className="text-chart-5 font-semibold">{formatEAV(p.value)}</div>
+                          <div className="text-[10px] text-muted-foreground">{p.salespersonName || 'N/A'}</div>
+                          {p.businessUnits && p.businessUnits.length > 0 && <div className="text-[9px] text-muted-foreground mt-2 font-bold">BU: {p.businessUnits.join(', ')}</div>}
+                          {p.updateText && <div className="text-xs text-foreground/75 mt-1">{p.updateText}</div>}
                         </CardContent>
                       </Card>
                     ))}
@@ -3417,23 +3417,23 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
                   {/* Priorities Column */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-black uppercase text-slate-800 border-b pb-2 flex items-center justify-between">
-                      Priorities <Badge className="bg-amber-100 text-amber-700 font-black">{starredPriorities.length}</Badge>
+                    <h3 className="text-sm font-black uppercase text-foreground border-b pb-2 flex items-center justify-between">
+                      Priorities <Badge className="bg-warning-soft text-warning-ink font-black">{starredPriorities.length}</Badge>
                     </h3>
                     {starredPriorities.map(p => (
-                      <Card key={p.id} className="border-amber-200 bg-amber-50 shadow-sm relative group">
+                      <Card key={p.id} className="border-warning/25 bg-warning-soft shadow-sm relative group">
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
                           onClick={() => toggleItemState(p.subId, 'priorities', p.id, 'isStarred')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                         <CardContent className="p-4 space-y-2">
-                          <Badge variant="outline" className="text-[8px] bg-white font-black">{p.state}</Badge>
-                          <div className="text-slate-800 font-medium text-xs leading-normal">{p.text}</div>
-                          <div className="text-[10px] text-slate-500">{p.salespersonName || 'N/A'}</div>
+                          <Badge variant="outline" className="text-[8px] bg-card font-black">{p.state}</Badge>
+                          <div className="text-foreground font-medium text-xs leading-normal">{p.text}</div>
+                          <div className="text-[10px] text-muted-foreground">{p.salespersonName || 'N/A'}</div>
                         </CardContent>
                       </Card>
                     ))}
@@ -3447,25 +3447,25 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
 
       {/* --- SUCCESS DIALOGS --- */}
       <Dialog open={twtwSuccessOpen} onOpenChange={setTwtwSuccessOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 bg-white">
+        <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 bg-card">
           <DialogHeader className="flex flex-col items-center text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
-              <Check className="w-8 h-8 text-emerald-600" />
+            <div className="w-16 h-16 bg-success-soft rounded-full flex items-center justify-center mb-2">
+              <Check className="w-8 h-8 text-success" />
             </div>
-            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900">
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-foreground">
               Thank You!
             </DialogTitle>
-            <DialogDescription className="text-sm font-bold text-slate-500">
+            <DialogDescription className="text-sm font-bold text-muted-foreground">
               Your "The Week That Was" report has been successfully submitted.
             </DialogDescription>
           </DialogHeader>
-          <div className="text-center text-xs font-semibold text-slate-400 mt-2 mb-6">
+          <div className="text-center text-xs font-semibold text-muted-foreground mt-2 mb-6">
             You can still edit and update your information at any time. Simply make your changes on the form and click "Update Submission".
           </div>
           <DialogFooter className="sm:justify-center">
             <Button 
               onClick={() => setTwtwSuccessOpen(false)} 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 uppercase tracking-widest rounded-xl"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-12 px-8 uppercase tracking-widest rounded-xl"
             >
               Continue
             </Button>
@@ -3474,25 +3474,25 @@ export function DemoDashView({ embeddedCollationOnly = false }: { embeddedCollat
       </Dialog>
 
       <Dialog open={fridaySuccessOpen} onOpenChange={setFridaySuccessOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 bg-white">
+        <DialogContent className="sm:max-w-[425px] rounded-3xl p-8 bg-card">
           <DialogHeader className="flex flex-col items-center text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
-              <Check className="w-8 h-8 text-emerald-600" />
+            <div className="w-16 h-16 bg-success-soft rounded-full flex items-center justify-center mb-2">
+              <Check className="w-8 h-8 text-success" />
             </div>
-            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900">
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-foreground">
               Report Submitted!
             </DialogTitle>
-            <DialogDescription className="text-sm font-bold text-slate-500">
+            <DialogDescription className="text-sm font-bold text-muted-foreground">
               Friday Pack & Monday Planning locked in.
             </DialogDescription>
           </DialogHeader>
-          <div className="text-center text-xs font-semibold text-slate-400 mt-2 mb-6">
+          <div className="text-center text-xs font-semibold text-muted-foreground mt-2 mb-6">
             Uncompleted actions and working focus accounts have been rolled over. Next week's Monday Plan is pre-populated in the database.
           </div>
           <DialogFooter className="sm:justify-center">
             <Button 
               onClick={() => setFridaySuccessOpen(false)} 
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black h-12 px-8 uppercase tracking-widest rounded-xl"
+              className="bg-success-fill hover:bg-success text-success-foreground font-black h-12 px-8 uppercase tracking-widest rounded-xl"
             >
               Close
             </Button>

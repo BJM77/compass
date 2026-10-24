@@ -77,7 +77,7 @@ export function OpsReportReview() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">
         <div>
           <h2 className="text-2xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-accent" />
@@ -91,44 +91,44 @@ export function OpsReportReview() {
         {/* Filter Controls Bar */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Time Filter Selection */}
-          <div className="bg-slate-100 p-1 rounded-xl flex gap-1 text-[10px] font-black uppercase tracking-wider">
+          <div className="bg-secondary p-1 rounded-xl flex gap-1 text-[10px] font-black uppercase tracking-wider">
             <button
               onClick={() => setFilterTime('WEEK')}
-              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterTime === 'WEEK' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary')}
+              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterTime === 'WEEK' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-primary')}
             >
               By Week
             </button>
             <button
               onClick={() => setFilterTime('MONTH')}
-              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterTime === 'MONTH' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary')}
+              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterTime === 'MONTH' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-primary')}
             >
               By Month
             </button>
             <button
               onClick={() => setFilterTime('ALL')}
-              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterTime === 'ALL' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary')}
+              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterTime === 'ALL' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-primary')}
             >
               All Time
             </button>
           </div>
 
           {/* Type Filter Selection */}
-          <div className="bg-slate-100 p-1 rounded-xl flex gap-1 text-[10px] font-black uppercase tracking-wider">
+          <div className="bg-secondary p-1 rounded-xl flex gap-1 text-[10px] font-black uppercase tracking-wider">
             <button
               onClick={() => setFilterType('ALL')}
-              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterType === 'ALL' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary')}
+              className={cn("px-3 py-1.5 rounded-lg transition-colors", filterType === 'ALL' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-primary')}
             >
               All
             </button>
             <button
               onClick={() => setFilterType('PROBLEM')}
-              className={cn("px-3 py-1.5 rounded-lg transition-colors text-orange-850", filterType === 'PROBLEM' ? 'bg-orange-100 shadow-sm' : 'text-slate-500 hover:text-primary')}
+              className={cn("px-3 py-1.5 rounded-lg transition-colors text-warning-ink", filterType === 'PROBLEM' ? 'bg-warning-soft shadow-sm' : 'text-muted-foreground hover:text-primary')}
             >
               Negative
             </button>
             <button
               onClick={() => setFilterType('POSITIVE')}
-              className={cn("px-3 py-1.5 rounded-lg transition-colors text-emerald-850", filterType === 'POSITIVE' ? 'bg-emerald-100 shadow-sm' : 'text-slate-500 hover:text-primary')}
+              className={cn("px-3 py-1.5 rounded-lg transition-colors text-success-ink", filterType === 'POSITIVE' ? 'bg-success-soft shadow-sm' : 'text-muted-foreground hover:text-primary')}
             >
               Positive
             </button>
@@ -138,7 +138,7 @@ export function OpsReportReview() {
             <select 
               value={selectedWeek} 
               onChange={e => setSelectedWeek(e.target.value)} 
-              className="rounded-lg border bg-white px-3 py-2 text-[10px] font-black uppercase tracking-widest h-9"
+              className="rounded-lg border bg-card px-3 py-2 text-[10px] font-black uppercase tracking-widest h-9"
             >
               {getMonthWeeksForWeek(currentWeek).reverse().map((w: string) => (
                 <option key={w} value={w}>{w}</option>
@@ -154,32 +154,32 @@ export function OpsReportReview() {
         ) : filteredReports.length > 0 ? (
           <div className="grid gap-4">
             {filteredReports.map((report: any) => (
-              <Card key={report.id} className="border-none shadow-md bg-white hover:shadow-lg transition-shadow">
+              <Card key={report.id} className="border-none shadow-md bg-card hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
                   <div className="space-y-3 flex-1">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-primary font-black text-xs uppercase shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-primary font-black text-xs uppercase shrink-0">
                         {(report.userName || '?').charAt(0)}
                       </div>
                       <span className="font-bold text-sm text-primary">{report.userName}</span>
-                      <Badge className={report.type === 'PROBLEM' ? 'bg-orange-100 text-orange-850 border-none' : 'bg-emerald-100 text-emerald-850 border-none'}>
+                      <Badge className={report.type === 'PROBLEM' ? 'bg-warning-soft text-warning-ink border-none' : 'bg-success-soft text-success-ink border-none'}>
                         {report.type === 'PROBLEM' ? 'PROBLEM (NEGATIVE)' : 'POSITIVE EVENT'}
                       </Badge>
-                      <Badge variant="outline" className={report.status === 'ESCALATED' ? 'border-primary text-primary' : 'border-slate-300 text-slate-500'}>
+                      <Badge variant="outline" className={report.status === 'ESCALATED' ? 'border-primary text-primary' : 'border-border text-muted-foreground'}>
                         {report.status}
                       </Badge>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Week {report.week?.split('-')[1]}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase">Week {report.week?.split('-')[1]}</span>
                     </div>
-                    <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap">{report.description}</p>
+                    <p className="text-sm text-foreground/85 font-medium whitespace-pre-wrap">{report.description}</p>
                     {report.createdAt && (
-                      <div className="text-[10px] text-slate-400 font-bold uppercase shrink-0">
+                      <div className="text-[10px] text-muted-foreground font-bold uppercase shrink-0">
                         Submitted: {report.createdAt.toDate?.().toLocaleString()}
                       </div>
                     )}
                   </div>
                   <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
                     {report.status === 'ESCALATED' ? (
-                      <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(report.id, 'DISMISSED')} className="flex-1 md:flex-none text-slate-600 hover:text-slate-900 text-xs font-bold uppercase">
+                      <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(report.id, 'DISMISSED')} className="flex-1 md:flex-none text-foreground/75 hover:text-foreground text-xs font-bold uppercase">
                         <CheckCircle2 className="w-4 h-4 mr-2" /> Dismiss
                       </Button>
                     ) : (
@@ -187,7 +187,7 @@ export function OpsReportReview() {
                         <Shield className="w-4 h-4 mr-2" /> Escalate
                       </Button>
                     )}
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(report.id)} className="flex-1 md:flex-none text-xs font-bold uppercase bg-red-600 hover:bg-red-700">
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(report.id)} className="flex-1 md:flex-none text-xs font-bold uppercase bg-destructive hover:bg-destructive/90">
                       <Trash2 className="w-4 h-4 mr-2" /> Delete
                     </Button>
                   </div>
@@ -196,9 +196,9 @@ export function OpsReportReview() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-            <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-sm font-black text-slate-500 uppercase tracking-widest">
+          <div className="text-center py-20 bg-secondary/60 rounded-2xl border border-dashed border-border">
+            <ClipboardList className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
+            <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">
               No reports matching search filters.
             </p>
           </div>

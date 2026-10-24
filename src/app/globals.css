@@ -49,6 +49,9 @@
     --info-soft: 218 92% 95%;
     --gold: 41 79% 52%;                 /* #E5A823 sparingly */
     --gold-foreground: 216 50% 12%;
+    /* Panel: deep navy hero/feature surfaces that stay dark in both themes */
+    --panel: 213 72% 16%;               /* #0B2545 */
+    --panel-foreground: 0 0% 100%;
 
     /* Charts: #0B2545 #0E9AA7 #F26B21 #22A06B #6366F1 #94A3B8 */
     --chart-1: 213 72% 16%;
@@ -70,8 +73,7 @@
     --sidebar-muted: 211 27% 70%;       /* #9FB3C8 group labels */
   }
 
-  /* Dark theme tokens. No toggle is wired yet: hard-coded bg-white / slate-* classes in views
-     still need the colour sweep before dark mode can ship. */
+  /* Dark theme tokens (toggled via the .dark class on <html>, see src/lib/theme-mode.ts). */
   .dark {
     --background: 218 52% 8%;           /* #0A1220 */
     --foreground: 214 47% 93%;          /* #E6EDF6 */
@@ -113,6 +115,8 @@
     --info-soft: 220 50% 18%;
     --gold: 41 90% 66%;
     --gold-foreground: 218 52% 8%;
+    --panel: 215 66% 22%;               /* #13315C */
+    --panel-foreground: 0 0% 100%;
 
     --chart-1: 220 82% 65%;
     --chart-2: 185 70% 50%;

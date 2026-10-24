@@ -173,7 +173,7 @@ export function PlanMetrics() {
 
       {/* Team Activity & Execution Scorecard */}
       <Card className="border-none shadow-xl bg-card overflow-hidden">
-        <CardHeader className="bg-primary text-white pb-6">
+        <CardHeader className="bg-primary text-primary-foreground pb-6">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2 tracking-tight">
@@ -243,7 +243,7 @@ export function PlanMetrics() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right px-6">
-                      <Badge className="bg-primary text-white font-semibold text-xs px-3 py-1 shadow-sm">
+                      <Badge className="bg-primary text-primary-foreground font-semibold text-xs px-3 py-1 shadow-sm">
                         {totalActivities}
                       </Badge>
                     </TableCell>
@@ -265,7 +265,7 @@ export function PlanMetrics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          {/* Call Plans Card */}
          <Card className="border-none shadow-xl bg-card overflow-hidden">
-            <CardHeader className="bg-primary text-white pb-6">
+            <CardHeader className="bg-primary text-primary-foreground pb-6">
                <CardTitle className="text-sm font-semibold flex items-center gap-2 tracking-tight">
                  <PhoneCall className="w-4 h-4 text-accent" /> Completed Call Plans
                </CardTitle>
@@ -308,7 +308,7 @@ export function PlanMetrics() {
 
          {/* White Space Plans Card */}
          <Card className="border-none shadow-xl bg-card overflow-hidden">
-            <CardHeader className="bg-primary text-white pb-6">
+            <CardHeader className="bg-primary text-primary-foreground pb-6">
                <CardTitle className="text-sm font-semibold flex items-center gap-2 tracking-tight">
                  <LayoutGrid className="w-4 h-4 text-accent" /> White Space Expansion
                </CardTitle>

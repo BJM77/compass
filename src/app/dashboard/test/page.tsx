@@ -22,11 +22,11 @@ export default function TestPage() {
     <AuthGuard>
       <div className="w-full p-4 md:p-8 space-y-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">
+          <h1 className="text-3xl font-black tracking-tight text-foreground">
             TEST ENVIRONMENT
           </h1>
           <p className="text-muted-foreground text-sm flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <AlertTriangle className="w-4 h-4 text-warning" />
             This page points to isolated test data collections. Changes here do not affect production data.
           </p>
         </div>

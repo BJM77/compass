@@ -37,10 +37,10 @@ export const FREIGHT_PROFILES: { id: FreightProfile; label: string }[] = [
 
 export type SfStatus = 'UNCHECKED' | 'NOT_IN_SF' | 'EXISTING_AM' | 'LOST_DORMANT';
 export const SF_STATUSES: { id: SfStatus; label: string; className: string }[] = [
-  { id: 'UNCHECKED', label: 'Unchecked', className: 'bg-slate-100 text-slate-600 border-slate-200' },
-  { id: 'NOT_IN_SF', label: 'Not in SF', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  { id: 'EXISTING_AM', label: 'Existing customer – AM opportunity', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-  { id: 'LOST_DORMANT', label: 'Lost / Dormant', className: 'bg-amber-50 text-amber-800 border-amber-200' },
+  { id: 'UNCHECKED', label: 'Unchecked', className: 'bg-secondary text-foreground/75 border-border' },
+  { id: 'NOT_IN_SF', label: 'Not in SF', className: 'bg-success-soft text-success-ink border-success/25' },
+  { id: 'EXISTING_AM', label: 'Existing customer – AM opportunity', className: 'bg-info-soft text-info border-info/25' },
+  { id: 'LOST_DORMANT', label: 'Lost / Dormant', className: 'bg-warning-soft text-warning-ink border-warning/25' },
 ];
 
 export type LeadSourceTag = 'AUSTMINE' | 'CME' | 'GOOGLE_MAPS' | 'REFERRAL' | 'TENDER' | 'LINKEDIN' | 'RESEARCH' | 'LOOKALIKE' | 'OTHER';

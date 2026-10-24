@@ -314,17 +314,17 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
           <Button onClick={() => setSpinGuideOpen(true)} className="bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 font-semibold h-11 px-6 text-xs shadow-lg gap-2">
             <Sparkles className="w-4 h-4" /> SPIN GUIDE
           </Button>
-          <Button onClick={handleNewPlan} className="bg-primary hover:bg-primary/90 text-white font-semibold h-11 px-6 text-xs shadow-lg gap-2">
+          <Button onClick={handleNewPlan} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11 px-6 text-xs shadow-lg gap-2">
             <Plus className="w-4 h-4" /> NEW PREP
           </Button>
         </div>
       </header>
 
       <Card className="border-none shadow-2xl bg-card overflow-hidden print:shadow-none print:border-2">
-        <CardHeader className="bg-primary text-white pb-8 print:bg-card print:text-black print:border-b-4 print:border-black">
+        <CardHeader className="bg-primary text-primary-foreground pb-8 print:bg-card print:text-foreground print:border-b-4 print:border-black">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <Badge className="bg-accent text-white border-none font-semibold text-xs mb-2 print:hidden">Elite Prep Mode</Badge>
+              <Badge className="bg-accent text-accent-foreground border-none font-semibold text-xs mb-2 print:hidden">Elite Prep Mode</Badge>
               <CardTitle className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
                 <PhoneCall className="w-8 h-8 text-accent print:hidden" />
                 SPIN Strategy Planner
@@ -335,14 +335,14 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
             </div>
             <div className="flex gap-2 print:hidden">
               {selectedPlanId && (
-                <Button variant="outline" onClick={() => setOutcomeDialogOpen(true)} className="bg-success-fill border-none text-white hover:bg-success font-semibold h-10 px-4 text-xs">
+                <Button variant="outline" onClick={() => setOutcomeDialogOpen(true)} className="bg-success-fill border-none text-success-foreground hover:bg-success font-semibold h-10 px-4 text-xs">
                   <CheckCircle2 className="w-4 h-4 mr-2" /> LOG OUTCOME
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={handlePrint} className="bg-card/10 border-white/20 text-white hover:bg-card/20 font-semibold h-10 px-4 text-xs">
                 <Printer className="w-4 h-4 mr-2" /> PRINT PLAN
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-accent hover:bg-accent/90 text-white font-semibold h-10 px-6 text-xs shadow-xl">
+              <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-10 px-6 text-xs shadow-xl">
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                 ARCHIVE PREP
               </Button>
@@ -508,7 +508,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
               <Users className="w-5 h-5" />
               Team Blueprints (Admin Shared)
             </h3>
-            <Badge className="bg-accent text-white font-semibold text-xs">Corporate Strategy</Badge>
+            <Badge className="bg-accent text-accent-foreground font-semibold text-xs">Corporate Strategy</Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {teamPlans.map((plan) => (
@@ -547,7 +547,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
               <Users className="w-5 h-5" />
               Shared With You
             </h3>
-            <Badge className="bg-accent text-white font-semibold text-xs">Full access</Badge>
+            <Badge className="bg-accent text-accent-foreground font-semibold text-xs">Full access</Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedSharedPlans.map((plan: any) => (

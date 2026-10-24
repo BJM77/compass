@@ -405,7 +405,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
               </Button>
             )}
             {weekOffset > 0 && (
-              <Button size="sm" variant="outline" onClick={() => setWeekOffset(0)} className="h-7 text-[10px] font-black uppercase bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200">
+              <Button size="sm" variant="outline" onClick={() => setWeekOffset(0)} className="h-7 text-[10px] font-black uppercase bg-secondary text-foreground/75 hover:bg-border border-border">
                 Back to This Week
               </Button>
             )}
@@ -413,14 +413,14 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           {hasExistingPlan && (
-            <Button variant="outline" onClick={handleDelete} disabled={isDeleting} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-red-200 text-red-500 hover:bg-red-50">
+            <Button variant="outline" onClick={handleDelete} disabled={isDeleting} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-destructive/25 text-destructive hover:bg-danger-soft">
               {isDeleting ? 'Deleting...' : 'Delete'}
             </Button>
           )}
           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSaving} className="font-black h-12 px-6 uppercase shadow-sm gap-2 border-primary/20 text-primary">
             {isSavingDraft ? 'Saving Draft...' : 'Save Draft'}
           </Button>
-          <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-black h-12 px-8 uppercase shadow-xl gap-2 text-white">
+          <Button onClick={savePlan} disabled={isSaving || isSavingDraft} className="bg-primary font-black h-12 px-8 uppercase shadow-xl gap-2 text-primary-foreground">
             {isSaving ? 'Synchronising...' : hasExistingPlan ? 'Update Plan' : 'Commit Weekly Plan'}
           </Button>
         </div>
@@ -430,8 +430,8 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Monthly SMART Goal Panel */}
-        <Card className="border border-slate-200 shadow-md lg:col-span-2">
-          <CardHeader className="bg-slate-900 text-white flex flex-row items-center justify-between py-4">
+        <Card className="border border-border shadow-md lg:col-span-2">
+          <CardHeader className="bg-panel text-panel-foreground flex flex-row items-center justify-between py-4">
             <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-accent">
               <Star className="w-4 h-4" />
               Monthly SMART Goal ({format(new Date(), 'MMMM yyyy')})
@@ -440,8 +440,8 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
           <CardContent className="p-6">
             {hasGoalForMonth ? (
               <div className="bg-accent/5 border border-accent/20 rounded-2xl p-5 space-y-3">
-                <Badge className="bg-accent text-white uppercase font-black text-[9px]">Submitted Goal</Badge>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-slate-800">
+                <Badge className="bg-accent text-accent-foreground uppercase font-black text-[9px]">Submitted Goal</Badge>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-foreground">
                   <p>🎯 <span className="text-muted-foreground uppercase text-[10px] ml-1">Specific:</span> {smartGoal.specific || 'None'}</p>
                   <p>📊 <span className="text-muted-foreground uppercase text-[10px] ml-1">Measurable:</span> {smartGoal.measurable || 'None'}</p>
                   <p>💪 <span className="text-muted-foreground uppercase text-[10px] ml-1">Achievable:</span> {smartGoal.achievable || 'None'}</p>
@@ -478,7 +478,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                     <Input placeholder="When is the deadline?" value={smartGoal.timebound} onChange={e => setSmartGoal({...smartGoal, timebound: e.target.value})} className="h-9 text-xs font-semibold rounded-xl" />
                   </div>
                 </div>
-                <Button onClick={handleSaveSmartGoal} disabled={submittingGoal} className="bg-accent hover:bg-accent/90 text-white font-black text-xs uppercase rounded-xl h-10 px-5">
+                <Button onClick={handleSaveSmartGoal} disabled={submittingGoal} className="bg-accent hover:bg-accent/90 text-accent-foreground font-black text-xs uppercase rounded-xl h-10 px-5">
                   Submit SMART Goal
                 </Button>
               </div>
@@ -487,27 +487,27 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
         </Card>
 
         {/* Tallies Card */}
-        <Card className="border border-slate-200 shadow-md">
-          <CardHeader className="bg-slate-900 text-white py-4">
+        <Card className="border border-border shadow-md">
+          <CardHeader className="bg-panel text-panel-foreground py-4">
             <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Strategic Tallies
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
-            <div className="flex items-center justify-between p-3 bg-slate-50 border rounded-2xl">
+            <div className="flex items-center justify-between p-3 bg-secondary/60 border rounded-2xl">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><Map className="w-4 h-4" /></div>
-                <span className="text-xs font-black uppercase text-slate-700">Whitespace Plans</span>
+                <div className="p-2 bg-accent/10 text-accent rounded-xl"><Map className="w-4 h-4" /></div>
+                <span className="text-xs font-black uppercase text-foreground/85">Whitespace Plans</span>
               </div>
-              <span className="text-lg font-black text-slate-900">{wsPlans?.length || 0}</span>
+              <span className="text-lg font-black text-foreground">{wsPlans?.length || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-slate-50 border rounded-2xl">
+            <div className="flex items-center justify-between p-3 bg-secondary/60 border rounded-2xl">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><FileText className="w-4 h-4" /></div>
-                <span className="text-xs font-black uppercase text-slate-700">Active Call Plans</span>
+                <div className="p-2 bg-info-soft text-info rounded-xl"><FileText className="w-4 h-4" /></div>
+                <span className="text-xs font-black uppercase text-foreground/85">Active Call Plans</span>
               </div>
-              <span className="text-lg font-black text-slate-900">{callPlans?.length || 0}</span>
+              <span className="text-lg font-black text-foreground">{callPlans?.length || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -522,7 +522,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
             <CardHeader><CardTitle className="text-lg font-black flex items-center gap-2">{userRole === 'BDM' ? <Rocket className="w-5 h-5 text-accent" /> : <Shield className="w-5 h-5 text-accent" />} Focus Accounts</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               {focusAccounts.map((acc, idx) => (
-                <div key={acc.accountId} className="p-4 bg-slate-50 rounded-2xl border space-y-3 relative group">
+                <div key={acc.accountId} className="p-4 bg-secondary/60 rounded-2xl border space-y-3 relative group">
                   <div className="flex justify-between items-center gap-2">
                      <div className="flex flex-col gap-1 flex-1">
                         <div className="flex items-center gap-2">
@@ -535,7 +535,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                           />
                           <button
                             onClick={() => openSalesforceSearch(acc.accountName)}
-                            className="p-2 bg-white border border-slate-200 text-slate-400 hover:text-accent hover:border-accent rounded-xl shadow-sm transition-all shrink-0"
+                            className="p-2 bg-card border border-border text-muted-foreground hover:text-accent hover:border-accent rounded-xl shadow-sm transition-all shrink-0"
                             title="Open Salesforce Account"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -551,7 +551,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                           </a>
                         )}
                       </div>
-                     <Button variant="ghost" size="icon" onClick={() => setFocusAccounts(focusAccounts.filter(f => f.accountId !== acc.accountId))} className="text-red-300 hover:text-red-600 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
+                     <Button variant="ghost" size="icon" onClick={() => setFocusAccounts(focusAccounts.filter(f => f.accountId !== acc.accountId))} className="text-destructive hover:text-destructive h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
@@ -568,7 +568,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                     <div className="space-y-1">
                       <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">EAV ($)</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">$</span>
                         <Input type="number" placeholder="Value..." value={acc.eav || ''} onChange={e => { const n = [...focusAccounts]; n[idx].eav = parseFloat(e.target.value) || 0; setFocusAccounts(n); }} className="h-9 pl-6 text-[10px] font-bold" />
                       </div>
                     </div>
@@ -579,7 +579,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                   </div>
                 </div>
               ))}
-              <Button variant="outline" onClick={addFocusAccount} className="w-full h-12 border-dashed border-2 rounded-xl font-black uppercase text-[10px] text-muted-foreground hover:bg-slate-50">+ Add Target Account</Button>
+              <Button variant="outline" onClick={addFocusAccount} className="w-full h-12 border-dashed border-2 rounded-xl font-black uppercase text-[10px] text-muted-foreground hover:bg-secondary/60">+ Add Target Account</Button>
             </CardContent>
           </Card>
 
@@ -588,7 +588,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
             <CardContent className="grid grid-cols-1 gap-3">
               {actionPlan.map((action, idx) => (
                 <div key={idx} className="flex gap-4 items-start group">
-                  <Badge variant="outline" className="w-20 justify-center py-2 font-black text-[10px] border-slate-200 shrink-0">Action {idx + 1}</Badge>
+                  <Badge variant="outline" className="w-20 justify-center py-2 font-black text-[10px] border-border shrink-0">Action {idx + 1}</Badge>
                   <div className="flex-1 relative">
                     <Textarea 
                       placeholder="Tactical focus..." 
@@ -599,7 +599,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                     {idx >= 5 && (
                       <button 
                         onClick={() => removeAction(idx)}
-                        className="absolute top-2 right-2 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -610,7 +610,7 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
               <Button 
                 variant="outline" 
                 onClick={addAction} 
-                className="mt-2 h-10 border-dashed border-2 rounded-xl font-black uppercase text-[10px] text-muted-foreground hover:bg-slate-50 gap-2"
+                className="mt-2 h-10 border-dashed border-2 rounded-xl font-black uppercase text-[10px] text-muted-foreground hover:bg-secondary/60 gap-2"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Additional Action
               </Button>
@@ -620,14 +620,14 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
 
         {/* Right Side: Salesforce Pipeline swimlanes */}
         <div className="space-y-6">
-          <Card className="border border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
-            <CardHeader className="bg-slate-900 text-white flex flex-row items-center justify-between py-5">
+          <Card className="border border-border shadow-md bg-card rounded-3xl overflow-hidden">
+            <CardHeader className="bg-panel text-panel-foreground flex flex-row items-center justify-between py-5">
               <div>
                 <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accent" />
                   Salesforce Opportunities
                 </CardTitle>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Matched by Account &amp; Owner Name</p>
+                <p className="text-[10px] text-panel-foreground/60 font-bold uppercase tracking-widest mt-0.5">Matched by Account &amp; Owner Name</p>
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
@@ -636,10 +636,10 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                 return (
                   <div key={stage} className="space-y-2 border-b pb-4 last:border-b-0 last:pb-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-800 bg-slate-100 px-3 py-1 rounded-full border">
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-foreground bg-secondary px-3 py-1 rounded-full border">
                         {stage === "--None--" ? "UNASSIGNED STAGE" : stage.toUpperCase()}
                       </h4>
-                      <Badge className="bg-slate-200 text-slate-800 text-[10px] font-black">{list.length} Opportunities</Badge>
+                      <Badge className="bg-border text-foreground text-[10px] font-black">{list.length} Opportunities</Badge>
                     </div>
 
                     {list.length === 0 ? (
@@ -647,13 +647,13 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
                         {list.map(opp => (
-                          <div key={opp.id} className="p-3 bg-slate-50 border rounded-2xl space-y-1.5 hover:border-accent/40 transition-all group relative">
+                          <div key={opp.id} className="p-3 bg-secondary/60 border rounded-2xl space-y-1.5 hover:border-accent/40 transition-all group relative">
                             <div className="flex justify-between items-start gap-1">
                               <div className="space-y-0.5">
                                 <a 
                                   href="#" 
                                   onClick={(e) => { e.preventDefault(); openSalesforceSearch(opp.pipeline); }}
-                                  className="text-xs font-bold text-slate-900 uppercase hover:text-accent hover:underline truncate max-w-[180px] block"
+                                  className="text-xs font-bold text-foreground uppercase hover:text-accent hover:underline truncate max-w-[180px] block"
                                   title="Open Account in Salesforce"
                                 >
                                   {opp.pipeline}
@@ -670,17 +670,17 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
                               <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() => openSalesforceSearch(opp.opportunityName || opp.pipeline, opp.salesforceId)}
-                                  className="p-1 bg-white border text-slate-400 hover:text-accent rounded-lg shadow-sm"
+                                  className="p-1 bg-card border text-muted-foreground hover:text-accent rounded-lg shadow-sm"
                                   title="View Opportunity in Salesforce"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </button>
-                                <Button size="sm" variant="outline" onClick={() => appendToFocusAccounts(opp)} className="h-6 px-1.5 text-[9px] font-black bg-white hover:bg-accent/10 border-slate-200 text-slate-700 hover:text-accent" title="Add to Focus Accounts">
+                                <Button size="sm" variant="outline" onClick={() => appendToFocusAccounts(opp)} className="h-6 px-1.5 text-[9px] font-black bg-card hover:bg-accent/10 border-border text-foreground/85 hover:text-accent" title="Add to Focus Accounts">
                                   <Plus className="w-3 h-3" />
                                 </Button>
                               </div>
                             </div>
-                            <div className="flex justify-between items-center text-[10px] font-semibold text-slate-600">
+                            <div className="flex justify-between items-center text-[10px] font-semibold text-foreground/75">
                               <span>EAV: <strong>${(opp.value || 0).toLocaleString()}</strong></span>
                               <span>Probability: <strong>{opp.probability || 0}%</strong></span>
                             </div>
@@ -699,21 +699,21 @@ export function TestWeeklyGoals({ userId, userRole = 'BDM' }: { userId: string; 
       {/* Roadblocks & Support */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-4">
-           <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 px-2"><AlertTriangle className="w-3.5 h-3.5 text-red-500" /> Roadblocks & Account Barriers</Label>
+           <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 px-2"><AlertTriangle className="w-3.5 h-3.5 text-destructive" /> Roadblocks & Account Barriers</Label>
            <Textarea 
              placeholder="What is slowing down your deals? Competitor activity, internal delays, etc..." 
              value={roadblocks} 
              onChange={e => setRoadblocks(e.target.value)} 
-             className="min-h-[120px] rounded-3xl border-slate-200 bg-white p-6 shadow-inner text-xs font-bold leading-relaxed" 
+             className="min-h-[120px] rounded-3xl border-border bg-card p-6 shadow-inner text-xs font-bold leading-relaxed" 
            />
         </div>
         <div className="space-y-4">
-           <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 px-2"><LifeBuoy className="w-3.5 h-3.5 text-blue-500" /> Additional Management Support</Label>
+           <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 px-2"><LifeBuoy className="w-3.5 h-3.5 text-info" /> Additional Management Support</Label>
            <Textarea 
              placeholder="How can leadership assist this week? Escalations, joint calls, pricing approvals..." 
              value={supportNeeded} 
              onChange={e => setSupportNeeded(e.target.value)} 
-             className="min-h-[120px] rounded-3xl border-slate-200 bg-white p-6 shadow-inner text-xs font-bold leading-relaxed" 
+             className="min-h-[120px] rounded-3xl border-border bg-card p-6 shadow-inner text-xs font-bold leading-relaxed" 
            />
         </div>
       </div>

@@ -42,23 +42,23 @@ import { exportElementToPdf } from '@/lib/export-utils';
 
 const CARRIER_SERVICES = [
   // Next Available
-  { id: 'na-time-sensitive', name: 'Time Sensitive', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
-  { id: 'na-same-day', name: 'Same-Day', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
-  { id: 'na-highly-monitored', name: 'Highly Monitored', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
-  { id: 'na-high-value', name: 'High Value', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
-  { id: 'na-hand-2-hand', name: 'Hand 2 Hand', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
-  { id: 'na-tae', name: 'TAE', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
+  { id: 'na-time-sensitive', name: 'Time Sensitive', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
+  { id: 'na-same-day', name: 'Same-Day', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
+  { id: 'na-highly-monitored', name: 'Highly Monitored', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
+  { id: 'na-high-value', name: 'High Value', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
+  { id: 'na-hand-2-hand', name: 'Hand 2 Hand', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
+  { id: 'na-tae', name: 'TAE', speed: 'Next Available Road & Air', provider: 'Priority Services', tier: 'Premium Services', weight: 'Any Weight Appropriate For Vehicle', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
 
   // Tomorrow
-  { id: 'tom-intl-air-sea', name: 'International Air & Sea', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'International Air & Sea', weight: 'Pallet Restrictions', freight: 'Parcels - Cartons - Skids', color: 'bg-sky-600 border-sky-700 text-white' },
-  { id: 'tom-priority-air-express', name: 'Priority Air Express', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
-  { id: 'tom-road-express', name: 'Business to Consumer', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'B2C', weight: 'Upto 22kg or 120cm Total', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-emerald-800 border-emerald-900 text-white' },
+  { id: 'tom-intl-air-sea', name: 'International Air & Sea', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'International Air & Sea', weight: 'Pallet Restrictions', freight: 'Parcels - Cartons - Skids', color: 'bg-info border-info text-info-foreground' },
+  { id: 'tom-priority-air-express', name: 'Priority Air Express', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
+  { id: 'tom-road-express', name: 'Business to Consumer', speed: 'Tomorrow Road & Air', provider: 'Priority Services', tier: 'B2C', weight: 'Upto 22kg or 120cm Total', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-success border-success text-success-foreground' },
 
   // 1-8 Days
-  { id: 'road-express-1-8', name: 'Road Express', speed: '1-8 Days Road', provider: 'IPEC Road Services', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-amber-500 border-amber-600 text-slate-900' },
+  { id: 'road-express-1-8', name: 'Road Express', speed: '1-8 Days Road', provider: 'IPEC Road Services', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-warning border-warning text-foreground' },
 
   // Courier
-  { id: 'courier-network', name: 'Courier Network', speed: 'Courier', provider: 'TGE Courier', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-zinc-600 border-zinc-700 text-white' }
+  { id: 'courier-network', name: 'Courier Network', speed: 'Courier', provider: 'TGE Courier', tier: 'B2B', weight: 'All Weights', freight: 'Satchels - Parcels - Cartons - Skids - Pallets', color: 'bg-muted-foreground border-foreground/30 text-white' }
 ];
 
 const AUSTRALIA_STATES = [
@@ -110,8 +110,8 @@ const Textarea = (props: any) => {
   return (
     <div className="w-full relative">
       <UITextarea {...props} disabled={viewOnly || props.disabled} className={`print:hidden ${props.className || ''}`} />
-      <div className="hidden print:block whitespace-pre-wrap break-words text-xs py-1.5 px-0 border-b border-slate-300 min-h-[20px] text-slate-900 font-medium">
-        {val ? val : <span className="text-slate-400 italic">None specified</span>}
+      <div className="hidden print:block whitespace-pre-wrap break-words text-xs py-1.5 px-0 border-b border-border min-h-[20px] text-foreground font-medium">
+        {val ? val : <span className="text-muted-foreground italic">None specified</span>}
       </div>
     </div>
   );
@@ -649,25 +649,25 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
   return (
     <ViewOnlyContext.Provider value={viewOnly}>
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 max-w-full bg-white text-slate-900">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 max-w-full bg-card text-foreground">
         <div>
         {/* Header - Hidden on Export */}
-        <div className={`sticky top-0 z-40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-200`}>
+        <div className={`sticky top-0 z-40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-border`}>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h2 className="text-xl font-black text-slate-800">
+            <h2 className="text-xl font-black text-foreground">
               {docId ? 'Edit Fact Finding' : 'New Fact Finding'}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-xs font-medium text-slate-500 break-words max-w-full">
+              <p className="text-xs font-medium text-muted-foreground break-words max-w-full">
                 {formData.companyName || 'Untitled Document'}
               </p>
               {docId && (
-                <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
-                  <span className="text-xs text-slate-500">Owner:</span>
+                <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
+                  <span className="text-xs text-muted-foreground">Owner:</span>
                   {isEditingOwner ? (
                     <Select value={formData.userId} onValueChange={async (val: string) => { 
                       handleChange('userId', val); 
@@ -695,11 +695,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     </Select>
                   ) : (
                     <div className="flex items-center gap-1">
-                      <span className="text-xs font-bold text-slate-700">
+                      <span className="text-xs font-bold text-foreground/85">
                         {users?.find((u: any) => u.id === formData.userId)?.name || 'Unknown'}
                       </span>
                       <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setIsEditingOwner(true)}>
-                        <Edit2 className="h-3 w-3 text-slate-500" />
+                        <Edit2 className="h-3 w-3 text-muted-foreground" />
                       </Button>
                     </div>
                   )}
@@ -713,7 +713,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
             {docId && (isLeader || (!!formData.userId && formData.userId !== user?.uid)) && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button type="button" variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+                  <Button type="button" variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-destructive border-destructive/25 hover:bg-danger-soft hover:text-destructive">
                     <Trash2 className="w-4 h-4" />
                     Delete
                   </Button>
@@ -727,7 +727,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
                       Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -742,30 +742,30 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     params: { type: 'fact-finding', data: { ...formData, docId } }
                   }
                 }));
-              }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
+              }} className="flex-1 sm:flex-none gap-2 font-bold bg-accent/10 border-accent/25 text-primary hover:bg-accent/15">
                 Prepare Call Plan
               </Button>
             )}
             <Button 
               variant={formData.isArchived ? "secondary" : "outline"} 
               onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
-              className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
+              className="flex-1 sm:flex-none gap-2 font-bold text-foreground/85 border-border"
             >
               {formData.isArchived ? "Unarchive" : "Archive"}
             </Button>
-            <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
+            <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-foreground/85">
               <Printer className="w-4 h-4" />
               Export PDF
             </Button>
-            <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
+            <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-primary bg-accent/10 border-accent/25 hover:bg-accent/15">
               <Printer className="w-4 h-4" />
               Export Review
             </Button>
-            <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
+            <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-foreground/85 border-border">
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Document
             </Button>
-            <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+            <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-success-fill hover:bg-success text-success-foreground border-none">
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               Save & Close
             </Button>
@@ -774,16 +774,16 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
       </div>
 
       {/* Print Header - Visible ONLY on Print */}
-      <div className="hidden print:block mb-8 border-b-2 border-slate-900 pb-4">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Fact Finding Report</h1>
+      <div className="hidden print:block mb-8 border-b-2 border-foreground/30 pb-4">
+        <h1 className="text-4xl font-black text-foreground tracking-tight">Fact Finding Report</h1>
         <div className="flex justify-between items-end mt-4">
           <div>
-            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Client / Prospect</p>
-            <h2 className="text-2xl font-bold text-slate-800">{formData.companyName || '____________________'}</h2>
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Client / Prospect</p>
+            <h2 className="text-2xl font-bold text-foreground">{formData.companyName || '____________________'}</h2>
           </div>
           <div className="text-right">
-            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Date</p>
-            <p className="text-lg font-bold text-slate-800">{new Date().toLocaleDateString()}</p>
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Date</p>
+            <p className="text-lg font-bold text-foreground">{new Date().toLocaleDateString()}</p>
           </div>
         </div>
       </div>
@@ -793,16 +793,16 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
         {/* Main Form Content */}
         <div className="lg:col-span-12 space-y-6">
           
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
-                <Building className="w-5 h-5 text-primary print:text-slate-900" />
+          <Card className="border-border shadow-sm print:shadow-none print:border-none">
+            <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                <Building className="w-5 h-5 text-primary print:text-foreground" />
                 1. General Business Profile
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6 print:px-0 print:py-3 print:space-y-4">
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Company Name *</Label>
+                <Label className="font-bold text-foreground/85">Company Name *</Label>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                   <div className="flex gap-2 flex-1 w-full">
                     <Input 
@@ -824,24 +824,24 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       </Button>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl h-10 print:hidden shrink-0">
+                  <div className="flex items-center space-x-2 bg-secondary/60 border border-border px-4 py-2 rounded-xl h-10 print:hidden shrink-0">
                     <Checkbox 
                       id="inSalesforce"
                       checked={!!formData.inSalesforce}
                       onCheckedChange={(checked: boolean | 'indeterminate') => handleChange('inSalesforce', !!checked)}
                     />
-                    <Label htmlFor="inSalesforce" className="text-sm font-black text-slate-700 cursor-pointer pt-0.5">In Salesforce</Label>
+                    <Label htmlFor="inSalesforce" className="text-sm font-black text-foreground/85 cursor-pointer pt-0.5">In Salesforce</Label>
                   </div>
                 </div>
                 {/* Stage Pipeline */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-inner print:p-0 print:bg-transparent print:border-none print:mt-2">
-                  <div className="flex items-center space-x-2 sm:pr-4 sm:border-r border-slate-300 print:border-none">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6 p-4 bg-secondary/60 border border-border rounded-xl shadow-inner print:p-0 print:bg-transparent print:border-none print:mt-2">
+                  <div className="flex items-center space-x-2 sm:pr-4 sm:border-r border-border print:border-none">
                     <Checkbox 
                       id="currentCustomer"
                       checked={!!formData.currentCustomer}
                       onCheckedChange={(checked: boolean | 'indeterminate') => handleChange('currentCustomer', !!checked)}
                     />
-                    <Label htmlFor="currentCustomer" className="text-sm font-black text-indigo-700 cursor-pointer print:text-xs">Current Customer</Label>
+                    <Label htmlFor="currentCustomer" className="text-sm font-black text-primary cursor-pointer print:text-xs">Current Customer</Label>
                   </div>
                   <div className="flex flex-wrap gap-2 print:hidden">
                     {['New', 'Meeting', 'Proposal Required', 'Proposal Sent', 'Signed', 'Credit Check', 'Account Setup', 'Customer Training', 'Trading', 'Down Trading'].map(s => (
@@ -851,31 +851,31 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                         onClick={() => handleChange('stage', s)}
                         className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all border ${
                           formData.stage === s 
-                            ? 'bg-primary text-white border-primary shadow-md scale-105' 
-                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
+                            ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105' 
+                            : 'bg-card text-muted-foreground border-border hover:bg-secondary hover:text-foreground'
                         }`}
                       >
                         {s}
                       </button>
                     ))}
                   </div>
-                  <div className="hidden print:block text-xs font-bold text-slate-800">
-                    Stage: <span className="font-black text-indigo-900">{formData.stage || 'Not specified'}</span>
+                  <div className="hidden print:block text-xs font-bold text-foreground">
+                    Stage: <span className="font-black text-primary">{formData.stage || 'Not specified'}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2 print:hidden bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                <Label className="font-bold text-slate-700 flex justify-between items-center">
+              <div className="space-y-2 print:hidden bg-accent/5 p-4 rounded-xl border border-accent/15">
+                <Label className="font-bold text-foreground/85 flex justify-between items-center">
                   <span>Current Note / Quick Update</span>
-                  <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Archives on save</span>
+                  <span className="text-[10px] text-accent font-bold uppercase tracking-wider">Archives on save</span>
                 </Label>
                 <div className="flex gap-3 items-end">
                   <Textarea 
                     value={formData.currentNote || ''} 
                     onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('currentNote', e.target.value)} 
                     placeholder="Enter quick update note..."
-                    className="min-h-[60px] text-xs font-semibold bg-white border-slate-200 focus:border-indigo-400 flex-1"
+                    className="min-h-[60px] text-xs font-semibold bg-card border-border focus:border-accent flex-1"
                     rows={2}
                   />
                   {formData.currentNote?.trim() && (
@@ -886,7 +886,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                         toast({ title: "Note Copied", description: "Text copied to clipboard. Opening Salesforce search..." });
                         window.open(getSalesforceSearchUrl(formData.companyName || ''), '_blank');
                       }}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2 shrink-0 h-10 px-4 rounded-xl shadow-md transition-all text-xs"
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold gap-2 shrink-0 h-10 px-4 rounded-xl shadow-md transition-all text-xs"
                     >
                       <Copy className="w-4 h-4" />
                       Copy & Search
@@ -895,12 +895,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                 </div>
 
                 {formData.archivedNotes && formData.archivedNotes.length > 0 && (
-                  <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-100/80 shadow-sm space-y-1">
-                    <span className="text-[9px] uppercase font-black text-indigo-500 block">Last Saved Note:</span>
-                    <p className="text-xs font-semibold text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+                  <div className="mt-3 p-3 bg-card rounded-lg border border-accent/10 shadow-sm space-y-1">
+                    <span className="text-[9px] uppercase font-black text-accent block">Last Saved Note:</span>
+                    <p className="text-xs font-semibold text-foreground whitespace-pre-wrap break-words leading-relaxed">
                       {formData.archivedNotes[formData.archivedNotes.length - 1].note}
                     </p>
-                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex justify-between pt-1 border-t border-slate-50">
+                    <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider flex justify-between pt-1 border-t border-border/60">
                       <span>By {formData.archivedNotes[formData.archivedNotes.length - 1].createdByName}</span>
                       <span>
                         {(() => {
@@ -918,8 +918,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               </div>
 
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Please tell me about your business?</Label>
-                <p className="text-xs text-slate-500 font-medium mb-2 print:hidden">Who, What, How, Why, When, Website URL, Shipping Platform</p>
+                <Label className="font-bold text-foreground/85">Please tell me about your business?</Label>
+                <p className="text-xs text-muted-foreground font-medium mb-2 print:hidden">Who, What, How, Why, When, Website URL, Shipping Platform</p>
                 <Textarea 
                   value={formData.businessDetails} 
                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('businessDetails', e.target.value)} 
@@ -930,29 +930,29 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Currently Using (Provider)</Label>
+                  <Label className="font-bold text-foreground/85">Currently Using (Provider)</Label>
                   <Input value={formData.currentlyUsing} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('currentlyUsing', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Key Decision Maker Name</Label>
+                  <Label className="font-bold text-foreground/85">Key Decision Maker Name</Label>
                   <Input value={formData.keyDecisionMaker || ''} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('keyDecisionMaker', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. John Doe (Director)" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Incumbent Competitor</Label>
+                  <Label className="font-bold text-foreground/85">Incumbent Competitor</Label>
                   <Input value={formData.incumbentCompetitor || ''} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('incumbentCompetitor', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="Incumbent provider details..." />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Contract End Date / Renewal Timeline</Label>
+                  <Label className="font-bold text-foreground/85">Contract End Date / Renewal Timeline</Label>
                   <Input value={formData.contractEndDate || ''} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('contractEndDate', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" placeholder="e.g. Dec 2026 or 2026-12-31" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Business Model</Label>
+                  <Label className="font-bold text-foreground/85">Business Model</Label>
                   <div className="print:hidden">
                     <Select value={formData.businessModel} onValueChange={(v: string) => handleChange('businessModel', v)}>
                       <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
@@ -967,62 +967,62 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                 </div>
               </div>
 
-              <div className="border-t border-slate-100 pt-6 mt-6">
-                <h3 className="text-sm font-black uppercase text-indigo-900 tracking-wider mb-4">Operational Needs</h3>
+              <div className="border-t border-border/60 pt-6 mt-6">
+                <h3 className="text-sm font-black uppercase text-primary tracking-wider mb-4">Operational Needs</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="securityConcern" checked={formData.securityConcern} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('securityConcern', !!c)} className="print:border-slate-500" />
-                    <Label htmlFor="securityConcern" className="font-bold text-xs text-slate-700 cursor-pointer">Freight security is a concern</Label>
+                  <div className="flex items-center space-x-3 bg-secondary/30 p-3 rounded-xl border border-border/60">
+                    <Checkbox id="securityConcern" checked={formData.securityConcern} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('securityConcern', !!c)} className="print:border-muted-foreground/40" />
+                    <Label htmlFor="securityConcern" className="font-bold text-xs text-foreground/85 cursor-pointer">Freight security is a concern</Label>
                   </div>
-                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="highValueFreight" checked={formData.highValueFreight} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('highValueFreight', !!c)} className="print:border-slate-500" />
-                    <Label htmlFor="highValueFreight" className="font-bold text-xs text-slate-700 cursor-pointer">Sends High Value freight</Label>
+                  <div className="flex items-center space-x-3 bg-secondary/30 p-3 rounded-xl border border-border/60">
+                    <Checkbox id="highValueFreight" checked={formData.highValueFreight} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('highValueFreight', !!c)} className="print:border-muted-foreground/40" />
+                    <Label htmlFor="highValueFreight" className="font-bold text-xs text-foreground/85 cursor-pointer">Sends High Value freight</Label>
                   </div>
-                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="dangerousGoods" checked={formData.dangerousGoods} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('dangerousGoods', !!c)} className="print:border-slate-500" />
-                    <Label htmlFor="dangerousGoods" className="font-bold text-xs text-slate-700 cursor-pointer">Sends Dangerous Goods</Label>
+                  <div className="flex items-center space-x-3 bg-secondary/30 p-3 rounded-xl border border-border/60">
+                    <Checkbox id="dangerousGoods" checked={formData.dangerousGoods} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('dangerousGoods', !!c)} className="print:border-muted-foreground/40" />
+                    <Label htmlFor="dangerousGoods" className="font-bold text-xs text-foreground/85 cursor-pointer">Sends Dangerous Goods</Label>
                   </div>
-                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Checkbox id="internationalFreight" checked={formData.internationalFreight} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('internationalFreight', !!c)} className="print:border-slate-500" />
-                    <Label htmlFor="internationalFreight" className="font-bold text-xs text-slate-700 cursor-pointer">Uses International Freight</Label>
+                  <div className="flex items-center space-x-3 bg-secondary/30 p-3 rounded-xl border border-border/60">
+                    <Checkbox id="internationalFreight" checked={formData.internationalFreight} onCheckedChange={(c: boolean | 'indeterminate') => handleChange('internationalFreight', !!c)} className="print:border-muted-foreground/40" />
+                    <Label htmlFor="internationalFreight" className="font-bold text-xs text-foreground/85 cursor-pointer">Uses International Freight</Label>
                   </div>
                 </div>
 
                 {formData.internationalFreight && (
-                  <div className="mt-4 p-4 bg-indigo-50/30 rounded-xl border border-indigo-100/50 grid grid-cols-1 md:grid-cols-2 gap-4 print:p-0 print:bg-transparent print:border-none print:mt-2">
+                  <div className="mt-4 p-4 bg-accent/5 rounded-xl border border-accent/10 grid grid-cols-1 md:grid-cols-2 gap-4 print:p-0 print:bg-transparent print:border-none print:mt-2">
                     <div className="space-y-2">
-                      <Label className="font-bold text-xs text-indigo-900 print:text-slate-700">International Type (Sea/Air)</Label>
-                      <Input value={formData.internationalType} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('internationalType', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
+                      <Label className="font-bold text-xs text-primary print:text-foreground/85">International Type (Sea/Air)</Label>
+                      <Input value={formData.internationalType} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('internationalType', e.target.value)} className="bg-card print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="font-bold text-xs text-indigo-900 print:text-slate-700">Intl Size (Parcels/Cartons/Pallets/Containers)</Label>
-                      <Input value={formData.internationalSize} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('internationalSize', e.target.value)} className="bg-white print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
+                      <Label className="font-bold text-xs text-primary print:text-foreground/85">Intl Size (Parcels/Cartons/Pallets/Containers)</Label>
+                      <Input value={formData.internationalSize} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('internationalSize', e.target.value)} className="bg-card print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none print:bg-transparent" />
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="border-t border-slate-100 pt-6 mt-6">
-                <h3 className="text-sm font-black uppercase text-indigo-900 tracking-wider mb-4">Advanced Details</h3>
+              <div className="border-t border-border/60 pt-6 mt-6">
+                <h3 className="text-sm font-black uppercase text-primary tracking-wider mb-4">Advanced Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
-                    <Label className="font-bold text-slate-700">Primary Pain Points</Label>
+                    <Label className="font-bold text-foreground/85">Primary Pain Points</Label>
                     <Textarea value={formData.painPoints} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('painPoints', e.target.value)} className="min-h-[80px] print:border-none print:resize-none print:p-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Special Handling Requirements</Label>
+                    <Label className="font-bold text-foreground/85">Special Handling Requirements</Label>
                     <Input value={formData.specialHandling} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('specialHandling', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Loading Dock Capabilities</Label>
+                    <Label className="font-bold text-foreground/85">Loading Dock Capabilities</Label>
                     <Input value={formData.loadingDock} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('loadingDock', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Seasonal Fluctuations</Label>
+                    <Label className="font-bold text-foreground/85">Seasonal Fluctuations</Label>
                     <Input value={formData.seasonalFluctuations} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('seasonalFluctuations', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Trading Terms Expected</Label>
+                    <Label className="font-bold text-foreground/85">Trading Terms Expected</Label>
                     <Input value={formData.tradingTerms} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('tradingTerms', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                   </div>
                 </div>
@@ -1032,11 +1032,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           </Card>
 
 
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
+          <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
-                  <Package className="w-5 h-5 text-primary print:text-slate-900" />
+                <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary print:text-foreground" />
                   2. Domestic Freight Profile & Shipping Map
                 </CardTitle>
 
@@ -1046,18 +1046,18 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     type="button"
                     variant="outline"
                     onClick={() => setIsWsFormOpen(true)}
-                    className="gap-2 font-bold bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100 h-9 text-xs shadow-sm"
+                    className="gap-2 font-bold bg-warning-soft border-warning/25 text-warning-ink hover:bg-warning-soft h-9 text-xs shadow-sm"
                   >
-                    <LayoutGrid className="w-3.5 h-3.5 text-amber-600" />
+                    <LayoutGrid className="w-3.5 h-3.5 text-warning-ink" />
                     White Space
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsViewWsOpen(true)}
-                    className="gap-2 font-bold bg-cyan-50 border-cyan-200 text-cyan-900 hover:bg-cyan-100 h-9 text-xs shadow-sm"
+                    className="gap-2 font-bold bg-info-soft border-info/25 text-info hover:bg-info-soft h-9 text-xs shadow-sm"
                   >
-                    <Eye className="w-3.5 h-3.5 text-cyan-600" />
+                    <Eye className="w-3.5 h-3.5 text-info" />
                     View WS
                   </Button>
                 </div>
@@ -1067,15 +1067,15 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Type of Freight</Label>
+                  <Label className="font-bold text-foreground/85">Type of Freight</Label>
                   <Input placeholder="Sameday, Priority, Road..." value={formData.freightType} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('freightType', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Size of Freight</Label>
+                  <Label className="font-bold text-foreground/85">Size of Freight</Label>
                   <Input placeholder="Dimensions/Weight" value={formData.freightSize} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('freightSize', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">EAV</Label>
+                  <Label className="font-bold text-foreground/85">EAV</Label>
                   <Input placeholder="e.g. $5,000 or 50 items" value={formData.weeklyAmount} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('weeklyAmount', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                 </div>
               </div>
@@ -1085,22 +1085,22 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="font-bold text-slate-700">% Staying in WA?</Label>
+                      <Label className="font-bold text-foreground/85">% Staying in WA?</Label>
                       <Input type="number" placeholder="%" value={formData.waPercentage} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('waPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="font-bold text-slate-700">% Overnight?</Label>
+                      <Label className="font-bold text-foreground/85">% Overnight?</Label>
                       <Input type="number" placeholder="%" value={formData.overnightPercentage} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('overnightPercentage', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-lg border border-slate-100 print:bg-transparent print:border-none print:p-0 justify-center">
+                  <div className="flex items-center space-x-3 bg-secondary/60 p-3 rounded-lg border border-border/60 print:bg-transparent print:border-none print:p-0 justify-center">
                     <Checkbox 
                       id="hasData" 
                       checked={formData.hasData} 
                       onCheckedChange={(c: boolean | 'indeterminate') => handleChange('hasData', !!c)} 
-                      className="print:border-slate-500"
+                      className="print:border-muted-foreground/40"
                     />
-                    <Label htmlFor="hasData" className="font-bold text-slate-700 cursor-pointer">
+                    <Label htmlFor="hasData" className="font-bold text-foreground/85 cursor-pointer">
                       3mths Data available (Excel/CSV)?
                     </Label>
                   </div>
@@ -1110,11 +1110,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:hidden">
                   
                   {/* MAP 1: OUTBOUND */}
-                  <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60 flex flex-col items-center space-y-4">
+                  <div className="bg-secondary/30 p-4 rounded-xl border border-border/60 flex flex-col items-center space-y-4">
                     <div className="text-center">
-                      <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Interactive Shipping Map</span>
-                      <h4 className="text-xs font-bold text-slate-700 mb-1">Origin Perth (WA) Destination Lanes</h4>
-                      <p className="text-[10px] text-red-600 font-bold uppercase tracking-wide">OUTBOUND (FROM PERTH)</p>
+                      <span className="text-[10px] font-black tracking-widest uppercase text-muted-foreground">Interactive Shipping Map</span>
+                      <h4 className="text-xs font-bold text-foreground/85 mb-1">Origin Perth (WA) Destination Lanes</h4>
+                      <p className="text-[10px] text-destructive font-bold uppercase tracking-wide">OUTBOUND (FROM PERTH)</p>
                     </div>
                     <div className="relative w-full max-w-[280px] aspect-[420/520]">
                       <svg viewBox="0 0 420 520" className="w-full h-full select-none">
@@ -1129,10 +1129,10 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 d={state.path}
                                 className={`transition-all duration-300 stroke-white stroke-2 ${
                                   isWA
-                                    ? 'fill-indigo-600/20 hover:fill-indigo-600/30'
+                                    ? 'fill-accent/20 hover:fill-accent/30'
                                     : isSelected
-                                    ? 'fill-red-500 hover:fill-red-600'
-                                    : 'fill-slate-200 hover:fill-slate-300'
+                                    ? 'fill-destructive hover:fill-destructive'
+                                    : 'fill-border hover:fill-border'
                                 }`}
                               />
                               <title>{state.name} ({state.id})</title>
@@ -1141,13 +1141,13 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                         })}
 
                         {/* Perth Origin Point */}
-                        <circle cx={95} cy={330} r={6} className="fill-indigo-600 stroke-white stroke-2 animate-pulse" />
-                        <text x={95} y={320} className="text-[9px] font-black fill-indigo-800 text-anchor-middle">PERTH</text>
+                        <circle cx={95} cy={330} r={6} className="fill-accent stroke-white stroke-2 animate-pulse" />
+                        <text x={95} y={320} className="text-[9px] font-black fill-accent text-anchor-middle">PERTH</text>
 
                         {/* Pilbara Origin Point */}
                         <g className="cursor-pointer" onClick={() => handleToggleStateFrom('PILBARA')}>
-                          <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesFrom?.includes('PILBARA') ? 'fill-red-500 animate-pulse' : 'fill-slate-400'} stroke-white stroke-1.5`} />
-                          <text x={80} y={190} className="text-[8px] font-black fill-slate-700" textAnchor="middle">PILBARA</text>
+                          <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesFrom?.includes('PILBARA') ? 'fill-destructive animate-pulse' : 'fill-muted-foreground'} stroke-white stroke-1.5`} />
+                          <text x={80} y={190} className="text-[8px] font-black fill-foreground/80" textAnchor="middle">PILBARA</text>
                         </g>
 
                         {/* Connection Lanes */}
@@ -1165,8 +1165,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 strokeDasharray="4 3"
                                 className="animate-[dash_2s_linear_infinite]"
                               />
-                              <circle cx={state.x} cy={state.y} r={4} className="fill-indigo-600 stroke-white stroke-1.5" />
-                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-slate-700 text-center" textAnchor="middle">
+                              <circle cx={state.x} cy={state.y} r={4} className="fill-accent stroke-white stroke-1.5" />
+                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-foreground/80 text-center" textAnchor="middle">
                                 {state.id}: {state.dist}
                               </text>
                             </g>
@@ -1184,7 +1184,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             type="button"
                             onClick={() => handleToggleStateFrom(state.id)}
                             className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
-                              isSelected ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                              isSelected ? 'bg-destructive text-destructive-foreground shadow-sm' : 'bg-secondary hover:bg-border text-foreground/75'
                             }`}
                           >
                             {state.id}
@@ -1193,23 +1193,23 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       })}
                     </div>
                     <div className="w-full pt-2">
-                      <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Locations not near Capital City / Unique Notes</Label>
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Locations not near Capital City / Unique Notes</Label>
                       <Textarea 
                         placeholder="e.g. Bunbury, Kalgoorlie, Port Hedland..." 
                         value={formData.mapNotesFrom || ''} 
                         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('mapNotesFrom', e.target.value)}
-                        className="mt-1.5 text-xs font-medium rounded-xl border-slate-200"
+                        className="mt-1.5 text-xs font-medium rounded-xl border-border"
                         rows={2}
                       />
                     </div>
                   </div>
 
                   {/* MAP 2: INBOUND */}
-                  <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60 flex flex-col items-center space-y-4">
+                  <div className="bg-secondary/30 p-4 rounded-xl border border-border/60 flex flex-col items-center space-y-4">
                     <div className="text-center">
-                      <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Interactive Shipping Map</span>
-                      <h4 className="text-xs font-bold text-slate-700 mb-1">Destination Perth (WA)</h4>
-                      <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wide">INBOUND (TO PERTH)</p>
+                      <span className="text-[10px] font-black tracking-widest uppercase text-muted-foreground">Interactive Shipping Map</span>
+                      <h4 className="text-xs font-bold text-foreground/85 mb-1">Destination Perth (WA)</h4>
+                      <p className="text-[10px] text-warning-ink font-bold uppercase tracking-wide">INBOUND (TO PERTH)</p>
                     </div>
                     <div className="relative w-full max-w-[280px] aspect-[420/520]">
                       <svg viewBox="0 0 420 520" className="w-full h-full select-none">
@@ -1224,10 +1224,10 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 d={state.path}
                                 className={`transition-all duration-300 stroke-white stroke-2 ${
                                   isWA
-                                    ? 'fill-indigo-600/20 hover:fill-indigo-600/30'
+                                    ? 'fill-accent/20 hover:fill-accent/30'
                                     : isSelected
-                                    ? 'fill-orange-500 hover:fill-orange-600'
-                                    : 'fill-slate-200 hover:fill-slate-300'
+                                    ? 'fill-gold hover:fill-warning'
+                                    : 'fill-border hover:fill-border'
                                 }`}
                               />
                               <title>{state.name} ({state.id})</title>
@@ -1236,13 +1236,13 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                         })}
 
                         {/* Perth Destination Point */}
-                        <circle cx={95} cy={330} r={6} className="fill-indigo-600 stroke-white stroke-2 animate-pulse" />
-                        <text x={95} y={320} className="text-[9px] font-black fill-indigo-800 text-anchor-middle">PERTH</text>
+                        <circle cx={95} cy={330} r={6} className="fill-accent stroke-white stroke-2 animate-pulse" />
+                        <text x={95} y={320} className="text-[9px] font-black fill-accent text-anchor-middle">PERTH</text>
 
                         {/* Pilbara Destination Point */}
                         <g className="cursor-pointer" onClick={() => handleToggleStateTo('PILBARA')}>
-                          <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesTo?.includes('PILBARA') ? 'fill-orange-500 animate-pulse' : 'fill-slate-400'} stroke-white stroke-1.5`} />
-                          <text x={80} y={190} className="text-[8px] font-black fill-slate-700" textAnchor="middle">PILBARA</text>
+                          <circle cx={80} cy={200} r={5} className={`${formData.selectedStatesTo?.includes('PILBARA') ? 'fill-gold animate-pulse' : 'fill-muted-foreground'} stroke-white stroke-1.5`} />
+                          <text x={80} y={190} className="text-[8px] font-black fill-foreground/80" textAnchor="middle">PILBARA</text>
                         </g>
 
                         {/* Connection Lanes */}
@@ -1260,8 +1260,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                 strokeDasharray="4 3"
                                 className="animate-[dash_2s_linear_reverse_infinite]"
                               />
-                              <circle cx={state.x} cy={state.y} r={4} className="fill-indigo-600 stroke-white stroke-1.5" />
-                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-slate-700 text-center" textAnchor="middle">
+                              <circle cx={state.x} cy={state.y} r={4} className="fill-accent stroke-white stroke-1.5" />
+                              <text x={state.x} y={state.y - 8} className="text-[8px] font-bold fill-foreground/80 text-center" textAnchor="middle">
                                 {state.id}: {state.dist}
                               </text>
                             </g>
@@ -1279,7 +1279,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             type="button"
                             onClick={() => handleToggleStateTo(state.id)}
                             className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
-                              isSelected ? 'bg-orange-500 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                              isSelected ? 'bg-warning text-warning-foreground shadow-sm' : 'bg-secondary hover:bg-border text-foreground/75'
                             }`}
                           >
                             {state.id}
@@ -1288,12 +1288,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       })}
                     </div>
                     <div className="w-full pt-2">
-                      <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Locations not near Capital City / Unique Notes</Label>
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Locations not near Capital City / Unique Notes</Label>
                       <Textarea 
                         placeholder="e.g. Albany, Geraldton, Broome..." 
                         value={formData.mapNotesTo || ''} 
                         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('mapNotesTo', e.target.value)}
-                        className="mt-1.5 text-xs font-medium rounded-xl border-slate-200"
+                        className="mt-1.5 text-xs font-medium rounded-xl border-border"
                        />
                     </div>
                   </div>
@@ -1301,25 +1301,25 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               </div>
 
               {/* Selected Lanes & Map Notes Print Version (Static List for PDF) */}
-              <div className="hidden print:block border-t border-slate-300 pt-4 space-y-4">
+              <div className="hidden print:block border-t border-border pt-4 space-y-4">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <h5 className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-1">Outbound Lanes (From Perth)</h5>
-                    <p className="text-sm font-bold text-slate-900">{(formData.selectedStatesFrom || []).join(', ') || 'None selected'}</p>
+                    <h5 className="text-xs font-bold text-foreground/85 uppercase tracking-widest mb-1">Outbound Lanes (From Perth)</h5>
+                    <p className="text-sm font-bold text-foreground">{(formData.selectedStatesFrom || []).join(', ') || 'None selected'}</p>
                     {formData.mapNotesFrom && (
                       <div className="mt-2">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase">Locations not near Capital City / Unique Notes:</p>
-                        <p className="text-xs font-medium text-slate-800 whitespace-pre-wrap">{formData.mapNotesFrom}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Locations not near Capital City / Unique Notes:</p>
+                        <p className="text-xs font-medium text-foreground whitespace-pre-wrap">{formData.mapNotesFrom}</p>
                       </div>
                     )}
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-1">Inbound Lanes (To Perth)</h5>
-                    <p className="text-sm font-bold text-slate-900">{(formData.selectedStatesTo || []).join(', ') || 'None selected'}</p>
+                    <h5 className="text-xs font-bold text-foreground/85 uppercase tracking-widest mb-1">Inbound Lanes (To Perth)</h5>
+                    <p className="text-sm font-bold text-foreground">{(formData.selectedStatesTo || []).join(', ') || 'None selected'}</p>
                     {formData.mapNotesTo && (
                       <div className="mt-2">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase">Locations not near Capital City / Unique Notes:</p>
-                        <p className="text-xs font-medium text-slate-800 whitespace-pre-wrap">{formData.mapNotesTo}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Locations not near Capital City / Unique Notes:</p>
+                        <p className="text-xs font-medium text-foreground whitespace-pre-wrap">{formData.mapNotesTo}</p>
                       </div>
                     )}
                   </div>
@@ -1330,10 +1330,10 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           </Card>
 
           {/* Clickable Carrier Services Grid (TGE WA Network) */}
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
-                <Truck className="w-5 h-5 text-primary print:text-slate-900" />
+          <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                <Truck className="w-5 h-5 text-primary print:text-foreground" />
                 3. TGE Parcel Network Western Australia Services
               </CardTitle>
               <CardDescription className="print:hidden">
@@ -1341,18 +1341,18 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-6 print:px-0 print:py-2 print:space-y-3">
-              <div className="border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-slate-50/20 p-4 print:hidden">
+              <div className="border border-border rounded-xl overflow-hidden shadow-inner bg-secondary/10 p-4 print:hidden">
                 
                 {/* Visual Header */}
-                <div className="bg-emerald-950 text-white py-3 px-4 text-center rounded-lg font-black text-lg mb-6 shadow-sm flex items-center justify-center gap-2 print:border print:border-slate-300 print:text-black print:bg-transparent">
+                <div className="bg-success text-success-foreground py-3 px-4 text-center rounded-lg font-black text-lg mb-6 shadow-sm flex items-center justify-center gap-2 print:border print:border-border print:text-foreground print:bg-transparent">
                   <Truck className="w-5 h-5" />
                   Team Global Express Parcel Network Western Australia
                 </div>
 
                 {/* Pricing Information (Restricted to Admin/Leader edit, visible to all) */}
-                <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-sm print:border-slate-300 print:bg-transparent">
-                  <Label className="text-xs font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5 mb-2">
-                    <Coins className="w-4 h-4 text-emerald-600" />
+                <div className="mb-6 p-4 rounded-xl border border-success/25 bg-success-soft/30 shadow-sm print:border-border print:bg-transparent">
+                  <Label className="text-xs font-black uppercase text-success-ink tracking-wider flex items-center gap-1.5 mb-2">
+                    <Coins className="w-4 h-4 text-success" />
                     Pricing & Rate Agreement Info (Leaders & Site Admins Only Edit)
                   </Label>
                   {isLeader ? (
@@ -1360,11 +1360,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       placeholder="Enter pricing notes, discount agreements, or custom rate structure details..."
                       value={formData.pricingInfo || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('pricingInfo', e.target.value)}
-                      className="text-xs font-medium rounded-xl border-emerald-200 bg-white"
+                      className="text-xs font-medium rounded-xl border-success/25 bg-card"
                       rows={3}
                     />
                   ) : (
-                    <div className="bg-white border border-emerald-100 rounded-xl p-3 text-xs text-slate-700 whitespace-pre-wrap min-h-[60px] font-medium">
+                    <div className="bg-card border border-success/15 rounded-xl p-3 text-xs text-foreground/85 whitespace-pre-wrap min-h-[60px] font-medium">
                       {formData.pricingInfo || "No pricing information has been recorded yet."}
                     </div>
                   )}
@@ -1375,11 +1375,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                   
                   {/* Speed Column: Next Available Road & Air */}
                   <div className="space-y-4">
-                    <div className="bg-emerald-800 text-white font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-success text-success-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
                       Next Available Road & Air
                     </div>
-                    <div className="bg-emerald-900/10 p-2 rounded-lg space-y-2 border border-emerald-900/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest block text-center mb-1">Priority Services / Premium</span>
+                    <div className="bg-success/10 p-2 rounded-lg space-y-2 border border-success/5 min-h-[300px]">
+                      <span className="text-[10px] font-black text-success-ink uppercase tracking-widest block text-center mb-1">Priority Services / Premium</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Next Available')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
@@ -1388,8 +1388,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               onClick={() => handleToggleService(s.id)}
                               className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
                                 isSelected
-                                  ? 'bg-orange-500 border-orange-600 text-white shadow-md scale-[1.02]'
-                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                                  ? 'bg-warning border-warning text-warning-foreground shadow-md scale-[1.02]'
+                                  : 'bg-card hover:bg-secondary/60 border-border text-foreground/85 hover:scale-[1.01]'
                               }`}
                             >
                               <div className="flex justify-between items-start mb-1">
@@ -1401,12 +1401,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
                                   >
-                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                    <SelectTrigger className="h-8 text-xs bg-secondary/60 border-border">
                                       <SelectValue placeholder="Select Spend Band" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1425,23 +1425,23 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                   value={(formData.serviceNotes || {})[s.id] || ''}
                                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
                                   onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                  className="text-xs font-medium rounded-lg border-orange-200 bg-orange-50 focus:border-orange-400 min-h-[60px]"
+                                  className="text-xs font-medium rounded-lg border-warning/25 bg-warning-soft focus:border-warning min-h-[60px]"
                                   rows={2}
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
-                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                  <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
                                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        className="text-xs font-medium rounded-lg border-border bg-card focus:border-muted-foreground/40 min-h-[50px]"
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1457,11 +1457,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                   {/* Speed Column: Tomorrow Road & Air */}
                   <div className="space-y-4">
-                    <div className="bg-emerald-800 text-white font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-success text-success-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
                       Tomorrow Road & Air
                     </div>
-                    <div className="bg-emerald-900/10 p-2 rounded-lg space-y-2 border border-emerald-900/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest block text-center mb-1">Priority Services</span>
+                    <div className="bg-success/10 p-2 rounded-lg space-y-2 border border-success/5 min-h-[300px]">
+                      <span className="text-[10px] font-black text-success-ink uppercase tracking-widest block text-center mb-1">Priority Services</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Tomorrow')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         const isIntl = s.id === 'tom-intl-air-sea';
@@ -1471,10 +1471,10 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               onClick={() => handleToggleService(s.id)}
                               className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
                                 isSelected
-                                  ? 'bg-indigo-600 border-indigo-700 text-white shadow-md scale-[1.02]'
+                                  ? 'bg-accent border-accent text-accent-foreground shadow-md scale-[1.02]'
                                   : isIntl
-                                  ? 'bg-sky-50 hover:bg-sky-100 border-sky-200 text-sky-900'
-                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                                  ? 'bg-info-soft hover:bg-info-soft border-info/25 text-info'
+                                  : 'bg-card hover:bg-secondary/60 border-border text-foreground/85 hover:scale-[1.01]'
                               }`}
                             >
                               <div className="flex justify-between items-start mb-1">
@@ -1489,12 +1489,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
                                   >
-                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                    <SelectTrigger className="h-8 text-xs bg-secondary/60 border-border">
                                       <SelectValue placeholder="Select Spend Band" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1513,23 +1513,23 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                   value={(formData.serviceNotes || {})[s.id] || ''}
                                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
                                   onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                  className="text-xs font-medium rounded-lg border-indigo-200 bg-indigo-50 focus:border-indigo-400 min-h-[60px]"
+                                  className="text-xs font-medium rounded-lg border-accent/25 bg-accent/10 focus:border-accent min-h-[60px]"
                                   rows={2}
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
-                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                  <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
                                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        className="text-xs font-medium rounded-lg border-border bg-card focus:border-muted-foreground/40 min-h-[50px]"
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1545,11 +1545,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                   {/* Speed Column: 1 - 8 Days Road */}
                   <div className="space-y-4">
-                    <div className="bg-amber-500 text-slate-950 font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-warning text-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
                       1 - 8 Days Road
                     </div>
-                    <div className="bg-amber-500/10 p-2 rounded-lg space-y-2 border border-amber-500/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-amber-800 uppercase tracking-widest block text-center mb-1">IPEC Road Services</span>
+                    <div className="bg-warning/10 p-2 rounded-lg space-y-2 border border-warning/5 min-h-[300px]">
+                      <span className="text-[10px] font-black text-warning-ink uppercase tracking-widest block text-center mb-1">IPEC Road Services</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('1-8 Days')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
@@ -1558,8 +1558,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               onClick={() => handleToggleService(s.id)}
                               className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
                                 isSelected
-                                  ? 'bg-amber-500 border-amber-600 text-slate-950 shadow-md scale-[1.02]'
-                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                                  ? 'bg-warning border-warning text-foreground shadow-md scale-[1.02]'
+                                  : 'bg-card hover:bg-secondary/60 border-border text-foreground/85 hover:scale-[1.01]'
                               }`}
                             >
                               <div className="flex justify-between items-start mb-1">
@@ -1574,12 +1574,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
                                   >
-                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                    <SelectTrigger className="h-8 text-xs bg-secondary/60 border-border">
                                       <SelectValue placeholder="Select Spend Band" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1598,23 +1598,23 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                   value={(formData.serviceNotes || {})[s.id] || ''}
                                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
                                   onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                  className="text-xs font-medium rounded-lg border-amber-200 bg-amber-50 focus:border-amber-400 min-h-[60px]"
+                                  className="text-xs font-medium rounded-lg border-warning/25 bg-warning-soft focus:border-warning min-h-[60px]"
                                   rows={2}
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
-                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                  <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
                                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        className="text-xs font-medium rounded-lg border-border bg-card focus:border-muted-foreground/40 min-h-[50px]"
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1630,11 +1630,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                   {/* Speed Column: Courier */}
                   <div className="space-y-4">
-                    <div className="bg-zinc-700 text-white font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
+                    <div className="bg-panel/90 text-panel-foreground font-black text-xs py-2 px-3 rounded-md text-center shadow-sm uppercase tracking-wider">
                       Courier Network
                     </div>
-                    <div className="bg-zinc-700/10 p-2 rounded-lg space-y-2 border border-zinc-700/5 min-h-[300px]">
-                      <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest block text-center mb-1">TGE Courier</span>
+                    <div className="bg-panel/10 p-2 rounded-lg space-y-2 border border-panel-foreground/5 min-h-[300px]">
+                      <span className="text-[10px] font-black text-foreground/85 uppercase tracking-widest block text-center mb-1">TGE Courier</span>
                       {CARRIER_SERVICES.filter(s => s.speed.startsWith('Courier')).map(s => {
                         const isSelected = formData.selectedServices?.includes(s.id);
                         return (
@@ -1643,8 +1643,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               onClick={() => handleToggleService(s.id)}
                               className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
                                 isSelected
-                                  ? 'bg-zinc-700 border-zinc-800 text-white shadow-md scale-[1.02]'
-                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:scale-[1.01]'
+                                  ? 'bg-panel/90 border-panel-foreground/15 text-panel-foreground shadow-md scale-[1.02]'
+                                  : 'bg-card hover:bg-secondary/60 border-border text-foreground/85 hover:scale-[1.01]'
                               }`}
                             >
                               <div className="flex justify-between items-start mb-1">
@@ -1659,12 +1659,12 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                             {isSelected && (
                               <div className="space-y-3 pt-2">
                                 <div className="space-y-1" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Spend Band Rate</Label>
+                                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Spend Band Rate</Label>
                                   <Select 
                                     value={(formData.serviceSpendBands || {})[s.id] || ''} 
                                     onValueChange={(val: string) => handleServiceSpendBand(s.id, val)}
                                   >
-                                    <SelectTrigger className="h-8 text-xs bg-zinc-50 border-zinc-200">
+                                    <SelectTrigger className="h-8 text-xs bg-secondary/60 border-border">
                                       <SelectValue placeholder="Select Spend Band" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1683,23 +1683,23 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                                   value={(formData.serviceNotes || {})[s.id] || ''}
                                   onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceNote(s.id, e.target.value)}
                                   onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                  className="text-xs font-medium rounded-lg border-zinc-200 bg-zinc-50 focus:border-zinc-400 min-h-[60px]"
+                                  className="text-xs font-medium rounded-lg border-border bg-secondary/60 focus:border-muted-foreground/40 min-h-[60px]"
                                   rows={2}
                                 />
                                 {((formData.serviceNotes || {})[s.id] || '').trim() !== '' && (
-                                  <div className="mt-2 pl-3 border-l-2 border-emerald-500 space-y-1">
-                                    <Label className="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">Admin Information</Label>
+                                  <div className="mt-2 pl-3 border-l-2 border-success-fill space-y-1">
+                                    <Label className="text-[9px] font-black uppercase text-success-ink tracking-wider block">Admin Information</Label>
                                     {isLeader ? (
                                       <Textarea
                                         placeholder="Add restricted admin/leader info..."
                                         value={(formData.serviceAdminNotes || {})[s.id] || ''}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleServiceAdminNote(s.id, e.target.value)}
                                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                        className="text-xs font-medium rounded-lg border-slate-200 bg-white focus:border-slate-400 min-h-[50px]"
+                                        className="text-xs font-medium rounded-lg border-border bg-card focus:border-muted-foreground/40 min-h-[50px]"
                                         rows={2}
                                       />
                                     ) : (
-                                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 text-[10px] text-emerald-850 font-medium">
+                                      <div className="bg-success-soft/50 border border-success/15 rounded-lg p-2 text-[10px] text-success-ink font-medium">
                                         {(formData.serviceAdminNotes || {})[s.id] || "No admin notes recorded."}
                                       </div>
                                     )}
@@ -1721,7 +1721,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
               {/* Selected Services Print Version (Clean Static List for PDF) */}
               <div className="hidden print:block pt-1 space-y-3">
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-2">Required Carrier Services</h4>
+                <h4 className="text-xs font-black text-foreground uppercase tracking-wider mb-2">Required Carrier Services</h4>
                 {formData.selectedServices && formData.selectedServices.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3">
                     {formData.selectedServices.map(sid => {
@@ -1730,16 +1730,16 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       const note = (formData.serviceNotes || {})[sid];
                       const adminNote = (formData.serviceAdminNotes || {})[sid];
                       return (
-                        <div key={sid} className="border border-slate-300 p-2.5 rounded-lg text-xs bg-slate-50/30">
+                        <div key={sid} className="border border-border p-2.5 rounded-lg text-xs bg-secondary/20">
                           <div className="flex justify-between items-start">
-                            <span className="font-black text-slate-900">{s.name} ({s.speed})</span>
-                            <span className="text-slate-600 font-bold text-[10px]">{s.weight}</span>
+                            <span className="font-black text-foreground">{s.name} ({s.speed})</span>
+                            <span className="text-foreground/75 font-bold text-[10px]">{s.weight}</span>
                           </div>
-                          {note && <p className="mt-1.5 text-slate-700 font-medium whitespace-pre-wrap text-[11px] leading-snug">{note}</p>}
+                          {note && <p className="mt-1.5 text-foreground/85 font-medium whitespace-pre-wrap text-[11px] leading-snug">{note}</p>}
                           {adminNote && (
-                            <div className="mt-2 pt-1.5 border-t border-slate-200">
-                              <span className="text-[8px] font-black uppercase text-emerald-800 block">Admin Information</span>
-                              <p className="text-slate-700 font-medium whitespace-pre-wrap text-[10px] leading-snug">{adminNote}</p>
+                            <div className="mt-2 pt-1.5 border-t border-border">
+                              <span className="text-[8px] font-black uppercase text-success-ink block">Admin Information</span>
+                              <p className="text-foreground/85 font-medium whitespace-pre-wrap text-[10px] leading-snug">{adminNote}</p>
                             </div>
                           )}
                         </div>
@@ -1747,13 +1747,13 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs font-medium text-slate-400 italic">No carrier services selected</p>
+                  <p className="text-xs font-medium text-muted-foreground italic">No carrier services selected</p>
                 )}
 
                 {formData.pricingInfo && (
-                  <div className="mt-3 border-t border-slate-200 pt-2">
-                    <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-wider mb-1">Pricing & Rate Agreement Info</h5>
-                    <p className="text-xs font-medium text-slate-700 whitespace-pre-wrap">{formData.pricingInfo}</p>
+                  <div className="mt-3 border-t border-border pt-2">
+                    <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider mb-1">Pricing & Rate Agreement Info</h5>
+                    <p className="text-xs font-medium text-foreground/85 whitespace-pre-wrap">{formData.pricingInfo}</p>
                   </div>
                 )}
               </div>
@@ -1761,26 +1761,26 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-primary print:text-slate-900" />
+          <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary print:text-foreground" />
                 4. Expectations & Pain Points
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6 print:px-0 print:py-2 print:space-y-3">
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">What is your "Perfect World Situation"?</Label>
+                <Label className="font-bold text-foreground/85">What is your "Perfect World Situation"?</Label>
                 <Textarea value={formData.perfectWorld} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('perfectWorld', e.target.value)} className="print:border-none print:resize-none print:p-0 print:shadow-none" />
               </div>
 
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Delivery Expectation</Label>
+                <Label className="font-bold text-foreground/85">Delivery Expectation</Label>
                 <Input value={formData.deliveryExpectation} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('deliveryExpectation', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
               </div>
 
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Do wholesale suppliers charge for delivery?</Label>
+                <Label className="font-bold text-foreground/85">Do wholesale suppliers charge for delivery?</Label>
                 <Input placeholder="Yes/No/Details" value={formData.wholesaleCharges} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('wholesaleCharges', e.target.value)} className="print:border-0 print:border-b print:rounded-none print:px-0 print:shadow-none" />
               </div>
             </CardContent>
@@ -1788,15 +1788,15 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
           {/* Down Trading Section - visible only if Current Customer */}
           {formData.currentCustomer && (
-            <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
-                <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
+            <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
+              <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
+                <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
                   5. Down Trading
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-6 print:px-0 print:py-2 print:space-y-3">
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Reason Down Trading (Notes)</Label>
+                  <Label className="font-bold text-foreground/85">Reason Down Trading (Notes)</Label>
                   <Textarea
                     value={formData.reasonDownTrading}
                     onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('reasonDownTrading', e.target.value)}
@@ -1805,7 +1805,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Last Face to Face Meeting (Date)</Label>
+                    <Label className="font-bold text-foreground/85">Last Face to Face Meeting (Date)</Label>
                     <Input
                       type="date"
                       value={formData.lastFaceToFaceMeeting}
@@ -1813,7 +1813,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-bold text-slate-700">Next Face to Face Meeting (Date)</Label>
+                    <Label className="font-bold text-foreground/85">Next Face to Face Meeting (Date)</Label>
                     <Input
                       type="date"
                       value={formData.nextFaceToFaceMeeting}
@@ -1822,7 +1822,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">What Could we do? (Notes)</Label>
+                  <Label className="font-bold text-foreground/85">What Could we do? (Notes)</Label>
                   <Textarea
                     value={formData.whatCouldWeDo}
                     onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange('whatCouldWeDo', e.target.value)}
@@ -1834,10 +1834,10 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
           )}
 
           {/* Archived Notes Section */}
-          <Card className="border-slate-200 shadow-sm print:shadow-none print:border-none print:mt-4">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 print:py-2">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary print:text-slate-900" />
+          <Card className="border-border shadow-sm print:shadow-none print:border-none print:mt-4">
+            <CardHeader className="bg-secondary/30 border-b border-border/60 print:bg-transparent print:border-b-2 print:border-foreground/30 print:px-0 print:py-2">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary print:text-foreground" />
                 7. Archived Notes
               </CardTitle>
             </CardHeader>
@@ -1845,8 +1845,8 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               {formData.archivedNotes && formData.archivedNotes.length > 1 ? (
                 <div className="space-y-3">
                   {formData.archivedNotes.slice(0, -1).reverse().map((noteObj, idx) => (
-                    <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1.5 break-words">
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    <div key={idx} className="bg-secondary/60 p-4 rounded-xl border border-border/60 space-y-1.5 break-words">
+                      <div className="flex justify-between items-center text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                         <span>By {noteObj.createdByName}</span>
                         <span>
                           {noteObj.createdAt ? (
@@ -1856,22 +1856,22 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                           ) : 'Recently'}
                         </span>
                       </div>
-                      <p className="text-xs font-semibold text-slate-800 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-xs font-semibold text-foreground leading-relaxed whitespace-pre-wrap">
                         {noteObj.note}
                       </p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic font-semibold">Older historical notes will appear here once new updates are saved.</p>
+                <p className="text-xs text-muted-foreground italic font-semibold">Older historical notes will appear here once new updates are saved.</p>
               )}
             </CardContent>
           </Card>
 
           {/* Bottom Save Button */}
           {!viewOnly && (
-            <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-              <p className="text-xs font-medium text-slate-500 text-center sm:text-left">Don't forget to save your changes before leaving this page.</p>
+            <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-4 rounded-xl shadow-sm border border-border">
+              <p className="text-xs font-medium text-muted-foreground text-center sm:text-left">Don't forget to save your changes before leaving this page.</p>
               <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 w-full sm:w-auto">
                 {docId && (
                   <Button type="button" variant="outline" onClick={() => {
@@ -1881,30 +1881,30 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                         params: { type: 'fact-finding', data: { ...formData, docId } }
                       }
                     }));
-                  }} className="flex-1 sm:flex-none gap-2 font-bold bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100">
+                  }} className="flex-1 sm:flex-none gap-2 font-bold bg-accent/10 border-accent/25 text-primary hover:bg-accent/15">
                     Prepare Call Plan
                   </Button>
                 )}
                 <Button 
                   variant={formData.isArchived ? "secondary" : "outline"} 
                   onClick={() => setFormData(prev => ({ ...prev, isArchived: !prev.isArchived }))} 
-                  className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300"
+                  className="flex-1 sm:flex-none gap-2 font-bold text-foreground/85 border-border"
                 >
                   {formData.isArchived ? "Unarchive" : "Archive"}
                 </Button>
-                <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-slate-700">
+                <Button variant="outline" onClick={handleExportPDF} className="flex-1 sm:flex-none gap-2 font-bold text-foreground/85">
                   <Printer className="w-4 h-4" />
                   Export PDF
                 </Button>
-                <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-indigo-700 bg-indigo-50 border-indigo-200 hover:bg-indigo-100">
+                <Button variant="outline" onClick={handleExportReview} className="flex-1 sm:flex-none gap-2 font-bold text-primary bg-accent/10 border-accent/25 hover:bg-accent/15">
                   <Printer className="w-4 h-4" />
                   Export Review
                 </Button>
-                <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-slate-700 border-slate-300">
+                <Button onClick={() => handleSave(false)} disabled={isSaving || !canEdit} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold text-foreground/85 border-border">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save Document
                 </Button>
-                <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+                <Button onClick={() => handleSave(true)} disabled={isSaving || !canEdit} className="flex-1 sm:flex-none gap-2 font-bold shadow-md bg-success-fill hover:bg-success text-success-foreground border-none">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   Save & Close
                 </Button>
@@ -1921,10 +1921,10 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
         {/* White Space Form Dialog */}
         <Dialog open={isWsFormOpen} onOpenChange={setIsWsFormOpen}>
-          <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-6 bg-slate-50/50">
+          <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-6 bg-secondary/30">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-xl font-black uppercase text-slate-800 flex items-center gap-2">
-                <LayoutGrid className="w-5 h-5 text-amber-600" />
+              <DialogTitle className="text-xl font-black uppercase text-foreground flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5 text-warning-ink" />
                 White Space Analysis — {formData.companyName || 'Lead Diagnostic'}
               </DialogTitle>
               <DialogDescription className="text-xs">
@@ -1932,7 +1932,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               </DialogDescription>
             </DialogHeader>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <WhitespaceAnalysis
                 userId={formData.userId || user?.uid || profile?.uid || ''}
                 initialAccountName={formData.companyName || ''}
@@ -1947,14 +1947,14 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
         {/* View WS Modal (Editable & Printable) */}
         <Dialog open={isViewWsOpen} onOpenChange={setIsViewWsOpen}>
-          <DialogContent className="max-w-5xl max-h-[92vh] p-0 flex flex-col overflow-hidden bg-white shadow-2xl border border-slate-200 rounded-2xl">
-            <DialogHeader className="p-6 border-b border-slate-100 flex flex-row items-center justify-between shrink-0">
+          <DialogContent className="max-w-5xl max-h-[92vh] p-0 flex flex-col overflow-hidden bg-card shadow-2xl border border-border rounded-2xl">
+            <DialogHeader className="p-6 border-b border-border/60 flex flex-row items-center justify-between shrink-0">
               <div>
-                <DialogTitle className="text-xl font-black uppercase tracking-tight text-slate-800 flex items-center gap-2">
-                  <LayoutGrid className="w-5 h-5 text-cyan-600" />
+                <DialogTitle className="text-xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
+                  <LayoutGrid className="w-5 h-5 text-info" />
                   White Space Diagnostic
                 </DialogTitle>
-                <DialogDescription className="font-bold text-xs uppercase text-slate-400 mt-1">
+                <DialogDescription className="font-bold text-xs uppercase text-muted-foreground mt-1">
                   Account: {formData.companyName || 'Document'}
                 </DialogDescription>
               </div>
@@ -1976,7 +1976,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                     }}
                     disabled={isExportingWsPdf}
                     size="sm"
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold gap-2 text-xs shadow-md border-none"
+                    className="bg-info hover:bg-info/90 text-info-foreground font-bold gap-2 text-xs shadow-md border-none"
                   >
                     {isExportingWsPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
                     Export PDF
@@ -1985,11 +1985,11 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
               </div>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+            <div className="flex-1 overflow-y-auto p-6 bg-secondary/30">
               {matchingWhitespaceDoc ? (
                 <div className="space-y-6">
                   {/* Embedded Editable Whitespace Component */}
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                  <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                     <WhitespaceAnalysis
                       userId={matchingWhitespaceDoc.userId || formData.userId || user?.uid || profile?.uid || ''}
                       initialAccountName={matchingWhitespaceDoc.accountName || formData.companyName || ''}
@@ -2003,20 +2003,20 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
 
                   {/* Printable Ref Container for Clean PDF Generation */}
                   <div className="hidden">
-                    <div ref={wsPrintContainerRef} className="bg-white p-6">
+                    <div ref={wsPrintContainerRef} className="bg-card p-6">
                       <WhitespaceViewer whitespaceDoc={matchingWhitespaceDoc} />
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200 p-8 space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                <div className="text-center py-16 bg-card rounded-2xl border-2 border-dashed border-border p-8 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto text-muted-foreground">
                     <LayoutGrid className="w-8 h-8" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black uppercase text-slate-700">No White Space Found</h3>
-                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto font-medium">
-                      No White Space analysis has been completed yet for <span className="font-bold text-slate-700">"{formData.companyName || 'this account'}"</span>.
+                    <h3 className="text-base font-black uppercase text-foreground/85">No White Space Found</h3>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto font-medium">
+                      No White Space analysis has been completed yet for <span className="font-bold text-foreground/85">"{formData.companyName || 'this account'}"</span>.
                     </p>
                   </div>
                   <Button
@@ -2024,7 +2024,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                       setIsViewWsOpen(false);
                       setIsWsFormOpen(true);
                     }}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase h-10 px-6 gap-2 shadow-md"
+                    className="bg-warning hover:bg-warning/90 text-warning-foreground font-black text-xs uppercase h-10 px-6 gap-2 shadow-md"
                   >
                     <LayoutGrid className="w-4 h-4" />
                     Complete White Space Now

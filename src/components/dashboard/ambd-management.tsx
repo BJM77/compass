@@ -234,11 +234,11 @@ export function AMBDManagement() {
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black uppercase tracking-wider text-slate-900">AM/BD Notes & confirmations</h2>
-          <p className="text-xs font-semibold text-slate-500">Send critical instructions and updates directly to AM/BDM dashboards.</p>
+          <h2 className="text-xl font-black uppercase tracking-wider text-foreground">AM/BD Notes & confirmations</h2>
+          <p className="text-xs font-semibold text-muted-foreground">Send critical instructions and updates directly to AM/BDM dashboards.</p>
         </div>
         {!isEditing && (
-          <Button onClick={handleStartCreate} className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold gap-2">
+          <Button onClick={handleStartCreate} className="bg-panel hover:bg-panel/80 text-panel-foreground rounded-xl text-xs font-bold gap-2">
             <Plus className="w-4 h-4" /> Create Targeted Note
           </Button>
         )}
@@ -247,16 +247,16 @@ export function AMBDManagement() {
       {!isEditing ? (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* List Sidebar */}
-          <Card className="lg:col-span-1 border-none shadow-md bg-white rounded-3xl overflow-hidden">
+          <Card className="lg:col-span-1 border-none shadow-md bg-card rounded-3xl overflow-hidden">
             <CardHeader className="pb-3">
-              <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-900">Active Notes</CardTitle>
+              <CardTitle className="text-xs font-black uppercase tracking-wider text-foreground">Active Notes</CardTitle>
               <div className="relative mt-2">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input 
                   placeholder="Search notes..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 text-xs font-semibold rounded-xl border-slate-200"
+                  className="pl-9 text-xs font-semibold rounded-xl border-border"
                 />
               </div>
               
@@ -265,27 +265,27 @@ export function AMBDManagement() {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="text-[10px] font-black uppercase text-slate-500 hover:text-slate-800 h-7"
+                  className="text-[10px] font-black uppercase text-muted-foreground hover:text-foreground h-7"
                 >
                   {showAdvancedFilters ? 'Hide Advanced' : 'Advanced Search'}
                 </Button>
               </div>
 
               {showAdvancedFilters && (
-                <div className="mt-3 p-3 bg-slate-50 border rounded-2xl space-y-3 text-xs font-bold text-slate-700">
+                <div className="mt-3 p-3 bg-secondary/60 border rounded-2xl space-y-3 text-xs font-bold text-foreground/85">
                   <div className="space-y-1">
-                    <label className="text-[9px] uppercase font-black text-slate-400">Search Content</label>
+                    <label className="text-[9px] uppercase font-black text-muted-foreground">Search Content</label>
                     <Input 
                       placeholder="Words inside note..." 
                       value={filterContentQuery}
                       onChange={(e) => setFilterContentQuery(e.target.value)}
-                      className="text-xs font-semibold rounded-lg bg-white border-slate-200 h-8"
+                      className="text-xs font-semibold rounded-lg bg-card border-border h-8"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] uppercase font-black text-slate-400">Target User</label>
+                    <label className="text-[9px] uppercase font-black text-muted-foreground">Target User</label>
                     <Select value={filterUserId} onValueChange={setFilterUserId}>
-                      <SelectTrigger className="h-8 rounded-lg text-xs font-bold border-slate-200 bg-white">
+                      <SelectTrigger className="h-8 rounded-lg text-xs font-bold border-border bg-card">
                         <SelectValue placeholder="All Users" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[200px]">
@@ -297,9 +297,9 @@ export function AMBDManagement() {
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] uppercase font-black text-slate-400">Status</label>
+                    <label className="text-[9px] uppercase font-black text-muted-foreground">Status</label>
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger className="h-8 rounded-lg text-xs font-bold border-slate-200 bg-white">
+                      <SelectTrigger className="h-8 rounded-lg text-xs font-bold border-border bg-card">
                         <SelectValue placeholder="All Status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -311,21 +311,21 @@ export function AMBDManagement() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[9px] uppercase font-black text-slate-400">From Date</label>
+                      <label className="text-[9px] uppercase font-black text-muted-foreground">From Date</label>
                       <Input 
                         type="date"
                         value={filterStartDate}
                         onChange={(e) => setFilterStartDate(e.target.value)}
-                        className="text-xs font-semibold rounded-lg bg-white border-slate-200 h-8"
+                        className="text-xs font-semibold rounded-lg bg-card border-border h-8"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] uppercase font-black text-slate-400">To Date</label>
+                      <label className="text-[9px] uppercase font-black text-muted-foreground">To Date</label>
                       <Input 
                         type="date"
                         value={filterEndDate}
                         onChange={(e) => setFilterEndDate(e.target.value)}
-                        className="text-xs font-semibold rounded-lg bg-white border-slate-200 h-8"
+                        className="text-xs font-semibold rounded-lg bg-card border-border h-8"
                       />
                     </div>
                   </div>
@@ -339,7 +339,7 @@ export function AMBDManagement() {
                         setFilterStatus('all');
                         setFilterContentQuery('');
                       }} 
-                      className="h-6 text-[9px] uppercase font-black text-slate-500 rounded-md"
+                      className="h-6 text-[9px] uppercase font-black text-muted-foreground rounded-md"
                     >
                       Clear
                     </Button>
@@ -350,9 +350,9 @@ export function AMBDManagement() {
             <CardContent className="px-2">
               <div className="space-y-1 max-h-[500px] overflow-y-auto">
                 {isNotesLoading ? (
-                  <div className="p-4 text-center text-xs font-semibold text-slate-400">Loading...</div>
+                  <div className="p-4 text-center text-xs font-semibold text-muted-foreground">Loading...</div>
                 ) : filteredNotes.length === 0 ? (
-                  <div className="p-4 text-center text-xs font-semibold text-slate-400">No notes found</div>
+                  <div className="p-4 text-center text-xs font-semibold text-muted-foreground">No notes found</div>
                 ) : (
                   filteredNotes.map((note) => {
                     const isSelected = selectedNote?.id === note.id;
@@ -362,22 +362,22 @@ export function AMBDManagement() {
                         onClick={() => handleSelectNote(note)}
                         className={`w-full text-left p-3.5 rounded-2xl transition-all duration-200 border ${
                           isSelected 
-                            ? 'bg-slate-900 text-white border-slate-900' 
-                            : 'hover:bg-slate-50 border-transparent text-slate-800'
+                            ? 'bg-panel text-panel-foreground border-panel-foreground/15' 
+                            : 'hover:bg-secondary/60 border-transparent text-foreground'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className={`text-[9px] font-black uppercase tracking-wider ${isSelected ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                          <span className={`text-[9px] font-black uppercase tracking-wider ${isSelected ? 'text-accent' : 'text-accent'}`}>
                             {note.userName}
                           </span>
                           <Badge className={`text-[8px] font-black uppercase tracking-wider ${
-                            note.status === 'READ' ? 'bg-emerald-500/20 text-emerald-600 border-none' : 'bg-amber-500/20 text-amber-600 border-none'
+                            note.status === 'READ' ? 'bg-success-fill/20 text-success border-none' : 'bg-warning/20 text-warning-ink border-none'
                           }`}>
                             {note.status === 'READ' ? 'Confirmed' : 'Pending'}
                           </Badge>
                         </div>
                         <div className="text-xs font-black line-clamp-1 mb-0.5">{note.title}</div>
-                        <div className={`text-[9px] font-semibold ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                        <div className={`text-[9px] font-semibold ${isSelected ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
                           {note.createdAt?.toDate ? format(note.createdAt.toDate(), 'dd MMM yyyy, HH:mm') : 'Recently'}
                         </div>
                       </button>
@@ -389,18 +389,18 @@ export function AMBDManagement() {
           </Card>
 
           {/* Details view */}
-          <Card className="lg:col-span-3 border-none shadow-md bg-white rounded-3xl overflow-hidden min-h-[400px]">
+          <Card className="lg:col-span-3 border-none shadow-md bg-card rounded-3xl overflow-hidden min-h-[400px]">
             {selectedNote ? (
               <div>
-                <CardHeader className="border-b border-slate-100 pb-4 bg-slate-50/50 flex flex-row justify-between items-center gap-4">
+                <CardHeader className="border-b border-border/60 pb-4 bg-secondary/30 flex flex-row justify-between items-center gap-4">
                   <div>
-                    <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-900">Targeted Update details</CardTitle>
-                    <CardDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                    <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">Targeted Update details</CardTitle>
+                    <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                       Sent to {selectedNote.userName} by {selectedNote.createdByName}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button onClick={() => handleStartEdit(selectedNote)} variant="outline" size="sm" className="rounded-xl border-slate-200 text-xs font-bold gap-2">
+                    <Button onClick={() => handleStartEdit(selectedNote)} variant="outline" size="sm" className="rounded-xl border-border text-xs font-bold gap-2">
                       <Edit2 className="w-3.5 h-3.5" /> Edit
                     </Button>
                     <Button onClick={() => selectedNote.id && handleDelete(selectedNote.id)} variant="destructive" size="sm" className="rounded-xl text-xs font-bold gap-2">
@@ -409,21 +409,21 @@ export function AMBDManagement() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs font-bold text-slate-700">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-secondary/60 p-4 rounded-2xl border border-border/60 text-xs font-bold text-foreground/85">
                     <div>
-                      <span className="text-[9px] uppercase font-black text-slate-400 block mb-0.5">Target BDM/AM</span>
-                      <span className="text-slate-900 font-extrabold">{selectedNote.userName}</span>
+                      <span className="text-[9px] uppercase font-black text-muted-foreground block mb-0.5">Target BDM/AM</span>
+                      <span className="text-foreground font-extrabold">{selectedNote.userName}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase font-black text-slate-400 block mb-0.5">Date Sent</span>
-                      <span className="text-slate-900 font-extrabold">
+                      <span className="text-[9px] uppercase font-black text-muted-foreground block mb-0.5">Date Sent</span>
+                      <span className="text-foreground font-extrabold">
                         {selectedNote.createdAt?.toDate ? format(selectedNote.createdAt.toDate(), 'dd MMM yyyy, HH:mm') : 'Pending'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase font-black text-slate-400 block mb-0.5">Status</span>
+                      <span className="text-[9px] uppercase font-black text-muted-foreground block mb-0.5">Status</span>
                       <Badge className={`text-[9px] font-black uppercase tracking-wider ${
-                        selectedNote.status === 'READ' ? 'bg-emerald-500/20 text-emerald-600 border-none' : 'bg-amber-500/20 text-amber-600 border-none'
+                        selectedNote.status === 'READ' ? 'bg-success-fill/20 text-success border-none' : 'bg-warning/20 text-warning-ink border-none'
                       }`}>
                         {selectedNote.status === 'READ' ? `Confirmed at ${selectedNote.readAt?.toDate ? format(selectedNote.readAt.toDate(), 'dd MMM yyyy, HH:mm') : ''}` : 'Pending Confirmation'}
                       </Badge>
@@ -431,13 +431,13 @@ export function AMBDManagement() {
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Title</h3>
-                    <p className="text-sm font-black text-slate-900">{selectedNote.title}</p>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Title</h3>
+                    <p className="text-sm font-black text-foreground">{selectedNote.title}</p>
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Content / Instruction</h3>
-                    <p className="text-xs font-semibold text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Content / Instruction</h3>
+                    <p className="text-xs font-semibold text-foreground/85 whitespace-pre-wrap leading-relaxed bg-secondary/30 p-4 rounded-xl border border-border/60">
                       {selectedNote.content}
                     </p>
                   </div>
@@ -445,10 +445,10 @@ export function AMBDManagement() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-32 text-center space-y-4">
-                <ClipboardList className="w-16 h-16 text-slate-200" />
+                <ClipboardList className="w-16 h-16 text-muted-foreground/30" />
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-950">No note selected</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-foreground">No note selected</h3>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                     Select a note from the list or create a new targeted message
                   </p>
                 </div>
@@ -458,22 +458,22 @@ export function AMBDManagement() {
         </div>
       ) : (
         /* Creating / Editing Form View */
-        <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-900 text-white p-6">
+        <Card className="border-none shadow-xl bg-card rounded-3xl overflow-hidden">
+          <CardHeader className="bg-panel text-panel-foreground p-6">
             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-indigo-400" />
+              <ClipboardList className="w-5 h-5 text-accent" />
               {isCreating ? 'Create Targeted Update' : 'Edit Targeted Update'}
             </CardTitle>
-            <CardDescription className="text-slate-400 text-xs font-semibold mt-0.5">
+            <CardDescription className="text-panel-foreground/60 text-xs font-semibold mt-0.5">
               Fill in the form to target an instruction or note to an Account Manager or BDM.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-secondary/60 p-6 rounded-2xl border border-border/60">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-900 block">Target BDM / Account Manager</label>
+                <label className="text-[10px] font-black uppercase text-foreground block">Target BDM / Account Manager</label>
                 <Select value={formState.userId} onValueChange={(val) => setFormState(prev => ({ ...prev, userId: val }))}>
-                  <SelectTrigger className="rounded-xl text-xs font-bold border-slate-200 bg-white">
+                  <SelectTrigger className="rounded-xl text-xs font-bold border-border bg-card">
                     <SelectValue placeholder="Select Target User" />
                   </SelectTrigger>
                   <SelectContent>
@@ -488,34 +488,34 @@ export function AMBDManagement() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-900 block">Title</label>
+                <label className="text-[10px] font-black uppercase text-foreground block">Title</label>
                 <Input 
                   placeholder="e.g. Action Required: Customer Price Adjustment" 
                   value={formState.title}
                   onChange={(e) => setFormState(prev => ({ ...prev, title: e.target.value }))}
-                  className="rounded-xl text-xs font-bold border-slate-200 bg-white" 
+                  className="rounded-xl text-xs font-bold border-border bg-card" 
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-slate-900 block">Instruction / Update Content</label>
+              <label className="text-xs font-black uppercase text-foreground block">Instruction / Update Content</label>
               <Textarea 
                 placeholder="Write the notes, updates, or action items here..."
                 value={formState.content}
                 onChange={(e) => setFormState(prev => ({ ...prev, content: e.target.value }))}
-                className="rounded-2xl border-slate-200 text-xs font-semibold min-h-[180px]" 
+                className="rounded-2xl border-border text-xs font-semibold min-h-[180px]" 
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
+            <div className="flex justify-end gap-3 pt-6 border-t border-border/60">
               <Button onClick={() => {
                 setIsEditing(false);
                 setIsCreating(false);
               }} variant="ghost" className="rounded-xl text-xs font-bold uppercase tracking-wider">
                 Cancel
               </Button>
-              <Button onClick={handleSave} className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider px-6">
+              <Button onClick={handleSave} className="bg-panel hover:bg-panel/80 text-panel-foreground rounded-xl text-xs font-bold uppercase tracking-wider px-6">
                 Save & Broadcast Target
               </Button>
             </div>

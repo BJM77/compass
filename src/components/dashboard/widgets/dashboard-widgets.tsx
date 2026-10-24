@@ -120,7 +120,7 @@ export function WeeklyRhythmWidget() {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-primary text-white p-4 flex items-start justify-between gap-3">
+        <div className="rounded-2xl bg-primary text-primary-foreground p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <FileDown className="w-4 h-4 text-destructive" />
             <p className="mt-2 text-[11px] font-black uppercase tracking-wider">Thursday TWTW</p>
@@ -130,7 +130,7 @@ export function WeeklyRhythmWidget() {
             {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due: Thursday Morning'}
           </Badge>
         </div>
-        <div className="rounded-2xl bg-primary text-white p-4 flex items-start justify-between gap-3">
+        <div className="rounded-2xl bg-primary text-primary-foreground p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <ListChecks className="w-4 h-4 text-warning" />
             <p className="mt-2 text-[11px] font-black uppercase tracking-wider">Friday FW</p>

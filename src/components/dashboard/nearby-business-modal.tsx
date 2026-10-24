@@ -131,9 +131,9 @@ export function NearbyBusinessModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-full sm:rounded-2xl shadow-2xl border border-indigo-100 dark:border-indigo-900">
+      <DialogContent className="max-w-md w-full sm:rounded-2xl shadow-2xl border border-accent/15">
         <DialogHeader className="space-y-1.5 pb-2 border-b">
-          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+          <div className="flex items-center gap-2 text-accent">
             <Building2 className="h-5 w-5" />
             <DialogTitle className="text-lg font-bold">Nearby Businesses (50m GPS)</DialogTitle>
           </div>
@@ -147,17 +147,17 @@ export function NearbyBusinessModal({
           {latitude && longitude ? (
             <div className="flex items-center justify-between text-xs p-2.5 bg-muted/40 rounded-xl border">
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-red-500 animate-pulse" />
+                <MapPin className="h-4 w-4 text-destructive animate-pulse" />
                 <span className="font-semibold text-muted-foreground">
                   Lat: {latitude.toFixed(5)}, Lng: {longitude.toFixed(5)}
                 </span>
               </div>
-              <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300 font-bold">
+              <Badge variant="outline" className="text-[10px] bg-success-soft text-success-ink border-success/40 font-bold">
                 📍 Live GPS
               </Badge>
             </div>
           ) : (
-            <div className="text-xs p-3 bg-amber-50 text-amber-800 rounded-xl border border-amber-200">
+            <div className="text-xs p-3 bg-warning-soft text-warning-ink rounded-xl border border-warning/25">
               Acquiring GPS position... Please allow location access.
             </div>
           )}
@@ -165,32 +165,32 @@ export function NearbyBusinessModal({
           {/* Loading State */}
           {loading ? (
             <div className="py-8 text-center space-y-2">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-600" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-accent" />
               <p className="text-xs font-semibold text-muted-foreground">Searching 50m radius for commercial sites...</p>
             </div>
           ) : businesses.length > 0 ? (
             <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+              <span className="text-xs font-bold text-foreground/85 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-warning" />
                 Discovered Places Nearby ({businesses.length})
               </span>
               <div className="space-y-2">
                 {businesses.map((b, idx) => (
                   <Card 
                     key={idx} 
-                    className="p-3 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer group"
+                    className="p-3 hover:border-accent hover:shadow-md transition-all cursor-pointer group"
                     onClick={() => handleSelect(b.name, b.street, b.suburb, b.postcode)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <div className="font-bold text-sm text-foreground group-hover:text-indigo-600 transition-colors">
+                        <div className="font-bold text-sm text-foreground group-hover:text-accent transition-colors">
                           {b.name}
                         </div>
                         {b.street && (
                           <p className="text-xs text-muted-foreground">{b.street} {b.suburb ? `, ${b.suburb}` : ''}</p>
                         )}
                       </div>
-                      <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 shrink-0 group-hover:bg-indigo-600 group-hover:text-white font-semibold">
+                      <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 shrink-0 group-hover:bg-accent/90 group-hover:text-accent-foreground font-semibold">
                         <ExternalLink className="h-3 w-3" />
                         Select & SF Search
                       </Button>
@@ -202,14 +202,14 @@ export function NearbyBusinessModal({
           ) : (
             <div className="p-4 text-center border border-dashed rounded-xl space-y-1">
               <p className="text-xs text-muted-foreground font-medium">No named commercial listings found in 50m radius.</p>
-              <p className="text-[11px] text-slate-500">Enter company name manually below.</p>
+              <p className="text-[11px] text-muted-foreground">Enter company name manually below.</p>
             </div>
           )}
 
           {/* Manual Input Section */}
           <div className="pt-3 border-t space-y-2">
             <span className="text-xs font-bold flex items-center gap-1.5 text-foreground">
-              <Edit3 className="h-3.5 w-3.5 text-blue-600" />
+              <Edit3 className="h-3.5 w-3.5 text-info" />
               Enter Business Name Manually
             </span>
             <div className="flex gap-2">
@@ -223,7 +223,7 @@ export function NearbyBusinessModal({
                 size="sm"
                 disabled={!manualName.trim()}
                 onClick={() => handleSelect(manualName.trim())}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold gap-1 shrink-0"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-bold gap-1 shrink-0"
               >
                 <Search className="h-3.5 w-3.5" />
                 SF Search

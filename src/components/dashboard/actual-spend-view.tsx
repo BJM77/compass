@@ -353,11 +353,11 @@ export function ActualSpendView() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex justify-between items-end gap-4 flex-wrap">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-slate-800 flex items-center gap-3">
+          <h2 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
             <Coins className="w-8 h-8 text-primary" />
             Actual Spend Ledger
           </h2>
-          <p className="text-slate-500 mt-1 font-medium">Cumulative YTD revenue snapshot for business accounts.</p>
+          <p className="text-muted-foreground mt-1 font-medium">Cumulative YTD revenue snapshot for business accounts.</p>
         </div>
 
         {isAdmin && (
@@ -366,7 +366,7 @@ export function ActualSpendView() {
               <Button
                 variant="outline"
                 disabled={isClearing}
-                className="gap-2 text-xs font-bold border-red-200 text-red-600 hover:bg-red-50 h-10"
+                className="gap-2 text-xs font-bold border-destructive/25 text-destructive hover:bg-danger-soft h-10"
               >
                 {isClearing
                   ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -379,12 +379,12 @@ export function ActualSpendView() {
                 <AlertDialogTitle>Clear the entire Actual Spend Ledger?</AlertDialogTitle>
                 <AlertDialogDescription className="space-y-2">
                   <span className="block">
-                    This permanently deletes every row in <code className="px-1 py-0.5 bg-slate-100 rounded text-[11px]">actualRevenues</code>.
+                    This permanently deletes every row in <code className="px-1 py-0.5 bg-secondary rounded text-[11px]">actualRevenues</code>.
                   </span>
-                  <span className="block font-semibold text-slate-700">
-                    Rep assignments in <code className="px-1 py-0.5 bg-slate-100 rounded text-[11px]">accountMappings</code> are preserved — the ledger will repopulate with the same reps after your next CSV upload.
+                  <span className="block font-semibold text-foreground/85">
+                    Rep assignments in <code className="px-1 py-0.5 bg-secondary rounded text-[11px]">accountMappings</code> are preserved — the ledger will repopulate with the same reps after your next CSV upload.
                   </span>
-                  <span className="block text-red-600 font-semibold">
+                  <span className="block text-destructive font-semibold">
                     This cannot be undone. You will need to re-import your YTD report to restore the ledger.
                   </span>
                 </AlertDialogDescription>
@@ -394,7 +394,7 @@ export function ActualSpendView() {
                 <AlertDialogAction
                   onClick={handleClearLedger}
                   disabled={isClearing}
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 >
                   {isClearing ? 'Clearing…' : 'Yes, Clear Everything'}
                 </AlertDialogAction>
@@ -406,37 +406,37 @@ export function ActualSpendView() {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border border-slate-200 bg-white">
+        <Card className="border border-border bg-card">
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Filtered Spend</p>
-              <h3 className="text-3xl font-black text-slate-800">${totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Filtered Spend</p>
+              <h3 className="text-3xl font-black text-foreground">${totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
             </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 shrink-0">
+            <div className="p-3 bg-success-soft text-success rounded-2xl border border-success/15 shrink-0">
               <Banknote className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-slate-200 bg-white">
+        <Card className="border border-border bg-card">
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer Groups</p>
-              <h3 className="text-3xl font-black text-slate-800">{groupedRecords.length}</h3>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Customer Groups</p>
+              <h3 className="text-3xl font-black text-foreground">{groupedRecords.length}</h3>
             </div>
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl border border-purple-100 shrink-0">
+            <div className="p-3 bg-chart-5/10 text-chart-5 rounded-2xl border border-chart-5/15 shrink-0">
               <Layers className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className={`border ${unassignedCount > 0 ? 'border-red-200 bg-red-50/30' : 'border-slate-200 bg-white'}`}>
+        <Card className={`border ${unassignedCount > 0 ? 'border-destructive/25 bg-danger-soft/30' : 'border-border bg-card'}`}>
           <CardContent className="p-6 flex items-center justify-between">
             <div className="space-y-1">
-              <p className={`text-[10px] font-black uppercase tracking-widest ${unassignedCount > 0 ? 'text-red-500' : 'text-slate-400'}`}>Unassigned Groups</p>
-              <h3 className={`text-3xl font-black ${unassignedCount > 0 ? 'text-red-600' : 'text-slate-800'}`}>{unassignedCount}</h3>
+              <p className={`text-[10px] font-black uppercase tracking-widest ${unassignedCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>Unassigned Groups</p>
+              <h3 className={`text-3xl font-black ${unassignedCount > 0 ? 'text-destructive' : 'text-foreground'}`}>{unassignedCount}</h3>
             </div>
-            <div className={`p-3 rounded-2xl border shrink-0 ${unassignedCount > 0 ? 'bg-red-100 text-red-600 border-red-200' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+            <div className={`p-3 rounded-2xl border shrink-0 ${unassignedCount > 0 ? 'bg-danger-soft text-destructive border-destructive/25' : 'bg-secondary/60 text-muted-foreground border-border/60'}`}>
               <UserX className="w-6 h-6" />
             </div>
           </CardContent>
@@ -444,19 +444,19 @@ export function ActualSpendView() {
       </div>
 
       {/* Control Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-end mb-4 bg-white p-4 rounded-2xl border border-slate-200">
+      <div className="flex flex-col md:flex-row gap-4 items-end mb-4 bg-card p-4 rounded-2xl border border-border">
         <div className="relative flex-1 w-full md:max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input 
             placeholder="Search customer, rep, or LOB..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-10 border-slate-200"
+            className="pl-9 h-10 border-border"
           />
         </div>
         
         <Select value={assignmentFilter} onValueChange={setAssignmentFilter}>
-          <SelectTrigger className="w-full md:w-[160px] h-10 border-slate-200">
+          <SelectTrigger className="w-full md:w-[160px] h-10 border-border">
             <SelectValue placeholder="All Assignments" />
           </SelectTrigger>
           <SelectContent>
@@ -467,7 +467,7 @@ export function ActualSpendView() {
         </Select>
 
         <Select value={buFilter} onValueChange={setBuFilter}>
-          <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+          <SelectTrigger className="w-full md:w-[180px] h-10 border-border">
             <SelectValue placeholder="All BU" />
           </SelectTrigger>
           <SelectContent>
@@ -479,7 +479,7 @@ export function ActualSpendView() {
         </Select>
 
         <Select value={weekFilter} onValueChange={setWeekFilter}>
-          <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+          <SelectTrigger className="w-full md:w-[180px] h-10 border-border">
             <SelectValue placeholder="All Weeks" />
           </SelectTrigger>
           <SelectContent>
@@ -491,7 +491,7 @@ export function ActualSpendView() {
         </Select>
 
         {(searchQuery || buFilter !== 'all' || weekFilter !== 'all' || assignmentFilter !== 'all') && (
-          <Button variant="ghost" onClick={() => { setSearchQuery(''); setBuFilter('all'); setWeekFilter('all'); setAssignmentFilter('all'); }} className="h-10 text-slate-500 font-bold">
+          <Button variant="ghost" onClick={() => { setSearchQuery(''); setBuFilter('all'); setWeekFilter('all'); setAssignmentFilter('all'); }} className="h-10 text-muted-foreground font-bold">
             Clear Filters
           </Button>
         )}
@@ -499,21 +499,21 @@ export function ActualSpendView() {
 
       {/* Main Table */}
       {isLoading ? (
-        <div className="flex h-[300px] items-center justify-center text-slate-500 font-bold uppercase tracking-widest">
+        <div className="flex h-[300px] items-center justify-center text-muted-foreground font-bold uppercase tracking-widest">
           Loading actual spend data...
         </div>
       ) : groupedRecords.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-slate-200 rounded-3xl bg-slate-50">
-          <Coins className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500 font-bold uppercase tracking-wide">No spend records found</p>
-          <p className="text-xs text-slate-400 font-medium mt-1">Try clearing your search filters or upload a weekly Actual Spend CSV.</p>
+        <div className="text-center py-20 border border-dashed border-border rounded-3xl bg-secondary/60">
+          <Coins className="w-12 h-12 text-muted-foreground/70 mx-auto mb-3" />
+          <p className="text-muted-foreground font-bold uppercase tracking-wide">No spend records found</p>
+          <p className="text-xs text-muted-foreground font-medium mt-1">Try clearing your search filters or upload a weekly Actual Spend CSV.</p>
         </div>
       ) : (
-        <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl max-w-full">
+        <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl max-w-full">
           <ScrollArea className="h-[600px] w-full">
             <div className="overflow-x-auto max-w-full">
               <Table>
-              <TableHeader className="bg-slate-50/80 sticky top-0 z-10">
+              <TableHeader className="bg-secondary/50 sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="font-bold">Common Customer Name</TableHead>
                   <TableHead className="font-bold">Assigned Rep</TableHead>
@@ -525,7 +525,7 @@ export function ActualSpendView() {
               </TableHeader>
               <TableBody>
                 {groupedRecords.map((r) => (
-                  <TableRow key={r.id} className={`transition-colors ${r.assignedRep === 'Unassigned' ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-slate-50'}`}>
+                  <TableRow key={r.id} className={`transition-colors ${r.assignedRep === 'Unassigned' ? 'bg-danger-soft/30 hover:bg-danger-soft/50' : 'hover:bg-secondary/60'}`}>
                     <TableCell>
                       <div className="font-black text-primary">{r.companyName}</div>
                     </TableCell>
@@ -539,20 +539,20 @@ export function ActualSpendView() {
                             }
                           }}
                         >
-                          <SelectTrigger className={`h-8 min-w-[150px] text-xs font-bold ${r.assignedRep === 'Unassigned' ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100/80' : 'border-slate-200 bg-white text-slate-800'}`}>
+                          <SelectTrigger className={`h-8 min-w-[150px] text-xs font-bold ${r.assignedRep === 'Unassigned' ? 'border-destructive/25 bg-danger-soft text-destructive hover:bg-danger-soft/80' : 'border-border bg-card text-foreground'}`}>
                             <SelectValue placeholder="Assign Staff...">
                               {r.assignedRep === 'Unassigned' ? (
-                                <span className="text-red-600 font-extrabold uppercase tracking-wider text-[11px]">Unassigned</span>
+                                <span className="text-destructive font-extrabold uppercase tracking-wider text-[11px]">Unassigned</span>
                               ) : (
                                 <span>
                                   {r.assignedRep}
-                                  {r.isManualMapped && <span className="ml-1 text-[10px] text-indigo-500 font-bold">(Aligned)</span>}
+                                  {r.isManualMapped && <span className="ml-1 text-[10px] text-accent font-bold">(Aligned)</span>}
                                 </span>
                               )}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent align="start" className="max-h-[260px]">
-                            <SelectItem value="unassigned" disabled className="text-xs text-slate-400 font-semibold">
+                            <SelectItem value="unassigned" disabled className="text-xs text-muted-foreground font-semibold">
                               Unassigned
                             </SelectItem>
                              {formattedUsers.map((u) => {
@@ -567,26 +567,26 @@ export function ActualSpendView() {
                           </SelectContent>
                         </Select>
                       ) : r.assignedRep === 'Unassigned' ? (
-                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-red-50 text-red-600 border-red-200">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-danger-soft text-destructive border-destructive/25">
                           Unassigned
                         </Badge>
                       ) : (
-                        <div className="font-semibold text-sm text-slate-700">
+                        <div className="font-semibold text-sm text-foreground/85">
                           {r.assignedRep}
-                          {r.isManualMapped && <span className="ml-1 text-[10px] text-indigo-500 font-bold">(Aligned)</span>}
+                          {r.isManualMapped && <span className="ml-1 text-[10px] text-accent font-bold">(Aligned)</span>}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs font-semibold text-slate-600 max-w-[220px] truncate" title={r.account}>
+                    <TableCell className="text-xs font-semibold text-foreground/75 max-w-[220px] truncate" title={r.account}>
                       {r.account}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-slate-50 text-slate-700">
+                      <Badge variant="outline" className="text-[10px] font-black uppercase tracking-wider bg-secondary/60 text-foreground/85">
                         {r.businessUnit}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-black text-indigo-600 text-right">${r.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                    <TableCell className="text-center font-bold text-slate-500 text-xs">
+                    <TableCell className="font-black text-accent text-right">${r.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-center font-bold text-muted-foreground text-xs">
                       {formatCategory(r.category)}
                     </TableCell>
                   </TableRow>

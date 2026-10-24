@@ -28,19 +28,19 @@ export function ResponsiveTable({
     return (
       <div className="space-y-4">
         {rows.map((row, idx) => (
-          <div key={idx} className="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+          <div key={idx} className="bg-card rounded-xl border border-border p-4 space-y-2">
             {headers.map((header, colIdx) => (
-              <div key={`${idx}-${colIdx}`} className="flex justify-between items-center border-b border-slate-100 last:border-0 py-1">
-                <span className="text-xs font-black uppercase text-slate-500">{header}</span>
-                <span className="text-sm font-bold text-slate-800 text-right">{row[colIdx]}</span>
+              <div key={`${idx}-${colIdx}`} className="flex justify-between items-center border-b border-border/60 last:border-0 py-1">
+                <span className="text-xs font-black uppercase text-muted-foreground">{header}</span>
+                <span className="text-sm font-bold text-foreground text-right">{row[colIdx]}</span>
               </div>
             ))}
           </div>
         ))}
         {(!rows || rows.length === 0) && emptyMessage && (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+          <div className="bg-card rounded-xl border border-border p-8 text-center">
             {emptyIcon && <div className="flex justify-center mb-4">{emptyIcon}</div>}
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{emptyMessage}</p>
+            <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">{emptyMessage}</p>
           </div>
         )}
       </div>
@@ -55,7 +55,7 @@ export function ResponsiveTable({
           <TableHeader>
             <TableRow>
               {headers.map((header, idx) => (
-                <TableHead key={idx} className="font-black uppercase text-xs text-slate-500">
+                <TableHead key={idx} className="font-black uppercase text-xs text-muted-foreground">
                   {header}
                 </TableHead>
               ))}
@@ -71,9 +71,9 @@ export function ResponsiveTable({
             ))}
             {(!rows || rows.length === 0) && emptyMessage && (
               <TableRow>
-                <TableCell colSpan={headers.length} className="text-center py-20 bg-slate-50/50">
+                <TableCell colSpan={headers.length} className="text-center py-20 bg-secondary/30">
                   {emptyIcon && <div className="flex justify-center mb-4">{emptyIcon}</div>}
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{emptyMessage}</p>
+                  <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">{emptyMessage}</p>
                 </TableCell>
               </TableRow>
             )}

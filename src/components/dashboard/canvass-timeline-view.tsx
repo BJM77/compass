@@ -140,7 +140,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
       {/* Filters Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-4 rounded-xl border shadow-sm">
         <div className="flex items-center gap-2">
-          <Timer className="h-5 w-5 text-indigo-600" />
+          <Timer className="h-5 w-5 text-accent" />
           <div>
             <h2 className="font-bold text-sm">Canvassing Activity Timeline</h2>
             <p className="text-xs text-muted-foreground">Track lead discovery intervals by Day, Week, or Month</p>
@@ -160,11 +160,11 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
             </SelectContent>
           </Select>
 
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border">
+          <div className="flex bg-secondary p-0.5 rounded-lg border">
             <button
               onClick={() => setTimeframe('DAY')}
               className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${
-                timeframe === 'DAY' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-xs' : 'text-slate-500'
+                timeframe === 'DAY' ? 'bg-card text-accent shadow-xs' : 'text-muted-foreground'
               }`}
             >
               Day
@@ -172,7 +172,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
             <button
               onClick={() => setTimeframe('WEEK')}
               className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${
-                timeframe === 'WEEK' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-xs' : 'text-slate-500'
+                timeframe === 'WEEK' ? 'bg-card text-accent shadow-xs' : 'text-muted-foreground'
               }`}
             >
               Week
@@ -180,7 +180,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
             <button
               onClick={() => setTimeframe('MONTH')}
               className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${
-                timeframe === 'MONTH' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-xs' : 'text-slate-500'
+                timeframe === 'MONTH' ? 'bg-card text-accent shadow-xs' : 'text-muted-foreground'
               }`}
             >
               Month
@@ -199,12 +199,12 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
       ) : (
         <div className="space-y-6">
           {timelineData.map((group, gIdx) => (
-            <Card key={gIdx} className="shadow-sm border-l-4 border-l-indigo-500 overflow-hidden">
-              <CardHeader className="p-4 bg-slate-50/70 dark:bg-slate-900/50 border-b flex flex-row items-center justify-between">
+            <Card key={gIdx} className="shadow-sm border-l-4 border-l-accent overflow-hidden">
+              <CardHeader className="p-4 bg-secondary/40 border-b flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-indigo-600" />
+                  <User className="h-4 w-4 text-accent" />
                   <span className="font-bold text-sm text-foreground">{group.userName}</span>
-                  <Badge variant="secondary" className="text-[10px] bg-indigo-100 text-indigo-800 font-bold">
+                  <Badge variant="secondary" className="text-[10px] bg-accent/15 text-primary font-bold">
                     {group.dateTitle}
                   </Badge>
                 </div>
@@ -214,7 +214,7 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
               </CardHeader>
 
               <CardContent className="p-4 space-y-4">
-                <div className="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800 space-y-6">
+                <div className="relative pl-6 border-l-2 border-border space-y-6">
                   {group.items.map((lead, idx) => {
                     const createdDate = lead.createdAt?.toDate ? lead.createdAt.toDate() : new Date(lead.createdAt || Date.now());
                     const formattedTime = format(createdDate, 'h:mm a');
@@ -234,17 +234,17 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
                     return (
                       <div key={lead.id || idx} className="relative group">
                         {/* Timeline Node Icon */}
-                        <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-indigo-600 ring-4 ring-white dark:ring-slate-900 flex items-center justify-center text-white">
-                          <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                        <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-accent ring-4 ring-white flex items-center justify-center text-accent-foreground">
+                          <div className="h-1.5 w-1.5 rounded-full bg-card" />
                         </div>
 
-                        <div className="bg-muted/30 p-3.5 rounded-xl border hover:border-indigo-400 transition-all space-y-2">
+                        <div className="bg-muted/30 p-3.5 rounded-xl border hover:border-accent transition-all space-y-2">
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-sm text-foreground">{lead.companyName}</span>
                                 {lead.inSalesforce ? (
-                                  <Badge className="bg-emerald-100 text-emerald-800 text-[10px] gap-1">
+                                  <Badge className="bg-success-soft text-success-ink text-[10px] gap-1">
                                     <CheckCircle2 className="h-3 w-3" /> Salesforce
                                   </Badge>
                                 ) : (
@@ -257,12 +257,12 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
                             </div>
 
                             <div className="text-right">
-                              <div className="text-xs font-bold text-indigo-600 flex items-center gap-1 justify-end">
+                              <div className="text-xs font-bold text-accent flex items-center gap-1 justify-end">
                                 <Clock className="h-3.5 w-3.5" />
                                 {formattedTime}
                               </div>
                               {lead.timeSincePrevMinutes !== undefined && (
-                                <p className="text-[10px] text-amber-600 font-semibold mt-0.5">
+                                <p className="text-[10px] text-warning-ink font-semibold mt-0.5">
                                   ⏱️ +{lead.timeSincePrevMinutes} min since prev visit
                                 </p>
                               )}
@@ -270,18 +270,18 @@ export function CanvassTimelineView({ leads }: CanvassTimelineViewProps) {
                           </div>
 
                           {/* Timestamps & Address Details */}
-                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-[11px] text-slate-600 dark:text-slate-400">
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-[11px] text-foreground/75">
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                              <MapPin className="h-3.5 w-3.5 text-destructive shrink-0" />
                               <span>{[lead.addressLine1, lead.suburb, lead.state].filter(Boolean).join(', ') || 'On-site'}</span>
                             </div>
 
                             <div className="flex items-center gap-3">
                               {searchTime && (
-                                <span className="text-blue-600 font-medium">Arrival/Search: {searchTime}</span>
+                                <span className="text-info font-medium">Arrival/Search: {searchTime}</span>
                               )}
                               {completedTime && (
-                                <span className="text-emerald-600 font-medium">Completed: {completedTime}</span>
+                                <span className="text-success font-medium">Completed: {completedTime}</span>
                               )}
                             </div>
                           </div>

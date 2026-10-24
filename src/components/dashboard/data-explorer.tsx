@@ -552,7 +552,7 @@ export function DataExplorer() {
   };
 
   if (isLoading) {
-    return <div className="flex h-[400px] items-center justify-center text-slate-500 font-bold uppercase tracking-widest">Loading CRM Data...</div>;
+    return <div className="flex h-[400px] items-center justify-center text-muted-foreground font-bold uppercase tracking-widest">Loading CRM Data...</div>;
   }
 
   return (
@@ -560,43 +560,43 @@ export function DataExplorer() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border shadow-sm">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-3">
+          <h2 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-3">
             <Database className="w-7 h-7 text-primary" />
             CRM Data Explorer & Analytics
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-xs font-medium">
+          <p className="text-muted-foreground mt-1 text-xs font-medium">
             Multi-dimensional reporting, advanced filtering, and instant CSV export across all accounts and representatives.
           </p>
         </div>
         
-        <Button onClick={handleExportCsv} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shrink-0">
+        <Button onClick={handleExportCsv} className="gap-2 bg-success-fill hover:bg-success text-success-foreground font-bold text-xs shadow-md shrink-0">
           <Download className="w-4 h-4" />
           <span>Export {activeTab.toUpperCase()} CSV</span>
         </Button>
       </div>
 
       {/* Advanced Filter Toolbar */}
-      <Card className="p-4 bg-slate-50/80 dark:bg-slate-900/50 border shadow-xs space-y-3">
+      <Card className="p-4 bg-secondary/50 border shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-indigo-500" /> Filter & Search Controls
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-accent" /> Filter & Search Controls
           </span>
           <div className="flex flex-wrap gap-2">
             <button 
               onClick={() => { setActiveTab('activities'); setSelectedWeek(availableWeeks[0] || 'all'); setSearchQuery(''); setSelectedUser('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-info-soft text-info border border-info/25 hover:bg-info-soft transition-colors"
             >
               This Week's Activity
             </button>
             <button 
               onClick={() => { setActiveTab('opportunities'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); setSelectedStage('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-success-soft text-success-ink border border-success/25 hover:bg-success-soft transition-colors"
             >
               All Revenue & Pipeline
             </button>
             <button 
               onClick={() => { setActiveTab('customers'); setSelectedWeek('all'); setSearchQuery(''); setSelectedUser('all'); setSelectedBu('all'); setCreditHoldFilter('all'); }}
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-chart-5/10 text-chart-5 border border-chart-5/25 hover:bg-chart-5/15 transition-colors"
             >
               Customer Accounts
             </button>
@@ -606,18 +606,18 @@ export function DataExplorer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
           {/* Search */}
           <div className="relative col-span-1 sm:col-span-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
               placeholder="Search accounts, opps, or reps..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 text-xs h-9 font-medium bg-white dark:bg-slate-950"
+              className="pl-9 text-xs h-9 font-medium bg-card"
             />
           </div>
 
           {/* Week */}
           <Select value={selectedWeek} onValueChange={setSelectedWeek}>
-            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+            <SelectTrigger className="h-9 text-xs font-bold bg-card">
               <SelectValue placeholder="All Time" />
             </SelectTrigger>
             <SelectContent>
@@ -630,7 +630,7 @@ export function DataExplorer() {
 
           {/* User (BDM & AM Only) */}
           <Select value={selectedUser} onValueChange={setSelectedUser}>
-            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+            <SelectTrigger className="h-9 text-xs font-bold bg-card">
               <SelectValue placeholder="BDMs & AMs" />
             </SelectTrigger>
             <SelectContent>
@@ -643,7 +643,7 @@ export function DataExplorer() {
 
           {/* Business Unit */}
           <Select value={selectedBu} onValueChange={setSelectedBu}>
-            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+            <SelectTrigger className="h-9 text-xs font-bold bg-card">
               <SelectValue placeholder="Business Unit" />
             </SelectTrigger>
             <SelectContent>
@@ -656,7 +656,7 @@ export function DataExplorer() {
 
           {/* Value Range */}
           <Select value={valueRangeFilter} onValueChange={setValueRangeFilter}>
-            <SelectTrigger className="h-9 text-xs font-bold bg-white dark:bg-slate-950">
+            <SelectTrigger className="h-9 text-xs font-bold bg-card">
               <SelectValue placeholder="Revenue Range" />
             </SelectTrigger>
             <SelectContent>
@@ -671,24 +671,24 @@ export function DataExplorer() {
 
       {/* Smart Insights Banner */}
       {smartInsights.length > 0 && (
-        <Card className="border border-slate-200 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-slate-50 to-indigo-50/20 dark:from-slate-900 dark:to-indigo-950/20 border-b border-slate-100 dark:border-slate-800">
+        <Card className="border border-border bg-card shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-secondary to-accent/5 border-b border-border/60">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
-              <span className="text-[10px] font-black uppercase text-indigo-950 dark:text-indigo-300 tracking-widest">Compass CRM Insights Engine</span>
+              <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+              <span className="text-[10px] font-black uppercase text-primary tracking-widest">Compass CRM Insights Engine</span>
             </div>
             {smartInsights.length > 1 && (
               <div className="flex items-center gap-1.5">
                 <button 
                   onClick={() => setInsightIndex(prev => (prev - 1 + smartInsights.length) % smartInsights.length)}
-                  className="p-1 rounded hover:bg-slate-200/50 text-slate-400 hover:text-slate-800 transition-colors"
+                  className="p-1 rounded hover:bg-border/50 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   &lt;
                 </button>
-                <span className="text-[9px] font-bold text-slate-500 uppercase">{insightIndex + 1} / {smartInsights.length}</span>
+                <span className="text-[9px] font-bold text-muted-foreground uppercase">{insightIndex + 1} / {smartInsights.length}</span>
                 <button 
                   onClick={() => setInsightIndex(prev => (prev + 1) % smartInsights.length)}
-                  className="p-1 rounded hover:bg-slate-200/50 text-slate-400 hover:text-slate-800 transition-colors"
+                  className="p-1 rounded hover:bg-border/50 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   &gt;
                 </button>
@@ -696,7 +696,7 @@ export function DataExplorer() {
             )}
           </div>
           <CardContent className="p-4 px-6 flex items-center justify-between min-h-[52px]">
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-300 leading-relaxed">
+            <p className="text-xs font-bold text-foreground/85 leading-relaxed">
               {smartInsights[insightIndex].text}
             </p>
           </CardContent>
@@ -705,16 +705,16 @@ export function DataExplorer() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-slate-100/80 dark:bg-slate-800 p-1 rounded-xl mb-6">
-          <TabsTrigger value="customers" className="rounded-lg font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
+        <TabsList className="bg-secondary/80 p-1 rounded-xl mb-6">
+          <TabsTrigger value="customers" className="rounded-lg font-bold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
             <Users className="w-4 h-4 mr-2" />
             Customers ({customers.length})
           </TabsTrigger>
-          <TabsTrigger value="opportunities" className="rounded-lg font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
+          <TabsTrigger value="opportunities" className="rounded-lg font-bold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
             <Briefcase className="w-4 h-4 mr-2" />
             Opportunities ({opportunities.length})
           </TabsTrigger>
-          <TabsTrigger value="activities" className="rounded-lg font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
+          <TabsTrigger value="activities" className="rounded-lg font-bold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-xs px-6">
             <Activity className="w-4 h-4 mr-2" />
             Activities ({activities.length})
           </TabsTrigger>
@@ -723,8 +723,8 @@ export function DataExplorer() {
         {/* CUSTOMERS TAB */}
         <TabsContent value="customers">
           {customersChartData.length > 0 && (
-            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider mb-4">Customer Revenue Split by Business Unit</h3>
+            <Card className="border-none shadow-sm bg-card p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-foreground tracking-wider mb-4">Customer Revenue Split by Business Unit</h3>
               <div className="h-[250px] w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -750,86 +750,86 @@ export function DataExplorer() {
             </Card>
           )}
 
-          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+          <Card className="border-none shadow-sm bg-card overflow-hidden">
             {/* Customer Specific Sub-Filters */}
-            <div className="bg-slate-50 dark:bg-slate-950 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
+            <div className="bg-secondary/60 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Credit Hold:</span>
+                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Credit Hold:</span>
                 <Select value={creditHoldFilter} onValueChange={setCreditHoldFilter}>
-                  <SelectTrigger className="w-[150px] h-8 text-xs font-bold bg-white dark:bg-slate-900">
+                  <SelectTrigger className="w-[150px] h-8 text-xs font-bold bg-card">
                     <SelectValue placeholder="Credit Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all" className="font-bold text-xs">All Customers</SelectItem>
-                    <SelectItem value="yes" className="font-medium text-xs text-red-600 font-bold">Credit Hold Only</SelectItem>
+                    <SelectItem value="yes" className="font-medium text-xs text-destructive font-bold">Credit Hold Only</SelectItem>
                     <SelectItem value="no" className="font-medium text-xs">Normal (No Hold)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="text-xs font-bold text-slate-500">
+              <div className="text-xs font-bold text-muted-foreground">
                 Showing {customers.length} Accounts
               </div>
             </div>
 
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 dark:bg-slate-950 border-b">
+                <TableHeader className="bg-secondary/60 border-b">
                   <TableRow>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('accountMasterCode')}
                     >
                       <div className="flex items-center gap-1">
                         <span>Customer ID</span>
-                        {customerSortField === 'accountMasterCode' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {customerSortField === 'accountMasterCode' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('pipeline')}
                     >
                       <div className="flex items-center gap-1">
                         <span>Account Name</span>
-                        {customerSortField === 'pipeline' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {customerSortField === 'pipeline' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
-                    <TableHead className="font-black text-slate-600 dark:text-slate-400">BDM / AM</TableHead>
-                    <TableHead className="font-black text-slate-600 dark:text-slate-400">Business Unit</TableHead>
+                    <TableHead className="font-black text-foreground/75">BDM / AM</TableHead>
+                    <TableHead className="font-black text-foreground/75">Business Unit</TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('currentRevenue')}
                     >
                       <div className="flex items-center justify-end gap-1">
                         <span>YTD Revenue</span>
-                        {customerSortField === 'currentRevenue' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {customerSortField === 'currentRevenue' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleCustomerSort('closedWonValue')}
                     >
                       <div className="flex items-center justify-end gap-1">
                         <span>Won Revenue</span>
-                        {customerSortField === 'closedWonValue' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {customerSortField === 'closedWonValue' ? (customerSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
-                    <TableHead className="font-black text-slate-600 dark:text-slate-400 text-center">Credit Hold</TableHead>
+                    <TableHead className="font-black text-foreground/75 text-center">Credit Hold</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {customers.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-400 font-bold">No customer accounts match criteria.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground font-bold">No customer accounts match criteria.</TableCell></TableRow>
                   ) : customers.map(c => (
-                    <TableRow key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                    <TableRow key={c.id} className="hover:bg-secondary/60">
                       <TableCell className="font-medium text-xs">{c.accountMasterCode || '—'}</TableCell>
-                      <TableCell className="font-bold text-slate-900 dark:text-slate-100">{c.pipeline}</TableCell>
+                      <TableCell className="font-bold text-foreground">{c.pipeline}</TableCell>
                       <TableCell className="text-xs font-semibold">{normalizeBdmName(c.userName, c.userId)}</TableCell>
-                      <TableCell className="text-xs font-semibold text-slate-500">{c.businessUnit || 'General'}</TableCell>
+                      <TableCell className="text-xs font-semibold text-muted-foreground">{c.businessUnit || 'General'}</TableCell>
                       <TableCell className="text-right font-medium">{formatMoney(c.currentRevenue || 0)}</TableCell>
-                      <TableCell className="text-right font-bold text-emerald-600">{formatMoney(c.closedWonValue || 0)}</TableCell>
+                      <TableCell className="text-right font-bold text-success">{formatMoney(c.closedWonValue || 0)}</TableCell>
                       <TableCell className="text-center">
-                        {c.creditHold ? <Badge variant="destructive" className="text-[10px]">YES</Badge> : <Badge variant="secondary" className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-400">NO</Badge>}
+                        {c.creditHold ? <Badge variant="destructive" className="text-[10px]">YES</Badge> : <Badge variant="secondary" className="text-[10px] bg-secondary text-panel-foreground/60">NO</Badge>}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -842,14 +842,14 @@ export function DataExplorer() {
         {/* OPPORTUNITIES TAB */}
         <TabsContent value="opportunities">
           {opportunitiesChartData.length > 0 && (
-            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider mb-4">Active Pipeline Value by Stage</h3>
+            <Card className="border-none shadow-sm bg-card p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-foreground tracking-wider mb-4">Active Pipeline Value by Stage</h3>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={opportunitiesChartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="stage" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-slate-500" />
-                    <YAxis tickLine={false} className="text-[10px] font-bold text-slate-500" unit="M" />
+                    <XAxis dataKey="stage" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" />
+                    <YAxis tickLine={false} className="text-[10px] font-bold text-muted-foreground" unit="M" />
                     <Tooltip formatter={(value: number) => `$${value.toFixed(2)}M`} />
                     <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]}>
                       {opportunitiesChartData.map((entry, index) => (
@@ -862,12 +862,12 @@ export function DataExplorer() {
             </Card>
           )}
 
-          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
-            <div className="bg-slate-50 dark:bg-slate-950 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
+          <Card className="border-none shadow-sm bg-card overflow-hidden">
+            <div className="bg-secondary/60 border-b p-3 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Stage Filter:</span>
+                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Stage Filter:</span>
                 <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger className="w-[180px] h-8 text-xs font-bold bg-white dark:bg-slate-900">
+                  <SelectTrigger className="w-[180px] h-8 text-xs font-bold bg-card">
                     <SelectValue placeholder="All Stages" />
                   </SelectTrigger>
                   <SelectContent>
@@ -879,75 +879,75 @@ export function DataExplorer() {
                 </Select>
               </div>
 
-              <div className="text-xs font-bold text-slate-500">
+              <div className="text-xs font-bold text-muted-foreground">
                 Showing {opportunities.length} Opportunities
               </div>
             </div>
 
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 dark:bg-slate-950 border-b">
+                <TableHeader className="bg-secondary/60 border-b">
                   <TableRow>
-                    <TableHead className="font-black text-slate-600 dark:text-slate-400">Opp ID</TableHead>
+                    <TableHead className="font-black text-foreground/75">Opp ID</TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('opportunityName')}
                     >
                       <div className="flex items-center gap-1">
                         <span>Opp Name</span>
-                        {oppSortField === 'opportunityName' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {oppSortField === 'opportunityName' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('pipeline')}
                     >
                       <div className="flex items-center gap-1">
                         <span>Account Name</span>
-                        {oppSortField === 'pipeline' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {oppSortField === 'pipeline' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
-                    <TableHead className="font-black text-slate-600 dark:text-slate-400">BDM / AM</TableHead>
+                    <TableHead className="font-black text-foreground/75">BDM / AM</TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('stage')}
                     >
                       <div className="flex items-center gap-1">
                         <span>Stage</span>
-                        {oppSortField === 'stage' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {oppSortField === 'stage' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('value')}
                     >
                       <div className="flex items-center justify-end gap-1">
                         <span>Amount</span>
-                        {oppSortField === 'value' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {oppSortField === 'value' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-right cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-right cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleOppSort('probability')}
                     >
                       <div className="flex items-center justify-end gap-1">
                         <span>Prob (%)</span>
-                        {oppSortField === 'probability' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {oppSortField === 'probability' ? (oppSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {opportunities.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-400 font-bold">No opportunities match criteria.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground font-bold">No opportunities match criteria.</TableCell></TableRow>
                   ) : opportunities.map(o => (
-                    <TableRow key={o.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                      <TableCell className="font-medium text-xs text-slate-500">{o.salesforceId || '—'}</TableCell>
+                    <TableRow key={o.id} className="hover:bg-secondary/60">
+                      <TableCell className="font-medium text-xs text-muted-foreground">{o.salesforceId || '—'}</TableCell>
                       <TableCell className="font-bold text-sm text-primary">{o.opportunityName || '—'}</TableCell>
                       <TableCell className="font-medium text-xs">{o.pipeline}</TableCell>
                       <TableCell className="text-xs font-semibold">{normalizeBdmName(o.userName, o.userId)}</TableCell>
                       <TableCell>
-                        <Badge className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">{o.stage}</Badge>
+                        <Badge className="text-[10px] bg-info-soft text-info hover:bg-info/20 border-none">{o.stage}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-bold">{formatMoney(o.value || 0)}</TableCell>
                       <TableCell className="text-right font-medium text-xs">{o.probability}%</TableCell>
@@ -962,14 +962,14 @@ export function DataExplorer() {
         {/* ACTIVITIES TAB */}
         <TabsContent value="activities">
           {activitiesChartData.length > 0 && (
-            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 p-6 mb-6">
-              <h3 className="text-sm font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider mb-4">BDM Weekly Activity Comparison</h3>
+            <Card className="border-none shadow-sm bg-card p-6 mb-6">
+              <h3 className="text-sm font-black uppercase text-foreground tracking-wider mb-4">BDM Weekly Activity Comparison</h3>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={activitiesChartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-slate-500" />
-                    <YAxis tickLine={false} className="text-[10px] font-bold text-slate-500" />
+                    <XAxis dataKey="name" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" />
+                    <YAxis tickLine={false} className="text-[10px] font-bold text-muted-foreground" />
                     <Tooltip />
                     <Legend />
                     <Bar dataKey="calls" name="Calls Logged" fill="#2563eb" radius={[4, 4, 0, 0]} />
@@ -981,12 +981,12 @@ export function DataExplorer() {
             </Card>
           )}
 
-          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
-            <div className="bg-blue-50/50 dark:bg-blue-950/20 p-4 border-b border-blue-100 dark:border-blue-900 flex items-start gap-3">
-              <Activity className="w-5 h-5 text-blue-500 mt-0.5" />
+          <Card className="border-none shadow-sm bg-card overflow-hidden">
+            <div className="bg-info-soft/50 p-4 border-b border-info/15 flex items-start gap-3">
+              <Activity className="w-5 h-5 text-info mt-0.5" />
               <div>
-                <h4 className="text-sm font-black text-blue-900 dark:text-blue-300 uppercase">Aggregated Weekly Activity</h4>
-                <p className="text-xs text-blue-700/80 dark:text-blue-400 mt-1 font-medium max-w-2xl">
+                <h4 className="text-sm font-black text-info uppercase">Aggregated Weekly Activity</h4>
+                <p className="text-xs text-info/80 mt-1 font-medium max-w-2xl">
                   This table shows the summarized totals of all activities imported for the selected timeframe.
                   Click column headers to sort by calls, meetings, proposals, or wins.
                 </p>
@@ -995,65 +995,65 @@ export function DataExplorer() {
 
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50 dark:bg-slate-950 border-b">
+                <TableHeader className="bg-secondary/60 border-b">
                   <TableRow>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('name')}
                     >
                       <div className="flex items-center gap-1">
                         <span>BDM / AM Name</span>
-                        {actSortField === 'name' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {actSortField === 'name' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('calls')}
                     >
                       <div className="flex items-center justify-center gap-1">
                         <span>Calls</span>
-                        {actSortField === 'calls' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {actSortField === 'calls' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('apps')}
                     >
                       <div className="flex items-center justify-center gap-1">
                         <span>Meetings / Apps</span>
-                        {actSortField === 'apps' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {actSortField === 'apps' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('proposals')}
                     >
                       <div className="flex items-center justify-center gap-1">
                         <span>Opps Created</span>
-                        {actSortField === 'proposals' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {actSortField === 'proposals' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="font-black text-slate-600 dark:text-slate-400 text-center cursor-pointer hover:text-primary transition-colors"
+                      className="font-black text-foreground/75 text-center cursor-pointer hover:text-primary transition-colors"
                       onClick={() => toggleActSort('deals')}
                     >
                       <div className="flex items-center justify-center gap-1">
                         <span>Wins</span>
-                        {actSortField === 'deals' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-slate-400" />}
+                        {actSortField === 'deals' ? (actSortDir === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />) : <ArrowUpDown className="w-3 h-3 text-muted-foreground" />}
                       </div>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {activities.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">No activities match criteria.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground font-bold">No activities match criteria.</TableCell></TableRow>
                   ) : activities.map(a => (
-                    <TableRow key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                    <TableRow key={a.id} className="hover:bg-secondary/60">
                       <TableCell className="font-bold text-sm">{normalizeBdmName(a.userName || userIdToName.get(a.userId), a.userId)}</TableCell>
-                      <TableCell className="text-center font-black text-slate-700 dark:text-slate-300">{a.calls || 0}</TableCell>
-                      <TableCell className="text-center font-black text-blue-600 dark:text-blue-400">{a.apps || 0}</TableCell>
-                      <TableCell className="text-center font-black text-amber-600 dark:text-amber-400">{a.proposals || 0}</TableCell>
-                      <TableCell className="text-center font-black text-emerald-600 dark:text-emerald-400">{a.deals || 0}</TableCell>
+                      <TableCell className="text-center font-black text-foreground/85">{a.calls || 0}</TableCell>
+                      <TableCell className="text-center font-black text-info">{a.apps || 0}</TableCell>
+                      <TableCell className="text-center font-black text-warning-ink">{a.proposals || 0}</TableCell>
+                      <TableCell className="text-center font-black text-success">{a.deals || 0}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

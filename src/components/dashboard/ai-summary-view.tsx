@@ -130,7 +130,7 @@ export function AISummaryView({ input, userId }: AISummaryViewProps) {
               </ul>
             </div>
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-green-400 mb-3 flex items-center gap-2">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-success-fill mb-3 flex items-center gap-2">
                 <MessageSquare className="w-3 h-3" /> Manager 1:1 Prep
               </h4>
               <ul className="space-y-2">
@@ -144,23 +144,23 @@ export function AISummaryView({ input, userId }: AISummaryViewProps) {
       </Card>
 
       {analysis.riskAlerts.length > 0 && (
-        <Card className="border-red-200 bg-red-50/50 shadow-lg">
+        <Card className="border-destructive/25 bg-danger-soft/50 shadow-lg">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-bold text-red-800 flex items-center gap-2 uppercase tracking-tight">
+            <CardTitle className="text-sm font-bold text-destructive flex items-center gap-2 uppercase tracking-tight">
               <AlertTriangle className="w-4 h-4" /> Deal Risk Vectors
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {analysis.riskAlerts.map((risk, idx) => (
-              <div key={idx} className="bg-white p-3 rounded-lg border border-red-100 flex flex-col gap-1">
+              <div key={idx} className="bg-card p-3 rounded-lg border border-destructive/15 flex flex-col gap-1">
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-black text-primary uppercase">{risk.dealName}</span>
                   <Badge variant={risk.riskLevel === 'HIGH' ? 'destructive' : 'secondary'} className="text-[9px] font-bold">
                     {risk.riskLevel} RISK
                   </Badge>
                 </div>
-                <p className="text-[11px] text-red-700 font-medium">{risk.reason}</p>
-                <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground bg-slate-50 p-1.5 rounded">
+                <p className="text-[11px] text-destructive font-medium">{risk.reason}</p>
+                <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground bg-secondary/60 p-1.5 rounded">
                   <Target className="w-3 h-3" /> <span className="font-bold">MITIGATION:</span> {risk.mitigation}
                 </div>
               </div>

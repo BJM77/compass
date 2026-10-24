@@ -7,9 +7,9 @@ import { Loader2 } from 'lucide-react';
 const CanvassMap = dynamic(() => import('./canvass-map'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full min-h-[500px] flex items-center justify-center bg-slate-50 border rounded-xl">
-      <div className="flex flex-col items-center text-slate-500">
-        <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-600" />
+    <div className="w-full h-full min-h-[500px] flex items-center justify-center bg-secondary/60 border rounded-xl">
+      <div className="flex flex-col items-center text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin mb-4 text-info" />
         <p>Loading interactive map...</p>
       </div>
     </div>

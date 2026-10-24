@@ -60,9 +60,9 @@ const QUADRANTS: QuadrantData[] = [
     description: 'Crises, strict deadlines, sudden problems.',
     action: 'Do these right now.',
     icon: Clock,
-    colorClass: 'text-red-600',
-    bgColorClass: 'bg-red-50',
-    borderColorClass: 'border-red-200',
+    colorClass: 'text-destructive',
+    bgColorClass: 'bg-danger-soft',
+    borderColorClass: 'border-destructive/25',
   },
   {
     id: 'Q2',
@@ -71,9 +71,9 @@ const QUADRANTS: QuadrantData[] = [
     description: 'Long-term planning, self-care, learning.',
     action: 'Put these in your calendar for later.',
     icon: CalendarClock,
-    colorClass: 'text-blue-600',
-    bgColorClass: 'bg-blue-50',
-    borderColorClass: 'border-blue-200',
+    colorClass: 'text-info',
+    bgColorClass: 'bg-info-soft',
+    borderColorClass: 'border-info/25',
   },
   {
     id: 'Q3',
@@ -82,9 +82,9 @@ const QUADRANTS: QuadrantData[] = [
     description: 'Most phone calls, interruptions, meetings.',
     action: 'Let someone else handle these if you can.',
     icon: Users,
-    colorClass: 'text-amber-600',
-    bgColorClass: 'bg-amber-50',
-    borderColorClass: 'border-amber-200',
+    colorClass: 'text-warning-ink',
+    bgColorClass: 'bg-warning-soft',
+    borderColorClass: 'border-warning/25',
   },
   {
     id: 'Q4',
@@ -93,9 +93,9 @@ const QUADRANTS: QuadrantData[] = [
     description: 'Mindless scrolling, busywork that adds no value.',
     action: 'Cut these out of your day.',
     icon: XCircle,
-    colorClass: 'text-slate-500',
-    bgColorClass: 'bg-slate-50',
-    borderColorClass: 'border-slate-200',
+    colorClass: 'text-muted-foreground',
+    bgColorClass: 'bg-secondary/60',
+    borderColorClass: 'border-border',
   }
 ];
 
@@ -424,21 +424,21 @@ export function ManageTimeView() {
   const inboxTasks = openTasks.filter(t => !t.quadrant);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 print:m-0 print:p-0 print:max-w-none print:bg-white print:space-y-4">
+    <div className="max-w-6xl mx-auto space-y-8 print:m-0 print:p-0 print:max-w-none print:bg-card print:space-y-4">
       
       {/* Header section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:mb-8 print:flex-row print:border-b-2 print:border-slate-800 print:pb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:mb-8 print:flex-row print:border-b-2 print:border-foreground/30 print:pb-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            <Clock className="w-8 h-8 text-indigo-600 print:text-slate-800" />
+          <h1 className="text-3xl font-black text-foreground tracking-tight flex items-center gap-3">
+            <Clock className="w-8 h-8 text-accent print:text-foreground" />
             Time Management Matrix
-            {isViewOnly && <span className="text-sm font-normal bg-amber-100 text-amber-800 px-2 py-1 rounded ml-2">{historyPlan ? 'Viewing an older plan (read-only)' : "Viewing User's Plan"}</span>}
+            {isViewOnly && <span className="text-sm font-normal bg-warning-soft text-warning-ink px-2 py-1 rounded ml-2">{historyPlan ? 'Viewing an older plan (read-only)' : "Viewing User's Plan"}</span>}
           </h1>
-          <p className="text-sm text-slate-500 font-medium mt-1 max-w-2xl print:hidden">
+          <p className="text-sm text-muted-foreground font-medium mt-1 max-w-2xl print:hidden">
             First, brain dump all your tasks into the inbox below. Then, select a quadrant (Do Now, Do Soon, Delegate, Delete) for each to organize them into the Eisenhower Matrix.
           </p>
           {/* Print only subtitle showing date */}
-          <p className="hidden print:block text-slate-600 font-bold mt-2">
+          <p className="hidden print:block text-foreground/75 font-bold mt-2">
             Plan for: {format(new Date(), 'EEEE, MMMM do yyyy')}
           </p>
         </div>
@@ -450,12 +450,12 @@ export function ManageTimeView() {
                 size="sm"
                 onClick={() => savePlanWithTasks(tasks, currentPlanId)}
                 disabled={isSaving}
-                className="hidden sm:flex items-center text-sm font-medium mr-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200"
+                className="hidden sm:flex items-center text-sm font-medium mr-2 bg-secondary/60 px-3 py-1.5 rounded-full border border-border"
               >
                 {isSaving ? (
-                  <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 animate-spin text-indigo-500" /> Saving...</span>
+                  <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 animate-spin text-accent" /> Saving...</span>
                 ) : (
-                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Force Save</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-success" /> Force Save</span>
                 )}
               </Button>
 
@@ -490,7 +490,7 @@ export function ManageTimeView() {
               if (open) loadAdminUsers();
             }}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+                <Button variant="outline" className="border-accent/25 text-primary hover:bg-accent/10">
                   <Users className="w-4 h-4 mr-2" />
                   View Team Plans
                 </Button>
@@ -504,21 +504,21 @@ export function ManageTimeView() {
                   <div className="border rounded-md p-2 h-[300px] overflow-y-auto space-y-1">
                     <h4 className="text-sm font-semibold mb-2 px-2">Users</h4>
                     {adminUsers.map(u => (
-                      <div key={u.id} className={`flex items-center gap-1 rounded-md ${adminSelectedUserId === u.id ? 'bg-indigo-100' : 'hover:bg-slate-100'}`}>
+                      <div key={u.id} className={`flex items-center gap-1 rounded-md ${adminSelectedUserId === u.id ? 'bg-accent/15' : 'hover:bg-secondary'}`}>
                         <button
                           onClick={() => loadAdminUserPlans(u.id)}
-                          className={`flex-1 min-w-0 text-left px-3 py-2 text-sm truncate ${adminSelectedUserId === u.id ? 'text-indigo-900 font-medium' : ''}`}
+                          className={`flex-1 min-w-0 text-left px-3 py-2 text-sm truncate ${adminSelectedUserId === u.id ? 'text-primary font-medium' : ''}`}
                         >
                           {u.name}
                         </button>
                         {u.attention > 0 && (
-                          <span title="Overdue or due today" className="text-[10px] font-bold bg-red-100 text-red-700 px-1.5 py-0.5 rounded shrink-0">{u.attention} due</span>
+                          <span title="Overdue or due today" className="text-[10px] font-bold bg-danger-soft text-destructive px-1.5 py-0.5 rounded shrink-0">{u.attention} due</span>
                         )}
                         {u.stale > 0 && (
-                          <span title="Do Now tasks untouched 2+ days" className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded shrink-0">{u.stale} stale</span>
+                          <span title="Do Now tasks untouched 2+ days" className="text-[10px] font-bold bg-warning-soft text-warning-ink px-1.5 py-0.5 rounded shrink-0">{u.stale} stale</span>
                         )}
                         {(u.attention > 0 || u.stale > 0) && (
-                          <Button size="sm" variant="ghost" disabled={nudgedIds[u.id]} onClick={() => nudgeUser(u)} className="h-7 px-2 text-xs text-indigo-700 shrink-0" title="Send a Team Nudge">
+                          <Button size="sm" variant="ghost" disabled={nudgedIds[u.id]} onClick={() => nudgeUser(u)} className="h-7 px-2 text-xs text-primary shrink-0" title="Send a Team Nudge">
                             <BellRing className="w-3.5 h-3.5 mr-1" />{nudgedIds[u.id] ? 'Sent' : 'Nudge'}
                           </Button>
                         )}
@@ -528,16 +528,16 @@ export function ManageTimeView() {
                   <div className="border rounded-md p-2 h-[300px] overflow-y-auto space-y-1">
                     <h4 className="text-sm font-semibold mb-2 px-2">Plans</h4>
                     {!adminSelectedUserId ? (
-                      <div className="text-sm text-slate-500 p-2">Select a user first.</div>
+                      <div className="text-sm text-muted-foreground p-2">Select a user first.</div>
                     ) : adminPlans.length === 0 ? (
-                      <div className="text-sm text-slate-500 p-2">No plans found.</div>
+                      <div className="text-sm text-muted-foreground p-2">No plans found.</div>
                     ) : (<>
                       <button
                         onClick={() => { setTasks(mergeContinuousPlans(adminPlans as any).tasks); setIsAdminViewOpen(false); }}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-semibold bg-indigo-50 hover:bg-indigo-100 flex items-center justify-between"
+                        className="w-full text-left px-3 py-2 rounded-md text-sm font-semibold bg-accent/10 hover:bg-accent/15 flex items-center justify-between"
                       >
                         <span>Current (all open tasks)</span>
-                        <span className="text-xs text-indigo-700 bg-white px-1.5 py-0.5 rounded">{mergeContinuousPlans(adminPlans as any).tasks.filter(t => !t.completed).length} open</span>
+                        <span className="text-xs text-primary bg-card px-1.5 py-0.5 rounded">{mergeContinuousPlans(adminPlans as any).tasks.filter(t => !t.completed).length} open</span>
                       </button>
                       {adminPlans.map(plan => (
                         <button
@@ -546,10 +546,10 @@ export function ManageTimeView() {
                             setTasks(plan.tasks || []);
                             setIsAdminViewOpen(false);
                           }}
-                          className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-slate-100 flex items-center justify-between"
+                          className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-secondary flex items-center justify-between"
                         >
                           <span>{plan.createdAt ? format(plan.createdAt.toDate(), 'MMM d, yyyy') : 'Unknown Date'}</span>
-                          <span className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{(plan.tasks || []).length} tasks</span>
+                          <span className="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{(plan.tasks || []).length} tasks</span>
                         </button>
                       ))}
                     </>
@@ -560,7 +560,7 @@ export function ManageTimeView() {
             </Dialog>
           )}
 
-          <Button onClick={handlePrint} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold tracking-wide">
+          <Button onClick={handlePrint} className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold tracking-wide">
             <Printer className="w-4 h-4 mr-2" />
             Print Matrix
           </Button>
@@ -569,9 +569,9 @@ export function ManageTimeView() {
 
       {/* Task Inbox - Hidden on print */}
       <Card className="border-2 shadow-sm print:hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-200 pb-4">
-          <CardTitle className="flex items-center gap-2 text-xl font-bold text-slate-800">
-            <Inbox className="w-6 h-6 text-indigo-600" />
+        <CardHeader className="bg-secondary/60 border-b border-border pb-4">
+          <CardTitle className="flex items-center gap-2 text-xl font-bold text-foreground">
+            <Inbox className="w-6 h-6 text-accent" />
             Task Inbox
           </CardTitle>
           <CardDescription>Enter all your tasks here first, then assign them to a quadrant.</CardDescription>
@@ -584,13 +584,13 @@ export function ManageTimeView() {
                 value={newTaskText}
                 onChange={(e) => setNewTaskText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="h-12 text-base shadow-sm focus-visible:ring-indigo-500"
+                className="h-12 text-base shadow-sm focus-visible:ring-accent"
               />
               <Button 
                 size="lg"
                 onClick={addTask}
                 disabled={!newTaskText.trim()}
-                className="bg-slate-900 hover:bg-slate-800 text-white shrink-0"
+                className="bg-panel hover:bg-panel/80 text-panel-foreground shrink-0"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Add Task
@@ -600,14 +600,14 @@ export function ManageTimeView() {
 
           {inboxTasks.length > 0 && (
             <div className="mt-4 space-y-3">
-              <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wider mb-2">Uncategorized Tasks ({inboxTasks.length})</h3>
+              <h3 className="font-semibold text-foreground/85 text-sm uppercase tracking-wider mb-2">Uncategorized Tasks ({inboxTasks.length})</h3>
               <div className="space-y-3">
                 {inboxTasks.map((task) => (
-                  <div key={task.id} data-task-id={task.id} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-lg border shadow-sm transition-all ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 ' : ''}${task.completed ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-indigo-200'}`}>
+                  <div key={task.id} data-task-id={task.id} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 md:p-4 rounded-lg border shadow-sm transition-all ${flashId === task.id ? 'ring-2 ring-destructive ring-offset-2 ' : ''}${task.completed ? 'bg-secondary/60 border-border opacity-60' : 'bg-card border-border hover:border-accent/25'}`}>
                     <div className="flex-1 flex items-center gap-3">
                       {!isViewOnly && (
                         <button type="button" onClick={() => toggleTaskCompletion(task.id)} title="Mark complete" aria-label={`Complete ${task.text}`}
-                          className="shrink-0 h-8 w-8 -m-1 flex items-center justify-center rounded-full text-slate-300 hover:text-emerald-600 hover:bg-emerald-50">
+                          className="shrink-0 h-8 w-8 -m-1 flex items-center justify-center rounded-full text-muted-foreground/70 hover:text-success hover:bg-success-soft">
                           <CheckCircle2 className="w-6 h-6" />
                         </button>
                       )}
@@ -615,13 +615,13 @@ export function ManageTimeView() {
                         value={task.text}
                         onCommit={(val) => updateTaskText(task.id, val)}
                         disabled={isViewOnly}
-                        className={`h-10 border-transparent hover:border-slate-200 focus:border-indigo-300 shadow-none px-2 font-medium text-base ${task.completed ? 'line-through text-slate-500' : 'text-slate-900'}`}
+                        className={`h-10 border-transparent hover:border-border focus:border-accent/40 shadow-none px-2 font-medium text-base ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}
                       />
                     </div>
                     
                     <DueChip task={task} />
                     {!isViewOnly && (
-                      <div className="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-md border border-slate-100">
+                      <div className="flex flex-wrap items-center gap-2 bg-secondary/60 p-1.5 rounded-md border border-border/60">
                         <TaskDueControls task={task} onChange={(patch) => patchTask(task.id, patch)} />
                         {(['Q1', 'Q2', 'Q3', 'Q4'] as const).map((q) => {
                           const qData = QUADRANTS.find(x => x.id === q)!;
@@ -642,7 +642,7 @@ export function ManageTimeView() {
                           variant="ghost"
                           size="icon"
                           onClick={() => removeTask(task.id)}
-                          className="h-8 w-8 ml-1 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                          className="h-8 w-8 ml-1 text-muted-foreground hover:text-destructive hover:bg-danger-soft"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -654,8 +654,8 @@ export function ManageTimeView() {
             </div>
           )}
           {inboxTasks.length === 0 && openTasks.length > 0 && (
-            <div className="flex items-center justify-center py-6 text-slate-500 gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+            <div className="flex items-center justify-center py-6 text-muted-foreground gap-2">
+              <CheckCircle2 className="w-5 h-5 text-success" />
               <span>All tasks categorized!</span>
             </div>
           )}
@@ -668,10 +668,10 @@ export function ManageTimeView() {
           const qTasks = openTasks.filter(t => t.quadrant === quadrant.id);
           
           return (
-            <Card key={quadrant.id} className={`border-2 shadow-sm flex flex-col h-full print:shadow-none print:border-2 print:border-slate-300 ${quadrant.borderColorClass}`}>
-              <CardHeader className={`pb-2 pt-3 ${quadrant.bgColorClass} print:bg-transparent print:border-b-2 print:border-slate-300 rounded-t-xl print:rounded-none flex-row justify-between items-start`}>
+            <Card key={quadrant.id} className={`border-2 shadow-sm flex flex-col h-full print:shadow-none print:border-2 print:border-border ${quadrant.borderColorClass}`}>
+              <CardHeader className={`pb-2 pt-3 ${quadrant.bgColorClass} print:bg-transparent print:border-b-2 print:border-border rounded-t-xl print:rounded-none flex-row justify-between items-start`}>
                 <div>
-                  <CardTitle className={`flex items-center gap-2 text-lg font-black ${quadrant.colorClass} print:text-slate-900`}>
+                  <CardTitle className={`flex items-center gap-2 text-lg font-black ${quadrant.colorClass} print:text-foreground`}>
                     <quadrant.icon className="w-5 h-5" />
                     {quadrant.title}
                   </CardTitle>
@@ -682,20 +682,20 @@ export function ManageTimeView() {
                 {/* List of active tasks */}
                 <div className="space-y-2 flex-1">
                   {qTasks.map((task) => (
-                    <div key={task.id} data-task-id={task.id} className={`flex items-start gap-2 group rounded-md transition-shadow print:items-end print:border-b print:border-slate-200 print:pb-2 ${flashId === task.id ? 'ring-2 ring-red-500 ring-offset-2 bg-red-50' : ''}`}>
+                    <div key={task.id} data-task-id={task.id} className={`flex items-start gap-2 group rounded-md transition-shadow print:items-end print:border-b print:border-border print:pb-2 ${flashId === task.id ? 'ring-2 ring-destructive ring-offset-2 bg-danger-soft' : ''}`}>
                       {!isViewOnly ? (
                         <>
                           <button type="button" onClick={() => toggleTaskCompletion(task.id)} title="Mark complete" aria-label={`Complete ${task.text}`}
-                            className="mt-0.5 shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 print:hidden">
+                            className="mt-0.5 shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground/70 hover:text-success hover:bg-success-soft print:hidden">
                             <CheckCircle2 className="w-6 h-6" />
                           </button>
                           {/* Print specific checkbox */}
-                          <div className="hidden print:flex items-center justify-center mt-1 mr-2 w-5 h-5 border-2 border-slate-800 text-slate-800 shrink-0 font-bold">
+                          <div className="hidden print:flex items-center justify-center mt-1 mr-2 w-5 h-5 border-2 border-foreground/30 text-foreground shrink-0 font-bold">
                             {task.completed && "X"}
                           </div>
                         </>
                       ) : (
-                         <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0 print:bg-slate-800 print:mb-2"></div>
+                         <div className="mt-2 w-1.5 h-1.5 rounded-full bg-muted-foreground/50 shrink-0 print:bg-panel/90 print:mb-2"></div>
                       )}
                       
                       <div className="flex-1 min-w-0">
@@ -703,18 +703,18 @@ export function ManageTimeView() {
                           value={task.text}
                           onCommit={(val) => updateTaskText(task.id, val)}
                           disabled={isViewOnly}
-                          className={`h-8 border-transparent hover:border-slate-200 focus:border-indigo-300 shadow-none px-2 font-medium print:border-none print:px-0 print:bg-transparent print:text-slate-900 print:text-sm print:resize-none print:h-auto ${task.completed ? 'line-through text-slate-500 print:line-through print:text-slate-500' : 'text-slate-900'}`}
+                          className={`h-8 border-transparent hover:border-border focus:border-accent/40 shadow-none px-2 font-medium print:border-none print:px-0 print:bg-transparent print:text-foreground print:text-sm print:resize-none print:h-auto ${task.completed ? 'line-through text-muted-foreground print:line-through print:text-muted-foreground' : 'text-foreground'}`}
                         />
                         <div className="flex flex-wrap items-center gap-1.5 px-2">
                           <DueChip task={task} />
                           {!isViewOnly && <TaskDueControls task={task} onChange={(patch) => patchTask(task.id, patch)} compact />}
                         </div>
                         {!isViewOnly && isStale(task) && (
-                          <div className="mt-1.5 mx-2 flex flex-wrap items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-900 print:hidden">
+                          <div className="mt-1.5 mx-2 flex flex-wrap items-center gap-2 rounded-md border border-warning/25 bg-warning-soft px-2 py-1.5 text-xs text-warning-ink print:hidden">
                             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                             <span className="font-semibold">Untouched for 2+ days. Delegate or Delete?</span>
                             <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => setTaskQuadrant(task.id, 'Q3')}>Delegate</Button>
-                            <Button size="sm" variant="outline" className="h-6 px-2 text-xs text-red-600" onClick={() => removeTask(task.id)}>Delete</Button>
+                            <Button size="sm" variant="outline" className="h-6 px-2 text-xs text-destructive" onClick={() => removeTask(task.id)}>Delete</Button>
                             <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => patchTask(task.id, {})}>Keep</Button>
                           </div>
                         )}
@@ -727,7 +727,7 @@ export function ManageTimeView() {
                             size="icon"
                             onClick={() => setTaskQuadrant(task.id, undefined)}
                             title="Move back to inbox"
-                            className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                            className="h-8 w-8 text-muted-foreground hover:text-accent hover:bg-accent/10"
                           >
                             <Inbox className="w-4 h-4" />
                           </Button>
@@ -735,7 +735,7 @@ export function ManageTimeView() {
                             variant="ghost"
                             size="icon"
                             onClick={() => removeTask(task.id)}
-                            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-danger-soft"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -744,7 +744,7 @@ export function ManageTimeView() {
                     </div>
                   ))}
                   {qTasks.length === 0 && (
-                    <div className="text-sm text-slate-400 italic py-2 print:hidden">
+                    <div className="text-sm text-muted-foreground italic py-2 print:hidden">
                       No tasks in this quadrant.
                     </div>
                   )}

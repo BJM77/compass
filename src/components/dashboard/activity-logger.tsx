@@ -119,8 +119,8 @@ export function ActivityLogger({ userId }: { userId: string }) {
       </div>
 
       {/* Rapid Punch Control Panel */}
-      <Card className="border-none shadow-2xl overflow-hidden bg-white">
-        <CardHeader className="bg-slate-50 border-b py-4">
+      <Card className="border-none shadow-2xl overflow-hidden bg-card">
+        <CardHeader className="bg-secondary/60 border-b py-4">
           <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
             <Zap className="w-4 h-4 text-accent" />
             Rapid Habit Tracker
@@ -131,25 +131,25 @@ export function ActivityLogger({ userId }: { userId: string }) {
             <PunchButton 
               label="CALL" 
               icon={<Phone className="w-4 h-4" />} 
-              color="bg-blue-600 shadow-blue-200" 
+              color="bg-info shadow-info/20" 
               onClick={() => updateCount('calls', 1)}
             />
             <PunchButton 
               label="APP" 
               icon={<CalendarCheck className="w-4 h-4" />} 
-              color="bg-emerald-600 shadow-emerald-200" 
+              color="bg-success-fill shadow-success/20" 
               onClick={() => updateCount('apps', 1)}
             />
             <PunchButton 
               label="OPP" 
               icon={<FileText className="w-4 h-4" />} 
-              color="bg-violet-600 shadow-violet-200" 
+              color="bg-chart-5 shadow-chart-5/20" 
               onClick={() => updateCount('proposals', 1)}
             />
             <PunchButton 
               label="WIN" 
               icon={<Target className="w-4 h-4" />} 
-              color="bg-orange-600 shadow-orange-200" 
+              color="bg-warning shadow-warning/20" 
               onClick={() => updateCount('deals', 1)}
             />
           </div>
@@ -161,10 +161,10 @@ export function ActivityLogger({ userId }: { userId: string }) {
 
 function EditableStatCard({ icon, val, label, color, onChange }: any) {
   const colors: any = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-100',
-    green: 'bg-green-50 text-green-600 border-green-100',
-    purple: 'bg-purple-50 text-purple-600 border-purple-100',
-    orange: 'bg-orange-50 text-orange-600 border-orange-100',
+    blue: 'bg-info-soft text-info border-info/15',
+    green: 'bg-success-soft text-success border-success/15',
+    purple: 'bg-chart-5/10 text-chart-5 border-chart-5/15',
+    orange: 'bg-warning-soft text-warning-ink border-warning/15',
   };
   return (
     <div className={`p-4 rounded-2xl border text-center transition-all ${colors[color]}`}>

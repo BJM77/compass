@@ -23,9 +23,9 @@ export function CallPrepMode({ deal, playbook }: CallPrepModeProps) {
 
   return (
     <Card className="border-none shadow-2xl bg-card overflow-hidden animate-in zoom-in duration-300">
-      <CardHeader className="bg-primary text-white pb-6">
+      <CardHeader className="bg-primary text-primary-foreground pb-6">
         <div className="flex justify-between items-start mb-2">
-          <Badge className="bg-accent text-white border-none font-semibold text-xs">Active Prep Mode</Badge>
+          <Badge className="bg-accent text-accent-foreground border-none font-semibold text-xs">Active Prep Mode</Badge>
           <div className="flex gap-2">
             <Badge variant="outline" className="text-white border-white/20 text-xs">Last Contact: 4d ago</Badge>
           </div>
@@ -98,12 +98,12 @@ export function CallPrepMode({ deal, playbook }: CallPrepModeProps) {
 
             <TabsContent value="tracks" className="space-y-6 mt-0">
               <div className="space-y-4">
-                <div className="p-4 bg-primary text-white rounded-2xl relative">
+                <div className="p-4 bg-primary text-primary-foreground rounded-2xl relative">
                   <MessageCircle className="absolute top-4 right-4 w-4 h-4 text-accent opacity-50" />
                   <p className="text-xs font-bold text-accent mb-2">Opener: Value Hypothesis</p>
                   <p className="text-sm leading-relaxed italic">"I've been reviewing your freight flows through Kewdale. We're seeing a 15% improvement in turnaround times for similar heavy engineering clients by consolidating their air/sea adjacency..."</p>
                 </div>
-                <div className="p-4 bg-primary text-white rounded-2xl relative">
+                <div className="p-4 bg-primary text-primary-foreground rounded-2xl relative">
                   <BookOpen className="absolute top-4 right-4 w-4 h-4 text-white opacity-50" />
                   <p className="text-xs font-bold text-white/60 mb-2">Handling Skepticism: Stance Mitigation</p>
                   <p className="text-sm leading-relaxed italic">"I understand the concern around transition downtime. That's why we're proposing a 30-day pilot on the Regional Flex corridor before we touch the metro patch..."</p>

@@ -110,25 +110,25 @@ export function DeveloperDiagnostics() {
           onClick={() => setIsDrawerOpen(!isDrawerOpen)}
           className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-2xl transition-all duration-300 border text-xs font-black uppercase tracking-wider backdrop-blur-md ${
             errorsCount > 0 
-              ? 'bg-rose-950/90 text-rose-200 border-rose-600 hover:bg-rose-900 shadow-rose-900/40' 
+              ? 'bg-destructive/80 text-panel-foreground/80 border-destructive hover:bg-destructive/90 shadow-destructive/10' 
               : warningsCount > 0
-              ? 'bg-amber-950/90 text-amber-200 border-amber-600 hover:bg-amber-900 shadow-amber-900/40'
-              : 'bg-slate-900/90 text-emerald-400 border-emerald-500/40 hover:bg-slate-800 shadow-slate-950/50'
+              ? 'bg-warning/80 text-warning/40 border-warning hover:bg-warning/90 shadow-warning/10'
+              : 'bg-panel/90 text-success-fill border-success-fill/40 hover:bg-panel/80 shadow-primary/5'
           }`}
           title="Super Admin Developer Diagnostics"
         >
-          <Wrench className={`w-3.5 h-3.5 ${isDeepAuditing ? 'animate-spin text-amber-400' : ''}`} />
+          <Wrench className={`w-3.5 h-3.5 ${isDeepAuditing ? 'animate-spin text-gold' : ''}`} />
           <span className="font-mono">Dev Diagnostics</span>
           {errorsCount > 0 ? (
-            <span className="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-mono">
+            <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[10px] font-mono">
               {errorsCount}
             </span>
           ) : warningsCount > 0 ? (
-            <span className="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px] font-mono">
+            <span className="w-5 h-5 rounded-full bg-warning text-warning-foreground flex items-center justify-center text-[10px] font-mono">
               {warningsCount}
             </span>
           ) : (
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-success-fill/80 animate-pulse" />
           )}
         </button>
       </aside>
@@ -137,22 +137,22 @@ export function DeveloperDiagnostics() {
       {isDrawerOpen && (
         <aside 
           aria-label="Developer Diagnostics Drawer"
-          className="fixed inset-y-0 right-0 z-[10000] w-full sm:w-[540px] bg-slate-950 border-l border-slate-800 text-slate-100 shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 print:hidden font-sans"
+          className="fixed inset-y-0 right-0 z-[10000] w-full sm:w-[540px] bg-panel border-l border-panel-foreground/15 text-panel-foreground/90 shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 print:hidden font-sans"
         >
           {/* Header */}
-          <header className="p-4 border-b border-slate-800 bg-slate-900/70 flex items-center justify-between shrink-0">
+          <header className="p-4 border-b border-panel-foreground/15 bg-panel/70 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <div className="p-2 rounded-xl bg-warning/10 border border-warning/20 text-gold">
                 <Wrench className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-black uppercase tracking-wider text-white">Developer Diagnostics</h2>
-                  <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                  <Badge variant="outline" className="text-[9px] bg-success-fill/10 text-success-fill border-success-fill/30">
                     Super Admin
                   </Badge>
                 </div>
-                <p className="text-[10px] text-slate-400 font-mono">Active Page: <strong className="text-indigo-400">{currentView}</strong></p>
+                <p className="text-[10px] text-muted-foreground font-mono">Active Page: <strong className="text-accent">{currentView}</strong></p>
               </div>
             </div>
 
@@ -161,16 +161,16 @@ export function DeveloperDiagnostics() {
                 size="sm"
                 variant="ghost"
                 onClick={handleCopyReport}
-                className="h-8 px-2.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800"
+                className="h-8 px-2.5 text-xs text-panel-foreground/70 hover:text-white hover:bg-panel/80"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-success-fill mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
                 {copied ? 'Copied' : 'Export JSON'}
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
                 onClick={() => setIsDrawerOpen(false)}
-                className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                className="h-8 w-8 text-panel-foreground/60 hover:text-white hover:bg-panel/80"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -180,49 +180,49 @@ export function DeveloperDiagnostics() {
           {/* Body Content */}
           <ScrollArea className="flex-1 p-4 space-y-4">
             {/* System Context Banner */}
-            <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl space-y-2 text-xs">
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Session Context</span>
-                <span className="font-mono text-[10px] text-emerald-400 font-bold">{user?.email}</span>
+            <div className="bg-panel/90 border border-panel-foreground/15 p-3 rounded-2xl space-y-2 text-xs">
+              <div className="flex items-center justify-between border-b border-foreground/25 pb-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-panel-foreground/60">Session Context</span>
+                <span className="font-mono text-[10px] text-success-fill font-bold">{user?.email}</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
                 <div>
-                  <span className="text-slate-500">Sales Week:</span> <strong className="text-white">{currentWeek}</strong>
+                  <span className="text-panel-foreground/60">Sales Week:</span> <strong className="text-white">{currentWeek}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-500">Role:</span> <strong className="text-white">{profile?.role || 'None'}</strong>
+                  <span className="text-panel-foreground/60">Role:</span> <strong className="text-white">{profile?.role || 'None'}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-500">Active UID:</span> <strong className="text-indigo-400 truncate inline-block max-w-[150px] align-bottom" title={activeUserId || ''}>{activeUserId || 'None'}</strong>
+                  <span className="text-panel-foreground/60">Active UID:</span> <strong className="text-accent truncate inline-block max-w-[150px] align-bottom" title={activeUserId || ''}>{activeUserId || 'None'}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-500">Simulating:</span> <strong className={simulationUid ? "text-amber-400" : "text-slate-400"}>{simulationUid ? 'YES' : 'NO'}</strong>
+                  <span className="text-panel-foreground/60">Simulating:</span> <strong className={simulationUid ? "text-gold" : "text-panel-foreground/60"}>{simulationUid ? 'YES' : 'NO'}</strong>
                 </div>
               </div>
             </div>
 
             {/* In-Memory Collections Health */}
-            <section className="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden mt-4">
+            <section className="bg-panel/60 border border-panel-foreground/10 rounded-2xl overflow-hidden mt-4">
               <button 
                 onClick={() => toggleSection('collections')}
-                className="w-full p-3 flex items-center justify-between bg-slate-900/80 hover:bg-slate-800/50 transition-colors text-left"
+                className="w-full p-3 flex items-center justify-between bg-panel/80 hover:bg-panel/40 transition-colors text-left"
               >
                 <div className="flex items-center gap-2">
-                  <Database className="w-4 h-4 text-indigo-400" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-200">Page Collections (In-Memory)</h3>
+                  <Database className="w-4 h-4 text-accent" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">Page Collections (In-Memory)</h3>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] border-slate-700 bg-slate-800 text-slate-300">
+                  <Badge variant="outline" className="text-[10px] border-panel-foreground/15 bg-panel/90 text-panel-foreground/70">
                     {activeReport?.collections?.length || 0} Registered
                   </Badge>
-                  {expandedSections.collections ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                  {expandedSections.collections ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                 </div>
               </button>
 
               {expandedSections.collections && (
-                <div className="p-3 divide-y divide-slate-800/60 text-xs">
+                <div className="p-3 divide-y divide-foreground/20 text-xs">
                   {(!activeReport?.collections || activeReport.collections.length === 0) ? (
-                    <div className="py-4 text-center text-slate-500 text-xs italic">
+                    <div className="py-4 text-center text-muted-foreground text-xs italic">
                       No explicit collection telemetry published for {currentView}.
                     </div>
                   ) : (
@@ -230,32 +230,32 @@ export function DeveloperDiagnostics() {
                       <div key={coll.name + idx} className="py-2.5 flex items-center justify-between first:pt-0 last:pb-0 font-mono text-[11px]">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-slate-200 font-bold">{coll.name}</span>
+                            <span className="text-panel-foreground/90 font-bold">{coll.name}</span>
                             {coll.status === 'ready' && coll.count === 0 && (
-                              <Badge className="bg-slate-800 text-slate-400 border-slate-700 text-[9px] py-0">EMPTY</Badge>
+                              <Badge className="bg-panel/90 text-panel-foreground/60 border-panel-foreground/15 text-[9px] py-0">EMPTY</Badge>
                             )}
                             {coll.status === 'error' && (
-                              <Badge className="bg-rose-950 text-rose-300 border-rose-800 text-[9px] py-0">ERROR</Badge>
+                              <Badge className="bg-destructive/90 text-destructive border-destructive text-[9px] py-0">ERROR</Badge>
                             )}
                             {coll.status === 'permission-denied' && (
-                              <Badge className="bg-rose-900 text-rose-200 border-rose-700 text-[9px] py-0">DENIED</Badge>
+                              <Badge className="bg-destructive/90 text-panel-foreground/80 border-destructive text-[9px] py-0">DENIED</Badge>
                             )}
                             {coll.status === 'loading' && (
-                              <Badge className="bg-amber-950 text-amber-300 border-amber-800 text-[9px] py-0">LOADING</Badge>
+                              <Badge className="bg-warning/90 text-gold border-warning text-[9px] py-0">LOADING</Badge>
                             )}
                           </div>
                           {coll.error && (
-                            <p className="text-[10px] text-rose-400 font-sans">{coll.error}</p>
+                            <p className="text-[10px] text-destructive font-sans">{coll.error}</p>
                           )}
                           {coll.sampleNames && coll.sampleNames.length > 0 && (
-                            <p className="text-[10px] text-slate-500 font-sans truncate max-w-[320px]">
+                            <p className="text-[10px] text-muted-foreground font-sans truncate max-w-[320px]">
                               Samples: {coll.sampleNames.join(', ')}
                             </p>
                           )}
                         </div>
 
                         <div className="text-right">
-                          <span className={`font-bold ${coll.count === 0 ? 'text-slate-500' : 'text-emerald-400'}`}>
+                          <span className={`font-bold ${coll.count === 0 ? 'text-muted-foreground' : 'text-success-fill'}`}>
                             {coll.count !== undefined ? `${coll.count} docs` : '—'}
                           </span>
                         </div>
@@ -268,24 +268,24 @@ export function DeveloperDiagnostics() {
 
             {/* Custom Page Metrics */}
             {activeReport?.customMetrics && Object.keys(activeReport.customMetrics).length > 0 && (
-              <section className="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden mt-4">
+              <section className="bg-panel/60 border border-panel-foreground/10 rounded-2xl overflow-hidden mt-4">
                 <button 
                   onClick={() => toggleSection('metrics')}
-                  className="w-full p-3 flex items-center justify-between bg-slate-900/80 hover:bg-slate-800/50 transition-colors text-left"
+                  className="w-full p-3 flex items-center justify-between bg-panel/80 hover:bg-panel/40 transition-colors text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-400" />
-                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-200">View Metrics & State</h3>
+                    <Zap className="w-4 h-4 text-gold" />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">View Metrics & State</h3>
                   </div>
-                  {expandedSections.metrics ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                  {expandedSections.metrics ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                 </button>
 
                 {expandedSections.metrics && (
                   <div className="p-3 grid grid-cols-2 gap-2 text-xs font-mono">
                     {Object.entries(activeReport.customMetrics).map(([key, val]) => (
-                      <div key={key} className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/50">
-                        <span className="text-[10px] text-slate-400 block truncate">{key}</span>
-                        <strong className="text-slate-100 text-[11px] truncate block">
+                      <div key={key} className="bg-panel/60 p-2 rounded-xl border border-panel-foreground/10">
+                        <span className="text-[10px] text-muted-foreground block truncate">{key}</span>
+                        <strong className="text-panel-foreground/90 text-[11px] truncate block">
                           {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
                         </strong>
                       </div>
@@ -296,16 +296,16 @@ export function DeveloperDiagnostics() {
             )}
 
             {/* Potential Issues / Warnings */}
-            <section className="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden mt-4">
+            <section className="bg-panel/60 border border-panel-foreground/10 rounded-2xl overflow-hidden mt-4">
               <button 
                 onClick={() => toggleSection('issues')}
-                className="w-full p-3 flex items-center justify-between bg-slate-900/80 hover:bg-slate-800/50 transition-colors text-left"
+                className="w-full p-3 flex items-center justify-between bg-panel/80 hover:bg-panel/40 transition-colors text-left"
               >
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-200">Detected Issues & Heuristics</h3>
+                  <AlertTriangle className="w-4 h-4 text-gold" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">Detected Issues & Heuristics</h3>
                 </div>
-                <Badge variant="outline" className={`text-[10px] ${issues.length > 0 ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-slate-800 text-slate-400'}`}>
+                <Badge variant="outline" className={`text-[10px] ${issues.length > 0 ? 'bg-warning/10 text-gold border-warning/30' : 'bg-panel/90 text-panel-foreground/60'}`}>
                   {issues.length}
                 </Badge>
               </button>
@@ -313,7 +313,7 @@ export function DeveloperDiagnostics() {
               {expandedSections.issues && (
                 <div className="p-3 space-y-2 text-xs">
                   {issues.length === 0 ? (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-950/30 border border-emerald-900/40 text-emerald-400">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-success/30 border border-success/40 text-success-fill">
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>No schema anomalies or unmapped identifiers detected on this view.</span>
                     </div>
@@ -323,20 +323,20 @@ export function DeveloperDiagnostics() {
                         key={i} 
                         className={`p-3 rounded-xl border space-y-1 ${
                           issue.severity === 'error' 
-                            ? 'bg-rose-950/40 border-rose-900/60 text-rose-200' 
-                            : 'bg-amber-950/40 border-amber-900/60 text-amber-200'
+                            ? 'bg-destructive/35 border-destructive/60 text-panel-foreground/80' 
+                            : 'bg-warning/35 border-warning/60 text-warning/40'
                         }`}
                       >
                         <div className="flex items-center justify-between font-bold">
                           <span className="flex items-center gap-1.5">
-                            {issue.severity === 'error' ? <AlertCircle className="w-3.5 h-3.5 text-rose-400" /> : <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />}
+                            {issue.severity === 'error' ? <AlertCircle className="w-3.5 h-3.5 text-destructive" /> : <AlertTriangle className="w-3.5 h-3.5 text-gold" />}
                             {issue.title}
                           </span>
                           <span className="text-[10px] uppercase font-mono tracking-widest opacity-75">{issue.category}</span>
                         </div>
                         <p className="text-[11px] opacity-90">{issue.detail}</p>
                         {issue.docIds && issue.docIds.length > 0 && (
-                          <p className="text-[10px] font-mono text-slate-400 truncate">
+                          <p className="text-[10px] font-mono text-muted-foreground truncate">
                             Doc IDs: {issue.docIds.join(', ')}
                           </p>
                         )}
@@ -348,49 +348,49 @@ export function DeveloperDiagnostics() {
             </section>
 
             {/* Opt-in Deep Identity Audit */}
-            <section className="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden mt-4">
+            <section className="bg-panel/60 border border-panel-foreground/10 rounded-2xl overflow-hidden mt-4">
               <button 
                 onClick={() => toggleSection('deepAudit')}
-                className="w-full p-3 flex items-center justify-between bg-slate-900/80 hover:bg-slate-800/50 transition-colors text-left"
+                className="w-full p-3 flex items-center justify-between bg-panel/80 hover:bg-panel/40 transition-colors text-left"
               >
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-purple-400" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-200">Deep Identity & Orphan Audit (Opt-in)</h3>
+                  <Layers className="w-4 h-4 text-chart-5" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-panel-foreground/90">Deep Identity & Orphan Audit (Opt-in)</h3>
                 </div>
-                {expandedSections.deepAudit ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {expandedSections.deepAudit ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
               </button>
 
               {expandedSections.deepAudit && (
                 <div className="p-3 space-y-3 text-xs">
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
                     Scans 9 primary collections against the registry to detect orphaned records from ex-employees or unmigrated legacy IDs.
                   </p>
 
                   <Button
                     onClick={runDeepAudit}
                     disabled={isDeepAuditing}
-                    className="w-full h-9 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2"
+                    className="w-full h-9 bg-chart-5 hover:bg-chart-5/90 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isDeepAuditing ? 'animate-spin' : ''}`} />
                     {isDeepAuditing ? 'Auditing Database...' : 'Run Deep Audit Now'}
                   </Button>
 
                   {deepAuditResults && (
-                    <div className="mt-3 bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 font-mono text-[11px]">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                        <span className="text-slate-400 text-[10px]">Registered Users: {deepAuditResults.totalRegisteredUsers}</span>
-                        <span className="text-purple-400 text-[10px]">{deepAuditResults.scanDurationMs}ms</span>
+                    <div className="mt-3 bg-panel p-3 rounded-xl border border-panel-foreground/15 space-y-2 font-mono text-[11px]">
+                      <div className="flex items-center justify-between border-b border-foreground/30 pb-1.5">
+                        <span className="text-panel-foreground/60 text-[10px]">Registered Users: {deepAuditResults.totalRegisteredUsers}</span>
+                        <span className="text-chart-5 text-[10px]">{deepAuditResults.scanDurationMs}ms</span>
                       </div>
                       
                       {deepAuditResults.auditedCollections && Object.entries(deepAuditResults.auditedCollections).map(([name, stat]: [string, any]) => (
-                        <div key={name} className="flex items-center justify-between py-1 border-b border-slate-900 last:border-0">
-                          <span className="text-slate-300">{name}</span>
-                          <span className="text-slate-400">
+                        <div key={name} className="flex items-center justify-between py-1 border-b border-foreground/30 last:border-0">
+                          <span className="text-panel-foreground/50">{name}</span>
+                          <span className="text-panel-foreground/60">
                             {stat.error ? (
-                              <span className="text-rose-400">Error</span>
+                              <span className="text-destructive">Error</span>
                             ) : (
                               <span>
-                                {stat.totalDocs} docs | <strong className={stat.orphanCount > 0 ? "text-amber-400" : "text-emerald-400"}>{stat.orphanCount} orphans</strong>
+                                {stat.totalDocs} docs | <strong className={stat.orphanCount > 0 ? "text-gold" : "text-success-fill"}>{stat.orphanCount} orphans</strong>
                               </span>
                             )}
                           </span>

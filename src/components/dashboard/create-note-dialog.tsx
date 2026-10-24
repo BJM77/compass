@@ -127,7 +127,7 @@ export function CreateNoteDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50">
+        <Button variant="outline" size="sm" className="gap-2 text-accent border-accent/25 hover:bg-accent/10">
           <PlusCircle className="w-4 h-4" />
           <span className="hidden sm:inline">New Note</span>
         </Button>
@@ -135,7 +135,7 @@ export function CreateNoteDialog() {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-indigo-600" />
+            <ClipboardList className="w-5 h-5 text-accent" />
             Create AM/BD Note
           </DialogTitle>
           <DialogDescription>
@@ -145,7 +145,7 @@ export function CreateNoteDialog() {
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Recipient</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recipient</label>
             <Select 
               value={formState.userId} 
               onValueChange={(val) => setFormState(s => ({ ...s, userId: val }))}
@@ -154,7 +154,7 @@ export function CreateNoteDialog() {
                 <SelectValue placeholder="Select a recipient..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" className="font-bold text-indigo-600">Broadcast to All (AMs & BDMs)</SelectItem>
+                <SelectItem value="all" className="font-bold text-accent">Broadcast to All (AMs & BDMs)</SelectItem>
                 {deduplicateUsers(targetUsers || []).map((u: any) => (
                   <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
                 ))}
@@ -163,7 +163,7 @@ export function CreateNoteDialog() {
           </div>
           
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Title / Subject</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title / Subject</label>
             <Input 
               placeholder="e.g. Weekly Update, Urgent Action Required" 
               value={formState.title}
@@ -172,7 +172,7 @@ export function CreateNoteDialog() {
           </div>
           
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Message Content</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Message Content</label>
             <Textarea 
               placeholder="Write your note here..." 
               className="min-h-[150px]"
@@ -187,7 +187,7 @@ export function CreateNoteDialog() {
             Cancel
           </Button>
           <Button 
-            className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
             onClick={handleSave}
             disabled={isSubmitting}
           >

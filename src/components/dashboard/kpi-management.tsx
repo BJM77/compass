@@ -45,7 +45,7 @@ export function KPIManagement() {
       <h2 className="text-2xl font-bold flex items-center gap-2"><BarChart3 className="w-6 h-6 text-accent" /> KPI Performance Console</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {teamStats?.map(member => (
-          <Card key={member.id} className={`border shadow-sm ${editedStats[member.id] ? 'border-accent' : 'bg-white'}`}>
+          <Card key={member.id} className={`border shadow-sm ${editedStats[member.id] ? 'border-accent' : 'bg-card'}`}>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-bold">{member.name || member.id}</CardTitle>
               <Button size="sm" className="h-8" disabled={!editedStats[member.id] || savingId === member.id} onClick={() => handleSave(member.id)}>{savingId === member.id ? <Loader2 className="animate-spin" /> : <Save className="w-3 h-3 mr-1" />} Save</Button>

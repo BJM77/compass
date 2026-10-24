@@ -48,15 +48,15 @@ export function WeeklyActivitySummary({ userId, readOnly }: WeeklyActivitySummar
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5"><Calendar className="w-3 h-3 text-blue-500" /> Appointments</Label>
+            <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5"><Calendar className="w-3 h-3 text-info" /> Appointments</Label>
             <Input type="number" className="text-xl font-bold h-12" value={activity?.apps || 0} onChange={(e) => updateActivity('apps', parseInt(e.target.value) || 0)} readOnly={readOnly}/>
           </div>
           <div className="space-y-2">
-            <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5"><Phone className="w-3 h-3 text-green-500" /> Calls</Label>
+            <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5"><Phone className="w-3 h-3 text-success" /> Calls</Label>
             <Input type="number" className="text-xl font-bold h-12" value={activity?.calls || 0} onChange={(e) => updateActivity('calls', parseInt(e.target.value) || 0)} readOnly={readOnly}/>
           </div>
           <div className="space-y-2">
-            <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5"><Lightbulb className="w-3 h-3 text-yellow-500" /> New Opps</Label>
+            <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5"><Lightbulb className="w-3 h-3 text-warning" /> New Opps</Label>
             <Input type="number" className="text-xl font-bold h-12" value={activity?.proposals || 0} onChange={(e) => updateActivity('proposals', parseInt(e.target.value) || 0)} readOnly={readOnly}/>
           </div>
         </div>

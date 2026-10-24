@@ -60,7 +60,7 @@ export function BehaviorAlerts({ stats, activities }: { stats?: any, activities?
         ))}
       </div>
 
-      <div className="bg-primary rounded-2xl p-6 text-white relative overflow-hidden mt-4 shadow-xl">
+      <div className="bg-primary rounded-2xl p-6 text-primary-foreground relative overflow-hidden mt-4 shadow-xl">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Target className="w-16 h-16" />
         </div>

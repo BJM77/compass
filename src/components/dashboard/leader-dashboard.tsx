@@ -296,7 +296,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
     <div className="w-full p-4 md:p-8 space-y-6 animate-in fade-in duration-700">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="bg-primary p-2 rounded-xl shadow-lg rotate-3 shrink-0"><ShieldCheck className="w-5 h-5 text-white" /></div>
+          <div className="bg-primary p-2 rounded-xl shadow-lg rotate-3 shrink-0"><ShieldCheck className="w-5 h-5 text-primary-foreground" /></div>
           <h1 className="text-xl md:text-4xl font-extrabold font-headline text-primary tracking-tighter">Governance Command</h1>
         </div>
         <div className="flex gap-2">
@@ -343,7 +343,7 @@ export function LeaderDashboard({ onSimulate }: LeaderDashboardProps) {
            <HistoricalActivity />
            <CRMSummaryPanel summary={crmSummary} showAllUsers={true} currentWeek={currentWeek} />
            <Card className="border-none shadow-2xl bg-card overflow-hidden">
-              <CardHeader className="bg-primary text-white pb-6">
+              <CardHeader className="bg-primary text-primary-foreground pb-6">
                 <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2">
                   <Target className="w-5 h-5 text-accent" />
                   Master Strategy Ledger

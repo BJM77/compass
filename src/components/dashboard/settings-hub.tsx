@@ -117,8 +117,8 @@ function SectionCard({ title, description, icon: Icon, children, badge }: {
   title: string; description?: string; icon: any; children: React.ReactNode; badge?: string;
 }) {
   return (
-    <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-      <CardHeader className="bg-slate-50 border-b border-slate-100 py-4 px-6">
+    <Card className="border border-border shadow-sm bg-card overflow-hidden">
+      <CardHeader className="bg-secondary/60 border-b border-border/60 py-4 px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -141,8 +141,8 @@ function SettingRow({ label, description, children }: { label: string; descripti
   return (
     <div className="flex items-center justify-between gap-6">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-slate-800">{label}</p>
-        {description && <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{description}</p>}
+        <p className="text-sm font-bold text-foreground">{label}</p>
+        {description && <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -325,7 +325,7 @@ export function SettingsHub() {
               onClick={() => setActiveSection(s.id)}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-xs font-black uppercase tracking-wider',
-                activeSection === s.id ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:bg-slate-100'
+                activeSection === s.id ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:bg-secondary'
               )}
             >
               <s.icon className="w-4 h-4" /> {s.label}
@@ -336,8 +336,8 @@ export function SettingsHub() {
         <div className="space-y-6">
           {activeSection === 'profile' && (
             <SectionCard title="My Identity" icon={User}>
-              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border">
-                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white font-black text-2xl shadow-lg">
+              <div className="flex items-center gap-4 p-4 bg-secondary/60 rounded-xl border">
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-black text-2xl shadow-lg">
                   {settings.displayName?.charAt(0)}
                 </div>
                 <div>
@@ -417,7 +417,7 @@ export function SettingsHub() {
                   <Slider value={[settings.weightActivity]} onValueChange={([v]) => handleWeightChange('weightActivity', v)} min={0} max={100} step={5} />
                 </div>
                 <div className="space-y-3">
-                  <div className="flex justify-between font-black text-xs"><span>PROFESSIONAL BEHAVIOUR</span><span className="text-green-600">{settings.weightBehaviour}%</span></div>
+                  <div className="flex justify-between font-black text-xs"><span>PROFESSIONAL BEHAVIOUR</span><span className="text-success">{settings.weightBehaviour}%</span></div>
                   <Slider value={[settings.weightBehaviour]} onValueChange={([v]) => handleWeightChange('weightBehaviour', v)} min={0} max={100} step={5} />
                 </div>
               </div>
@@ -427,10 +427,10 @@ export function SettingsHub() {
           {activeSection === 'api' && isLeader && (
             <SectionCard title="API Access" icon={Link2} description="Manage secure integration nodes.">
                <div className="space-y-4">
-                  <div className="bg-slate-50 p-4 rounded-xl border">
+                  <div className="bg-secondary/60 p-4 rounded-xl border">
                     <Label className="text-[10px] font-black uppercase">Enterprise Node ID</Label>
                     <div className="flex gap-2 mt-2">
-                      <code className="flex-1 p-2 bg-white border rounded font-mono text-[10px] truncate">
+                      <code className="flex-1 p-2 bg-card border rounded font-mono text-[10px] truncate">
                         bdm_compass_{user?.uid?.slice(0, 16)}_secure
                       </code>
                       <Button 
@@ -453,37 +453,37 @@ export function SettingsHub() {
           {activeSection === 'login-log' && isLeader && (
             <SectionCard title="Active User Sessions" icon={Users} description="View last login timestamps for all users.">
               <div className="space-y-4">
-                 <div className="flex items-center justify-between p-4 bg-slate-50 border rounded-xl mb-4">
+                 <div className="flex items-center justify-between p-4 bg-secondary/60 border rounded-xl mb-4">
                    <div className="flex items-center gap-3">
-                     <Activity className="w-5 h-5 text-indigo-500" />
+                     <Activity className="w-5 h-5 text-accent" />
                      <div>
-                       <p className="text-xs font-black uppercase text-slate-800">Session Monitor</p>
-                       <p className="text-[10px] text-slate-500">Real-time authentication log</p>
+                       <p className="text-xs font-black uppercase text-foreground">Session Monitor</p>
+                       <p className="text-[10px] text-muted-foreground">Real-time authentication log</p>
                      </div>
                    </div>
                  </div>
                  <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                    {userLogs.sort((a, b) => ((b.lastLoginAt?.toMillis?.() || 0) - (a.lastLoginAt?.toMillis?.() || 0))).map(u => (
-                     <div key={u.id} className="flex items-center justify-between p-4 bg-white border shadow-sm rounded-xl">
+                     <div key={u.id} className="flex items-center justify-between p-4 bg-card border shadow-sm rounded-xl">
                        <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400">
+                         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-black text-muted-foreground">
                            {u.name?.charAt(0) || u.email?.charAt(0) || '?'}
                          </div>
                          <div>
-                           <p className="text-sm font-bold text-slate-800">{u.name || u.email}</p>
-                           <p className="text-[10px] uppercase font-bold text-slate-500">{u.role || 'User'}</p>
+                           <p className="text-sm font-bold text-foreground">{u.name || u.email}</p>
+                           <p className="text-[10px] uppercase font-bold text-muted-foreground">{u.role || 'User'}</p>
                          </div>
                        </div>
                        <div className="text-right">
-                         <p className="text-xs font-black text-slate-700">
+                         <p className="text-xs font-black text-foreground/85">
                            {u.lastLoginAt ? new Date(u.lastLoginAt.toMillis()).toLocaleString('en-AU') : 'Never Logged In'}
                          </p>
-                         {u.isOnline && <Badge className="mt-1 text-[9px] bg-emerald-100 text-emerald-700 border-emerald-200">Online Recently</Badge>}
+                         {u.isOnline && <Badge className="mt-1 text-[9px] bg-success-soft text-success-ink border-success/25">Online Recently</Badge>}
                        </div>
                      </div>
                    ))}
                    {userLogs.length === 0 && (
-                     <div className="p-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+                     <div className="p-8 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest">
                        No user data found
                      </div>
                    )}
@@ -500,15 +500,15 @@ export function SettingsHub() {
               icon={Database}
             >
               <div className="flex flex-col gap-4">
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-foreground/75">
                   This will export the following collections into a single JSON file: 
-                  <span className="font-mono text-xs ml-2 bg-slate-100 p-1 rounded">users, pipelineReviews, weeklyReports, weeklyCommitments, weeklyProgress, factFindingDocs, timeManagementPlans, successPlans, aiUsageLogs, appSettings, systemAnnouncements, strategyConfig</span>
+                  <span className="font-mono text-xs ml-2 bg-secondary p-1 rounded">users, pipelineReviews, weeklyReports, weeklyCommitments, weeklyProgress, factFindingDocs, timeManagementPlans, successPlans, aiUsageLogs, appSettings, systemAnnouncements, strategyConfig</span>
                 </p>
                 <div className="pt-4 border-t">
                   <Button 
                     onClick={handleGenerateBackup} 
                     disabled={isBackingUp}
-                    className="bg-primary text-white font-black h-11 px-6 shadow-lg gap-2"
+                    className="bg-primary text-primary-foreground font-black h-11 px-6 shadow-lg gap-2"
                   >
                     {isBackingUp ? <Loader2 className="animate-spin w-4 h-4" /> : <Database className="w-4 h-4" />}
                     {isBackingUp ? "Generating Backup..." : "Generate Full Backup (JSON)"}
@@ -521,8 +521,8 @@ export function SettingsHub() {
           {activeSection === 'danger' && isLeader && (
             <SectionCard title="Danger Zone" icon={Trash2}>
               <div className="space-y-4">
-                 <div className="p-4 border-2 border-red-100 bg-red-50 rounded-2xl flex items-center justify-between">
-                    <div><p className="text-sm font-black text-red-900 uppercase">Wipe Territory Pipeline</p><p className="text-[11px] text-red-700">Irreversibly delete all active opportunities.</p></div>
+                 <div className="p-4 border-2 border-destructive/15 bg-danger-soft rounded-2xl flex items-center justify-between">
+                    <div><p className="text-sm font-black text-destructive uppercase">Wipe Territory Pipeline</p><p className="text-[11px] text-destructive">Irreversibly delete all active opportunities.</p></div>
                     <Button variant="destructive" onClick={() => setShowDangerConfirm(true)} className="font-black text-xs px-6">EXECUTE WIPE</Button>
                  </div>
               </div>
@@ -534,10 +534,10 @@ export function SettingsHub() {
       <Dialog open={showDangerConfirm} onOpenChange={setShowDangerConfirm}>
         <DialogContent className="rounded-3xl p-8">
            <DialogHeader>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tight text-red-600">Strict Auth Protocol</DialogTitle>
-              <DialogDescription className="font-bold">Type <span className="text-red-600">DELETE CONFIRMED</span> to proceed.</DialogDescription>
+              <DialogTitle className="text-2xl font-black uppercase tracking-tight text-destructive">Strict Auth Protocol</DialogTitle>
+              <DialogDescription className="font-bold">Type <span className="text-destructive">DELETE CONFIRMED</span> to proceed.</DialogDescription>
            </DialogHeader>
-           <Input value={dangerConfirmText} onChange={e => setDangerConfirmText(e.target.value)} placeholder="Type confirmation phrase..." className="h-12 border-red-200" />
+           <Input value={dangerConfirmText} onChange={e => setDangerConfirmText(e.target.value)} placeholder="Type confirmation phrase..." className="h-12 border-destructive/25" />
            <DialogFooter>
               <Button variant="ghost" onClick={() => setShowDangerConfirm(false)} className="font-black">CANCEL</Button>
               <Button variant="destructive" disabled={dangerConfirmText !== 'DELETE CONFIRMED' || isSaving} onClick={async () => {

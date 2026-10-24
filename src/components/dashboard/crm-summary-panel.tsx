@@ -382,7 +382,7 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
       />
 
       <Card className="border-none shadow-xl bg-card overflow-hidden">
-        <CardHeader className="bg-primary text-white pb-4 pt-5">
+        <CardHeader className="bg-primary text-primary-foreground pb-4 pt-5">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-accent/20 rounded-xl">
@@ -435,7 +435,7 @@ export function CRMSummaryPanel({ summary, showAllUsers = false, currentWeek }: 
                       {summary.byUser.map(u => <UserRow key={u.userId} u={u} onInspectUser={handleInspectUser} />)}
                     </tbody>
                     {/* Team total footer */}
-                    <tfoot className="bg-primary text-white text-xs font-semibold">
+                    <tfoot className="bg-primary text-primary-foreground text-xs font-semibold">
                       <tr>
                         <td className="px-4 py-3 sticky left-0 bg-primary">TEAM TOTAL</td>
                         <td className="px-4 py-3 text-center">{summary.team.opportunityCount}</td>

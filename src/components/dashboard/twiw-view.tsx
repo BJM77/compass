@@ -3299,7 +3299,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           )}
 
           {/* Submission Panel */}
-          <Card className="border-border shadow-lg rounded-3xl overflow-hidden bg-primary text-white">
+          <Card className="border-border shadow-lg rounded-3xl overflow-hidden bg-primary text-primary-foreground">
             <CardHeader className="border-b border-primary/80 py-4">
               <CardTitle className="text-xs font-semibold text-accent flex items-center gap-2">
                 <ClipboardCheck className="w-4 h-4" /> Publication Status
@@ -3321,7 +3321,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleSave('DRAFT')} 
                   disabled={isSaving || isSubmitting}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-sm border border-primary/70"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11 text-xs rounded-2xl gap-2 shadow-sm border border-primary/70"
                 >
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-muted-foreground/60" />}
                   Save Draft
@@ -3329,7 +3329,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleSave('SUBMITTED')} 
                   disabled={isSaving || isSubmitting || !isFormComplete}
-                  className="w-full bg-accent hover:bg-accent/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-lg shadow-accent/20 disabled:opacity-40"
+                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-11 text-xs rounded-2xl gap-2 shadow-lg shadow-accent/20 disabled:opacity-40"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {status === 'SUBMITTED' ? 'Update Submission' : 'Submit to Leadership'}
@@ -3380,7 +3380,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           <DialogFooter className="sm:justify-center">
             <Button 
               onClick={() => setSuccessDialogOpen(false)} 
-              className="bg-primary text-white font-bold h-12 px-8 rounded-xl"
+              className="bg-primary text-primary-foreground font-bold h-12 px-8 rounded-xl"
             >
               Continue
             </Button>
@@ -3503,7 +3503,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleExportPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
-                  className="bg-accent hover:bg-accent/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
                 >
                   {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
                   Export to Landscape PDF
@@ -3511,7 +3511,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleExportOversizedPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
-                  className="bg-accent hover:bg-primary text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
+                  className="bg-accent hover:bg-primary text-accent-foreground font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
                 >
                   {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
                   Export PDF
@@ -3519,7 +3519,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                 <Button 
                   onClick={() => handleExportCondensedPdf(false)}
                   disabled={collatedSubmissionsCount === 0 || isExporting}
-                  className="bg-primary hover:bg-primary/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
                 >
                   {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
                   Export to Condensed PDF
@@ -3916,7 +3916,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={handleExportCsv}
               disabled={mappedMonthlySubmissions?.length === 0}
-              className="bg-success-fill hover:bg-success text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
+              className="bg-success-fill hover:bg-success text-success-foreground font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               Export to CSV
@@ -3924,7 +3924,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={() => handleExportPdf(true)}
               disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
-              className="bg-accent hover:bg-accent/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
               Export to Landscape PDF
@@ -3932,7 +3932,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={() => handleExportOversizedPdf(true)}
               disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
-              className="bg-accent hover:bg-primary text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
+              className="bg-accent hover:bg-primary text-accent-foreground font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
               Export PDF
@@ -3940,7 +3940,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
             <Button 
               onClick={() => handleExportCondensedPdf(true)}
               disabled={mappedMonthlySubmissions?.length === 0 || isExporting}
-              className="bg-primary hover:bg-primary/90 text-white font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-9 text-xs rounded-xl gap-2 shadow-sm"
             >
               {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
               Export to Condensed PDF

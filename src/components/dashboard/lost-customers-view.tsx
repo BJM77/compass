@@ -20,12 +20,12 @@ export function LostCustomersView() {
   const { data: lostDeals, isLoading } = useCollection(lostQuery);
 
   return (
-    <Card className="border-none shadow-xl bg-white">
+    <Card className="border-none shadow-xl bg-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <CardTitle className="text-xl flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-red-500" />
+              <Trash2 className="w-5 h-5 text-destructive" />
               Weekly Lost Customers Archive
             </CardTitle>
             <CardDescription>

@@ -64,8 +64,8 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
   };
 
   return (
-    <Card className="flex flex-col h-full border-none shadow-2xl bg-white overflow-hidden">
-      <CardHeader className="bg-slate-50 border-b pb-6">
+    <Card className="flex flex-col h-full border-none shadow-2xl bg-card overflow-hidden">
+      <CardHeader className="bg-secondary/60 border-b pb-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2 text-primary">
@@ -74,7 +74,7 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
             </CardTitle>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Compounding Professional Mastery</p>
           </div>
-          <Badge className="bg-slate-900 text-white border-none font-black text-[9px] uppercase tracking-widest px-3">
+          <Badge className="bg-panel text-panel-foreground border-none font-black text-[9px] uppercase tracking-widest px-3">
             {notes.filter(n => n.status !== 'RESOLVED').length} Active
           </Badge>
         </div>
@@ -84,7 +84,7 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
           <div className="space-y-4 bg-primary/5 p-5 rounded-3xl border border-primary/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {isPrivate ? <Lock className="w-3.5 h-3.5 text-red-500" /> : <Globe className="w-3.5 h-3.5 text-green-500" />}
+                {isPrivate ? <Lock className="w-3.5 h-3.5 text-destructive" /> : <Globe className="w-3.5 h-3.5 text-success" />}
                 <Label htmlFor="privacy-toggle" className="text-[10px] font-black uppercase tracking-widest text-primary">
                   {isPrivate ? 'Confidential Audit Entry' : 'Public Achievement'}
                 </Label>
@@ -99,7 +99,7 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
               placeholder={isPrivate ? "Log behavioral risk or 1:1 outcome..." : "Log a public recognition or win..."}
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
-              className="resize-none min-h-[100px] bg-white border-primary/10 rounded-2xl text-sm font-medium"
+              className="resize-none min-h-[100px] bg-card border-primary/10 rounded-2xl text-sm font-medium"
             />
             <Button 
               onClick={handleSubmit} 
@@ -114,9 +114,9 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
         <ScrollArea className="flex-1 h-[500px] pr-4">
           <div className="space-y-4">
             {notes.length === 0 ? (
-              <div className="text-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed">
-                <ShieldAlert className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No historical coaching nodes found.</p>
+              <div className="text-center py-20 bg-secondary/30 rounded-3xl border-2 border-dashed">
+                <ShieldAlert className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">No historical coaching nodes found.</p>
               </div>
             ) : (
               notes.sort((a, b) => {
@@ -127,39 +127,39 @@ export function CoachingNotes({ notes, canAdd, onAddNote, currentUserId, parentU
                 <div 
                   key={note.id} 
                   className={`p-5 rounded-3xl border-2 transition-all group relative overflow-hidden ${
-                    note.status === 'RESOLVED' ? 'bg-slate-50 border-slate-100 opacity-60' :
-                    note.isPrivate ? 'bg-white border-red-50 shadow-sm' : 'bg-white border-green-50 shadow-sm'
+                    note.status === 'RESOLVED' ? 'bg-secondary/60 border-border/60 opacity-60' :
+                    note.isPrivate ? 'bg-card border-destructive/15 shadow-sm' : 'bg-card border-success/15 shadow-sm'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                        <Badge variant="outline" className={`text-[8px] font-black uppercase border-none ${
-                        note.isPrivate ? 'text-red-600 bg-red-100/50' : 'text-green-600 bg-green-100/50'
+                        note.isPrivate ? 'text-destructive bg-danger-soft/50' : 'text-success bg-success-soft/50'
                       }`}>
                         {note.isPrivate ? 'Audited' : 'Public'}
                       </Badge>
                       {note.status === 'OPEN' && (
-                        <div className="flex items-center gap-1.5 text-[8px] font-black text-orange-600 bg-orange-100/50 px-2 py-0.5 rounded-full uppercase">
+                        <div className="flex items-center gap-1.5 text-[8px] font-black text-warning-ink bg-warning-soft/50 px-2 py-0.5 rounded-full uppercase">
                            <AlertCircle className="w-2.5 h-2.5" /> Action Required
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase tracking-tight">
+                      <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold uppercase tracking-tight">
                         <Clock className="w-3 h-3" />
                         {formatDistanceToNow(note.createdAt?.toDate ? note.createdAt.toDate() : new Date(note.createdAt), { addSuffix: true })}
                       </div>
                       {canAdd && (
                         <button 
                           onClick={() => toggleStatus(note.id, note.status || 'OPEN')}
-                          className={`p-1 rounded-full transition-colors ${note.status === 'RESOLVED' ? 'text-green-600' : 'text-slate-300 hover:text-green-500'}`}
+                          className={`p-1 rounded-full transition-colors ${note.status === 'RESOLVED' ? 'text-success' : 'text-muted-foreground/70 hover:text-success'}`}
                         >
                           <CheckCircle2 className="w-5 h-5" />
                         </button>
                       )}
                     </div>
                   </div>
-                  <p className={`text-sm leading-relaxed font-bold text-slate-800 ${note.status === 'RESOLVED' ? 'line-through' : ''}`}>
+                  <p className={`text-sm leading-relaxed font-bold text-foreground ${note.status === 'RESOLVED' ? 'line-through' : ''}`}>
                     {note.text}
                   </p>
                 </div>

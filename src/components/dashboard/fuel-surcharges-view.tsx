@@ -27,9 +27,9 @@ const fmt = (n: number) => `${n.toFixed(2).replace(/\.?0+$/, '')}%`;
 
 function Delta({ d }: { d: number | null }) {
   if (d == null) return null;
-  if (d === 0) return <span className="inline-flex items-center text-[11px] text-slate-500"><Minus className="w-3 h-3" />0</span>;
+  if (d === 0) return <span className="inline-flex items-center text-[11px] text-muted-foreground"><Minus className="w-3 h-3" />0</span>;
   const up = d > 0;
-  return <span className={cn('inline-flex items-center text-[11px] font-bold', up ? 'text-red-600' : 'text-emerald-600')} title="Change vs previous period (points)">
+  return <span className={cn('inline-flex items-center text-[11px] font-bold', up ? 'text-destructive' : 'text-success')} title="Change vs previous period (points)">
     {up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{up ? '+' : ''}{d.toFixed(2)}
   </span>;
 }
@@ -60,7 +60,7 @@ export function FuelSurchargesView() {
   const tgeRoad = rows.find(r => r.c.ours)?.d.current.find(x => x.label === TGE_BENCHMARK_LABEL)?.pct ?? null;
   const lastChecked = Math.max(0, ...rows.map(r => r.d.lastCheckedAt || 0));
 
-  if (!isStaff) return <Card><CardContent className="p-6 text-sm text-slate-600">Fuel Surcharges is available to staff only.</CardContent></Card>;
+  if (!isStaff) return <Card><CardContent className="p-6 text-sm text-foreground/75">Fuel Surcharges is available to staff only.</CardContent></Card>;
 
   const refresh = async () => {
     setRefreshing(true);
@@ -87,16 +87,16 @@ export function FuelSurchargesView() {
     const h = headline(r);
     if (!h || tgeRoad == null || r.c.ours) return null;
     const diff = Math.round((h.pct - tgeRoad) * 100) / 100;
-    return <span className={cn('text-xs font-bold', diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-red-600' : 'text-slate-500')} title={`vs TGE ${TGE_BENCHMARK_LABEL} ${fmt(tgeRoad)}`}>{diff > 0 ? '+' : ''}{diff.toFixed(2)} pts</span>;
+    return <span className={cn('text-xs font-bold', diff > 0 ? 'text-success-ink' : diff < 0 ? 'text-destructive' : 'text-muted-foreground')} title={`vs TGE ${TGE_BENCHMARK_LABEL} ${fmt(tgeRoad)}`}>{diff > 0 ? '+' : ''}{diff.toFixed(2)} pts</span>;
   };
 
   const Status = ({ r }: { r: Row }) => {
     const { d, c } = r;
-    if (c.notPublished) return <span className="text-xs text-slate-500">Not published — rate card/portal only</span>;
-    if (d.status === 'stale') return <span className="text-xs text-amber-700 inline-flex gap-1"><AlertTriangle className="w-3.5 h-3.5 shrink-0" />Couldn&apos;t refresh — showing last known ({awst(d.lastSuccessAt)})</span>;
-    if (d.status === 'check_source') return <span className="text-xs text-amber-700">Check source</span>;
-    if (d.status === 'unavailable') return <span className="text-xs text-slate-500">Unavailable</span>;
-    return <span className="text-xs text-slate-500">{d.seeded ? 'Seeded 18 Oct 2026 (research)' : `Checked ${awst(d.lastCheckedAt)}`}</span>;
+    if (c.notPublished) return <span className="text-xs text-muted-foreground">Not published — rate card/portal only</span>;
+    if (d.status === 'stale') return <span className="text-xs text-warning-ink inline-flex gap-1"><AlertTriangle className="w-3.5 h-3.5 shrink-0" />Couldn&apos;t refresh — showing last known ({awst(d.lastSuccessAt)})</span>;
+    if (d.status === 'check_source') return <span className="text-xs text-warning-ink">Check source</span>;
+    if (d.status === 'unavailable') return <span className="text-xs text-muted-foreground">Unavailable</span>;
+    return <span className="text-xs text-muted-foreground">{d.seeded ? 'Seeded 18 Oct 2026 (research)' : `Checked ${awst(d.lastCheckedAt)}`}</span>;
   };
 
   const Rates = ({ r }: { r: Row }) => {
@@ -105,36 +105,36 @@ export function FuelSurchargesView() {
       <div className="space-y-0.5 min-w-0">
         {o && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-black text-slate-900">{fmt(o.pct)}</span><span className="text-xs text-slate-600">{o.label}</span>
-            <Badge variant="outline" className="text-[10px] border-purple-200 bg-purple-50 text-purple-800">Manual{o.effective ? ` · ${dmy(o.effective)}` : ''}</Badge>
-            {o.note && <span className="text-[11px] text-slate-500 break-words w-full">{o.note} ({o.enteredByName}, {awst(tsMs(o.enteredAt))})</span>}
+            <span className="font-black text-foreground">{fmt(o.pct)}</span><span className="text-xs text-foreground/75">{o.label}</span>
+            <Badge variant="outline" className="text-[10px] border-chart-5/25 bg-chart-5/10 text-chart-5">Manual{o.effective ? ` · ${dmy(o.effective)}` : ''}</Badge>
+            {o.note && <span className="text-[11px] text-muted-foreground break-words w-full">{o.note} ({o.enteredByName}, {awst(tsMs(o.enteredAt))})</span>}
           </div>
         )}
         {d.current.map(x => (
           <div key={x.label} className={cn('flex flex-wrap items-center gap-1.5', o && 'opacity-60')}>
-            <span className={cn('font-black', r.c.ours ? 'text-indigo-800' : 'text-slate-900')}>{fmt(x.pct)}</span>
-            <span className="text-xs text-slate-600">{x.label}</span>
+            <span className={cn('font-black', r.c.ours ? 'text-primary' : 'text-foreground')}>{fmt(x.pct)}</span>
+            <span className="text-xs text-foreground/75">{x.label}</span>
             <Delta d={deltaFor(d, x)} />
-            {o && <span className="text-[10px] text-slate-400">(published)</span>}
+            {o && <span className="text-[10px] text-muted-foreground">(published)</span>}
           </div>
         ))}
-        {!o && !d.current.length && !r.c.notPublished && (r.c.url ? <a href={r.c.url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-700 hover:underline">Check source</a> : null)}
-        {!o && !d.current.length && r.c.notPublished && <span className="text-xs text-slate-400">—</span>}
+        {!o && !d.current.length && !r.c.notPublished && (r.c.url ? <a href={r.c.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Check source</a> : null)}
+        {!o && !d.current.length && r.c.notPublished && <span className="text-xs text-muted-foreground">—</span>}
       </div>
     );
   };
 
   const Effective = ({ r }: { r: Row }) => (
-    <div className="text-xs text-slate-600 space-y-0.5">
+    <div className="text-xs text-foreground/75 space-y-0.5">
       {r.d.current[0] && <div>{period(r.d.current[0])}</div>}
-      {r.d.upcoming.slice(0, r.c.ours ? 3 : 2).map((u, i) => <div key={i} className="text-slate-500">Next: {fmt(u.pct)}{r.c.ours ? ` ${u.label.replace('Express ', '')}` : ''} {period(u)}</div>)}
-      <div className="text-slate-400">{r.c.frequency}</div>
+      {r.d.upcoming.slice(0, r.c.ours ? 3 : 2).map((u, i) => <div key={i} className="text-muted-foreground">Next: {fmt(u.pct)}{r.c.ours ? ` ${u.label.replace('Express ', '')}` : ''} {period(u)}</div>)}
+      <div className="text-muted-foreground">{r.c.frequency}</div>
     </div>
   );
 
   const Source = ({ r }: { r: Row }) => (
     <div className="flex flex-wrap items-center gap-2">
-      {r.c.url && <a href={r.c.url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-700 hover:underline inline-flex items-center gap-0.5">Source<ExternalLink className="w-3 h-3" /></a>}
+      {r.c.url && <a href={r.c.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-0.5">Source<ExternalLink className="w-3 h-3" /></a>}
       {isAdmin && <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditing(r)}><Pencil className="w-3 h-3 mr-1" />Manual</Button>}
     </div>
   );
@@ -153,14 +153,14 @@ export function FuelSurchargesView() {
           {/* Desktop table */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="text-left text-xs text-slate-500 border-b">
+              <thead><tr className="text-left text-xs text-muted-foreground border-b">
                 <th className="py-2 pr-3">Carrier</th><th className="py-2 pr-3">Current surcharge</th><th className="py-2 pr-3">Effective</th>
                 <th className="py-2 pr-3" title={`Difference vs TGE ${TGE_BENCHMARK_LABEL}`}>vs TGE Road</th><th className="py-2 pr-3">Status</th><th className="py-2">Source</th>
               </tr></thead>
               <tbody>
                 {rows.map(r => (
-                  <tr key={r.c.id} className={cn('border-b align-top', r.c.ours && 'bg-indigo-50/60')}>
-                    <td className="py-2 pr-3 font-bold">{r.c.name}{r.c.ours && <Badge className="ml-2 bg-indigo-600 hover:bg-indigo-600 text-[10px]">Our rate</Badge>}{r.c.note && <div className="text-[11px] font-normal text-slate-500">{r.c.note}</div>}</td>
+                  <tr key={r.c.id} className={cn('border-b align-top', r.c.ours && 'bg-accent/5')}>
+                    <td className="py-2 pr-3 font-bold">{r.c.name}{r.c.ours && <Badge className="ml-2 bg-accent hover:bg-accent/90 text-[10px]">Our rate</Badge>}{r.c.note && <div className="text-[11px] font-normal text-muted-foreground">{r.c.note}</div>}</td>
                     <td className="py-2 pr-3"><Rates r={r} /></td>
                     <td className="py-2 pr-3"><Effective r={r} /></td>
                     <td className="py-2 pr-3">{vsTge(r)}</td>
@@ -174,9 +174,9 @@ export function FuelSurchargesView() {
           {/* Mobile: one card per row */}
           <div className="md:hidden grid grid-cols-1 gap-2">
             {rows.map(r => (
-              <div key={r.c.id} className={cn('rounded-lg border p-3 space-y-1.5 min-w-0', r.c.ours ? 'bg-indigo-50 border-indigo-200' : 'bg-white')}>
-                <div className="flex items-center gap-2"><span className="font-bold">{r.c.name}</span>{r.c.ours && <Badge className="bg-indigo-600 hover:bg-indigo-600 text-[10px]">Our rate</Badge>}<div className="flex-1" />{vsTge(r)}</div>
-                {r.c.note && <p className="text-[11px] text-slate-500">{r.c.note}</p>}
+              <div key={r.c.id} className={cn('rounded-lg border p-3 space-y-1.5 min-w-0', r.c.ours ? 'bg-accent/10 border-accent/25' : 'bg-card')}>
+                <div className="flex items-center gap-2"><span className="font-bold">{r.c.name}</span>{r.c.ours && <Badge className="bg-accent hover:bg-accent/90 text-[10px]">Our rate</Badge>}<div className="flex-1" />{vsTge(r)}</div>
+                {r.c.note && <p className="text-[11px] text-muted-foreground">{r.c.note}</p>}
                 <Rates r={r} />
                 <Effective r={r} />
                 <Status r={r} />
@@ -184,9 +184,9 @@ export function FuelSurchargesView() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Arrows show the change vs the previous period (percentage points). &quot;vs TGE Road&quot; = carrier headline minus TGE {TGE_BENCHMARK_LABEL}; positive means they charge more.
-            Diesel benchmark: <a href={AIP_TGP_URL} target="_blank" rel="noopener noreferrer" className="text-indigo-700 hover:underline">AIP terminal gate prices</a>.
+            Diesel benchmark: <a href={AIP_TGP_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">AIP terminal gate prices</a>.
           </p>
         </CardContent>
       </Card>

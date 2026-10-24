@@ -247,17 +247,17 @@ export function FactFindingHub() {
 
     const getStageConfig = (stage?: string) => {
     switch(stage) {
-      case 'New': return { fill: 'w-[5%]', color: 'bg-slate-200', text: 'text-slate-600' };
-      case 'Meeting': return { fill: 'w-[15%]', color: 'bg-blue-100', text: 'text-blue-700' };
-      case 'Proposal Required': return { fill: 'w-[30%]', color: 'bg-orange-200', text: 'text-orange-800' };
-      case 'Proposal Sent': return { fill: 'w-[37%]', color: 'bg-purple-200', text: 'text-purple-800' };
-      case 'Signed': return { fill: 'w-[45%]', color: 'bg-amber-200', text: 'text-amber-800' };
-      case 'Credit Check': return { fill: 'w-[60%]', color: 'bg-yellow-200', text: 'text-yellow-800' };
-      case 'Account Setup': return { fill: 'w-[75%]', color: 'bg-teal-200', text: 'text-teal-800' };
-      case 'Customer Training': return { fill: 'w-[90%]', color: 'bg-cyan-200', text: 'text-cyan-800' };
-      case 'Trading': return { fill: 'w-[100%]', color: 'bg-green-300', text: 'text-green-900' };
-      case 'Down Trading': return { fill: 'w-[100%]', color: 'bg-red-200', text: 'text-red-800' };
-      default: return { fill: 'w-[0%]', color: 'bg-transparent', text: 'text-slate-500' };
+      case 'New': return { fill: 'w-[5%]', color: 'bg-border', text: 'text-foreground/75' };
+      case 'Meeting': return { fill: 'w-[15%]', color: 'bg-info-soft', text: 'text-info' };
+      case 'Proposal Required': return { fill: 'w-[30%]', color: 'bg-warning/20', text: 'text-warning-ink' };
+      case 'Proposal Sent': return { fill: 'w-[37%]', color: 'bg-chart-5/20', text: 'text-chart-5' };
+      case 'Signed': return { fill: 'w-[45%]', color: 'bg-warning/20', text: 'text-warning-ink' };
+      case 'Credit Check': return { fill: 'w-[60%]', color: 'bg-warning/20', text: 'text-warning-ink' };
+      case 'Account Setup': return { fill: 'w-[75%]', color: 'bg-success/20', text: 'text-success-ink' };
+      case 'Customer Training': return { fill: 'w-[90%]', color: 'bg-info/20', text: 'text-info' };
+      case 'Trading': return { fill: 'w-[100%]', color: 'bg-success/40', text: 'text-success-ink' };
+      case 'Down Trading': return { fill: 'w-[100%]', color: 'bg-destructive/20', text: 'text-destructive' };
+      default: return { fill: 'w-[0%]', color: 'bg-transparent', text: 'text-muted-foreground' };
     }
   };
 
@@ -282,7 +282,7 @@ export function FactFindingHub() {
           if (!open) setSelectedDoc(null);
         }}
       >
-        <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 overflow-y-auto bg-slate-50 border-0 rounded-2xl sm:rounded-[32px] overflow-x-hidden">
+        <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 overflow-y-auto bg-secondary/60 border-0 rounded-2xl sm:rounded-[32px] overflow-x-hidden">
           <DialogTitle className="sr-only">Fact Finding Document</DialogTitle>
           <DialogDescription className="sr-only">Create or manage a logistics discovery document.</DialogDescription>
           {selectedDoc === 'new' && (
@@ -296,11 +296,11 @@ export function FactFindingHub() {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-slate-800 flex items-center gap-3">
+          <h2 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
             <FileSearch className="w-8 h-8 text-primary" />
             Fact Finding Documents
           </h2>
-          <p className="text-slate-500 mt-1 font-medium">Create and manage logistics discovery documents.</p>
+          <p className="text-muted-foreground mt-1 font-medium">Create and manage logistics discovery documents.</p>
         </div>
         <Button onClick={() => setSelectedDoc('new')} className="font-bold gap-2">
           <Plus className="w-4 h-4" />
@@ -309,17 +309,17 @@ export function FactFindingHub() {
       </div>
 
       {loading ? (
-        <div className="flex h-[400px] items-center justify-center text-slate-500 font-bold uppercase tracking-widest">
+        <div className="flex h-[400px] items-center justify-center text-muted-foreground font-bold uppercase tracking-widest">
           Loading Documents...
         </div>
       ) : !docs || docs.length === 0 ? (
-        <Card className="border-dashed border-2 border-slate-200 bg-slate-50">
+        <Card className="border-dashed border-2 border-border bg-secondary/60">
           <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
-              <FileSearch className="w-8 h-8 text-slate-300" />
+            <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center shadow-sm mb-4">
+              <FileSearch className="w-8 h-8 text-muted-foreground/70" />
             </div>
-            <h3 className="text-xl font-black text-slate-700 mb-2">No Documents Found</h3>
-            <p className="text-slate-500 font-medium mb-6 max-w-md">
+            <h3 className="text-xl font-black text-foreground/85 mb-2">No Documents Found</h3>
+            <p className="text-muted-foreground font-medium mb-6 max-w-md">
               You haven't created any Fact Finding documents yet. Create one to capture detailed logistics requirements for a prospect.
             </p>
             <Button onClick={() => setSelectedDoc('new')} className="font-bold gap-2">
@@ -333,14 +333,14 @@ export function FactFindingHub() {
           {/* Controls Bar */}
           <div className="flex flex-col md:flex-row gap-4 items-end mb-4">
             <div className="relative flex-1 w-full md:max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input 
                 ref={searchInputRef}
                 placeholder="Search customer..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Escape' && searchQuery) { e.preventDefault(); clearSearch(); } }}
-                className="pl-9 pr-10 h-10 border-slate-200"
+                className="pl-9 pr-10 h-10 border-border"
               />
               {searchQuery && (
                 <button
@@ -348,7 +348,7 @@ export function FactFindingHub() {
                   onClick={clearSearch}
                   aria-label="Clear search"
                   title="Clear search"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground/85 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -356,7 +356,7 @@ export function FactFindingHub() {
             </div>
             
             <Select value={userFilter} onValueChange={setUserFilter}>
-              <SelectTrigger className="w-full md:w-[200px] h-10 border-slate-200">
+              <SelectTrigger className="w-full md:w-[200px] h-10 border-border">
                 <SelectValue placeholder="Filter by Creator" />
               </SelectTrigger>
               <SelectContent>
@@ -368,7 +368,7 @@ export function FactFindingHub() {
             </Select>
 
             <Select value={sortUserDir} onValueChange={(v: any) => setSortUserDir(v)}>
-              <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+              <SelectTrigger className="w-full md:w-[180px] h-10 border-border">
                 <SelectValue placeholder="Sort order..." />
               </SelectTrigger>
               <SelectContent>
@@ -381,7 +381,7 @@ export function FactFindingHub() {
             </Select>
 
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="w-full md:w-[180px] h-10 border-slate-200">
+              <SelectTrigger className="w-full md:w-[180px] h-10 border-border">
                 <SelectValue placeholder="Filter by Stage" />
               </SelectTrigger>
               <SelectContent>
@@ -399,17 +399,17 @@ export function FactFindingHub() {
               disabled={!filtersChanged}
               aria-label="Reset search and filters"
               title="Reset search and filters"
-              className="w-full md:w-auto h-10 min-h-[32px] px-3 shrink-0 border-slate-200 text-slate-600"
+              className="w-full md:w-auto h-10 min-h-[32px] px-3 shrink-0 border-border text-foreground/75"
             >
               <RotateCcw className="w-4 h-4 mr-1.5" />
               Reset
             </Button>
 
-            <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 w-full md:w-auto md:ml-auto">
+            <div className="flex bg-secondary p-1 rounded-lg border border-border w-full md:w-auto md:ml-auto">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${!showArchived ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${!showArchived ? 'bg-card shadow-sm text-foreground font-bold' : 'text-muted-foreground hover:text-foreground/85'}`}
                 onClick={() => setShowArchived(false)}
               >
                 Active
@@ -417,17 +417,17 @@ export function FactFindingHub() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${showArchived ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${showArchived ? 'bg-card shadow-sm text-foreground font-bold' : 'text-muted-foreground hover:text-foreground/85'}`}
                 onClick={() => setShowArchived(true)}
               >
                 Archived
               </Button>
             </div>
-            <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 w-full md:w-auto">
+            <div className="flex bg-secondary p-1 rounded-lg border border-border w-full md:w-auto">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${viewMode === 'card' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${viewMode === 'card' ? 'bg-card shadow-sm text-foreground font-bold' : 'text-muted-foreground hover:text-foreground/85'}`}
                 onClick={() => setViewMode('card')}
               >
                 <LayoutGrid className="w-4 h-4 mr-2" />
@@ -436,7 +436,7 @@ export function FactFindingHub() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 md:flex-none px-3 py-1.5 h-8 transition-all ${viewMode === 'list' ? 'bg-card shadow-sm text-foreground font-bold' : 'text-muted-foreground hover:text-foreground/85'}`}
                 onClick={() => setViewMode('list')}
               >
                 <List className="w-4 h-4 mr-2" />
@@ -446,18 +446,18 @@ export function FactFindingHub() {
           </div>
 
           {filteredAndSortedDocs.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
-              <p className="text-slate-500 font-bold">No documents match your search/filter criteria.</p>
+            <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl bg-secondary/60">
+              <p className="text-muted-foreground font-bold">No documents match your search/filter criteria.</p>
               <Button variant="link" onClick={resetFilters} className="mt-2">Clear Filters</Button>
             </div>
           ) : viewMode === 'list' ? (
-            <div className="space-y-2 nav:space-y-0 nav:border nav:border-slate-200 nav:rounded-xl nav:bg-white nav:shadow-sm nav:overflow-hidden">
+            <div className="space-y-2 nav:space-y-0 nav:border nav:border-border nav:rounded-xl nav:bg-card nav:shadow-sm nav:overflow-hidden">
               {/* Desktop column header (two-line rows) */}
-              <div className="hidden nav:block bg-slate-50/80 border-b border-slate-200 px-4 py-2 text-xs font-bold text-slate-500">
+              <div className="hidden nav:block bg-secondary/50 border-b border-border px-4 py-2 text-xs font-bold text-muted-foreground">
                 <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4">
                   <span>Customer</span><span>Owner</span><span>Freight Type</span><span className="text-right">Value</span><span />
                 </div>
-                <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] gap-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">
                   <span>Freight Size · Stage</span><span>Model</span><span>Created</span><span className="text-right">Modified</span><span />
                 </div>
               </div>
@@ -473,7 +473,7 @@ export function FactFindingHub() {
                     tabIndex={0}
                     onClick={() => handleSelectDoc(doc)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleSelectDoc(doc); }}
-                    className="group cursor-pointer bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:bg-slate-50 transition-colors nav:rounded-none nav:border-0 nav:border-b nav:last:border-b-0 nav:shadow-none nav:px-4 nav:py-2.5"
+                    className="group cursor-pointer bg-card border border-border rounded-xl p-3 shadow-sm hover:bg-secondary/60 transition-colors nav:rounded-none nav:border-0 nav:border-b nav:last:border-b-0 nav:shadow-none nav:px-4 nav:py-2.5"
                   >
                     {/* Line 1: customer, owner, freight type, value */}
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4 nav:items-center">
@@ -482,7 +482,7 @@ export function FactFindingHub() {
                           href={getSalesforceSearchUrl(doc.companyName || '')}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary hover:underline hover:text-indigo-600 truncate"
+                          className="text-primary hover:underline hover:text-accent truncate"
                           onClick={(e) => e.stopPropagation()}
                           title="Open in Salesforce"
                         >
@@ -491,21 +491,21 @@ export function FactFindingHub() {
                         <SharedBadge name={(doc as any).sharedByName} />
                         {doc.inSalesforce && (
                           <span title="In Salesforce" className="shrink-0">
-                            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                            <Star className="w-4 h-4 text-gold fill-gold" />
                           </span>
                         )}
-                        <ChevronRight className="w-4 h-4 text-slate-400 ml-auto shrink-0 nav:hidden" />
+                        <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto shrink-0 nav:hidden" />
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-slate-600 font-medium min-w-0">
-                        <User className="w-3 h-3 text-slate-400 shrink-0" />
+                      <div className="flex items-center gap-1 text-xs text-foreground/75 font-medium min-w-0">
+                        <User className="w-3 h-3 text-muted-foreground shrink-0" />
                         <span className="truncate">{owner}</span>
                       </div>
-                      <div className="text-xs text-slate-600 min-w-0 truncate">{doc.freightType || '-'}</div>
-                      <div className="font-black text-indigo-600 text-sm ml-auto nav:ml-0 nav:text-right truncate">{formatFactFindValue(doc.weeklyAmount)}</div>
-                      <ChevronRight className="w-4 h-4 text-slate-400 hidden nav:block" />
+                      <div className="text-xs text-foreground/75 min-w-0 truncate">{doc.freightType || '-'}</div>
+                      <div className="font-black text-accent text-sm ml-auto nav:ml-0 nav:text-right truncate">{formatFactFindValue(doc.weeklyAmount)}</div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground hidden nav:block" />
                     </div>
                     {/* Line 2: freight size, stage, model, created, modified */}
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground nav:grid nav:grid-cols-[minmax(0,2.2fr)_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_24px] nav:gap-4">
                       <div className="flex items-center gap-2 min-w-0">
                         {doc.freightSize && <span className="truncate" title="Freight size">{doc.freightSize}</span>}
                         <span className={cn("shrink-0 text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border shadow-sm", getStageConfig(stage).color, getStageConfig(stage).text)}>
@@ -513,7 +513,7 @@ export function FactFindingHub() {
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider bg-secondary px-2 py-0.5 rounded-md border border-border">
                           {doc.businessModel || 'B2B'}
                         </span>
                       </div>
@@ -528,9 +528,9 @@ export function FactFindingHub() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredAndSortedDocs.map(doc => (
-                <Card key={doc.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden relative bg-white border-slate-200" onClick={() => handleSelectDoc(doc)}>
+                <Card key={doc.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden relative bg-card border-border" onClick={() => handleSelectDoc(doc)}>
                   <div className={`absolute top-0 left-0 h-full z-0 transition-all duration-1000 ease-out ${getStageConfig(doc.stage || 'New').fill} ${getStageConfig(doc.stage || 'New').color}`} />
-                  <CardHeader className="relative z-10 bg-transparent border-b border-slate-100/50 pb-4">
+                  <CardHeader className="relative z-10 bg-transparent border-b border-border/30 pb-4">
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg font-black text-primary flex items-center gap-2">
@@ -539,7 +539,7 @@ export function FactFindingHub() {
                               href={getSalesforceSearchUrl(doc.companyName || '')} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="line-clamp-1 hover:underline hover:text-indigo-600" 
+                              className="line-clamp-1 hover:underline hover:text-accent" 
                               onClick={(e) => e.stopPropagation()} 
                               title="Open in Salesforce"
                             >
@@ -547,34 +547,34 @@ export function FactFindingHub() {
                             </a>
                             {doc.inSalesforce && (
                               <span title="In Salesforce">
-                                <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+                                <Star className="w-4 h-4 text-gold fill-gold shrink-0" />
                               </span>
                             )}
                           </span>
-                          <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
+                          <span className={`shrink-0 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-card/80 backdrop-blur-sm border border-white/50 shadow-sm ${getStageConfig(doc.stage || 'New').text}`}>
                             {doc.stage || 'New'}
                           </span>
                         </CardTitle>
-                        <CardDescription className="flex flex-col gap-1 mt-1 font-semibold text-xs text-slate-500">
+                        <CardDescription className="flex flex-col gap-1 mt-1 font-semibold text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" />
+                            <Calendar className="w-3 h-3 text-muted-foreground" />
                             <span>Created: {doc.createdAt ? format(doc.createdAt.toDate(), 'MMM d, yyyy') : 'Recently'}</span>
                           </span>
                           {doc.lastModifiedAt && (
                             <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-slate-400" />
+                              <Clock className="w-3 h-3 text-muted-foreground" />
                               <span>Modified: {format(doc.lastModifiedAt.toDate(), 'MMM d, yyyy')}</span>
                             </span>
                           )}
                           {isLeader && (
-                            <span className="flex items-center gap-1 text-slate-500 font-bold mt-0.5">
-                              <User className="w-3 h-3 text-slate-400" />
+                            <span className="flex items-center gap-1 text-muted-foreground font-bold mt-0.5">
+                              <User className="w-3 h-3 text-muted-foreground" />
                               <span>Owner: {userMap[doc.userId] || 'Loading user...'}</span>
                             </span>
                           )}
                         </CardDescription>
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all">
+                      <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center shadow-sm text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all">
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </div>
@@ -582,33 +582,33 @@ export function FactFindingHub() {
                   <CardContent className="relative z-10 pt-4 bg-white/40 backdrop-blur-sm grid grid-cols-2 gap-4">
                     <div className="space-y-3 min-w-0">
                       <div className="flex items-start gap-2">
-                        <Package className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                        <Package className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold text-slate-700 uppercase">Freight Type</p>
-                          <p className="text-xs text-slate-600 font-medium truncate">{doc.freightType || 'Not specified'}</p>
+                          <p className="text-[10px] font-bold text-foreground/85 uppercase">Freight Type</p>
+                          <p className="text-xs text-foreground/75 font-medium truncate">{doc.freightType || 'Not specified'}</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
-                        <Building className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                        <Building className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold text-slate-700 uppercase">Locations</p>
-                          <p className="text-xs text-slate-600 font-medium truncate">{doc.locations || 'Not specified'}</p>
+                          <p className="text-[10px] font-bold text-foreground/85 uppercase">Locations</p>
+                          <p className="text-xs text-foreground/75 font-medium truncate">{doc.locations || 'Not specified'}</p>
                         </div>
                       </div>
                     </div>
-                    <div className="bg-white/80 rounded-xl p-2 border border-slate-100/60 shadow-sm flex flex-col overflow-hidden relative">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-l-xl"></div>
-                      <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1 ml-1 flex items-center gap-1">
+                    <div className="bg-card/80 rounded-xl p-2 border border-border/35 shadow-sm flex flex-col overflow-hidden relative">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-accent rounded-l-xl"></div>
+                      <p className="text-[9px] font-black text-accent uppercase tracking-widest mb-1 ml-1 flex items-center gap-1">
                         <MessageSquare className="w-3 h-3" /> Latest Note
                       </p>
-                      <p className="text-[10px] text-slate-600 font-medium leading-tight line-clamp-3 ml-1">
+                      <p className="text-[10px] text-foreground/75 font-medium leading-tight line-clamp-3 ml-1">
                         {doc.currentNote?.trim() ? doc.currentNote : (doc.archivedNotes && doc.archivedNotes.length > 0 ? doc.archivedNotes[doc.archivedNotes.length - 1].note : 'No notes available.')}
                       </p>
                     </div>
                   </CardContent>
-                  <CardFooter className="relative z-10 bg-slate-50/50 border-t border-slate-100 py-3 flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{doc.businessModel || 'B2B'}</span>
-                    <span className="text-xs font-black text-indigo-600 flex items-center gap-1"><span className="text-[10px] text-slate-500 font-bold uppercase">EAV</span> {doc.weeklyAmount || 'N/A'}</span>
+                  <CardFooter className="relative z-10 bg-secondary/30 border-t border-border/60 py-3 flex justify-between items-center">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{doc.businessModel || 'B2B'}</span>
+                    <span className="text-xs font-black text-accent flex items-center gap-1"><span className="text-[10px] text-muted-foreground font-bold uppercase">EAV</span> {doc.weeklyAmount || 'N/A'}</span>
                   </CardFooter>
                 </Card>
               ))}
@@ -618,10 +618,10 @@ export function FactFindingHub() {
       )}
 
       {/* Network Map Segment */}
-      <div className="w-full flex flex-col items-center justify-center py-8 bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm gap-4">
+      <div className="w-full flex flex-col items-center justify-center py-8 bg-card border border-border/60 rounded-3xl p-6 shadow-sm gap-4">
         <div className="text-center space-y-1">
-          <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Team Global Express Network Map</h3>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Western Australia logistics coverage and transit hub registry</p>
+          <h3 className="text-base font-black text-foreground uppercase tracking-tight">Team Global Express Network Map</h3>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Western Australia logistics coverage and transit hub registry</p>
         </div>
         <img 
           src="/network-map.png" 

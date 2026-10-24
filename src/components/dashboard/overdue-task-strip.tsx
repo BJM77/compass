@@ -61,7 +61,7 @@ export function OverdueTaskStrip({ onRearrange }: { onRearrange: (taskId?: strin
         <div className="flex items-center gap-1.5 shrink-0 font-semibold text-xs text-destructive">
           <AlertTriangle className="w-4 h-4" />
           <span className="hidden sm:inline">Overdue</span>
-          <span className="rounded-full bg-destructive text-white px-1.5 min-w-[20px] text-center text-xs">{overdue.length}</span>
+          <span className="rounded-full bg-destructive text-destructive-foreground px-1.5 min-w-[20px] text-center text-xs">{overdue.length}</span>
         </div>
         <div className="flex-1 min-w-0 overflow-x-auto [scrollbar-width:thin]">
           <ul className="flex items-center gap-1.5 w-max pr-2">
@@ -78,7 +78,7 @@ export function OverdueTaskStrip({ onRearrange }: { onRearrange: (taskId?: strin
                 <button
                   type="button"
                   onClick={() => markDone(t.id)}
-                  className="flex items-center gap-0.5 rounded-full bg-destructive hover:bg-destructive/90 text-white px-2 py-0.5 text-xs font-bold"
+                  className="flex items-center gap-0.5 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground px-2 py-0.5 text-xs font-bold"
                   aria-label={`Mark "${t.text}" done`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" /> Done

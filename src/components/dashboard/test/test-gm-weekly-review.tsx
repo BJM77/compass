@@ -265,11 +265,11 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           if (isBW) {
             css += `
               p, span, h1, h2, h3, h4, th, td, div { color: #0f172a !important; }
-              .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600 {
+              .text-accent, .text-blue-600, .text-emerald-600, .text-purple-600, .text-orange-600, .text-info, .text-success, .text-success-ink, .text-chart-5, .text-warning-ink {
                 color: #1e293b !important; font-weight: 900 !important;
               }
               .text-muted-foreground, .text-slate-400 { color: #475569 !important; opacity: 1 !important; }
-              .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50 { background-color: #f8fafc !important; }
+              .bg-slate-50, .bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50, .bg-secondary, .bg-info-soft, .bg-success-soft, .bg-warning-soft, .bg-danger-soft, .bg-muted { background-color: #f8fafc !important; }
               .shadow-xl, .shadow-lg, .shadow-sm, .backdrop-blur { box-shadow: none !important; backdrop-filter: none !important; }
               .border, .border-b, .border-t { border-color: #e2e8f0 !important; }
             `;
@@ -379,7 +379,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
   if (isLoading) return <div className="flex items-center justify-center py-40"><Loader2 className="w-12 h-12 animate-spin text-accent" /></div>;
 
   return (
-    <div id="gm-report-capture" className="space-y-8 animate-in fade-in duration-700 pb-20 bg-slate-50 p-6 rounded-xl">
+    <div id="gm-report-capture" className="space-y-8 animate-in fade-in duration-700 pb-20 bg-secondary/60 p-6 rounded-xl">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black uppercase text-primary flex items-center gap-3">
@@ -388,7 +388,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           </h1>
           <div className="flex items-center gap-4 mt-2">
             <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Week {selectedWeek.split('-')[1]} • Team Performance & Pipeline Health</p>
-            <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+            <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} className="rounded-lg border bg-card px-3 py-1 text-[10px] font-black uppercase tracking-widest">
               {(availableWeeks.length > 0 ? availableWeeks : [selectedWeek]).map(w => (
                 <option key={w} value={w}>{w}</option>
               ))}
@@ -396,17 +396,17 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           </div>
         </div>
         <div className="flex gap-2" data-html2canvas-ignore="true">
-          <Button variant="outline" onClick={generateExecutiveReview} className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase h-10 shadow-lg shadow-amber-500/20">
+          <Button variant="outline" onClick={generateExecutiveReview} className="bg-warning hover:bg-warning/90 text-warning-foreground font-black text-[10px] uppercase h-10 shadow-lg shadow-warning/5">
             <ClipboardList className="w-4 h-4 mr-2" /> CREATE REVIEW
           </Button>
-          <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-white">
+          <Button variant="outline" onClick={exportReport} className="font-black text-[10px] uppercase h-10 bg-card">
             <Download className="w-4 h-4 mr-2" /> EXPORT CSV
           </Button>
-          <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-slate-800 hover:bg-slate-700 font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-slate-800/20">
+          <Button onClick={() => handleDispatchToGM(true)} disabled={isGeneratingPDF} className="bg-panel/90 hover:bg-panel/90 font-black text-[10px] uppercase h-10 text-panel-foreground shadow-lg shadow-primary/5">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileCheck className="w-4 h-4 mr-2" />} 
             {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH(B&W)'}
           </Button>
-          <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-white shadow-lg shadow-primary/20">
+          <Button onClick={() => handleDispatchToGM(false)} disabled={isGeneratingPDF} className="bg-primary font-black text-[10px] uppercase h-10 text-primary-foreground shadow-lg shadow-primary/20">
             {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />} 
             {isGeneratingPDF ? 'COMPILING...' : 'DISPATCH TO GM'}
           </Button>
@@ -414,13 +414,13 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       </header>
 
       {showReviewArea && (
-        <Card className="border-none shadow-md bg-white overflow-hidden p-6 animate-in slide-in-from-top-4 duration-300">
+        <Card className="border-none shadow-md bg-card overflow-hidden p-6 animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-black uppercase text-primary">Edit Executive Summary Draft (8-10 Lines max)</h3>
-            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-none font-bold text-[9px] uppercase px-2 py-0.5">Editable Draft</Badge>
+            <Badge className="bg-warning-soft text-warning-ink hover:bg-warning/20 border-none font-bold text-[9px] uppercase px-2 py-0.5">Editable Draft</Badge>
           </div>
           <Textarea 
-            className="w-full text-xs font-medium leading-relaxed font-sans border-primary/20 bg-slate-50/50 p-4 rounded-xl min-h-[160px]" 
+            className="w-full text-xs font-medium leading-relaxed font-sans border-primary/20 bg-secondary/30 p-4 rounded-xl min-h-[160px]" 
             value={execReview} 
             onChange={(e) => setExecReview(e.target.value)} 
           />
@@ -437,8 +437,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-none shadow-md bg-white overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Activity & Achievement Index</CardTitle></CardHeader>
+        <Card className="border-none shadow-md bg-card overflow-hidden">
+          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Activity & Achievement Index</CardTitle></CardHeader>
           <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={performanceData}>
@@ -454,8 +454,8 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-md bg-white overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Pipeline Distribution</CardTitle></CardHeader>
+        <Card className="border-none shadow-md bg-card overflow-hidden">
+          <CardHeader className="bg-secondary/60 border-b py-2.5 px-4"><CardTitle className="text-xs font-black uppercase">Pipeline Distribution</CardTitle></CardHeader>
           <CardContent className="h-56 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -623,7 +623,7 @@ The team demonstrates strong pipeline momentum with steady transition from prosp
 
       {/* ── INTERACTIVE TAB VIEW (screen only) ─────────────────────────────── */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
+        <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-auto inline-flex overflow-x-auto scrollbar-hide max-w-full">
           <TabsTrigger value="overview" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest">Team Performance</TabsTrigger>
           <TabsTrigger value="group90" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ClipboardList className="w-3 h-3 text-accent" /> Group Success Plan</TabsTrigger>
           <TabsTrigger value="strategy" className="rounded-lg px-6 py-2.5 font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Team Strategy</TabsTrigger>
@@ -659,15 +659,15 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Card className="border-none shadow-lg bg-white overflow-hidden transition-all hover:shadow-xl border-slate-200/80">
+    <Card className="border-none shadow-lg bg-card overflow-hidden transition-all hover:shadow-xl border-border/80">
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-black text-xl shadow-md border-2 border-slate-100">{report.userName.charAt(0)}</div>
+            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-xl shadow-md border-2 border-border/60">{report.userName.charAt(0)}</div>
             <div>
               <h3 className="font-black text-lg uppercase text-primary leading-none">{report.userName}</h3>
               <div className="flex items-center gap-2 mt-1.5">
-                <Badge className={cn("text-[8px] font-black uppercase border-none", report.status === 'REVIEWED' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
+                <Badge className={cn("text-[8px] font-black uppercase border-none", report.status === 'REVIEWED' ? 'bg-success-soft text-success-ink' : 'bg-warning-soft text-warning-ink')}>
                   {report.status}
                 </Badge>
                 {report.submittedAt && <span className="text-[9px] font-bold text-muted-foreground uppercase">Sub: {format(report.submittedAt.toDate(), 'MMM d, h:mm a')}</span>}
@@ -680,59 +680,59 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <p className="text-[9px] font-black text-blue-600 uppercase mb-1">Calls</p>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60">
+            <p className="text-[9px] font-black text-info uppercase mb-1">Calls</p>
             <p className="text-xl font-black text-primary">{report.summary.crmCalls || 0}</p>
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Man: {report.summary.callsMade || 0}</p>
+            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">Man: {report.summary.callsMade || 0}</p>
           </div>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <p className="text-[9px] font-black text-emerald-600 uppercase mb-1">Apps</p>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60">
+            <p className="text-[9px] font-black text-success uppercase mb-1">Apps</p>
             <p className="text-xl font-black text-primary">{report.summary.crmApps || 0}</p>
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Man: {report.summary.meetingsHeld || 0}</p>
+            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">Man: {report.summary.meetingsHeld || 0}</p>
           </div>
-          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Total EAV</p><p className="text-xl font-black text-blue-900">{formatEAV(report.summary.totalEAV)}</p></div>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-indigo-600 uppercase mb-1">Whitespace</p><p className="text-xl font-black text-primary">{report.whitespaceCount || 0}</p></div>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><p className="text-[9px] font-black text-blue-600 uppercase mb-1">Call Plans</p><p className="text-xl font-black text-primary">{report.callPlanCount || 0}</p></div>
-          <div className="bg-green-50 p-4 rounded-2xl border border-green-100"><p className="text-[9px] font-black text-green-600 uppercase mb-1">New Opps</p><p className="text-xl font-black text-green-900">{report.summary.newOpportunitiesCount}</p></div>
-          <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100"><p className="text-[9px] font-black text-purple-600 uppercase mb-1">Signed</p><p className="text-xl font-black text-purple-900">{report.summary.signedPaperworkCount}</p></div>
-          <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100"><p className="text-[9px] font-black text-orange-600 uppercase mb-1">New Biz</p><p className="text-xl font-black text-orange-900">{report.summary.newBusinessCount}</p></div>
+          <div className="bg-info-soft p-4 rounded-2xl border border-info/15"><p className="text-[9px] font-black text-info uppercase mb-1">Total EAV</p><p className="text-xl font-black text-info">{formatEAV(report.summary.totalEAV)}</p></div>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-[9px] font-black text-accent uppercase mb-1">Whitespace</p><p className="text-xl font-black text-primary">{report.whitespaceCount || 0}</p></div>
+          <div className="bg-secondary/60 p-4 rounded-2xl border border-border/60"><p className="text-[9px] font-black text-info uppercase mb-1">Call Plans</p><p className="text-xl font-black text-primary">{report.callPlanCount || 0}</p></div>
+          <div className="bg-success-soft p-4 rounded-2xl border border-success/15"><p className="text-[9px] font-black text-success uppercase mb-1">New Opps</p><p className="text-xl font-black text-success-ink">{report.summary.newOpportunitiesCount}</p></div>
+          <div className="bg-chart-5/10 p-4 rounded-2xl border border-chart-5/15"><p className="text-[9px] font-black text-chart-5 uppercase mb-1">Signed</p><p className="text-xl font-black text-chart-5">{report.summary.signedPaperworkCount}</p></div>
+          <div className="bg-warning-soft p-4 rounded-2xl border border-warning/15"><p className="text-[9px] font-black text-warning-ink uppercase mb-1">New Biz</p><p className="text-xl font-black text-warning-ink">{report.summary.newBusinessCount}</p></div>
         </div>
 
         {(isOpen || forceOpen) && (
           <div className="mt-6 pt-6 border-t space-y-6 animate-in slide-in-from-top-4 duration-300">
              {/* 1x4 stack layout to show sections cleanly, no text truncation/clipping */}
              <div className="grid grid-cols-1 gap-6 bdm-text-fields-grid">
-                <div className="bg-slate-50 p-6 rounded-2xl border min-h-[100px] h-auto text-field-container">
+                <div className="bg-secondary/60 p-6 rounded-2xl border min-h-[100px] h-auto text-field-container">
                   <p className="text-[10px] font-black uppercase text-muted-foreground mb-3 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5" /> High-Level Summary (Friday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
-                    <p className="text-sm font-medium text-slate-700 leading-relaxed italic whitespace-pre-line break-words">
+                    <p className="text-sm font-medium text-foreground/85 leading-relaxed italic whitespace-pre-line break-words">
                       "{report.weeklyNotes || 'No summary notes submitted.'}"
                     </p>
                   </div>
                 </div>
                 
-                <div className="bg-red-50/50 p-6 rounded-2xl border border-red-100 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-red-600 mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
+                <div className="bg-danger-soft/50 p-6 rounded-2xl border border-destructive/15 min-h-[100px] h-auto text-field-container">
+                  <p className="text-[10px] font-black uppercase text-destructive mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Roadblocks & Account Barriers (Monday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
-                    <p className="text-sm font-bold text-red-800 leading-relaxed italic whitespace-pre-line break-words">
+                    <p className="text-sm font-bold text-destructive leading-relaxed italic whitespace-pre-line break-words">
                       "{report.roadblocks || 'None reported.'}"
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-blue-600 mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
+                <div className="bg-info-soft/50 p-6 rounded-2xl border border-info/15 min-h-[100px] h-auto text-field-container">
+                  <p className="text-[10px] font-black uppercase text-info mb-3 flex items-center gap-2"><LifeBuoy className="w-3.5 h-3.5" /> Management Support (Monday)</p>
                   <div className="h-auto w-full pr-2 text-field-container">
-                    <p className="text-sm font-bold text-blue-800 leading-relaxed italic whitespace-pre-line break-words">
+                    <p className="text-sm font-bold text-info leading-relaxed italic whitespace-pre-line break-words">
                       "{report.supportNeeded || 'None requested.'}"
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-green-50/50 p-6 rounded-2xl border border-green-100 min-h-[100px] h-auto text-field-container">
-                  <p className="text-[10px] font-black uppercase text-green-600 mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
-                  <div className="bg-white p-4 rounded-xl border border-green-100 shadow-inner h-auto w-full text-field-container">
-                    <p className="text-[11px] font-bold text-green-800 leading-relaxed whitespace-pre-line break-words">
+                <div className="bg-success-soft/50 p-6 rounded-2xl border border-success/15 min-h-[100px] h-auto text-field-container">
+                  <p className="text-[10px] font-black uppercase text-success mb-3 flex items-center gap-2"><CalendarPlus className="w-3.5 h-3.5" /> Commitments for Week Ahead (Monday)</p>
+                  <div className="bg-card p-4 rounded-xl border border-success/15 shadow-inner h-auto w-full text-field-container">
+                    <p className="text-[11px] font-bold text-success-ink leading-relaxed whitespace-pre-line break-words">
                       {report.nextWeekCommitments || 'No tactical commitments set.'}
                     </p>
                   </div>
@@ -743,13 +743,13 @@ function BDMReportCard({ report, onSaveFeedback, forceOpen = false }: { report: 
                <div className="bg-accent/5 p-6 rounded-2xl border border-accent/20 h-auto text-field-container">
                   <p className="text-[10px] font-black uppercase text-accent mb-2">Historical GM Feedback</p>
                   <div className="h-auto pr-2 text-field-container">
-                    <p className="text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-line break-words">"{report.gmFeedback}"</p>
+                    <p className="text-sm font-bold text-foreground leading-relaxed whitespace-pre-line break-words">"{report.gmFeedback}"</p>
                   </div>
                </div>
              )}
              <div data-html2canvas-ignore="true" className="space-y-3">
                 <p className="text-[10px] font-black uppercase text-primary">Provide Strategic Feedback</p>
-                <Textarea placeholder="Coach this team member on their weekly performance..." value={feedback} onChange={(e) => setFeedback(e.target.value)} className="min-h-[100px] rounded-2xl border-primary/20 bg-white" />
+                <Textarea placeholder="Coach this team member on their weekly performance..." value={feedback} onChange={(e) => setFeedback(e.target.value)} className="min-h-[100px] rounded-2xl border-primary/20 bg-card" />
                 <Button onClick={() => onSaveFeedback(report.userId, feedback)} disabled={!feedback.trim()} className="w-full bg-accent font-black uppercase text-xs h-12 rounded-xl shadow-lg">SAVE FEEDBACK NODE</Button>
              </div>
           </div>
@@ -977,14 +977,14 @@ function BDMPdfPage({ report, pageNum, weekLabel }: { report: BDMWeeklyReport; p
 
 function MetricCard({ title, value, sub, icon, color }: any) {
   const gradients: any = {
-    blue: 'from-blue-500 to-blue-700',
-    green: 'from-emerald-500 to-emerald-700',
-    purple: 'from-violet-500 to-violet-700',
-    orange: 'from-orange-500 to-orange-700'
+    blue: 'from-info to-info/90',
+    green: 'from-success-fill to-success',
+    purple: 'from-chart-5 to-chart-5/90',
+    orange: 'from-warning to-warning-ink'
   };
   return (
     <Card className="border-none shadow-xl overflow-hidden group">
-      <div className={cn("bg-gradient-to-br p-6 text-white h-full", gradients[color])}>
+      <div className={cn("bg-gradient-to-br p-6 text-white dark:text-background h-full", gradients[color])}>
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{title}</p>
@@ -1000,11 +1000,11 @@ function MetricCard({ title, value, sub, icon, color }: any) {
 
 function OpportunitiesTable({ data }: { data: any[] }) {
   return (
-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+    <Card className="border-none shadow-xl bg-card overflow-hidden">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Stage</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge></TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-secondary/60"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>Opportunity</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Stage</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((o) => (<TableRow key={o.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{o.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{o.accountName}</TableCell><TableCell className="text-xs font-medium">{o.opportunityName}</TableCell><TableCell className="font-black text-primary">${(o.eav / 1000).toFixed(0)}k</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent uppercase">{o.stage}</Badge></TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -1013,11 +1013,11 @@ function OpportunitiesTable({ data }: { data: any[] }) {
 
 function SignedPaperworkTable({ data }: { data: any[] }) {
   return (
-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+    <Card className="border-none shadow-xl bg-card overflow-hidden">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Signed Date</TableHead><TableHead>Term (M)</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-black text-green-600">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{p.signedDate?.toDate ? format(p.signedDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-secondary/60"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Signed Date</TableHead><TableHead>Term (M)</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((p) => (<TableRow key={p.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{p.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{p.accountName}</TableCell><TableCell className="font-black text-success">${(p.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{p.signedDate?.toDate ? format(p.signedDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell className="font-bold text-xs">{p.termMonths}</TableCell><TableCell className="max-w-[200px] truncate text-[10px] italic">"{p.notes}"</TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -1026,11 +1026,11 @@ function SignedPaperworkTable({ data }: { data: any[] }) {
 
 function NewBusinessTable({ data }: { data: any[] }) {
   return (
-    <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
+    <Card className="border-none shadow-xl bg-card overflow-hidden border-border">
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-slate-50"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-slate-50 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-purple-600">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
+          <TableHeader className="bg-secondary/60"><TableRow className="uppercase text-[9px] font-black"><TableHead className="pl-6">Identity</TableHead><TableHead>Account</TableHead><TableHead>EAV ($K)</TableHead><TableHead>Go Live</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableBody>{data.map((b) => (<TableRow key={b.id} className="hover:bg-secondary/60 transition-colors"><TableCell className="pl-6 font-black uppercase text-xs">{b.userName}</TableCell><TableCell className="font-bold text-xs uppercase">{b.accountName}</TableCell><TableCell className="font-black text-chart-5">${(b.eav / 1000).toFixed(0)}k</TableCell><TableCell className="text-xs font-medium">{b.goLiveDate?.toDate ? format(b.goLiveDate.toDate(), 'MMM d') : 'N/A'}</TableCell><TableCell><Badge variant="outline" className="text-[8px] font-black uppercase">{b.status}</Badge></TableCell></TableRow>))}</TableBody>
         </Table>
       </CardContent>
     </Card>
@@ -1039,17 +1039,17 @@ function NewBusinessTable({ data }: { data: any[] }) {
 
 function StrategyTable({ data }: { data: any[] }) {
   return (
-    <Card className="border-none shadow-xl bg-white overflow-hidden border-slate-200">
-      <CardHeader className="bg-slate-900 text-white pb-6">
+    <Card className="border-none shadow-xl bg-card overflow-hidden border-border">
+      <CardHeader className="bg-panel text-panel-foreground pb-6">
         <CardTitle className="text-xl font-black uppercase flex items-center gap-3">
           <ShieldCheck className="w-6 h-6 text-accent" />
           Corporate Strategy Blueprints
         </CardTitle>
-        <CardDescription className="text-slate-400">Standardized frameworks deployed by Sales Administration.</CardDescription>
+        <CardDescription className="text-panel-foreground/60">Standardized frameworks deployed by Sales Administration.</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-slate-50">
+          <TableHeader className="bg-secondary/60">
             <TableRow className="uppercase text-[9px] font-black">
               <TableHead className="pl-6">Blueprint Name</TableHead>
               <TableHead>Primary Objective</TableHead>
@@ -1068,9 +1068,9 @@ function StrategyTable({ data }: { data: any[] }) {
             ))}
             {(!data || data.length === 0) && (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-20 bg-slate-50/50">
-                  <PhoneCall className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No strategic blueprints deployed.</p>
+                <TableCell colSpan={3} className="text-center py-20 bg-secondary/30">
+                  <PhoneCall className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">No strategic blueprints deployed.</p>
                 </TableCell>
               </TableRow>
             )}

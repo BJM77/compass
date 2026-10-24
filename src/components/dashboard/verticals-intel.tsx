@@ -36,10 +36,10 @@ export function useIntelApi() {
 }
 
 const PAIN_CLASS: Record<PainScore, string> = {
-  NONE: 'bg-slate-50 text-slate-600 border-slate-200',
-  LOW: 'bg-yellow-50 text-yellow-800 border-yellow-200',
-  MEDIUM: 'bg-orange-50 text-orange-800 border-orange-200',
-  HIGH: 'bg-red-50 text-red-700 border-red-200',
+  NONE: 'bg-secondary/60 text-foreground/75 border-border',
+  LOW: 'bg-warning-soft text-warning-ink border-warning/25',
+  MEDIUM: 'bg-warning-soft text-warning-ink border-warning/25',
+  HIGH: 'bg-danger-soft text-destructive border-destructive/25',
 };
 
 export function PainBadge({ p, onClick }: { p?: PainSignals | null; onClick?: () => void }) {
@@ -84,16 +84,16 @@ export function PainDialog({ target, onClose }: { target: PainTarget | null; onC
           <div className="space-y-3 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <PainBadge p={shown} />
-              <span className="text-[11px] text-slate-500">Checked {new Date(shown.checkedAt).toLocaleDateString('en-AU', { timeZone: 'Australia/Perth' })} (Perth)</span>
+              <span className="text-[11px] text-muted-foreground">Checked {new Date(shown.checkedAt).toLocaleDateString('en-AU', { timeZone: 'Australia/Perth' })} (Perth)</span>
             </div>
-            {shown.noSignal ? <p className="text-slate-600">No public delivery-pain signal found.</p> : (
+            {shown.noSignal ? <p className="text-foreground/75">No public delivery-pain signal found.</p> : (
               <ul className="space-y-2">
                 {shown.findings.map((f, i) => (
-                  <li key={i} className="rounded border p-2 bg-white">
-                    <p className="text-slate-800 break-words">{f.text}</p>
+                  <li key={i} className="rounded border p-2 bg-card">
+                    <p className="text-foreground break-words">{f.text}</p>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {f.sources.map(s => (
-                        <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="text-[11px] text-indigo-700 hover:underline inline-flex items-center gap-0.5 break-all">
+                        <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 break-all">
                           {s.title || new URL(s.url).hostname}<ExternalLink className="w-3 h-3 shrink-0" />
                         </a>
                       ))}
@@ -102,10 +102,10 @@ export function PainDialog({ target, onClose }: { target: PainTarget | null; onC
                 ))}
               </ul>
             )}
-            {shown.opening && <div className="rounded bg-indigo-50 border border-indigo-100 p-2"><p className="text-[11px] font-bold text-indigo-800">Suggested opener (TGE Parcel)</p><p className="text-slate-800">{shown.opening}</p></div>}
+            {shown.opening && <div className="rounded bg-accent/10 border border-accent/15 p-2"><p className="text-[11px] font-bold text-primary">Suggested opener (TGE Parcel)</p><p className="text-foreground">{shown.opening}</p></div>}
           </div>
-        ) : !loading && <p className="text-sm text-slate-600">Not checked yet.</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        ) : !loading && <p className="text-sm text-foreground/75">Not checked yet.</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex justify-end">
           <Button onClick={run} disabled={loading || (!!shown && !canRecheck(shown))} title={shown && !canRecheck(shown) ? `Re-check after ${PAIN_RECHECK_DAYS} days` : undefined}>
             {loading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Radar className="w-4 h-4 mr-1" />}
@@ -165,7 +165,7 @@ export function LookalikeFinder({ prospects, canAdd, uid, myName, dismissals }: 
   return (
     <Card>
       <CardHeader className="py-3 px-4">
-        <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-indigo-600" />WA lookalike finder</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><Sparkles className="w-4 h-4 text-accent" />WA lookalike finder</CardTitle>
         <CardDescription>Pick a great customer or prospect; find 5–10 similar WA companies. Every result has a verified website.</CardDescription>
       </CardHeader>
       <CardContent className="px-3 pb-4 space-y-3">
@@ -200,37 +200,37 @@ export function LookalikeFinder({ prospects, canAdd, uid, myName, dismissals }: 
           {loading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}Find lookalikes
         </Button>
 
-        {results && (results.length === 0 ? <p className="text-sm text-slate-500">No verified lookalikes found. Try adding notes or a different seed.</p> : (
+        {results && (results.length === 0 ? <p className="text-sm text-muted-foreground">No verified lookalikes found. Try adding notes or a different seed.</p> : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
             {results.map(l => {
               // Companies marked "Trading with TGE" (shared) are existing customers: flag them, don't offer to add
               const trading = !!dismissals?.isDismissed(l.company);
               const already = l.alreadyInList || inProspects.has(normaliseCompany(l.company)) || added[l.company];
               return (
-                <div key={l.company} className={cn('min-w-0 rounded-lg border bg-white p-3 space-y-1.5', (already || trading) && 'opacity-70 bg-slate-50')}>
+                <div key={l.company} className={cn('min-w-0 rounded-lg border bg-card p-3 space-y-1.5', (already || trading) && 'opacity-70 bg-secondary/60')}>
                   <div className="flex items-start gap-1.5 min-w-0">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 min-w-0">
-                        <a href={getSalesforceSearchUrl(l.company)} target="_blank" rel="noopener noreferrer" title="Search Salesforce" className="font-bold text-sm text-slate-900 hover:text-indigo-700 hover:underline truncate">{l.company}</a>
-                        <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
-                        <button type="button" aria-label={`Copy ${l.company}`} title="Copy name" className="shrink-0 p-1 rounded hover:bg-slate-100 text-slate-400"
+                        <a href={getSalesforceSearchUrl(l.company)} target="_blank" rel="noopener noreferrer" title="Search Salesforce" className="font-bold text-sm text-foreground hover:text-primary hover:underline truncate">{l.company}</a>
+                        <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
+                        <button type="button" aria-label={`Copy ${l.company}`} title="Copy name" className="shrink-0 p-1 rounded hover:bg-secondary text-muted-foreground"
                           onClick={async () => { try { await navigator.clipboard.writeText(l.company); setCopied(l.company); setTimeout(() => setCopied(null), 1500); } catch { /* ignore */ } }}>
-                          {copied === l.company ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copied === l.company ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                       </div>
-                      <p className="text-[11px] text-slate-500 break-words">{l.sector}{l.region ? ` · ${l.region}` : ''}{l.size ? ` · ${l.size}` : ''}</p>
+                      <p className="text-[11px] text-muted-foreground break-words">{l.sector}{l.region ? ` · ${l.region}` : ''}{l.size ? ` · ${l.size}` : ''}</p>
                     </div>
                     <span className="shrink-0 text-[10px] font-bold uppercase border rounded-full px-1.5 py-0.5">{l.confidence}</span>
                   </div>
-                  <p className="text-xs text-slate-700 break-words">{l.why}</p>
+                  <p className="text-xs text-foreground/85 break-words">{l.why}</p>
                   <div className="flex flex-wrap items-center gap-1 text-[10px]">
                     <Badge variant="outline">{label(VERTICALS, l.vertical)}</Badge>
                     <Badge variant="outline">{label(BELTS, l.belt)}</Badge>
-                    <a href={l.website} target="_blank" rel="noopener noreferrer nofollow" className="text-[11px] text-indigo-700 hover:underline inline-flex items-center gap-0.5 break-all">{l.website.replace(/^https:\/\//, '')}<ExternalLink className="w-3 h-3" /></a>
-                    <span className="text-slate-400">{l.verifiedBy === 'grounded' ? 'seen in search sources' : 'domain verified'}</span>
+                    <a href={l.website} target="_blank" rel="noopener noreferrer nofollow" className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 break-all">{l.website.replace(/^https:\/\//, '')}<ExternalLink className="w-3 h-3" /></a>
+                    <span className="text-muted-foreground">{l.verifiedBy === 'grounded' ? 'seen in search sources' : 'domain verified'}</span>
                     <div className="flex-1" />
-                    {trading ? <Badge variant="outline" className="text-sky-700 border-sky-200 bg-sky-50"><CheckCircle2 className="w-3 h-3 mr-1" />Trading with TGE</Badge>
-                      : already ? <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50"><CheckCircle2 className="w-3 h-3 mr-1" />Already in list</Badge>
+                    {trading ? <Badge variant="outline" className="text-info border-info/25 bg-info-soft"><CheckCircle2 className="w-3 h-3 mr-1" />Trading with TGE</Badge>
+                      : already ? <Badge variant="outline" className="text-success-ink border-success/25 bg-success-soft"><CheckCircle2 className="w-3 h-3 mr-1" />Already in list</Badge>
                       : canAdd ? <Button size="sm" className="h-7 text-xs" onClick={() => add(l)}><Plus className="w-3.5 h-3.5 mr-1" />Add to prospects</Button> : null}
                   </div>
                 </div>

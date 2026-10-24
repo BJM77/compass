@@ -107,7 +107,7 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
   };
 
   if (isConfigLoading || isProgressLoading || !activePlan) return (
-    <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-dashed">
+    <div className="flex items-center justify-center p-12 bg-card rounded-2xl border border-dashed">
       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
     </div>
   );
@@ -117,7 +117,7 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return (
-    <Card className="border-none shadow-md bg-white onboarding-plan-card">
+    <Card className="border-none shadow-md bg-card onboarding-plan-card">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="space-y-1">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
@@ -153,7 +153,7 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
                     </h4>
                     <div className="space-y-3">
                       {tasks[phase]?.map(task => (
-                        <div key={task.id} className="flex items-start gap-3 p-3 hover:bg-white/50 rounded-lg transition-colors group">
+                        <div key={task.id} className="flex items-start gap-3 p-3 hover:bg-card/50 rounded-lg transition-colors group">
                           <Checkbox 
                             id={task.id} 
                             checked={task.completed} 
@@ -200,25 +200,25 @@ export function OnboardingPlan({ userId, userName, planType = "BDM_NORTH_90" }: 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 <div className="md:col-span-8 space-y-2">
                   {tasks[phase]?.map(task => (
-                    <div key={task.id} className="flex items-start gap-2.5 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 shrink-0 ${task.completed ? 'bg-accent border-accent text-white' : 'border-slate-300'}`}>
+                    <div key={task.id} className="flex items-start gap-2.5 p-2 bg-secondary/60 rounded-lg border border-border/60">
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 shrink-0 ${task.completed ? 'bg-accent border-accent text-accent-foreground' : 'border-border'}`}>
                         {task.completed && (
                           <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 20 20">
                             <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
                           </svg>
                         )}
                       </div>
-                      <span className={`text-xs leading-normal font-medium ${task.completed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                      <span className={`text-xs leading-normal font-medium ${task.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                         {task.title}
                       </span>
                     </div>
                   ))}
                 </div>
-                <div className="md:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <h4 className="text-[9px] font-black uppercase tracking-wider text-slate-500 mb-2">Success Markers</h4>
+                <div className="md:col-span-4 bg-secondary/60 p-4 rounded-xl border border-border/60">
+                  <h4 className="text-[9px] font-black uppercase tracking-wider text-muted-foreground mb-2">Success Markers</h4>
                   <ul className="space-y-1.5">
                     {activePlan[phase]?.markers?.map((marker: string, i: number) => (
-                      <li key={i} className="text-[10px] font-medium text-slate-600 flex items-start gap-2">
+                      <li key={i} className="text-[10px] font-medium text-foreground/75 flex items-start gap-2">
                         <span className="text-accent mt-1 shrink-0">•</span>
                         <span>{marker}</span>
                       </li>

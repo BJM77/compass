@@ -334,22 +334,22 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-panel p-8 rounded-[2rem] text-panel-foreground shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-12 opacity-5"><TrendingUp className="w-64 h-64" /></div>
         <div className="relative z-10 space-y-2">
-           <Badge className="bg-accent text-white font-black text-[9px] uppercase tracking-widest px-3 mb-2">Friday Synthesis Mode</Badge>
+           <Badge className="bg-accent text-accent-foreground font-black text-[9px] uppercase tracking-widest px-3 mb-2">Friday Synthesis Mode</Badge>
            <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">The Week That Was</h2>
-           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Performance Validation • Week {currentWeek.split('-')[1]}</p>
+           <p className="text-xs font-bold text-panel-foreground/60 uppercase tracking-widest">Performance Validation • Week {currentWeek.split('-')[1]}</p>
         </div>
         <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full lg:w-auto justify-end">
            <div className="text-right hidden sm:block mr-2">
               <p className="text-[10px] font-black text-accent uppercase tracking-widest">Total Combined EAV</p>
               <p className="text-3xl font-black">{formatEAV(totalEAV)}</p>
            </div>
-           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSubmitting} className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs w-full sm:w-auto">
+           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSubmitting} className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-panel-foreground/15 bg-panel/90 text-panel-foreground/90 hover:bg-panel/90 hover:text-panel-foreground text-xs w-full sm:w-auto">
              {isSavingDraft ? <Loader2 className="animate-spin w-5 h-5" /> : 'SAVE DRAFT'}
            </Button>
-           <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft} className="bg-accent hover:bg-accent/90 text-white font-black h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto">
+           <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft} className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto">
              {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : <ClipboardCheck className="w-5 h-5" />} FINALISE FRIDAY PACK
            </Button>
         </div>
@@ -357,9 +357,9 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
 
       {/* Activity Tallies */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden">
+        <Card className="border-none shadow-xl bg-card rounded-3xl overflow-hidden">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-info-soft text-info flex items-center justify-center shadow-sm">
               <Phone className="w-6 h-6" />
             </div>
             <div>
@@ -368,9 +368,9 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden">
+        <Card className="border-none shadow-xl bg-card rounded-3xl overflow-hidden">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-success-soft text-success flex items-center justify-center shadow-sm">
               <CalendarCheck className="w-6 h-6" />
             </div>
             <div>
@@ -382,45 +382,45 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
       </div>
 
       {/* Monday Commitments carries */}
-      <div className="space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-200">
+      <div className="space-y-6 bg-secondary/30 p-6 rounded-3xl border border-border">
         <div className="flex items-center gap-2 mb-4">
-          <Award className="w-5 h-5 text-indigo-600" />
-          <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Monday Planning Review</h3>
+          <Award className="w-5 h-5 text-accent" />
+          <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Monday Planning Review</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Roadblocks & Account Barriers
+              <AlertTriangle className="w-3.5 h-3.5 text-warning" /> Roadblocks & Account Barriers
             </Label>
             <Textarea 
               placeholder="Any roadblocks to highlight?" 
               value={roadblocks} 
               onChange={e => setRoadblocks(e.target.value)} 
-              className="min-h-[100px] rounded-2xl border-slate-200 bg-white p-4 shadow-sm text-xs" 
+              className="min-h-[100px] rounded-2xl border-border bg-card p-4 shadow-sm text-xs" 
             />
           </div>
           <div className="space-y-2">
             <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
-              <LifeBuoy className="w-3.5 h-3.5 text-blue-500" /> Additional Management Support
+              <LifeBuoy className="w-3.5 h-3.5 text-info" /> Additional Management Support
             </Label>
             <Textarea 
               placeholder="What support is needed?" 
               value={supportNeeded} 
               onChange={e => setSupportNeeded(e.target.value)} 
-              className="min-h-[100px] rounded-2xl border-slate-200 bg-white p-4 shadow-sm text-xs" 
+              className="min-h-[100px] rounded-2xl border-border bg-card p-4 shadow-sm text-xs" 
             />
           </div>
         </div>
 
         {commitments.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-slate-200">
+          <div className="space-y-4 pt-4 border-t border-border">
             <Label className="text-[10px] font-black uppercase text-muted-foreground">Commitments for the Week Ahead</Label>
             <div className="space-y-3">
               {commitments.map((c, idx) => {
                 const isCompleted = c.status === 'COMPLETED';
                 return (
-                  <div key={c.id} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
+                  <div key={c.id} className="p-4 bg-card rounded-2xl border shadow-sm space-y-3">
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
@@ -430,11 +430,11 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
                           n[idx].status = e.target.checked ? 'COMPLETED' : 'NOT_COMPLETED';
                           setCommitments(n);
                         }}
-                        className="w-5 h-5 mt-0.5 accent-emerald-600 rounded cursor-pointer border-slate-300"
+                        className="w-5 h-5 mt-0.5 accent-success-fill rounded cursor-pointer border-border"
                         id={`commit-check-${c.id}`}
                       />
                       <div className="flex-1 space-y-2">
-                        <label htmlFor={`commit-check-${c.id}`} className="text-sm font-bold text-slate-700 cursor-pointer block select-none">
+                        <label htmlFor={`commit-check-${c.id}`} className="text-sm font-bold text-foreground/85 cursor-pointer block select-none">
                           {c.text}
                         </label>
                         <div className="space-y-1">
@@ -460,13 +460,13 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
         )}
 
         {focusAccounts.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-slate-200">
+          <div className="space-y-4 pt-4 border-t border-border">
             <Label className="text-[10px] font-black uppercase text-muted-foreground">Focus Accounts Review</Label>
             <div className="space-y-3">
               {focusAccounts.map((f, idx) => {
                 const isCompleted = f.status === 'COMPLETED';
                 return (
-                  <div key={f.accountId || idx} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
+                  <div key={f.accountId || idx} className="p-4 bg-card rounded-2xl border shadow-sm space-y-3">
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
@@ -476,17 +476,17 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
                           n[idx].status = e.target.checked ? 'COMPLETED' : 'NOT_COMPLETED';
                           setFocusAccounts(n);
                         }}
-                        className="w-5 h-5 mt-0.5 accent-emerald-600 rounded cursor-pointer border-slate-300"
+                        className="w-5 h-5 mt-0.5 accent-success-fill rounded cursor-pointer border-border"
                         id={`focus-check-${f.accountId || idx}`}
                       />
                       <div className="flex-1 space-y-2">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <label htmlFor={`focus-check-${f.accountId || idx}`} className="text-sm font-bold text-slate-700 cursor-pointer block select-none font-sans">
+                          <label htmlFor={`focus-check-${f.accountId || idx}`} className="text-sm font-bold text-foreground/85 cursor-pointer block select-none font-sans">
                             {f.accountName}
                           </label>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-[9px] font-black uppercase">{f.actionType}</Badge>
-                            <span className="text-[10px] font-black text-emerald-600">${(f.eav || 0).toLocaleString()} EAV</span>
+                            <span className="text-[10px] font-black text-success">${(f.eav || 0).toLocaleString()} EAV</span>
                           </div>
                         </div>
                         {f.aboutAccount && (
@@ -519,8 +519,8 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Pipeline of Accounts */}
-        <Card className="border border-slate-200 shadow-xl bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-900 text-white py-5">
+        <Card className="border border-border shadow-xl bg-card rounded-3xl overflow-hidden">
+          <CardHeader className="bg-panel text-panel-foreground py-5">
             <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
               <Shield className="w-4 h-4" />
               Pipeline of Accounts
@@ -531,27 +531,27 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
               <p className="text-[10px] text-muted-foreground italic">No Salesforce Accounts imported for this week.</p>
             ) : (
               crmAccounts.map((acc: any) => (
-                <div key={acc.id} className="p-4 bg-slate-50 border rounded-2xl hover:border-accent/40 transition-all flex items-center justify-between gap-4">
+                <div key={acc.id} className="p-4 bg-secondary/60 border rounded-2xl hover:border-accent/40 transition-all flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <a 
                       href="#" 
                       onClick={(e) => { e.preventDefault(); openSalesforceSearch(acc.pipeline); }}
-                      className="text-xs font-black text-slate-800 uppercase hover:text-accent hover:underline truncate block"
+                      className="text-xs font-black text-foreground uppercase hover:text-accent hover:underline truncate block"
                       title="Open Account in Salesforce"
                     >
                       {acc.pipeline}
                     </a>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Business Unit: {acc.businessUnit || 'FLEX'}</p>
+                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">Business Unit: {acc.businessUnit || 'FLEX'}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => openSalesforceSearch(acc.pipeline)}
-                      className="p-2 bg-white border text-slate-400 hover:text-accent rounded-xl shadow-sm transition-all"
+                      className="p-2 bg-card border text-muted-foreground hover:text-accent rounded-xl shadow-sm transition-all"
                       title="Open Salesforce Account"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </button>
-                    <Button size="sm" variant="outline" onClick={() => appendToReportNotes(`[Account Profile: ${acc.pipeline} - YTD: $${acc.currentRevenue?.toLocaleString() || 0}]`)} className="h-8 px-2 text-[10px] font-black hover:bg-accent/10 text-slate-700 hover:text-accent rounded-xl shadow-sm transition-all">
+                    <Button size="sm" variant="outline" onClick={() => appendToReportNotes(`[Account Profile: ${acc.pipeline} - YTD: $${acc.currentRevenue?.toLocaleString() || 0}]`)} className="h-8 px-2 text-[10px] font-black hover:bg-accent/10 text-foreground/85 hover:text-accent rounded-xl shadow-sm transition-all">
                       <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Note
                     </Button>
                   </div>
@@ -562,8 +562,8 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
         </Card>
 
         {/* Pipeline of Opportunities */}
-        <Card className="border border-slate-200 shadow-xl bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-900 text-white py-5">
+        <Card className="border border-border shadow-xl bg-card rounded-3xl overflow-hidden">
+          <CardHeader className="bg-panel text-panel-foreground py-5">
             <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Pipeline of Opportunities
@@ -574,13 +574,13 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
               <p className="text-[10px] text-muted-foreground italic">No Salesforce Opportunities imported for this week.</p>
             ) : (
               crmOpportunities.map((opp: any) => (
-                <div key={opp.id} className="p-4 bg-slate-50 border rounded-2xl hover:border-accent/40 transition-all space-y-2">
+                <div key={opp.id} className="p-4 bg-secondary/60 border rounded-2xl hover:border-accent/40 transition-all space-y-2">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 space-y-0.5">
                       <a 
                         href="#" 
                         onClick={(e) => { e.preventDefault(); openSalesforceSearch(opp.pipeline); }}
-                        className="text-xs font-black text-slate-800 uppercase hover:text-accent hover:underline truncate block"
+                        className="text-xs font-black text-foreground uppercase hover:text-accent hover:underline truncate block"
                         title="Open Account in Salesforce"
                       >
                         {opp.pipeline}
@@ -588,7 +588,7 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
                       <a 
                         href="#" 
                         onClick={(e) => { e.preventDefault(); openSalesforceSearch(opp.opportunityName || opp.pipeline, opp.salesforceId); }}
-                        className="text-[9px] text-slate-400 font-bold uppercase hover:text-accent hover:underline truncate block"
+                        className="text-[9px] text-muted-foreground font-bold uppercase hover:text-accent hover:underline truncate block"
                         title="Open Opportunity in Salesforce"
                       >
                         {opp.opportunityName || "Unnamed Opportunity"}
@@ -597,18 +597,18 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => openSalesforceSearch(opp.opportunityName || opp.pipeline, opp.salesforceId)}
-                        className="p-2 bg-white border text-slate-400 hover:text-accent rounded-xl shadow-sm transition-all"
+                        className="p-2 bg-card border text-muted-foreground hover:text-accent rounded-xl shadow-sm transition-all"
                         title="Open Salesforce Opportunity"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </button>
-                      <Button size="sm" variant="outline" onClick={() => appendToReportNotes(`[Opp Progressed: ${opp.pipeline} - Stage: ${opp.stage} - Value: $${opp.value?.toLocaleString() || 0}]`)} className="h-8 px-2 text-[10px] font-black hover:bg-accent/10 text-slate-700 hover:text-accent rounded-xl shadow-sm transition-all">
+                      <Button size="sm" variant="outline" onClick={() => appendToReportNotes(`[Opp Progressed: ${opp.pipeline} - Stage: ${opp.stage} - Value: $${opp.value?.toLocaleString() || 0}]`)} className="h-8 px-2 text-[10px] font-black hover:bg-accent/10 text-foreground/85 hover:text-accent rounded-xl shadow-sm transition-all">
                         <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Note
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center text-[10px] font-semibold text-slate-500 pt-1 border-t border-slate-200/50">
-                    <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[9px] font-black">{opp.stage?.toUpperCase()}</span>
+                  <div className="flex justify-between items-center text-[10px] font-semibold text-muted-foreground pt-1 border-t border-border/50">
+                    <span className="bg-warning-soft text-warning-ink px-2 py-0.5 rounded-full text-[9px] font-black">{opp.stage?.toUpperCase()}</span>
                     <span>Value: <strong>${(opp.value || 0).toLocaleString()}</strong></span>
                   </div>
                 </div>
@@ -624,7 +624,7 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
            <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
              <Award className="w-3.5 h-3.5" /> Performance Narrative (The Week That Was)
            </Label>
-           <span className={cn("text-[9px] font-bold", notes.length > 4000 ? "text-red-500" : "text-muted-foreground")}>
+           <span className={cn("text-[9px] font-bold", notes.length > 4000 ? "text-destructive" : "text-muted-foreground")}>
              {notes.length} / 5000 characters
            </span>
          </div>
@@ -632,7 +632,7 @@ export function TestBDMWeeklySubmission({ userId, userName }: { userId: string; 
            placeholder="Document high-level wins and strategic shifts achieved this week..." 
            value={notes} 
            onChange={e => setNotes(e.target.value.substring(0, 5000))} 
-           className="min-h-[200px] rounded-[2rem] border-slate-200 bg-white p-8 shadow-inner text-sm font-medium leading-relaxed" 
+           className="min-h-[200px] rounded-[2rem] border-border bg-card p-8 shadow-inner text-sm font-medium leading-relaxed" 
          />
       </div>
     </div>

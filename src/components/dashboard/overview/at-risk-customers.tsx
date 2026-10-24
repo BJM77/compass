@@ -21,17 +21,17 @@ export function AtRiskCustomers({ data }: { data: AtRiskCustomer[] }) {
     .slice(0, 10);
 
   return (
-    <div className="bg-white rounded-2xl shadow-xs border border-rose-200/80 p-5 sm:p-6 print:shadow-none print:border-none print:p-0">
+    <div className="bg-card rounded-2xl shadow-xs border border-destructive/20 p-5 sm:p-6 print:shadow-none print:border-none print:p-0">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 bg-rose-50 text-rose-600 rounded-lg">
+          <span className="p-1.5 bg-danger-soft text-destructive rounded-lg">
             <AlertTriangle className="w-5 h-5" />
           </span>
           <div>
-            <h3 className="font-black text-rose-900 tracking-tight text-base sm:text-lg uppercase">
+            <h3 className="font-black text-destructive tracking-tight text-base sm:text-lg uppercase">
               At-Risk Accounts (Top Revenue Drop vs LY)
             </h3>
-            <p className="text-xs text-rose-700/80 font-medium">
+            <p className="text-xs text-destructive/80 font-medium">
               Customers experiencing the steepest decline in revenue compared to previous year.
             </p>
           </div>
@@ -47,27 +47,27 @@ export function AtRiskCustomers({ data }: { data: AtRiskCustomer[] }) {
           return (
             <div 
               key={idx} 
-              className="bg-rose-50/40 rounded-xl p-3.5 border border-rose-100/90 flex items-center justify-between hover:border-rose-200 transition-colors"
+              className="bg-danger-soft/40 rounded-xl p-3.5 border border-destructive/15 flex items-center justify-between hover:border-destructive/25 transition-colors"
             >
               <div className="min-w-0 pr-2">
-                <h4 className="font-bold text-slate-900 text-sm truncate" title={c.companyName}>
+                <h4 className="font-bold text-foreground text-sm truncate" title={c.companyName}>
                   {c.companyName}
                 </h4>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <Badge variant="outline" className="text-[9px] font-bold py-0 px-1.5 bg-white text-slate-500 border-rose-200/60">
+                  <Badge variant="outline" className="text-[9px] font-bold py-0 px-1.5 bg-card text-muted-foreground border-destructive/15">
                     {c.managerName || 'Unassigned'}
                   </Badge>
-                  <span className="text-[10px] text-slate-400 font-semibold">
+                  <span className="text-[10px] text-muted-foreground font-semibold">
                     LY: {formatEAV(c.lastYearRevenue)}
                   </span>
                 </div>
               </div>
 
               <div className="text-right flex flex-col items-end shrink-0">
-                <span className="font-black text-rose-600 text-sm">
+                <span className="font-black text-destructive text-sm">
                   -{formatCurrency(Math.abs(c.variance))}
                 </span>
-                <span className="text-[9px] font-black bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded mt-0.5">
+                <span className="text-[9px] font-black bg-danger-soft text-destructive px-1.5 py-0.5 rounded mt-0.5">
                   ↓ {pctDrop.toFixed(0)}%
                 </span>
               </div>
@@ -76,7 +76,7 @@ export function AtRiskCustomers({ data }: { data: AtRiskCustomer[] }) {
         })}
 
         {atRisk.length === 0 && (
-          <div className="col-span-full text-center py-8 text-slate-400 font-medium text-sm">
+          <div className="col-span-full text-center py-8 text-muted-foreground font-medium text-sm">
             No severe at-risk revenue decline detected.
           </div>
         )}

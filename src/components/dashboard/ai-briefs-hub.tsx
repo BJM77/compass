@@ -79,10 +79,10 @@ export function AIBriefsHub() {
                 className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center gap-3 ${
                   activeBdmId === u.id 
                     ? 'border-accent bg-accent/5 shadow-md' 
-                    : 'border-slate-100 bg-white hover:border-slate-200'
+                    : 'border-border/60 bg-card hover:border-border'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${activeBdmId === u.id ? 'bg-accent text-white border-accent' : 'bg-slate-100 text-slate-400'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${activeBdmId === u.id ? 'bg-accent text-accent-foreground border-accent' : 'bg-secondary text-muted-foreground'}`}>
                    {u.name.charAt(0)}
                 </div>
                 <div className="min-w-0">
@@ -129,7 +129,7 @@ export function AIBriefsHub() {
 
             <div className="space-y-4">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 px-1">
-                <Clock className="w-3.5 h-3.5 text-slate-400" /> Performance Archive
+                <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Performance Archive
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <div className="md:col-span-4">
@@ -142,7 +142,7 @@ export function AIBriefsHub() {
                           className={`w-full text-left p-3 rounded-xl border transition-all ${
                             selectedBrief?.id === brief.id 
                               ? 'border-primary bg-primary/5' 
-                              : 'border-slate-100 bg-white'
+                              : 'border-border/60 bg-card'
                           }`}
                         >
                           <div className="flex justify-between items-center mb-1">
@@ -163,23 +163,23 @@ export function AIBriefsHub() {
                 </div>
                 <div className="md:col-span-8">
                    {selectedBrief ? (
-                     <Card className="border-none shadow-xl bg-slate-50 overflow-hidden">
-                        <CardHeader className="bg-white border-b py-4">
+                     <Card className="border-none shadow-xl bg-secondary/60 overflow-hidden">
+                        <CardHeader className="bg-card border-b py-4">
                            <div className="flex justify-between items-center">
                               <CardTitle className="text-xs font-black uppercase tracking-widest text-primary">Synthesis · Week {selectedBrief.week}</CardTitle>
                               <Badge variant="secondary" className="text-[8px] font-black">{selectedBrief.createdAt?.toDate ? format(selectedBrief.createdAt.toDate(), 'PPP') : ''}</Badge>
                            </div>
                         </CardHeader>
                         <CardContent className="pt-6 space-y-6">
-                           <div className="bg-white p-4 rounded-xl border text-[11px] font-medium leading-relaxed italic text-slate-700">
+                           <div className="bg-card p-4 rounded-xl border text-[11px] font-medium leading-relaxed italic text-foreground/85">
                              "{selectedBrief.summary}"
                            </div>
                         </CardContent>
                      </Card>
                    ) : (
-                     <div className="h-full min-h-[300px] flex flex-col items-center justify-center bg-slate-50/50 rounded-2xl border-2 border-dashed">
-                        <Target className="w-8 h-8 text-slate-200 mb-2" />
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select an archived node.</p>
+                     <div className="h-full min-h-[300px] flex flex-col items-center justify-center bg-secondary/30 rounded-2xl border-2 border-dashed">
+                        <Target className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Select an archived node.</p>
                      </div>
                    )}
                 </div>
@@ -187,12 +187,12 @@ export function AIBriefsHub() {
             </div>
           </div>
         ) : (
-          <div className="h-full min-h-[600px] flex flex-col items-center justify-center bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
-             <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6">
-                <Sparkles className="w-10 h-10 text-slate-200" />
+          <div className="h-full min-h-[600px] flex flex-col items-center justify-center bg-card rounded-[2rem] border-2 border-dashed border-border/60">
+             <div className="w-20 h-20 rounded-full bg-secondary/60 flex items-center justify-center mb-6">
+                <Sparkles className="w-10 h-10 text-muted-foreground/30" />
              </div>
-             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Select a Professional</h3>
-             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-2 text-center max-w-xs leading-relaxed">
+             <h3 className="text-sm font-black text-muted-foreground uppercase tracking-widest">Select a Professional</h3>
+             <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest mt-2 text-center max-w-xs leading-relaxed">
                 Access archived intelligence and trigger new coaching snapshots for your team nodes.
              </p>
           </div>

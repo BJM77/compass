@@ -51,7 +51,7 @@ export function PipelineFunnel({ data, className }: PipelineFunnelProps) {
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white border p-2 rounded shadow-sm text-xs">
+                      <div className="bg-card border p-2 rounded shadow-sm text-xs">
                         <span className="font-bold">${(payload[0].value as number).toLocaleString()}</span>
                       </div>
                     );

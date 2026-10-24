@@ -275,7 +275,7 @@ export function AlignCustomer() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <CardTitle className="text-xl font-bold flex items-center gap-2">
-                <LinkIcon className="w-5 h-5 text-indigo-600" /> Account Alignment & Targets
+                <LinkIcon className="w-5 h-5 text-accent" /> Account Alignment & Targets
               </CardTitle>
               <CardDescription>Assign orphaned revenue and add missing customers manually</CardDescription>
             </div>
@@ -285,13 +285,13 @@ export function AlignCustomer() {
                 <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
                 <Input 
                   placeholder="Search accounts..." 
-                  className="pl-9 bg-white"
+                  className="pl-9 bg-card"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <Select value={filterMode} onValueChange={(v: any) => setFilterMode(v)}>
-                <SelectTrigger className="w-40 bg-white">
+                <SelectTrigger className="w-40 bg-card">
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -304,7 +304,7 @@ export function AlignCustomer() {
 
               {filterMode !== 'UNASSIGNED' && (
                 <Select value={repFilter} onValueChange={setRepFilter}>
-                  <SelectTrigger className="w-48 bg-white">
+                  <SelectTrigger className="w-48 bg-card">
                     <SelectValue placeholder="Filter by Rep" />
                   </SelectTrigger>
                   <SelectContent>
@@ -316,13 +316,13 @@ export function AlignCustomer() {
                 </Select>
               )}
               
-              <Button variant="outline" onClick={handleExportCSV} className="text-slate-600 print:hidden">
+              <Button variant="outline" onClick={handleExportCSV} className="text-foreground/75 print:hidden">
                 <Download className="w-4 h-4 mr-2" /> Export CSV
               </Button>
               
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <Button className="bg-accent hover:bg-accent/90">
                     <Plus className="w-4 h-4 mr-2" /> Add Missing Customer
                   </Button>
                 </DialogTrigger>
@@ -362,7 +362,7 @@ export function AlignCustomer() {
                   </div>
                   <DialogFooter className="mt-6">
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleAddMissingCustomer} disabled={isAdding} className="bg-indigo-600 hover:bg-indigo-700">
+                    <Button onClick={handleAddMissingCustomer} disabled={isAdding} className="bg-accent hover:bg-accent/90">
                       {isAdding ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                       Inject Revenue
                     </Button>
@@ -381,7 +381,7 @@ export function AlignCustomer() {
                 <div className="py-12 text-center text-muted-foreground">No accounts found matching the criteria.</div>
               ) : (
                 <div className="min-w-[800px] divide-y">
-                  <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-slate-50 sticky top-0 z-10">
+                  <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-secondary/60 sticky top-0 z-10">
                     <div className="col-span-4">Account Name</div>
                     <div className="col-span-2 text-right">Annual Target</div>
                     <div className="col-span-2 text-right">YTD Pace (Wk {currentWeek})</div>
@@ -393,24 +393,24 @@ export function AlignCustomer() {
                     const variance = acc.annualTarget ? acc.ytdRevenue - expectedYtd : 0;
                     
                     return (
-                      <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors">
+                      <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-secondary/60 transition-colors">
                         <div className="col-span-4">
-                          <div className="font-bold text-sm truncate text-slate-800" title={acc.originalName}>{acc.originalName}</div>
-                          {acc.isManualMapping && <Badge variant="outline" className="text-[9px] mt-1 text-indigo-600 border-indigo-200 bg-indigo-50 font-bold uppercase tracking-widest">Aligned</Badge>}
+                          <div className="font-bold text-sm truncate text-foreground" title={acc.originalName}>{acc.originalName}</div>
+                          {acc.isManualMapping && <Badge variant="outline" className="text-[9px] mt-1 text-accent border-accent/25 bg-accent/10 font-bold uppercase tracking-widest">Aligned</Badge>}
                         </div>
                         
-                        <div className="col-span-2 text-right font-medium text-sm text-slate-500">
+                        <div className="col-span-2 text-right font-medium text-sm text-muted-foreground">
                           {acc.annualTarget ? formatCurrency(acc.annualTarget) : '-'}
                         </div>
                         
-                        <div className="col-span-2 text-right font-medium text-sm text-slate-500">
+                        <div className="col-span-2 text-right font-medium text-sm text-muted-foreground">
                           {acc.annualTarget ? formatCurrency(expectedYtd) : '-'}
                         </div>
                         
                         <div className="col-span-2 text-right">
-                          <div className="font-bold text-sm text-slate-900">{formatCurrency(acc.ytdRevenue)}</div>
+                          <div className="font-bold text-sm text-foreground">{formatCurrency(acc.ytdRevenue)}</div>
                           {acc.annualTarget ? (
-                            <div className={`text-[10px] font-bold mt-0.5 ${variance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                            <div className={`text-[10px] font-bold mt-0.5 ${variance >= 0 ? 'text-success' : 'text-destructive'}`}>
                               {variance >= 0 ? '+' : ''}{formatCurrency(variance)}
                             </div>
                           ) : null}
@@ -421,7 +421,7 @@ export function AlignCustomer() {
                             value={acc.assignedToId || 'UNASSIGNED'} 
                             onValueChange={(val) => handleAssign(acc.cleanName, acc.originalName, val, acc.annualTarget)}
                           >
-                            <SelectTrigger className={`h-9 ${!acc.assignedToId ? 'border-amber-400 bg-amber-50 shadow-sm' : 'bg-white'}`}>
+                            <SelectTrigger className={`h-9 ${!acc.assignedToId ? 'border-warning bg-warning-soft shadow-sm' : 'bg-card'}`}>
                               <SelectValue placeholder="Select Rep" />
                             </SelectTrigger>
                             <SelectContent>

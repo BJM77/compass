@@ -277,14 +277,14 @@ interface ProcessedActualSpendRecord {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  'Develop':           'bg-blue-100 text-blue-800',
-  'Propose':           'bg-indigo-100 text-indigo-800',
-  'Negotiating':       'bg-purple-100 text-purple-800',
-  'Finalise':          'bg-orange-100 text-orange-800',
-  'Pending Trade':     'bg-amber-100 text-amber-800',
-  'Closed Won':        'bg-emerald-100 text-emerald-800',
-  'Closed Lost':       'bg-rose-100 text-rose-800',
-  'Existing Customer': 'bg-slate-100 text-slate-600',
+  'Develop':           'bg-info-soft text-info',
+  'Propose':           'bg-accent/15 text-primary',
+  'Negotiating':       'bg-chart-5/15 text-chart-5',
+  'Finalise':          'bg-warning-soft text-warning-ink',
+  'Pending Trade':     'bg-warning-soft text-warning-ink',
+  'Closed Won':        'bg-success-soft text-success-ink',
+  'Closed Lost':       'bg-danger-soft text-destructive',
+  'Existing Customer': 'bg-secondary text-foreground/75',
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -1171,7 +1171,7 @@ export function CRMImporter() {
     onFile: (f: File | null) => void; accept?: string;
   }) => (
     <div className={`relative rounded-2xl border-2 border-dashed p-6 transition-all cursor-pointer
-      ${file ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-accent/50 bg-white'}`}
+      ${file ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50 bg-card'}`}
       onClick={() => document.getElementById(`file-${label.replace(/\s/g, '')}`)?.click()}
     >
       <input
@@ -1182,7 +1182,7 @@ export function CRMImporter() {
         onChange={e => onFile(e.target.files?.[0] || null)}
       />
       <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${file ? 'bg-accent text-white' : 'bg-slate-100 text-slate-400'}`}>
+        <div className={`p-3 rounded-xl ${file ? 'bg-accent text-accent-foreground' : 'bg-secondary text-muted-foreground'}`}>
           {file ? <CheckCircle2 className="w-6 h-6" /> : <FileUp className="w-6 h-6" />}
         </div>
         <div className="flex-1 min-w-0">
@@ -1195,7 +1195,7 @@ export function CRMImporter() {
         {file && (
           <button
             onClick={e => { e.stopPropagation(); onFile(null); }}
-            className="text-slate-400 hover:text-red-500 transition-colors p-1"
+            className="text-muted-foreground hover:text-destructive transition-colors p-1"
           >
             <X className="w-4 h-4" />
           </button>
@@ -1213,12 +1213,12 @@ export function CRMImporter() {
     if (!validation) return null;
 
     return (
-      <Card className="border border-slate-200 shadow-sm bg-white overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b py-3 px-6 flex flex-row items-center justify-between">
+      <Card className="border border-border shadow-sm bg-card overflow-hidden">
+        <CardHeader className="bg-secondary/60 border-b py-3 px-6 flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-800">{title} Preview & Validation</span>
+            <span className="text-xs font-black uppercase tracking-wider text-foreground">{title} Preview & Validation</span>
             {validation.isValid ? (
-              <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none font-bold uppercase text-[9px] tracking-wider">Valid Schema</Badge>
+              <Badge className="bg-success-soft text-success-ink hover:bg-success/20 border-none font-bold uppercase text-[9px] tracking-wider">Valid Schema</Badge>
             ) : (
               <Badge variant="destructive" className="font-bold uppercase text-[9px] tracking-wider">Schema Errors</Badge>
             )}
@@ -1227,7 +1227,7 @@ export function CRMImporter() {
             variant="ghost" 
             size="sm" 
             onClick={() => setShowPreview(!showPreview)} 
-            className="text-xs font-bold uppercase tracking-wider text-primary h-8 px-3 rounded-lg hover:bg-slate-100"
+            className="text-xs font-bold uppercase tracking-wider text-primary h-8 px-3 rounded-lg hover:bg-secondary"
           >
             {showPreview ? 'Hide Details' : 'Show Details & Preview'}
           </Button>
@@ -1235,47 +1235,47 @@ export function CRMImporter() {
         {showPreview && (
           <CardContent className="p-6 space-y-4">
             {!validation.isValid && (
-              <div className="p-4 bg-red-50 border border-red-100 rounded-xl space-y-2">
-                <p className="text-xs font-black uppercase text-red-800 flex items-center gap-2">
+              <div className="p-4 bg-danger-soft border border-destructive/15 rounded-xl space-y-2">
+                <p className="text-xs font-black uppercase text-destructive flex items-center gap-2">
                   <AlertTriangle className="w-4.5 h-4.5" />
                   Validation Errors detected:
                 </p>
-                <ul className="list-disc list-inside text-xs text-red-700 font-medium space-y-1">
+                <ul className="list-disc list-inside text-xs text-destructive font-medium space-y-1">
                   {validation.errors.map((err, i) => <li key={i}>{err}</li>)}
                 </ul>
               </div>
             )}
             
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Detected Columns ({validation.headers.length})</p>
-              <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-2 bg-slate-50 rounded-lg border border-slate-100">
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Detected Columns ({validation.headers.length})</p>
+              <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-2 bg-secondary/60 rounded-lg border border-border/60">
                 {validation.headers.map((h, i) => (
-                  <Badge key={i} variant="outline" className="text-[9px] font-bold bg-white text-slate-600 border-slate-200">{h}</Badge>
+                  <Badge key={i} variant="outline" className="text-[9px] font-bold bg-card text-foreground/75 border-border">{h}</Badge>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase text-slate-500 tracking-wider">File Preview (First 5 Rows)</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">File Preview (First 5 Rows)</p>
               <div className="border rounded-xl overflow-hidden">
                 <ScrollArea className="w-full">
                   <div className="max-h-[250px] overflow-auto">
                     <Table>
-                      <TableHeader className="bg-slate-50 border-b sticky top-0 z-10">
+                      <TableHeader className="bg-secondary/60 border-b sticky top-0 z-10">
                         <TableRow>
                           {validation.headers.slice(0, 8).map((h, i) => (
-                            <TableHead key={i} className="font-black text-[10px] uppercase text-slate-500 whitespace-nowrap px-4 py-2">{h}</TableHead>
+                            <TableHead key={i} className="font-black text-[10px] uppercase text-muted-foreground whitespace-nowrap px-4 py-2">{h}</TableHead>
                           ))}
-                          {validation.headers.length > 8 && <TableHead className="font-black text-[10px] uppercase text-slate-500 px-4 py-2">...</TableHead>}
+                          {validation.headers.length > 8 && <TableHead className="font-black text-[10px] uppercase text-muted-foreground px-4 py-2">...</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {validation.previewRows.map((row, i) => (
-                          <TableRow key={i} className="hover:bg-slate-50">
+                          <TableRow key={i} className="hover:bg-secondary/60">
                             {validation.headers.slice(0, 8).map((h, j) => (
                               <TableCell key={j} className="text-xs font-medium max-w-[150px] truncate px-4 py-2">{String(row[h] ?? '')}</TableCell>
                             ))}
-                            {validation.headers.length > 8 && <TableCell className="text-xs text-slate-400 px-4 py-2">...</TableCell>}
+                            {validation.headers.length > 8 && <TableCell className="text-xs text-muted-foreground px-4 py-2">...</TableCell>}
                           </TableRow>
                         ))}
                       </TableBody>
@@ -1301,8 +1301,8 @@ export function CRMImporter() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="border-none shadow-xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-900 text-white pb-6">
+      <Card className="border-none shadow-xl bg-card overflow-hidden">
+        <CardHeader className="bg-panel text-panel-foreground pb-6">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-accent/20 rounded-xl">
@@ -1310,7 +1310,7 @@ export function CRMImporter() {
               </div>
               <div>
                 <CardTitle className="text-xl font-black tracking-tight">Salesforce CRM Sync</CardTitle>
-                <CardDescription className="text-slate-400 font-medium mt-0.5">
+                <CardDescription className="text-panel-foreground/60 font-medium mt-0.5">
                   Three-file import: Customers, Opportunities, and Activities — merged and aggregated
                 </CardDescription>
               </div>
@@ -1318,31 +1318,31 @@ export function CRMImporter() {
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={isPurging || isProcessing || isImporting} className="font-black uppercase text-xs h-10 px-5 rounded-xl shadow-lg bg-red-600 hover:bg-red-700 transition-all">
+                <Button variant="destructive" disabled={isPurging || isProcessing || isImporting} className="font-black uppercase text-xs h-10 px-5 rounded-xl shadow-lg bg-destructive hover:bg-destructive/90 transition-all">
                   {isPurging ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
                   {isPurging ? 'Purging...' : 'Purge Data'}
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-white border-slate-200 shadow-2xl rounded-2xl">
+              <AlertDialogContent className="bg-card border-border shadow-2xl rounded-2xl">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-xl font-black uppercase text-red-600 flex items-center gap-2 tracking-tight">
-                    <AlertTriangle className="w-6 h-6 text-red-600" /> Purge Pipeline Data
+                  <AlertDialogTitle className="text-xl font-black uppercase text-destructive flex items-center gap-2 tracking-tight">
+                    <AlertTriangle className="w-6 h-6 text-destructive" /> Purge Pipeline Data
                   </AlertDialogTitle>
-                  <AlertDialogDescription className="text-slate-600 font-medium text-xs mt-1">
+                  <AlertDialogDescription className="text-foreground/75 font-medium text-xs mt-1">
                     Select whether to reset and delete accounts/opportunities for the current week or across the entire database. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="flex flex-col gap-3 py-4">
-                  <Button variant="outline" onClick={() => handlePurge('WEEK')} className="justify-start h-12 text-xs font-black uppercase text-slate-800 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all rounded-xl shadow-sm">
-                    <Trash2 className="w-4 h-4 mr-2 text-red-500" /> Purge Current Week ({currentWeek}) Only
+                  <Button variant="outline" onClick={() => handlePurge('WEEK')} className="justify-start h-12 text-xs font-black uppercase text-foreground border-border hover:bg-danger-soft hover:text-destructive hover:border-destructive/25 transition-all rounded-xl shadow-sm">
+                    <Trash2 className="w-4 h-4 mr-2 text-destructive" /> Purge Current Week ({currentWeek}) Only
                   </Button>
-                  <Button variant="outline" onClick={() => handlePurge('OPPORTUNITIES_WEEK')} className="justify-start h-12 text-xs font-black uppercase text-slate-800 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all rounded-xl shadow-sm">
-                    <Trash2 className="w-4 h-4 mr-2 text-orange-500" /> Purge Opportunities (Current Week)
+                  <Button variant="outline" onClick={() => handlePurge('OPPORTUNITIES_WEEK')} className="justify-start h-12 text-xs font-black uppercase text-foreground border-border hover:bg-danger-soft hover:text-destructive hover:border-destructive/25 transition-all rounded-xl shadow-sm">
+                    <Trash2 className="w-4 h-4 mr-2 text-warning" /> Purge Opportunities (Current Week)
                   </Button>
-                  <Button variant="outline" onClick={() => handlePurge('OPPORTUNITIES_ALL')} className="justify-start h-12 text-xs font-black uppercase text-slate-800 border-slate-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all rounded-xl shadow-sm">
-                    <AlertTriangle className="w-4 h-4 mr-2 text-orange-600" /> Purge Opportunities (All Weeks)
+                  <Button variant="outline" onClick={() => handlePurge('OPPORTUNITIES_ALL')} className="justify-start h-12 text-xs font-black uppercase text-foreground border-border hover:bg-danger-soft hover:text-destructive hover:border-destructive/25 transition-all rounded-xl shadow-sm">
+                    <AlertTriangle className="w-4 h-4 mr-2 text-warning-ink" /> Purge Opportunities (All Weeks)
                   </Button>
-                  <Button variant="outline" onClick={() => handlePurge('ALL')} className="justify-start h-12 text-xs font-black uppercase text-red-600 border-red-200 hover:bg-red-600 hover:text-white transition-all rounded-xl shadow-sm">
+                  <Button variant="outline" onClick={() => handlePurge('ALL')} className="justify-start h-12 text-xs font-black uppercase text-destructive border-destructive/25 hover:bg-destructive/90 hover:text-white transition-all rounded-xl shadow-sm">
                     <AlertTriangle className="w-4 h-4 mr-2" /> Purge Entire Pipeline History (All Data)
                   </Button>
                 </div>
@@ -1356,20 +1356,20 @@ export function CRMImporter() {
 
         <CardContent className="pt-6 space-y-6">
           {/* Stage Rules Legend */}
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
+          <div className="bg-secondary/60 rounded-2xl p-4 border border-border/60">
+            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
               <Info className="w-3 h-3" /> Stage Import Rules
             </p>
             <div className="flex flex-wrap gap-2">
               {['Develop', 'Propose', 'Negotiating', 'Finalise', 'Pending Trade'].map(s => (
-                <Badge key={s} className="bg-green-100 text-green-800 font-bold text-[9px] border-none">
+                <Badge key={s} className="bg-success-soft text-success-ink font-bold text-[9px] border-none">
                   ✓ {s}
                 </Badge>
               ))}
-              <Badge className="bg-emerald-100 text-emerald-800 font-bold text-[9px] border-none">
+              <Badge className="bg-success-soft text-success-ink font-bold text-[9px] border-none">
                 ✓ Closed Won (Weekly attribution by Stage Change Date)
               </Badge>
-              <Badge className="bg-rose-100 text-rose-800 font-bold text-[9px] border-none">
+              <Badge className="bg-danger-soft text-destructive font-bold text-[9px] border-none">
                 ✓ Closed Lost (Weekly attribution by Stage Change Date)
               </Badge>
             </div>
@@ -1418,7 +1418,7 @@ export function CRMImporter() {
             <Button
               onClick={handleProcess}
               disabled={isProcessing || isImporting || hasValidationErrors || hasNoFiles}
-              className="bg-slate-900 text-white font-black uppercase text-xs h-12 px-8 rounded-xl"
+              className="bg-panel text-panel-foreground font-black uppercase text-xs h-12 px-8 rounded-xl"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
               Preview Import
@@ -1427,7 +1427,7 @@ export function CRMImporter() {
                 <Button
                   onClick={handleImport}
                   disabled={isImporting || isProcessing}
-                  className="bg-accent text-white font-black uppercase text-xs h-12 px-8 rounded-xl shadow-lg"
+                  className="bg-accent text-accent-foreground font-black uppercase text-xs h-12 px-8 rounded-xl shadow-lg"
                 >
                   {isImporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                   Commit {previewRecords.length + previewActivityRecords.length + previewActualSpendRecords.length} Records
@@ -1441,11 +1441,11 @@ export function CRMImporter() {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: 'Active Opps', value: stats.activeOpportunities, color: 'text-green-700 bg-green-50 border-green-100' },
-            { label: 'Bare Accounts', value: stats.bareAccounts, color: 'text-blue-700 bg-blue-50 border-blue-100' },
-            { label: 'Closed Won (New Biz)', value: stats.closedWonCount, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-            { label: 'Closed Lost', value: stats.closedLostCount, color: 'text-rose-700 bg-rose-50 border-rose-100' },
-            { label: 'Total Pipeline Rows', value: previewRecords.length, color: 'text-primary bg-slate-50 border-slate-200' },
+            { label: 'Active Opps', value: stats.activeOpportunities, color: 'text-success-ink bg-success-soft border-success/15' },
+            { label: 'Bare Accounts', value: stats.bareAccounts, color: 'text-info bg-info-soft border-info/15' },
+            { label: 'Closed Won (New Biz)', value: stats.closedWonCount, color: 'text-success-ink bg-success-soft border-success/15' },
+            { label: 'Closed Lost', value: stats.closedLostCount, color: 'text-destructive bg-danger-soft border-destructive/15' },
+            { label: 'Total Pipeline Rows', value: previewRecords.length, color: 'text-primary bg-secondary/60 border-border' },
           ].map(s => (
             <div key={s.label} className={`rounded-2xl p-4 border ${s.color} text-center`}>
               <p className="text-2xl font-black">{s.value}</p>
@@ -1459,10 +1459,10 @@ export function CRMImporter() {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Total Activity Rows', value: stats.totalActivityRows || 0, color: 'text-slate-700 bg-slate-50 border-slate-200' },
-            { label: 'Completed Calls', value: stats.completedCalls || 0, color: 'text-blue-700 bg-blue-50 border-blue-100' },
-            { label: 'Completed Meetings', value: stats.completedApps || 0, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-            { label: 'Unique BDM-Weeks', value: previewActivityRecords.length, color: 'text-purple-700 bg-purple-50 border-purple-100' },
+            { label: 'Total Activity Rows', value: stats.totalActivityRows || 0, color: 'text-foreground/85 bg-secondary/60 border-border' },
+            { label: 'Completed Calls', value: stats.completedCalls || 0, color: 'text-info bg-info-soft border-info/15' },
+            { label: 'Completed Meetings', value: stats.completedApps || 0, color: 'text-success-ink bg-success-soft border-success/15' },
+            { label: 'Unique BDM-Weeks', value: previewActivityRecords.length, color: 'text-chart-5 bg-chart-5/10 border-chart-5/15' },
           ].map(s => (
             <div key={s.label} className={`rounded-2xl p-4 border ${s.color} text-center`}>
               <p className="text-2xl font-black">{s.value}</p>
@@ -1474,11 +1474,11 @@ export function CRMImporter() {
       
       {/* Empty State Warning */}
       {stats && previewRecords.length === 0 && previewActivityRecords.length === 0 && previewActualSpendRecords.length === 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+        <div className="bg-danger-soft border border-destructive/25 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-black text-red-800 uppercase">No Data Found</p>
-            <p className="text-[11px] text-red-700 mt-1">
+            <p className="text-sm font-black text-destructive uppercase">No Data Found</p>
+            <p className="text-[11px] text-destructive mt-1">
               We parsed your files but couldn't find any valid records. This usually happens if:
               <br/>- The CSV files don't have the correct column headers (e.g., "Customer ID", "Account Owner", "Sales Stage").
               <br/>- The files contain headers on a different row (like Row 2 or 3) instead of the first row.
@@ -1490,16 +1490,16 @@ export function CRMImporter() {
 
       {/* Unmatched Owners Warning */}
       {stats && stats.unmatchedOwners.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+        <div className="bg-warning-soft border border-warning/25 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-black text-orange-800 uppercase">Unmatched Opportunity Owners</p>
-            <p className="text-[11px] text-orange-700 mt-1">
+            <p className="text-sm font-black text-warning-ink uppercase">Unmatched Opportunity Owners</p>
+            <p className="text-[11px] text-warning-ink mt-1">
               These names in the CSV don't match any Compass user — their records were skipped:
             </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {stats.unmatchedOwners.map(n => (
-                <Badge key={n} className="bg-orange-100 text-orange-800 font-bold text-[10px] border-none">{n}</Badge>
+                <Badge key={n} className="bg-warning-soft text-warning-ink font-bold text-[10px] border-none">{n}</Badge>
               ))}
             </div>
           </div>
@@ -1508,16 +1508,16 @@ export function CRMImporter() {
 
       {/* Unmatched Activity Owners Warning */}
       {stats && stats.unmatchedActivityOwners && stats.unmatchedActivityOwners.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+        <div className="bg-warning-soft border border-warning/25 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-black text-orange-800 uppercase">Unmatched Activity Owners</p>
-            <p className="text-[11px] text-orange-700 mt-1">
+            <p className="text-sm font-black text-warning-ink uppercase">Unmatched Activity Owners</p>
+            <p className="text-[11px] text-warning-ink mt-1">
               These names in the Activity CSV don't match any Compass user — their activity counts were skipped:
             </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {stats.unmatchedActivityOwners.map(n => (
-                <Badge key={n} className="bg-orange-100 text-orange-800 font-bold text-[10px] border-none">{n}</Badge>
+                <Badge key={n} className="bg-warning-soft text-warning-ink font-bold text-[10px] border-none">{n}</Badge>
               ))}
             </div>
           </div>
@@ -1526,13 +1526,13 @@ export function CRMImporter() {
 
       {/* Matched BDMs */}
       {stats && stats.matchedBDMs.length > 0 && (
-        <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+        <div className="bg-success-soft border border-success/15 rounded-2xl p-4 flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-black text-green-800 uppercase">Matched BDMs</p>
+            <p className="text-sm font-black text-success-ink uppercase">Matched BDMs</p>
             <div className="flex flex-wrap gap-2 mt-2">
               {stats.matchedBDMs.map(n => (
-                <Badge key={n} className="bg-green-100 text-green-800 font-bold text-[10px] border-none">{n}</Badge>
+                <Badge key={n} className="bg-success-soft text-success-ink font-bold text-[10px] border-none">{n}</Badge>
               ))}
             </div>
           </div>
@@ -1541,15 +1541,15 @@ export function CRMImporter() {
 
       {/* Preview Table */}
       {previewRecords.length > 0 && (
-        <Card className="border-none shadow-xl bg-white overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b py-4 px-6">
+        <Card className="border-none shadow-xl bg-card overflow-hidden">
+          <CardHeader className="bg-secondary/60 border-b py-4 px-6">
             <CardTitle className="text-sm font-black uppercase tracking-tight">
               Preview — {previewRecords.length} Records
             </CardTitle>
           </CardHeader>
           <ScrollArea className="h-[500px]">
             <Table>
-              <TableHeader className="bg-slate-50 sticky top-0 z-10">
+              <TableHeader className="bg-secondary/60 sticky top-0 z-10">
                 <TableRow className="text-[9px] font-black uppercase tracking-widest">
                   <TableHead className="pl-6">BDM</TableHead>
                   <TableHead>Account</TableHead>
@@ -1564,7 +1564,7 @@ export function CRMImporter() {
               </TableHeader>
               <TableBody>
                 {previewRecords.map((r, i) => (
-                  <TableRow key={i} className="hover:bg-slate-50">
+                  <TableRow key={i} className="hover:bg-secondary/60">
                     <TableCell className="pl-6 py-3">
                       <p className="text-[10px] font-black uppercase text-primary">{r.userName}</p>
                     </TableCell>
@@ -1573,10 +1573,10 @@ export function CRMImporter() {
                       <p className="text-[9px] text-muted-foreground font-mono">{r.accountMasterCode}</p>
                     </TableCell>
                     <TableCell>
-                      <p className="text-[10px] text-slate-600">{r.opportunityName || '—'}</p>
+                      <p className="text-[10px] text-foreground/75">{r.opportunityName || '—'}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge className={`text-[8px] font-black border-none ${STAGE_COLORS[r.stage] || 'bg-slate-100 text-slate-600'}`}>
+                      <Badge className={`text-[8px] font-black border-none ${STAGE_COLORS[r.stage] || 'bg-secondary text-foreground/75'}`}>
                         {r.stage}
                       </Badge>
                     </TableCell>
@@ -1585,19 +1585,19 @@ export function CRMImporter() {
                     </TableCell>
                     <TableCell>
                       {r.closedWonValue > 0 ? (
-                        <p className="text-[10px] font-black text-green-700">${r.closedWonValue.toLocaleString()}</p>
-                      ) : <span className="text-slate-300">—</span>}
+                        <p className="text-[10px] font-black text-success-ink">${r.closedWonValue.toLocaleString()}</p>
+                      ) : <span className="text-muted-foreground/70">—</span>}
                     </TableCell>
                     <TableCell>
-                      <p className="text-[9px] text-slate-500">{r.lastSalesStageChangeDate || '—'}</p>
+                      <p className="text-[9px] text-muted-foreground">{r.lastSalesStageChangeDate || '—'}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[8px] font-mono font-bold bg-slate-50">
+                      <Badge variant="outline" className="text-[8px] font-mono font-bold bg-secondary/60">
                         Wk {r.week ? r.week.split('-')[1] : currentWeek.split('-')[1]}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <p className="text-[9px] font-mono text-slate-400">{r.accountMasterCode}</p>
+                      <p className="text-[9px] font-mono text-muted-foreground">{r.accountMasterCode}</p>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1609,15 +1609,15 @@ export function CRMImporter() {
 
       {/* Activity Preview Table */}
       {previewActivityRecords.length > 0 && (
-        <Card className="border-none shadow-xl bg-white overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b py-4 px-6">
+        <Card className="border-none shadow-xl bg-card overflow-hidden">
+          <CardHeader className="bg-secondary/60 border-b py-4 px-6">
             <CardTitle className="text-sm font-black uppercase tracking-tight">
               Preview — {previewActivityRecords.length} CRM Activity Aggregations by Week
             </CardTitle>
           </CardHeader>
           <ScrollArea className="h-[300px]">
             <Table>
-              <TableHeader className="bg-slate-50 sticky top-0 z-10">
+              <TableHeader className="bg-secondary/60 sticky top-0 z-10">
                 <TableRow className="text-[9px] font-black uppercase tracking-widest">
                   <TableHead className="pl-6">BDM</TableHead>
                   <TableHead>Financial Week</TableHead>
@@ -1627,7 +1627,7 @@ export function CRMImporter() {
               </TableHeader>
               <TableBody>
                 {previewActivityRecords.map((r, i) => (
-                  <TableRow key={i} className="hover:bg-slate-50">
+                  <TableRow key={i} className="hover:bg-secondary/60">
                     <TableCell className="pl-6 py-3">
                       <p className="text-[10px] font-black uppercase text-primary">{r.userName}</p>
                     </TableCell>
@@ -1635,12 +1635,12 @@ export function CRMImporter() {
                       <p className="text-[10px] font-bold">Week {r.week.split('-')[1]} ({r.week})</p>
                     </TableCell>
                     <TableCell>
-                      <Badge className="text-[10px] font-black bg-blue-100 text-blue-800 border-none px-3 py-1">
+                      <Badge className="text-[10px] font-black bg-info-soft text-info border-none px-3 py-1">
                         {r.calls} CRM Calls
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className="text-[10px] font-black bg-emerald-100 text-emerald-800 border-none px-3 py-1">
+                      <Badge className="text-[10px] font-black bg-success-soft text-success-ink border-none px-3 py-1">
                         {r.apps} CRM Meetings
                       </Badge>
                     </TableCell>
@@ -1654,15 +1654,15 @@ export function CRMImporter() {
 
       {/* Actual Spend Preview Table */}
       {previewActualSpendRecords.length > 0 && (
-        <Card className="border-none shadow-xl bg-white overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b py-4 px-6">
+        <Card className="border-none shadow-xl bg-card overflow-hidden">
+          <CardHeader className="bg-secondary/60 border-b py-4 px-6">
             <CardTitle className="text-sm font-black uppercase tracking-tight">
               Preview — {previewActualSpendRecords.length} Actual Spend Records
             </CardTitle>
           </CardHeader>
           <ScrollArea className="h-[300px]">
             <Table>
-              <TableHeader className="bg-slate-50 sticky top-0 z-10">
+              <TableHeader className="bg-secondary/60 sticky top-0 z-10">
                 <TableRow className="text-[9px] font-black uppercase tracking-widest">
                   <TableHead className="pl-6">Customer</TableHead>
                   <TableHead>Account</TableHead>
@@ -1674,13 +1674,13 @@ export function CRMImporter() {
               </TableHeader>
               <TableBody>
                 {previewActualSpendRecords.map((r, i) => (
-                  <TableRow key={i} className="hover:bg-slate-50">
+                  <TableRow key={i} className="hover:bg-secondary/60">
                     <TableCell className="pl-6 py-3 font-bold">{r.companyName}</TableCell>
                     <TableCell className="text-[10px]">{r.account}</TableCell>
                     <TableCell className="text-[10px] font-bold">{r.businessUnit}</TableCell>
                     <TableCell className="text-[10px]">{r.lineOfBusiness}</TableCell>
-                    <TableCell className="text-right font-bold text-indigo-600">${r.value.toLocaleString(undefined, {minimumFractionDigits: 2})}</TableCell>
-                    <TableCell className="text-center font-semibold text-slate-500">{r.category}</TableCell>
+                    <TableCell className="text-right font-bold text-accent">${r.value.toLocaleString(undefined, {minimumFractionDigits: 2})}</TableCell>
+                    <TableCell className="text-center font-semibold text-muted-foreground">{r.category}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -1690,22 +1690,22 @@ export function CRMImporter() {
       )}
 
       {/* ─── Activity Reset Card ──────────────────────────────────────── */}
-      <Card className="border-none shadow-xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-800 text-white pb-5 pt-5">
+      <Card className="border-none shadow-xl bg-card overflow-hidden">
+        <CardHeader className="bg-panel/90 text-panel-foreground pb-5 pt-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-400/20 rounded-xl">
-                <RefreshCw className="w-4 h-4 text-blue-400" />
+              <div className="p-2 bg-info/15 rounded-xl">
+                <RefreshCw className="w-4 h-4 text-info" />
               </div>
               <div>
                 <CardTitle className="text-base font-black tracking-tight">Activity Counter Reset</CardTitle>
-                <CardDescription className="text-slate-400 font-medium mt-0.5 text-xs">
+                <CardDescription className="text-panel-foreground/60 font-medium mt-0.5 text-xs">
                   Zero out CALL · APP · OPP · WIN for all team members
                 </CardDescription>
               </div>
             </div>
             {isSaturday && (
-              <Badge className="bg-amber-400/20 text-amber-400 border-none font-black text-[9px] uppercase animate-pulse">
+              <Badge className="bg-warning/15 text-gold border-none font-black text-[9px] uppercase animate-pulse">
                 ⚡ Saturday — Reset Recommended
               </Badge>
             )}
@@ -1716,10 +1716,10 @@ export function CRMImporter() {
           {/* What gets reset info */}
           <div className="grid grid-cols-4 gap-3">
             {[
-              { icon: Phone,         label: 'Calls',   color: 'bg-blue-50 text-blue-600 border-blue-100' },
-              { icon: CalendarCheck, label: 'Apps',    color: 'bg-green-50 text-green-600 border-green-100' },
-              { icon: FileText,      label: 'Opps',    color: 'bg-purple-50 text-purple-600 border-purple-100' },
-              { icon: Target,        label: 'Wins',    color: 'bg-orange-50 text-orange-600 border-orange-100' },
+              { icon: Phone,         label: 'Calls',   color: 'bg-info-soft text-info border-info/15' },
+              { icon: CalendarCheck, label: 'Apps',    color: 'bg-success-soft text-success border-success/15' },
+              { icon: FileText,      label: 'Opps',    color: 'bg-chart-5/10 text-chart-5 border-chart-5/15' },
+              { icon: Target,        label: 'Wins',    color: 'bg-warning-soft text-warning-ink border-warning/15' },
             ].map(({ icon: Icon, label, color }) => (
               <div key={label} className={`rounded-2xl border p-3 text-center ${color}`}>
                 <Icon className="w-5 h-5 mx-auto mb-1 opacity-70" />
@@ -1729,8 +1729,8 @@ export function CRMImporter() {
             ))}
           </div>
 
-          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-            This zeroes all activity counters for the current week <strong className="text-slate-700">(Week {currentWeek.split('-')[1]})</strong> for every team member.
+          <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+            This zeroes all activity counters for the current week <strong className="text-foreground/85">(Week {currentWeek.split('-')[1]})</strong> for every team member.
             Use this every Saturday to ensure a clean slate before the new week begins on Monday.
             The system automatically starts a new week document on Monday, but running this on Saturday ensures the leaderboard shows clean data over the weekend.
           </p>
@@ -1739,19 +1739,19 @@ export function CRMImporter() {
             <AlertDialogTrigger asChild>
               <Button
                 disabled={isResetting || isPurging || isImporting}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs rounded-xl shadow-lg transition-all"
+                className="w-full h-12 bg-info hover:bg-info/90 text-info-foreground font-black uppercase text-xs rounded-xl shadow-lg transition-all"
               >
                 {isResetting
                   ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Resetting...</>
                   : <><RefreshCw className="w-4 h-4 mr-2" /> Reset Current Week Activity (Week {currentWeek.split('-')[1]})</>}
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-white border-slate-200 shadow-2xl rounded-2xl">
+            <AlertDialogContent className="bg-card border-border shadow-2xl rounded-2xl">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl font-black uppercase text-blue-700 flex items-center gap-2 tracking-tight">
-                  <RefreshCw className="w-6 h-6 text-blue-600" /> Reset Team Activity
+                <AlertDialogTitle className="text-xl font-black uppercase text-info flex items-center gap-2 tracking-tight">
+                  <RefreshCw className="w-6 h-6 text-info" /> Reset Team Activity
                 </AlertDialogTitle>
-                <AlertDialogDescription className="text-slate-600 font-medium text-xs mt-1">
+                <AlertDialogDescription className="text-foreground/75 font-medium text-xs mt-1">
                   This will set <strong>Calls, Apps, Opps and Wins to 0</strong> for all team members for Week {currentWeek.split('-')[1]}.
                   Their historical records from prior weeks are not affected.
                 </AlertDialogDescription>
@@ -1759,7 +1759,7 @@ export function CRMImporter() {
               <div className="py-2">
                 <Button
                   onClick={() => handleActivityReset(currentWeek)}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs rounded-xl"
+                  className="w-full h-12 bg-info hover:bg-info/90 text-info-foreground font-black uppercase text-xs rounded-xl"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" /> Confirm Reset — Week {currentWeek.split('-')[1]}
                 </Button>

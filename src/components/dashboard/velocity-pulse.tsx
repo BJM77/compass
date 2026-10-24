@@ -55,7 +55,7 @@ export function VelocityPulse({ teamStats, teamActivity, onSimulate }: VelocityP
 
   return (
     <Card className="border-none shadow-2xl bg-card overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-accent to-accent" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-info to-success-fill" />
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

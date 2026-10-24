@@ -141,15 +141,15 @@ export function AiReportGenerator() {
   };
 
   return (
-    <Card className="border-none shadow-2xl bg-white overflow-hidden">
-      <CardHeader className="bg-slate-900 text-white pb-6 pt-6">
+    <Card className="border-none shadow-2xl bg-card overflow-hidden">
+      <CardHeader className="bg-panel text-panel-foreground pb-6 pt-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <CardTitle className="text-xl flex items-center gap-2 font-black tracking-tight uppercase">
               <Presentation className="w-5 h-5 text-accent" />
               AI Presentation Report
             </CardTitle>
-            <CardDescription className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+            <CardDescription className="text-panel-foreground/60 font-bold uppercase text-[10px] tracking-widest">
               Synthesize 90-Day Plans, Playbooks, and Pipeline for Senior Managers
             </CardDescription>
           </div>
@@ -167,12 +167,12 @@ export function AiReportGenerator() {
             <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto mb-8">
               Click below to aggregate the team's 90-day plan progress, pipeline metrics, and territory playbooks into a polished presentation format.
             </p>
-            <Button className="bg-accent hover:bg-accent/90 text-white font-black h-14 px-10 rounded-xl text-sm shadow-xl shadow-accent/20 uppercase tracking-widest transition-all hover:scale-105" onClick={runGeneration}>
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-14 px-10 rounded-xl text-sm shadow-xl shadow-accent/20 uppercase tracking-widest transition-all hover:scale-105" onClick={runGeneration}>
               <Sparkles className="w-4 h-4 mr-2" /> Generate AI Report
             </Button>
           </div>
         ) : isGenerating ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-6 bg-slate-50">
+          <div className="flex flex-col items-center justify-center py-32 space-y-6 bg-secondary/60">
             <div className="relative">
               <div className="absolute inset-0 bg-accent/20 rounded-full blur-xl animate-pulse" />
               <Loader2 className="w-12 h-12 animate-spin text-accent relative z-10" />
@@ -183,49 +183,49 @@ export function AiReportGenerator() {
             </div>
           </div>
         ) : report ? (
-          <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-slate-50">
+          <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-secondary/60">
             <div className="flex items-center justify-between border-b pb-4">
                <h2 className="text-2xl font-black text-primary uppercase tracking-tight max-w-2xl">{report.presentationTitle}</h2>
-               <Button variant="outline" className="border-primary/20 font-black h-10 px-6 rounded-lg bg-white shadow-sm uppercase text-[10px] tracking-widest" onClick={exportToPdf} disabled={isExporting}>
+               <Button variant="outline" className="border-primary/20 font-black h-10 px-6 rounded-lg bg-card shadow-sm uppercase text-[10px] tracking-widest" onClick={exportToPdf} disabled={isExporting}>
                  {isExporting ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <FileText className="w-4 h-4 mr-2" />} Export PDF
                </Button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Group 90 Day Plan */}
-              <div className="space-y-3 bg-white p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><CheckSquare className="w-24 h-24 text-blue-500" /></div>
-                <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+              <div className="space-y-3 bg-card p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><CheckSquare className="w-24 h-24 text-info" /></div>
+                <h3 className="text-xs font-black text-info uppercase tracking-widest flex items-center gap-2">
                   <CheckSquare className="w-4 h-4" /> Group 90-Day Plan Review
                 </h3>
-                <p className="text-sm text-slate-700 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.groupPlanReview}</p>
+                <p className="text-sm text-foreground/85 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.groupPlanReview}</p>
               </div>
 
               {/* Pipeline & Opportunities */}
-              <div className="space-y-3 bg-white p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
+              <div className="space-y-3 bg-card p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><TargetIcon className="w-24 h-24 text-accent" /></div>
                 <h3 className="text-xs font-black text-accent uppercase tracking-widest flex items-center gap-2">
                   <TargetIcon className="w-4 h-4" /> Pipeline & Opportunities
                 </h3>
-                <p className="text-sm text-slate-700 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.userOpportunities}</p>
+                <p className="text-sm text-foreground/85 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.userOpportunities}</p>
               </div>
 
               {/* Playbooks */}
-              <div className="space-y-3 bg-white p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Target className="w-24 h-24 text-emerald-500" /></div>
-                <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
+              <div className="space-y-3 bg-card p-6 rounded-2xl border shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Target className="w-24 h-24 text-success" /></div>
+                <h3 className="text-xs font-black text-success uppercase tracking-widest flex items-center gap-2">
                   <Target className="w-4 h-4" /> Strategy Playbooks Alignment
                 </h3>
-                <p className="text-sm text-slate-700 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.strategyPlaybooks}</p>
+                <p className="text-sm text-foreground/85 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.strategyPlaybooks}</p>
               </div>
 
               {/* Key Takeaways */}
-              <div className="space-y-3 bg-slate-900 p-6 rounded-2xl border-none shadow-xl relative overflow-hidden group text-white">
+              <div className="space-y-3 bg-panel p-6 rounded-2xl border-none shadow-xl relative overflow-hidden group text-panel-foreground">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Sparkles className="w-24 h-24 text-accent" /></div>
                 <h3 className="text-xs font-black text-accent uppercase tracking-widest flex items-center gap-2">
                   <Sparkles className="w-4 h-4" /> Executive Takeaways
                 </h3>
-                <p className="text-sm text-slate-200 font-bold leading-relaxed relative z-10 whitespace-pre-wrap">{report.keyTakeaways}</p>
+                <p className="text-sm text-panel-foreground/90 font-medium leading-relaxed relative z-10 whitespace-pre-wrap">{report.keyTakeaways}</p>
               </div>
             </div>
 

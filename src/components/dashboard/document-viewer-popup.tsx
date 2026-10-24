@@ -72,13 +72,13 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] p-0 flex flex-col overflow-hidden bg-white shadow-2xl border border-slate-200 rounded-2xl">
-        <DialogHeader className="p-6 border-b border-slate-100 flex flex-row items-center justify-between shrink-0">
+      <DialogContent className="max-w-5xl max-h-[90vh] p-0 flex flex-col overflow-hidden bg-card shadow-2xl border border-border rounded-2xl">
+        <DialogHeader className="p-6 border-b border-border/60 flex flex-row items-center justify-between shrink-0">
           <div>
-            <DialogTitle className="text-xl font-black uppercase tracking-tight text-slate-800">
+            <DialogTitle className="text-xl font-black uppercase tracking-tight text-foreground">
               {getDocTitle()}
             </DialogTitle>
-            <DialogDescription className="font-bold text-xs uppercase text-slate-400 mt-1">
+            <DialogDescription className="font-bold text-xs uppercase text-muted-foreground mt-1">
               Previewing: {getDocName()}
             </DialogDescription>
           </div>
@@ -87,7 +87,7 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
               onClick={handlePdfExport}
               disabled={isExporting}
               size="sm"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2 text-xs shadow-md border-none"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold gap-2 text-xs shadow-md border-none"
             >
               {isExporting ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -99,8 +99,8 @@ export function DocumentViewerPopup({ isOpen, onClose, document: doc, docType }:
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-          <div ref={containerRef} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex-1 overflow-y-auto p-6 bg-secondary/30">
+          <div ref={containerRef} className="bg-card p-6 rounded-xl border border-border shadow-sm">
             {docType === 'factFinding' && (
               <FactFindingForm ref={formRef} existingDoc={doc} docId={doc.id} onBack={onClose} viewOnly={true} />
             )}

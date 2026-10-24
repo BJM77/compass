@@ -29,8 +29,8 @@ export function TeamComparison() {
   }, [teamStats]);
 
   const renderTable = (members: any[], title: string, icon: any) => (
-    <Card className="border-none shadow-2xl bg-white mb-8 overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between border-b bg-slate-50/50">
+    <Card className="border-none shadow-2xl bg-card mb-8 overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between border-b bg-secondary/30">
         <CardTitle className="text-xl font-black flex items-center gap-2 text-primary uppercase">
           {icon} {title}
         </CardTitle>
@@ -53,11 +53,11 @@ export function TeamComparison() {
                 const achievement = (m.revenueYTD / (m.target || 1)) * 100;
                 const score = calculateComposite(m);
                 return (
-                  <TableRow key={m.id} className="hover:bg-slate-50 transition-colors cursor-default">
+                  <TableRow key={m.id} className="hover:bg-secondary/60 transition-colors cursor-default">
                     <TableCell className="pl-6 py-5 font-black">
                       <div className="flex items-center gap-3">
                         <span>{idx + 1}. {m.name}</span>
-                        <Badge variant="secondary" className="bg-slate-100 text-[8px] h-4"><Minus className="w-2 h-2" /></Badge>
+                        <Badge variant="secondary" className="bg-secondary text-[8px] h-4"><Minus className="w-2 h-2" /></Badge>
                       </div>
                     </TableCell>
                     <TableCell className="w-[200px]">
@@ -66,13 +66,13 @@ export function TeamComparison() {
                     </TableCell>
                     <TableCell className="text-center font-black text-accent">{score.toFixed(1)}</TableCell>
                     <TableCell className="text-right font-black">${((m.revenueYTD / (m.activityScore || 1))/1000).toFixed(1)}k</TableCell>
-                    <TableCell className="text-center text-green-600 font-black">{m.behaviourScore || 0}%</TableCell>
+                    <TableCell className="text-center text-success font-black">{m.behaviourScore || 0}%</TableCell>
                   </TableRow>
                 );
               })}
               {members.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-20 text-muted-foreground uppercase text-[10px] font-black tracking-widest bg-slate-50/30">
+                  <TableCell colSpan={5} className="text-center py-20 text-muted-foreground uppercase text-[10px] font-black tracking-widest bg-secondary/20">
                     No active nodes found for this category.
                   </TableCell>
                 </TableRow>
@@ -89,7 +89,7 @@ export function TeamComparison() {
   return (
     <div className="space-y-4">
       {renderTable(sorted.filter(s => s.role === 'BDM'), "Mastery Velocity Matrix", <Gauge className="w-6 h-6 text-accent" />)}
-      {renderTable(sorted.filter(s => s.role === 'ACCOUNT_MANAGER'), "Strategic Retention Matrix", <ShieldCheck className="w-6 h-6 text-green-500" />)}
+      {renderTable(sorted.filter(s => s.role === 'ACCOUNT_MANAGER'), "Strategic Retention Matrix", <ShieldCheck className="w-6 h-6 text-success" />)}
     </div>
   );
 }

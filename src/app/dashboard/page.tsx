@@ -270,7 +270,7 @@ function DashboardContent() {
                 )}
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out" className="text-red-300 hover:text-red-200">
+                <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out" className="text-sidebar-foreground/80 hover:text-sidebar-accent-foreground">
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
                 </SidebarMenuButton>

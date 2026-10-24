@@ -336,22 +336,22 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-panel p-8 rounded-[2rem] text-panel-foreground shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-12 opacity-5"><TrendingUp className="w-64 h-64" /></div>
         <div className="relative z-10 space-y-2">
-           <Badge className="bg-accent text-white font-black text-[9px] uppercase tracking-widest px-3 mb-2">Friday Synthesis Mode</Badge>
+           <Badge className="bg-accent text-accent-foreground font-black text-[9px] uppercase tracking-widest px-3 mb-2">Friday Synthesis Mode</Badge>
            <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">The Week That Was</h2>
-           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Performance Validation • Week {currentWeek.split('-')[1]}</p>
+           <p className="text-xs font-bold text-panel-foreground/60 uppercase tracking-widest">Performance Validation • Week {currentWeek.split('-')[1]}</p>
         </div>
         <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full lg:w-auto justify-end">
            <div className="text-right hidden sm:block mr-2">
               <p className="text-[10px] font-black text-accent uppercase tracking-widest">Total Combined EAV</p>
               <p className="text-3xl font-black">{formatEAV(totalEAV)}</p>
            </div>
-           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSubmitting} className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs w-full sm:w-auto">
+           <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isSubmitting} className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-panel-foreground/15 bg-panel/90 text-panel-foreground/90 hover:bg-panel/90 hover:text-panel-foreground text-xs w-full sm:w-auto">
              {isSavingDraft ? <Loader2 className="animate-spin w-5 h-5" /> : 'SAVE DRAFT'}
            </Button>
-           <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft} className="bg-accent hover:bg-accent/90 text-white font-black h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto">
+           <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft} className="bg-accent hover:bg-accent/90 text-accent-foreground font-black h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto">
              {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : <ClipboardCheck className="w-5 h-5" />} FINALISE FRIDAY PACK
            </Button>
         </div>
@@ -359,30 +359,30 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
 
       {/* Activity Tallies */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden">
+        <Card className="border-none shadow-xl bg-card rounded-3xl overflow-hidden">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-info-soft text-info flex items-center justify-center shadow-sm">
               <Phone className="w-6 h-6" />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Calls Completed (CRM Imported)</p>
               <div className="flex items-baseline gap-2 mt-1">
                 <p className="text-2xl font-black text-primary">{progress?.crmCalls || 0}</p>
-                {progress?.calls !== undefined && <p className="text-[10px] font-bold text-slate-400 uppercase">Man: {progress.calls}</p>}
+                {progress?.calls !== undefined && <p className="text-[10px] font-bold text-muted-foreground uppercase">Man: {progress.calls}</p>}
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden">
+        <Card className="border-none shadow-xl bg-card rounded-3xl overflow-hidden">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-success-soft text-success flex items-center justify-center shadow-sm">
               <CalendarCheck className="w-6 h-6" />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Appointments Held (CRM Imported)</p>
               <div className="flex items-baseline gap-2 mt-1">
                 <p className="text-2xl font-black text-primary">{progress?.crmApps || 0}</p>
-                {progress?.apps !== undefined && <p className="text-[10px] font-bold text-slate-400 uppercase">Man: {progress.apps}</p>}
+                {progress?.apps !== undefined && <p className="text-[10px] font-bold text-muted-foreground uppercase">Man: {progress.apps}</p>}
               </div>
             </div>
           </CardContent>
@@ -390,45 +390,45 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       </div>
 
       {/* Monday Commitments carries */}
-      <div className="space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-200">
+      <div className="space-y-6 bg-secondary/30 p-6 rounded-3xl border border-border">
         <div className="flex items-center gap-2 mb-4">
-          <Award className="w-5 h-5 text-indigo-600" />
-          <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Monday Planning Review</h3>
+          <Award className="w-5 h-5 text-accent" />
+          <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Monday Planning Review</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Roadblocks & Account Barriers
+              <AlertTriangle className="w-3.5 h-3.5 text-warning" /> Roadblocks & Account Barriers
             </Label>
             <Textarea 
               placeholder="Any roadblocks to highlight?" 
               value={roadblocks} 
               onChange={e => setRoadblocks(e.target.value)} 
-              className="min-h-[100px] rounded-2xl border-slate-200 bg-white p-4 shadow-sm text-xs" 
+              className="min-h-[100px] rounded-2xl border-border bg-card p-4 shadow-sm text-xs" 
             />
           </div>
           <div className="space-y-2">
             <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
-              <LifeBuoy className="w-3.5 h-3.5 text-blue-500" /> Additional Management Support
+              <LifeBuoy className="w-3.5 h-3.5 text-info" /> Additional Management Support
             </Label>
             <Textarea 
               placeholder="What support is needed?" 
               value={supportNeeded} 
               onChange={e => setSupportNeeded(e.target.value)} 
-              className="min-h-[100px] rounded-2xl border-slate-200 bg-white p-4 shadow-sm text-xs" 
+              className="min-h-[100px] rounded-2xl border-border bg-card p-4 shadow-sm text-xs" 
             />
           </div>
         </div>
 
         {commitments.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-slate-200">
+          <div className="space-y-4 pt-4 border-t border-border">
             <Label className="text-[10px] font-black uppercase text-muted-foreground">Commitments for the Week Ahead</Label>
             <div className="space-y-3">
               {commitments.map((c: any, idx: number) => {
                 const isCompleted = c.status === 'COMPLETED';
                 return (
-                  <div key={c.id} className={cn("p-4 bg-white rounded-2xl border transition-all duration-300 shadow-sm space-y-3", isCompleted ? "border-emerald-100 bg-emerald-50/20" : "border-slate-200")}>
+                  <div key={c.id} className={cn("p-4 bg-card rounded-2xl border transition-all duration-300 shadow-sm space-y-3", isCompleted ? "border-success/15 bg-success-soft/20" : "border-border")}>
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
@@ -438,19 +438,19 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                           n[idx].status = e.target.checked ? 'COMPLETED' : 'NOT_COMPLETED';
                           setCommitments(n);
                         }}
-                        className="w-5 h-5 mt-0.5 accent-emerald-600 rounded cursor-pointer border-slate-300"
+                        className="w-5 h-5 mt-0.5 accent-success-fill rounded cursor-pointer border-border"
                         id={`commit-check-${c.id}`}
                       />
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <label htmlFor={`commit-check-${c.id}`} className={cn("text-sm font-bold cursor-pointer block select-none", isCompleted ? "text-slate-500 line-through" : "text-slate-700")}>
+                          <label htmlFor={`commit-check-${c.id}`} className={cn("text-sm font-bold cursor-pointer block select-none", isCompleted ? "text-muted-foreground line-through" : "text-foreground/85")}>
                             {c.text}
                           </label>
-                          <Badge variant="outline" className={cn("text-[9px] font-black uppercase tracking-wider shrink-0", isCompleted ? "bg-emerald-100 text-emerald-800 border-none" : "bg-slate-100 text-slate-600 border-none")}>
+                          <Badge variant="outline" className={cn("text-[9px] font-black uppercase tracking-wider shrink-0", isCompleted ? "bg-success-soft text-success-ink border-none" : "bg-secondary text-foreground/75 border-none")}>
                             {isCompleted ? 'Completed' : 'In Progress'}
                           </Badge>
                         </div>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
                           {isCompleted ? "✓ Completed: will NOT roll over to next Monday." : "⏱ In Progress: will roll over to next Monday's plan."}
                         </p>
                         <div className="space-y-1">
@@ -476,37 +476,37 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
         )}
 
         {focusAccounts.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-slate-200">
+          <div className="space-y-4 pt-4 border-t border-border">
             <Label className="text-[10px] font-black uppercase text-muted-foreground">Focus Accounts Review</Label>
             <div className="space-y-3">
               {focusAccounts.map((f: any, idx: number) => {
                 const currentStatus = f.status || 'WORKING';
                 return (
                   <div key={f.accountId || idx} className={cn(
-                    "p-4 bg-white rounded-2xl border shadow-sm space-y-3 transition-all duration-300", 
-                    currentStatus === 'WON' && "border-emerald-100 bg-emerald-50/20",
-                    currentStatus === 'LOST' && "border-rose-100 bg-rose-50/20",
-                    currentStatus === 'WORKING' && "border-slate-200"
+                    "p-4 bg-card rounded-2xl border shadow-sm space-y-3 transition-all duration-300", 
+                    currentStatus === 'WON' && "border-success/15 bg-success-soft/20",
+                    currentStatus === 'LOST' && "border-destructive/15 bg-danger-soft/20",
+                    currentStatus === 'WORKING' && "border-border"
                   )}>
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="space-y-0.5">
                           <span className={cn(
                             "text-sm font-bold block select-none", 
-                            currentStatus === 'WON' && "text-emerald-800",
-                            currentStatus === 'LOST' && "text-rose-800 line-through",
-                            currentStatus === 'WORKING' && "text-slate-800"
+                            currentStatus === 'WON' && "text-success-ink",
+                            currentStatus === 'LOST' && "text-destructive line-through",
+                            currentStatus === 'WORKING' && "text-foreground"
                           )}>
                             {f.accountName}
                           </span>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-[9px] font-black uppercase bg-slate-50">{f.actionType}</Badge>
-                            <span className="text-[10px] font-black text-slate-500">${(f.eav || 0).toLocaleString()} EAV</span>
+                            <Badge variant="outline" className="text-[9px] font-black uppercase bg-secondary/60">{f.actionType}</Badge>
+                            <span className="text-[10px] font-black text-muted-foreground">${(f.eav || 0).toLocaleString()} EAV</span>
                           </div>
                         </div>
 
                         {/* Working / Won / Lost Selector */}
-                        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
+                        <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl shrink-0">
                           <button
                             type="button"
                             onClick={() => {
@@ -517,8 +517,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                             className={cn(
                               "text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all",
                               currentStatus === 'WORKING' 
-                                ? "bg-white text-slate-800 shadow-sm" 
-                                : "text-slate-400 hover:text-slate-600"
+                                ? "bg-card text-foreground shadow-sm" 
+                                : "text-muted-foreground hover:text-foreground/75"
                             )}
                           >
                             Working
@@ -533,8 +533,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                             className={cn(
                               "text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all",
                               currentStatus === 'WON' 
-                                ? "bg-emerald-600 text-white shadow-sm" 
-                                : "text-slate-400 hover:text-emerald-600"
+                                ? "bg-success-fill text-success-foreground shadow-sm" 
+                                : "text-muted-foreground hover:text-success"
                             )}
                           >
                             Won
@@ -549,8 +549,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                             className={cn(
                               "text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all",
                               currentStatus === 'LOST' 
-                                ? "bg-rose-600 text-white shadow-sm" 
-                                : "text-slate-400 hover:text-rose-600"
+                                ? "bg-destructive text-destructive-foreground shadow-sm" 
+                                : "text-muted-foreground hover:text-destructive"
                             )}
                           >
                             Lost
@@ -559,10 +559,10 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                       </div>
                       
                       {f.aboutAccount && (
-                        <p className="text-[10px] text-muted-foreground leading-relaxed italic border-l-2 border-slate-200 pl-2">{f.aboutAccount}</p>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed italic border-l-2 border-border pl-2">{f.aboutAccount}</p>
                       )}
                       
-                      <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                         {currentStatus === 'WORKING' && "⏱ Still Working: will roll over to next Monday's plan."}
                         {currentStatus === 'WON' && "🎉 Won! Account is archived and will NOT roll over."}
                         {currentStatus === 'LOST' && "❌ Lost. Account is archived and will NOT roll over."}
@@ -594,8 +594,8 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
       <div className="grid grid-cols-1 gap-8">
         
         {/* Pipeline of Opportunities */}
-        <Card className="border border-slate-200 shadow-xl bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-900 text-white py-5">
+        <Card className="border border-border shadow-xl bg-card rounded-3xl overflow-hidden">
+          <CardHeader className="bg-panel text-panel-foreground py-5">
             <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Pipeline of Opportunities
@@ -606,13 +606,13 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
               <p className="text-[10px] text-muted-foreground italic">No Salesforce Opportunities imported for this week.</p>
             ) : (
               crmOpportunities.map((opp: any) => (
-                <div key={opp.id} className="p-4 bg-slate-50 border rounded-2xl hover:border-accent/40 transition-all space-y-2">
+                <div key={opp.id} className="p-4 bg-secondary/60 border rounded-2xl hover:border-accent/40 transition-all space-y-2">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 space-y-0.5">
                       <a 
                         href="#" 
                         onClick={(e) => { e.preventDefault(); openSalesforceSearch(opp.pipeline); }}
-                        className="text-xs font-black text-slate-800 uppercase hover:text-accent hover:underline truncate block"
+                        className="text-xs font-black text-foreground uppercase hover:text-accent hover:underline truncate block"
                         title="Open Account in Salesforce"
                       >
                         {opp.pipeline}
@@ -620,7 +620,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                       <a 
                         href="#" 
                         onClick={(e) => { e.preventDefault(); openSalesforceSearch(opp.opportunityName || opp.pipeline, opp.salesforceId); }}
-                        className="text-[9px] text-slate-400 font-bold uppercase hover:text-accent hover:underline truncate block"
+                        className="text-[9px] text-muted-foreground font-bold uppercase hover:text-accent hover:underline truncate block"
                         title="Open Opportunity in Salesforce"
                       >
                         {opp.opportunityName || "Unnamed Opportunity"}
@@ -629,18 +629,18 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => openSalesforceSearch(opp.opportunityName || opp.pipeline, opp.salesforceId)}
-                        className="p-2 bg-white border text-slate-400 hover:text-accent rounded-xl shadow-sm transition-all"
+                        className="p-2 bg-card border text-muted-foreground hover:text-accent rounded-xl shadow-sm transition-all"
                         title="Open Salesforce Opportunity"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </button>
-                      <Button size="sm" variant="outline" onClick={() => appendToReportNotes(`[Opp Progressed: ${opp.pipeline} - Stage: ${opp.stage} - Value: $${opp.value?.toLocaleString() || 0}]`)} className="h-8 px-2 text-[10px] font-black hover:bg-accent/10 text-slate-700 hover:text-accent rounded-xl shadow-sm transition-all">
+                      <Button size="sm" variant="outline" onClick={() => appendToReportNotes(`[Opp Progressed: ${opp.pipeline} - Stage: ${opp.stage} - Value: $${opp.value?.toLocaleString() || 0}]`)} className="h-8 px-2 text-[10px] font-black hover:bg-accent/10 text-foreground/85 hover:text-accent rounded-xl shadow-sm transition-all">
                         <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Note
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center text-[10px] font-semibold text-slate-500 pt-1 border-t border-slate-200/50">
-                    <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[9px] font-black">{opp.stage?.toUpperCase()}</span>
+                  <div className="flex justify-between items-center text-[10px] font-semibold text-muted-foreground pt-1 border-t border-border/50">
+                    <span className="bg-warning-soft text-warning-ink px-2 py-0.5 rounded-full text-[9px] font-black">{opp.stage?.toUpperCase()}</span>
                     <span>Value: <strong>${(opp.value || 0).toLocaleString()}</strong></span>
                   </div>
                 </div>
@@ -656,7 +656,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
            <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
              <Award className="w-3.5 h-3.5" /> Performance Narrative (The Week That Was)
            </Label>
-           <span className={cn("text-[9px] font-bold", notes.length > 4000 ? "text-red-500" : "text-muted-foreground")}>
+           <span className={cn("text-[9px] font-bold", notes.length > 4000 ? "text-destructive" : "text-muted-foreground")}>
              {notes.length} / 5000 characters
            </span>
          </div>
@@ -664,7 +664,7 @@ export function BDMWeeklySubmission({ userId, userName }: { userId: string; user
            placeholder="Document high-level wins and strategic shifts achieved this week..." 
            value={notes} 
            onChange={e => setNotes(e.target.value.substring(0, 5000))} 
-           className="min-h-[200px] rounded-[2rem] border-slate-200 bg-white p-8 shadow-inner text-sm font-medium leading-relaxed" 
+           className="min-h-[200px] rounded-[2rem] border-border bg-card p-8 shadow-inner text-sm font-medium leading-relaxed" 
          />
       </div>
     </div>

@@ -58,9 +58,9 @@ export function TimeReminderBell({ onOpenManageTime }: { onOpenManageTime: () =>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-9 w-9 shrink-0" aria-label={`Task reminders${count ? `: ${count} due` : ''}`}>
-          <Bell className="w-5 h-5 text-slate-600" />
+          <Bell className="w-5 h-5 text-foreground/75" />
           {count > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-black flex items-center justify-center">
               {count > 99 ? '99+' : count}
             </span>
           )}
@@ -68,25 +68,25 @@ export function TimeReminderBell({ onOpenManageTime }: { onOpenManageTime: () =>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="px-4 py-3 border-b">
-          <p className="text-sm font-bold text-slate-900">Overdue & due today</p>
-          <p className="text-[11px] text-slate-500">From your current Manage Time plan (Perth time)</p>
+          <p className="text-sm font-bold text-foreground">Overdue & due today</p>
+          <p className="text-[11px] text-muted-foreground">From your current Manage Time plan (Perth time)</p>
         </div>
         <div className="max-h-72 overflow-y-auto divide-y">
           {count === 0 ? (
-            <p className="px-4 py-6 text-sm text-slate-500 text-center">Nothing due. Nice work.</p>
+            <p className="px-4 py-6 text-sm text-muted-foreground text-center">Nothing due. Nice work.</p>
           ) : items.map(t => (
             <button
               key={t.id}
               onClick={() => { setOpen(false); onOpenManageTime(); }}
-              className="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex flex-col gap-1"
+              className="w-full text-left px-4 py-2.5 hover:bg-secondary/60 flex flex-col gap-1"
             >
-              <span className="text-sm font-medium text-slate-800 line-clamp-2">{t.text || 'Untitled task'}</span>
+              <span className="text-sm font-medium text-foreground line-clamp-2">{t.text || 'Untitled task'}</span>
               <DueChip task={t} />
             </button>
           ))}
         </div>
         <div className="p-2 border-t">
-          <Button variant="ghost" size="sm" className="w-full text-indigo-700" onClick={() => { setOpen(false); onOpenManageTime(); }}>
+          <Button variant="ghost" size="sm" className="w-full text-primary" onClick={() => { setOpen(false); onOpenManageTime(); }}>
             Open Manage Time
           </Button>
         </div>

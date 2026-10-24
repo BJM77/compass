@@ -296,22 +296,22 @@ export function CanvassingHub() {
     <div className="w-full max-w-7xl mx-auto space-y-6 pb-20">
       
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl shadow-xl border border-indigo-900/40 relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-panel via-accent/90 to-panel text-white p-6 rounded-2xl shadow-xl border border-accent/40 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
           <Compass className="h-64 w-64 text-white" />
         </div>
 
         <div className="space-y-1.5 z-10">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 bg-amber-500/20 border border-amber-500/40 rounded-lg text-amber-400">
+            <span className="p-2 bg-warning/20 border border-warning/40 rounded-lg text-gold">
               <Navigation className="h-6 w-6" />
             </span>
             <h1 className="text-2xl font-black tracking-tight">Field Canvassing & Lead Scout</h1>
-            <Badge variant="outline" className="border-amber-400/40 text-amber-300 bg-amber-400/10 text-xs">
+            <Badge variant="outline" className="border-warning/40 text-gold bg-warning/10 text-xs">
               GPS Enabled
             </Badge>
           </div>
-          <p className="text-sm text-slate-300 max-w-2xl">
+          <p className="text-sm text-muted-foreground/70 max-w-2xl">
             Instant on-site lead capture for field reps with 1-Click Salesforce upload.
           </p>
         </div>
@@ -322,7 +322,7 @@ export function CanvassingHub() {
               setEditingLead(null);
               setActiveTab('NEW_LEAD');
             }}
-            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold shadow-lg gap-2 h-11 px-5 rounded-xl transition-transform active:scale-95"
+            className="bg-gradient-to-r from-gold to-warning hover:from-gold/90 hover:to-warning/90 text-gold-foreground font-bold shadow-lg gap-2 h-11 px-5 rounded-xl transition-transform active:scale-95"
           >
             <Plus className="h-5 w-5" />
             <span>New Field Lead</span>
@@ -331,9 +331,9 @@ export function CanvassingHub() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
-        <TabsList className={`grid w-full ${isLeader || isSuperAdmin ? 'grid-cols-4' : 'grid-cols-3'} mb-6 h-12 bg-slate-100/50`}>
+        <TabsList className={`grid w-full ${isLeader || isSuperAdmin ? 'grid-cols-4' : 'grid-cols-3'} mb-6 h-12 bg-secondary/50`}>
           <TabsTrigger value="NEW_LEAD" className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5">
-            <Plus className="h-3.5 w-3.5 text-amber-500" />
+            <Plus className="h-3.5 w-3.5 text-warning" />
             <span>New Lead</span>
           </TabsTrigger>
           <TabsTrigger 
@@ -341,7 +341,7 @@ export function CanvassingHub() {
             onClick={() => setViewMode('LIST')} 
             className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
           >
-            <Layers className="h-3.5 w-3.5 text-blue-500" />
+            <Layers className="h-3.5 w-3.5 text-info" />
             <span>Leads Cards</span>
           </TabsTrigger>
           <TabsTrigger 
@@ -352,7 +352,7 @@ export function CanvassingHub() {
             }} 
             className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
           >
-            <MapPin className="h-3.5 w-3.5 text-red-500" />
+            <MapPin className="h-3.5 w-3.5 text-destructive" />
             <span>Visited Areas Map</span>
           </TabsTrigger>
           {(isLeader || isSuperAdmin) && (
@@ -360,7 +360,7 @@ export function CanvassingHub() {
               value="TIMELINE" 
               className="font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-1.5"
             >
-              <Timer className="h-3.5 w-3.5 text-indigo-600" />
+              <Timer className="h-3.5 w-3.5 text-accent" />
               <span>Timeline</span>
             </TabsTrigger>
           )}
@@ -389,30 +389,30 @@ export function CanvassingHub() {
 
       {/* Stats Counter Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-        <Card className="p-4 shadow-sm border-l-4 border-l-blue-500">
+        <Card className="p-4 shadow-sm border-l-4 border-l-info">
           <div className="text-xs text-muted-foreground font-medium">My Captured Leads</div>
           <div className="text-2xl font-black mt-1 text-foreground">{myLeads}</div>
           <div className="text-[11px] text-muted-foreground mt-0.5">Logged by you</div>
         </Card>
 
-        <Card className="p-4 shadow-sm border-l-4 border-l-indigo-500">
+        <Card className="p-4 shadow-sm border-l-4 border-l-accent">
           <div className="text-xs text-muted-foreground font-medium">Team Total Leads</div>
           <div className="text-2xl font-black mt-1 text-foreground">{totalLeads}</div>
           <div className="text-[11px] text-muted-foreground mt-0.5">Across all territories</div>
         </Card>
 
-        <Card className="p-4 shadow-sm border-l-4 border-l-emerald-500">
+        <Card className="p-4 shadow-sm border-l-4 border-l-success-fill">
           <div className="text-xs text-muted-foreground font-medium">Synced to Salesforce</div>
-          <div className="text-2xl font-black mt-1 text-emerald-600">{syncedCount}</div>
-          <div className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+          <div className="text-2xl font-black mt-1 text-success">{syncedCount}</div>
+          <div className="text-[11px] text-success font-semibold mt-0.5">
             {totalLeads > 0 ? `${Math.round((syncedCount / totalLeads) * 100)}% Uploaded` : '0%'}
           </div>
         </Card>
 
-        <Card className="p-4 shadow-sm border-l-4 border-l-amber-500">
+        <Card className="p-4 shadow-sm border-l-4 border-l-warning">
           <div className="text-xs text-muted-foreground font-medium">Awaiting SF Upload</div>
-          <div className="text-2xl font-black mt-1 text-amber-600">{pendingCount}</div>
-          <div className="text-[11px] text-amber-600 font-medium mt-0.5">1-Click ready</div>
+          <div className="text-2xl font-black mt-1 text-warning-ink">{pendingCount}</div>
+          <div className="text-[11px] text-warning-ink font-medium mt-0.5">1-Click ready</div>
         </Card>
       </div>
 
@@ -471,11 +471,11 @@ export function CanvassingHub() {
             </SelectContent>
           </Select>
 
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border">
+          <div className="flex bg-secondary p-0.5 rounded-lg border">
             <button
               onClick={() => setViewMode('LIST')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
-                viewMode === 'LIST' ? 'bg-white dark:bg-slate-900 shadow-sm text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'LIST' ? 'bg-card shadow-sm text-info font-bold' : 'text-muted-foreground hover:text-foreground/85'
               }`}
             >
               <Layers className="h-3.5 w-3.5" />
@@ -484,10 +484,10 @@ export function CanvassingHub() {
             <button
               onClick={() => setViewMode('MAP')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
-                viewMode === 'MAP' ? 'bg-white dark:bg-slate-900 shadow-sm text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'MAP' ? 'bg-card shadow-sm text-info font-bold' : 'text-muted-foreground hover:text-foreground/85'
               }`}
             >
-              <MapPin className="h-3.5 w-3.5 text-red-500" />
+              <MapPin className="h-3.5 w-3.5 text-destructive" />
               <span>Map</span>
             </button>
           </div>
@@ -511,7 +511,7 @@ export function CanvassingHub() {
           <Button
             onClick={() => setActiveTab('NEW_LEAD')}
             size="sm"
-            className="mt-4 gap-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
+            className="mt-4 gap-1.5 bg-warning hover:bg-warning/90 text-foreground font-bold"
           >
             <Plus className="h-4 w-4" />
             <span>Add First Lead</span>
@@ -542,11 +542,11 @@ export function CanvassingHub() {
 
                     <div>
                       {lead.inSalesforce ? (
-                        <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-300 text-[10px] gap-1 shrink-0">
+                        <Badge className="bg-success-soft text-success-ink border-success/40 text-[10px] gap-1 shrink-0">
                           <CheckCircle2 className="h-3 w-3" /> Synced
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 border-amber-300 text-[10px] shrink-0">
+                        <Badge variant="outline" className="bg-warning-soft text-warning-ink border-warning/40 text-[10px] shrink-0">
                           Draft
                         </Badge>
                       )}
@@ -560,12 +560,12 @@ export function CanvassingHub() {
                           {lead.businessUnit}
                         </Badge>
                         {lead.estimatedRevenue && (
-                          <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-300 font-semibold">
+                          <Badge variant="outline" className="text-[10px] text-success border-success/40 font-semibold">
                             ${lead.estimatedRevenue.toLocaleString()}/yr
                           </Badge>
                         )}
                         {lead.incumbent && (
-                          <Badge variant="outline" className="text-[10px] text-slate-600 dark:text-slate-400">
+                          <Badge variant="outline" className="text-[10px] text-foreground/75">
                             vs {lead.incumbent}
                           </Badge>
                         )}
@@ -583,7 +583,7 @@ export function CanvassingHub() {
                   {/* Address & GPS Row */}
                   <div className="p-2.5 bg-muted/40 rounded-lg space-y-1.5">
                     <div className="flex items-start gap-2 text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5 shrink-0 text-red-500 mt-0.5" />
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-destructive mt-0.5" />
                       <span className="line-clamp-2 leading-tight">
                         {addressString || 'Address not entered'}
                       </span>
@@ -596,7 +596,7 @@ export function CanvassingHub() {
                           href={`https://www.google.com/maps/search/?api=1&query=${lead.latitude},${lead.longitude}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 font-semibold hover:underline flex items-center gap-1"
+                          className="text-info font-semibold hover:underline flex items-center gap-1"
                         >
                           Google Maps <ExternalLink className="h-2.5 w-2.5" />
                         </a>
@@ -608,7 +608,7 @@ export function CanvassingHub() {
                   <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
                     {lead.phone ? (
                       <a href={`tel:${lead.phone}`} className="flex items-center gap-1 hover:text-foreground font-medium">
-                        <Phone className="h-3 w-3 text-blue-600" />
+                        <Phone className="h-3 w-3 text-info" />
                         <span>{lead.phone}</span>
                       </a>
                     ) : (
@@ -617,7 +617,7 @@ export function CanvassingHub() {
 
                     {lead.email ? (
                       <a href={`mailto:${lead.email}`} className="flex items-center gap-1 hover:text-foreground font-medium">
-                        <Mail className="h-3 w-3 text-indigo-600" />
+                        <Mail className="h-3 w-3 text-accent" />
                         <span className="max-w-[120px] truncate">{lead.email}</span>
                       </a>
                     ) : (
@@ -644,7 +644,7 @@ export function CanvassingHub() {
                             value={lead.userId || ''} 
                             onValueChange={(val) => handleReassignLead(lead.id, val)}
                           >
-                            <SelectTrigger className="h-5 text-[10px] w-auto border-none bg-transparent hover:bg-slate-100 px-1.5 py-0 shadow-none font-bold text-foreground focus:ring-0">
+                            <SelectTrigger className="h-5 text-[10px] w-auto border-none bg-transparent hover:bg-secondary px-1.5 py-0 shadow-none font-bold text-foreground focus:ring-0">
                               <SelectValue placeholder={lead.userName || 'Unknown'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -660,7 +660,7 @@ export function CanvassingHub() {
                         <strong className="text-foreground ml-1">{lead.userName || 'Unknown'}</strong>
                       )}
                     </span>
-                    <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 text-[10px] shrink-0 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded">
+                    <span className="flex items-center gap-1 font-semibold text-foreground/85 text-[10px] shrink-0 bg-secondary px-2 py-0.5 rounded">
                       <Clock className="h-3 w-3 text-muted-foreground" />
                       {lead.createdAt?.toDate ? format(lead.createdAt.toDate(), 'dd MMM yyyy, h:mm a') : 'Recently'}
                     </span>
@@ -671,7 +671,7 @@ export function CanvassingHub() {
                     <Button
                       size="sm"
                       onClick={() => handlePushToSalesforce(lead)}
-                      className="flex-1 h-8 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold gap-1 shadow-xs"
+                      className="flex-1 h-8 text-xs bg-gradient-to-r from-info to-accent hover:from-info/90 hover:to-accent/90 text-white font-semibold gap-1 shadow-xs"
                       title="Open Salesforce Lead creation with pre-filled fields"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
@@ -685,7 +685,7 @@ export function CanvassingHub() {
                         setEditingLead(lead);
                         setActiveTab('NEW_LEAD');
                       }} 
-                      className="gap-1 text-xs font-semibold hover:bg-blue-50 hover:text-blue-600"
+                      className="gap-1 text-xs font-semibold hover:bg-info-soft hover:text-info"
                     >
                       <Edit3 className="h-3.5 w-3.5" /> Edit
                     </Button>
@@ -694,7 +694,7 @@ export function CanvassingHub() {
                       size="sm"
                       variant={lead.inSalesforce ? 'outline' : 'ghost'}
                       onClick={() => handleToggleSalesforce(lead)}
-                      className={`h-8 w-8 p-0 ${lead.inSalesforce ? 'text-emerald-600' : 'text-muted-foreground'}`}
+                      className={`h-8 w-8 p-0 ${lead.inSalesforce ? 'text-success' : 'text-muted-foreground'}`}
                       title={lead.inSalesforce ? 'Mark as Unsynced' : 'Mark as Synced in Salesforce'}
                     >
                       <Check className="h-3.5 w-3.5" />
@@ -703,7 +703,7 @@ export function CanvassingHub() {
                     {!lead.archived && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50" title="Archive Lead">
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-warning-ink hover:text-warning-ink hover:bg-warning-soft" title="Archive Lead">
                             <Archive className="h-3.5 w-3.5" />
                           </Button>
                         </AlertDialogTrigger>
@@ -718,7 +718,7 @@ export function CanvassingHub() {
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleArchiveLead(lead.id, lead.companyName)}
-                              className="bg-amber-600 hover:bg-amber-700 text-white"
+                              className="bg-warning hover:bg-warning/90 text-warning-foreground"
                             >
                               Archive
                             </AlertDialogAction>
@@ -730,7 +730,7 @@ export function CanvassingHub() {
                     {isSuperAdmin && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50" title="Permanently Delete Lead">
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-danger-soft" title="Permanently Delete Lead">
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </AlertDialogTrigger>
@@ -745,7 +745,7 @@ export function CanvassingHub() {
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDeleteLead(lead.id, lead.companyName)}
-                              className="bg-red-600 hover:bg-red-700 text-white"
+                              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                             >
                               Delete
                             </AlertDialogAction>

@@ -22,7 +22,7 @@ export const playbooks = {
     precincts: ["Osborne Park", "Malaga", "Wangara", "Gnangara", "Neerabup", "Bayswater"],
     wins: ["Speed to customer (Same-day)", "Reliability on repeat deliveries", "Contract logistics for SMEs"],
     specialisation: "Parcel, courier and same-day solutions",
-    color: "bg-blue-500/10 text-blue-700 border-blue-200"
+    color: "bg-info/10 text-info border-info/25"
   },
   METRO_SOUTH: {
     title: "Perth Metro South",
@@ -31,7 +31,7 @@ export const playbooks = {
     precincts: ["Kewdale", "Welshpool", "Forrestfield", "Canning Vale", "Maddington", "Bibra Lake"],
     wins: ["Capacity and volume reliability", "Air/sea integration", "Vendor reduction (Bundled solutions)"],
     specialisation: "Contract logistics and airport-linked distribution",
-    color: "bg-emerald-500/10 text-emerald-700 border-emerald-200"
+    color: "bg-success-fill/10 text-success-ink border-success/25"
   },
   WESTERN_TRADE_COAST: {
     title: "Western Trade Coast",
@@ -40,7 +40,7 @@ export const playbooks = {
     precincts: ["Kwinana Industrial Area", "AMC Henderson", "Rockingham (RIZ)", "Latitude 32"],
     wins: ["Project cargo mastery", "Port-centric logistics (Westport alignment)", "Long-term contract stability"],
     specialisation: "Heavy engineering and oversized transport",
-    color: "bg-indigo-500/10 text-indigo-700 border-indigo-200"
+    color: "bg-accent/10 text-primary border-accent/25"
   },
   REGIONAL: {
     title: "Regional WA (Flex)",
@@ -49,7 +49,7 @@ export const playbooks = {
     precincts: ["Kalgoorlie (Mungari)", "Bunbury (Kemerton)", "Collie (Shotts)", "Albany"],
     wins: ["Time-critical parts (Air)", "Remote accountability", "Shutdown logistics"],
     specialisation: "Mining services and time-critical remote freight",
-    color: "bg-orange-500/10 text-orange-700 border-orange-200"
+    color: "bg-warning/10 text-warning-ink border-warning/25"
   },
   FLEX: {
     title: "Flex Pool",
@@ -58,7 +58,7 @@ export const playbooks = {
     precincts: ["Various"],
     wins: ["Agility", "Strategic focus", "Team collaboration"],
     specialisation: "Strategic project support",
-    color: "bg-gray-500/10 text-gray-700 border-gray-200"
+    color: "bg-muted-foreground/10 text-foreground/85 border-border"
   }
 };
 
@@ -83,13 +83,13 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
   };
 
   if (isLoading || !activePlaybook) return (
-    <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-dashed h-full">
+    <div className="flex items-center justify-center p-12 bg-card rounded-2xl border border-dashed h-full">
       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
     </div>
   );
 
   return (
-    <Card className="border shadow-md overflow-hidden h-full flex flex-col bg-white">
+    <Card className="border shadow-md overflow-hidden h-full flex flex-col bg-card">
       <CardHeader className={`${activePlaybook.color} pb-4 border-b`}>
         <div className="flex justify-between items-start">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
@@ -121,11 +121,11 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
             {zones && zones.length > 0 && (
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
                 <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2 mb-2">
-                  <Zap className="w-3 h-3 text-yellow-500" /> Assigned Zones
+                  <Zap className="w-3 h-3 text-warning" /> Assigned Zones
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {zones.map((zone, idx) => (
-                    <Badge key={idx} className="bg-primary text-white border-none text-[9px] font-bold">
+                    <Badge key={idx} className="bg-primary text-primary-foreground border-none text-[9px] font-bold">
                       {zone}
                     </Badge>
                   ))}
@@ -137,7 +137,7 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
           <div className="space-y-4">
             <div>
               <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-3">
-                <ShieldCheck className="w-3 h-3 text-green-600" /> Winning Messages
+                <ShieldCheck className="w-3 h-3 text-success" /> Winning Messages
               </h4>
               <ul className="space-y-2">
                 {activePlaybook.wins?.map((win: string, idx: number) => (
@@ -151,7 +151,7 @@ export function TerritoryPlaybook({ territory, zones }: TerritoryPlaybookProps) 
 
             <div className="pt-2">
               <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-2">
-                <Target className="w-3 h-3 text-red-500" /> Core Specialisation
+                <Target className="w-3 h-3 text-destructive" /> Core Specialisation
               </h4>
               <p className="text-sm font-bold text-primary">{activePlaybook.specialisation}</p>
             </div>

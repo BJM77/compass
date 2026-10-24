@@ -80,7 +80,7 @@ export function SalesVelocityWidgets({ teamStats, allDeals, totalRevenue }: Sale
             </div>
             <div className="w-full bg-secondary h-4 rounded-full overflow-hidden shadow-inner relative">
               <div 
-                className="h-full bg-gradient-to-r from-success-fill to-success-fill transition-all duration-1000" 
+                className="h-full bg-gradient-to-r from-success-fill to-success transition-all duration-1000" 
                 style={{ width: `${revPercentage}%` }} 
               />
             </div>
@@ -89,7 +89,7 @@ export function SalesVelocityWidgets({ teamStats, allDeals, totalRevenue }: Sale
       </Card>
 
       {/* Closing Radar */}
-      <Card className="border-none shadow-xl bg-primary text-white overflow-hidden lg:col-span-6 relative">
+      <Card className="border-none shadow-xl bg-primary text-primary-foreground overflow-hidden lg:col-span-6 relative">
         <div className="absolute top-0 right-0 p-6 opacity-5"><Radar className="w-32 h-32 text-accent" /></div>
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-2 text-accent">

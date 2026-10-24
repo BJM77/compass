@@ -460,7 +460,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
           )}
           <div>
             <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
-              <Compass className="h-5 w-5 text-amber-500" />
+              <Compass className="h-5 w-5 text-warning" />
               {initialLead?.id ? 'Edit Canvassed Lead' : 'Field Canvassing Lead Capture'}
             </h1>
             <p className="text-xs text-muted-foreground">Mobile-First Lead Entry with GPS & 1-Click Salesforce</p>
@@ -476,7 +476,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             disabled={saving}
             className="flex-1 md:flex-none gap-1.5"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-emerald-600" />}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-success" />}
             <span>Save & Close</span>
           </Button>
 
@@ -485,7 +485,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             size="sm"
             onClick={() => handleSave(true)}
             disabled={saving}
-            className="flex-1 md:flex-none gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold"
+            className="flex-1 md:flex-none gap-1.5 bg-gradient-to-r from-info to-accent hover:from-info/90 hover:to-accent/90 text-white shadow-md font-semibold"
           >
             <ExternalLink className="h-4 w-4" />
             <span>1-Click SF Upload</span>
@@ -494,17 +494,17 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
       </div>
 
       {/* AI Business Card Scanner Banner */}
-      <Card className="border-amber-200 dark:border-amber-900 bg-gradient-to-r from-amber-50/80 via-orange-50/40 to-amber-50/80 dark:from-amber-950/20 dark:to-orange-950/20">
+      <Card className="border-warning/25 bg-gradient-to-r from-warning-soft/80 via-warning-soft/40 to-warning-soft/80">
         <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg shadow-sm">
+            <div className="p-2.5 bg-gradient-to-br from-warning to-warning-ink text-white dark:text-background dark:text-background rounded-lg shadow-sm">
               <Camera className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm">AI Business Card Scanner (OCR)</span>
-                <Badge variant="outline" className="bg-amber-100/80 text-amber-900 border-amber-300 text-[10px] gap-1 font-bold">
-                  <Sparkles className="h-3 w-3 text-amber-600" /> Gemini Vision
+                <Badge variant="outline" className="bg-warning-soft/80 text-warning-ink border-warning/40 text-[10px] gap-1 font-bold">
+                  <Sparkles className="h-3 w-3 text-warning-ink" /> Gemini Vision
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -527,9 +527,9 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               size="sm"
               onClick={() => setNearbyModalOpen(true)}
               variant="outline"
-              className="w-full sm:w-auto gap-1.5 border-amber-400 text-amber-900 dark:text-amber-300 font-semibold"
+              className="w-full sm:w-auto gap-1.5 border-warning text-warning-ink font-semibold"
             >
-              <Building2 className="h-4 w-4 text-indigo-600" />
+              <Building2 className="h-4 w-4 text-accent" />
               <span>Find Nearby (50m)</span>
             </Button>
 
@@ -538,7 +538,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               size="sm"
               onClick={() => document.getElementById('businessCardInput')?.click()}
               disabled={scanningCard}
-              className="w-full sm:w-auto gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold shadow-sm"
+              className="w-full sm:w-auto gap-1.5 bg-gradient-to-r from-gold to-warning hover:from-gold/90 hover:to-warning/90 text-gold-foreground font-bold shadow-sm"
             >
               {scanningCard ? (
                 <>
@@ -571,21 +571,21 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
       />
 
       {/* GPS Location Banner */}
-      <Card className="border-blue-200 dark:border-blue-900 bg-gradient-to-r from-blue-50/70 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
+      <Card className="border-info/25 bg-gradient-to-r from-info-soft/70 to-accent/5">
         <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="p-2.5 bg-blue-600 text-white rounded-lg shadow-sm">
+            <div className="p-2.5 bg-info text-info-foreground rounded-lg shadow-sm">
               <MapPin className="h-5 w-5 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm">GPS Geolocation & Auto-Address</span>
                 {latitude && longitude ? (
-                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-[10px]">
+                  <Badge variant="outline" className="bg-success-soft text-success-ink border-success/40 text-[10px]">
                     📍 Coordinates Locked ({gpsAccuracy ? `±${gpsAccuracy}m` : 'Active'})
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-[10px]">
+                  <Badge variant="outline" className="bg-warning-soft text-warning-ink border-warning/40 text-[10px]">
                     Not captured yet
                   </Badge>
                 )}
@@ -613,7 +613,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
               </>
             ) : (
               <>
-                <Navigation className="h-4 w-4 text-blue-600" />
+                <Navigation className="h-4 w-4 text-info" />
                 <span>{latitude ? 'Re-acquire GPS' : 'Get Current Location'}</span>
               </>
             )}
@@ -628,7 +628,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b bg-muted/20">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
-              <Building className="h-4 w-4 text-blue-600" />
+              <Building className="h-4 w-4 text-info" />
               Lead & Company Information
             </CardTitle>
             <CardDescription className="text-xs">Directly maps to Salesforce Lead Header</CardDescription>
@@ -755,7 +755,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b bg-muted/20">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
-              <MapPin className="h-4 w-4 text-emerald-600" />
+              <MapPin className="h-4 w-4 text-success" />
               Location & Site Address
             </CardTitle>
             <CardDescription className="text-xs">Pre-filled via GPS or manually editable</CardDescription>
@@ -842,14 +842,14 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             {latitude && longitude && (
               <div className="p-3 bg-muted/40 rounded-lg text-xs flex items-center justify-between border">
                 <div className="flex items-center gap-2">
-                  <Navigation className="h-4 w-4 text-blue-600" />
+                  <Navigation className="h-4 w-4 text-info" />
                   <span>Google Maps link ready</span>
                 </div>
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 font-semibold hover:underline flex items-center gap-1"
+                  className="text-info font-semibold hover:underline flex items-center gap-1"
                 >
                   View Pin <ExternalLink className="h-3 w-3" />
                 </a>
@@ -862,7 +862,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
         <Card className="shadow-sm md:col-span-2">
           <CardHeader className="pb-3 border-b bg-muted/20">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
-              <Truck className="h-4 w-4 text-amber-600" />
+              <Truck className="h-4 w-4 text-warning-ink" />
               Freight Requirements & Commercial Scope
             </CardTitle>
             <CardDescription className="text-xs">Services interested in, freight types, and incumbent carrier</CardDescription>
@@ -899,7 +899,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
 
               <div>
                 <Label className="text-xs font-semibold flex items-center gap-1">
-                  <DollarSign className="h-3 w-3 text-emerald-600" />
+                  <DollarSign className="h-3 w-3 text-success" />
                   Estimated Annual Spend ($)
                 </Label>
                 <Input
@@ -925,7 +925,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
                       onClick={() => toggleService(svc)}
                       className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
                         selected
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-medium'
+                          ? 'bg-info text-info-foreground border-info shadow-xs font-medium'
                           : 'bg-muted/40 hover:bg-muted text-muted-foreground border-border'
                       }`}
                     >
@@ -993,21 +993,21 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
             <div className="pt-3 border-t">
               <Label className="text-xs font-semibold flex items-center justify-between">
                 <span className="text-foreground">Field Canvassing Notes & Follow-up Actions *</span>
-                <span className="text-[10px] text-red-500 font-bold">Mandatory</span>
+                <span className="text-[10px] text-destructive font-bold">Mandatory</span>
               </Label>
               <Textarea
                 rows={3}
                 placeholder="e.g. Met with warehouse supervisor. Currently dispatching 15 pallets/wk with StarTrack to Sydney. Dissatisfied with DIFOT. Rate comparison required by Tuesday."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                className="mt-1 text-xs resize-y border-amber-300/80 dark:border-amber-900/60 focus:border-blue-500"
+                className="mt-1 text-xs resize-y border-warning/30 focus:border-info"
               />
             </div>
 
             {/* Salesforce Sync Status */}
             <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border text-xs">
               <div className="flex items-center gap-2">
-                <FileCheck className="h-4 w-4 text-blue-600" />
+                <FileCheck className="h-4 w-4 text-info" />
                 <div>
                   <span className="font-semibold">Marked as Synced in Salesforce?</span>
                   <p className="text-[11px] text-muted-foreground">Toggle once uploaded or verified in Salesforce Leads</p>
@@ -1046,7 +1046,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
           disabled={saving}
           className="w-full sm:w-auto"
         >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1 text-emerald-600" />}
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1 text-success" />}
           Save & Close
         </Button>
         <Button
@@ -1054,7 +1054,7 @@ export function CanvassLeadForm({ initialLead, onSaved, onCancel }: CanvassLeadF
           size="lg"
           onClick={() => handleSave(true)}
           disabled={saving}
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md"
+          className="w-full sm:w-auto bg-info hover:bg-info/90 text-info-foreground font-semibold shadow-md"
         >
           <ExternalLink className="h-4 w-4 mr-1" />
           1-Click Salesforce Upload

@@ -176,10 +176,10 @@ export function BIReportsViewer() {
   if (availableDashboards.length === 0) {
     return (
       <div className="w-full mx-auto p-4 md:p-8 flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6 max-w-md">
-        <div className="bg-indigo-50 p-4 rounded-2xl shadow-inner animate-pulse">
-          <LayoutDashboard className="w-12 h-12 text-indigo-600" />
+        <div className="bg-accent/10 p-4 rounded-2xl shadow-inner animate-pulse">
+          <LayoutDashboard className="w-12 h-12 text-accent" />
         </div>
-        <h2 className="text-2xl font-black uppercase tracking-tight text-slate-800">No Custom Dashboards</h2>
+        <h2 className="text-2xl font-black uppercase tracking-tight text-foreground">No Custom Dashboards</h2>
         {isAdmin ? (
           <>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -189,7 +189,7 @@ export function BIReportsViewer() {
               <Button 
                 onClick={handleInitializeDefaults} 
                 disabled={isSeeding}
-                className="font-black uppercase text-xs tracking-wider bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 h-11 px-6 rounded-xl"
+                className="font-black uppercase text-xs tracking-wider bg-gradient-to-r from-accent to-chart-5 text-white shadow-lg hover:shadow-accent/10 transition-all duration-300 h-11 px-6 rounded-xl"
               >
                 {isSeeding ? (
                   <>
@@ -244,14 +244,14 @@ export function BIReportsViewer() {
       }
 
       return (
-        <Card key={widget.id} className="border-none shadow-xl bg-white hover:scale-[1.02] transition-transform">
+        <Card key={widget.id} className="border-none shadow-xl bg-card hover:scale-[1.02] transition-transform">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{widget.name}</p>
               <Activity className="w-4 h-4 text-accent opacity-50" />
             </div>
-            <h3 className="text-3xl font-black tracking-tighter text-slate-800">{displayValue}</h3>
-            <p className="text-[10px] mt-2 font-bold text-slate-400 capitalize">{widget.calculation} of {widget.field}</p>
+            <h3 className="text-3xl font-black tracking-tighter text-foreground">{displayValue}</h3>
+            <p className="text-[10px] mt-2 font-bold text-muted-foreground capitalize">{widget.calculation} of {widget.field}</p>
           </CardContent>
         </Card>
       );
@@ -261,8 +261,8 @@ export function BIReportsViewer() {
       const internalField = FIELD_MAP[widget.field] || widget.field;
       
       return (
-        <Card key={widget.id} className="border-none shadow-xl bg-white col-span-full overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b">
+        <Card key={widget.id} className="border-none shadow-xl bg-card col-span-full overflow-hidden">
+          <CardHeader className="bg-secondary/60 border-b">
             <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
               <TableProperties className="w-4 h-4 text-primary" />
               {widget.name}
@@ -271,14 +271,14 @@ export function BIReportsViewer() {
           <CardContent className="p-0">
             <div className="overflow-x-auto max-h-[400px]">
               <table className="w-full text-sm">
-                <thead className="bg-slate-100 sticky top-0 uppercase text-[9px] font-black tracking-widest text-slate-500">
+                <thead className="bg-secondary sticky top-0 uppercase text-[9px] font-black tracking-widest text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 text-left">Primary Entity</th>
                     <th className="px-4 py-3 text-left">Owner</th>
                     <th className="px-4 py-3 text-right">{widget.field}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border/60">
                   {filteredData.slice(0, 100).map((row: any, i: number) => {
                     const val = row[internalField];
                     let displayVal = val;
@@ -286,7 +286,7 @@ export function BIReportsViewer() {
                       displayVal = val > 10000 ? `$${(val/1000000).toFixed(2)}M` : val.toLocaleString();
                     }
                     return (
-                      <tr key={i} className="hover:bg-slate-50">
+                      <tr key={i} className="hover:bg-secondary/60">
                         <td className="px-4 py-3 font-bold text-xs truncate max-w-[200px]">{row.pipeline || row.userId}</td>
                         <td className="px-4 py-3 font-medium text-xs">{row.userName || row.userId}</td>
                         <td className="px-4 py-3 text-right font-black text-xs text-primary">{displayVal}</td>
@@ -302,7 +302,7 @@ export function BIReportsViewer() {
               </table>
             </div>
             {filteredData.length > 100 && (
-              <div className="bg-slate-50 p-2 text-center text-[10px] font-bold text-slate-500">Showing first 100 records</div>
+              <div className="bg-secondary/60 p-2 text-center text-[10px] font-bold text-muted-foreground">Showing first 100 records</div>
             )}
           </CardContent>
         </Card>
@@ -315,17 +315,17 @@ export function BIReportsViewer() {
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       <header className="flex items-center gap-3">
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl shadow-lg rotate-3">
+        <div className="bg-gradient-to-br from-accent to-chart-5 p-2 rounded-xl shadow-lg rotate-3">
           <LayoutDashboard className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl md:text-3xl font-black font-headline text-slate-900 tracking-tighter uppercase">BI Engine</h1>
+          <h1 className="text-2xl md:text-3xl font-black font-headline text-foreground tracking-tighter uppercase">BI Engine</h1>
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Real-time Performance Rendering</p>
         </div>
       </header>
 
       <Tabs value={activeTab || ''} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-white border p-1 rounded-xl shadow-sm h-12 inline-flex overflow-x-auto scrollbar-hide max-w-full">
+        <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-12 inline-flex overflow-x-auto scrollbar-hide max-w-full">
           {availableDashboards.map(dash => (
             <TabsTrigger key={dash.id} value={dash.id} className="font-black uppercase text-[10px] md:text-xs tracking-widest h-full px-6">
               {dash.name}
@@ -338,9 +338,9 @@ export function BIReportsViewer() {
           return (
             <TabsContent key={dash.id} value={dash.id} className="mt-6">
               {dashWidgets.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-dashed text-center">
-                  <AlertCircle className="w-8 h-8 text-slate-300 mb-3" />
-                  <p className="text-sm font-bold text-slate-500">No widgets configured for this dashboard.</p>
+                <div className="flex flex-col items-center justify-center p-12 bg-card rounded-2xl border border-dashed text-center">
+                  <AlertCircle className="w-8 h-8 text-muted-foreground/70 mb-3" />
+                  <p className="text-sm font-bold text-muted-foreground">No widgets configured for this dashboard.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

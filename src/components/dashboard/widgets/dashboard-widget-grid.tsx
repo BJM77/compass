@@ -62,7 +62,7 @@ export function DashboardWidgetGrid({ layout, context, mode = 'responsive', anch
     <WidgetContextProvider value={context}>
       <div className="space-y-6">
         {anchors && items.length > 1 && (
-          <div className="bg-white border p-1 rounded-xl shadow-sm flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20 max-w-full">
+          <div className="bg-card border p-1 rounded-xl shadow-sm flex w-full overflow-x-auto scrollbar-hide sticky top-16 z-20 max-w-full">
             {items.map(w => (
               <button
                 key={w.id}
@@ -89,7 +89,7 @@ export function DashboardWidgetGrid({ layout, context, mode = 'responsive', anch
                 data-widget={w.id}
                 className={cn(
                   forcedCols === 0 && widgetSpanClass(w.width),
-                  'flex flex-col gap-3 border border-border bg-white rounded-3xl p-4 md:p-5 shadow-sm scroll-mt-40 h-fit min-w-0 overflow-hidden',
+                  'flex flex-col gap-3 border border-border bg-card rounded-3xl p-4 md:p-5 shadow-sm scroll-mt-40 h-fit min-w-0 overflow-hidden',
                 )}
                 style={forcedCols > 1 ? { gridColumn: `span ${Math.min(w.width, forcedCols)} / span ${Math.min(w.width, forcedCols)}` } : undefined}
               >

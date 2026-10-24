@@ -106,7 +106,7 @@ export function StrategyManagement() {
     <div className="space-y-6 md:space-y-8 pb-20">
       <Tabs defaultValue="playbooks" className="w-full space-y-6">
         <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-          <TabsList className="bg-white border p-1 rounded-xl h-auto inline-flex min-w-full md:min-w-0">
+          <TabsList className="bg-card border p-1 rounded-xl h-auto inline-flex min-w-full md:min-w-0">
             <TabsTrigger value="playbooks" className="px-4 md:px-6 py-2 rounded-lg font-bold text-xs md:text-sm">
               <Map className="w-4 h-4 mr-2" /> Playbooks
             </TabsTrigger>
@@ -201,7 +201,7 @@ export function StrategyManagement() {
                   <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-x md:divide-y-0">
                     {[30, 60, 90].map(phase => (
                       <div key={phase} className="p-4 md:p-6 space-y-4">
-                        <Badge className="bg-accent text-white font-bold uppercase text-[8px] md:text-[9px] mb-2">Day {phase}</Badge>
+                        <Badge className="bg-accent text-accent-foreground font-bold uppercase text-[8px] md:text-[9px] mb-2">Day {phase}</Badge>
                         <div className="space-y-1">
                           <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Focus</Label>
                           <Input 

@@ -32,7 +32,7 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
         insights.push({
           deal,
           type: 'CRITICAL',
-          icon: <TrendingDown className="w-5 h-5 text-red-500" />,
+          icon: <TrendingDown className="w-5 h-5 text-destructive" />,
           title: `Deal Flatlined: ${deal.pipeline}`,
           context: `Stuck in ${deal.stage || 'current stage'} for ${deal.daysInStage || 0} days with value ${valueFormatted}.`,
           suggestion: 'Recommend archiving to Closed-Lost to clean pipeline, or escalate immediately for GM intervention.'
@@ -41,7 +41,7 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
         insights.push({
           deal,
           type: 'WARNING',
-          icon: <Clock className="w-5 h-5 text-orange-500" />,
+          icon: <Clock className="w-5 h-5 text-warning" />,
           title: `Momentum Loss: ${deal.pipeline}`,
           context: `Rolled over ${deal.rolloverCount || 0} times. Value: ${valueFormatted}.`,
           suggestion: 'Schedule a technical validation or executive alignment call to unblock current barriers.'
@@ -51,7 +51,7 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
         insights.push({
           deal,
           type: 'OPPORTUNITY',
-          icon: <Target className="w-5 h-5 text-blue-500" />,
+          icon: <Target className="w-5 h-5 text-info" />,
           title: `Close Imminent: ${deal.pipeline}`,
           context: `Probability is ${deal.probability}% but no movement in 14+ days.`,
           suggestion: 'Send a mutual close plan document to the prospect to finalize the timeline.'
@@ -70,46 +70,46 @@ export function AIDealWhisperer({ deals }: { deals: any[] }) {
   if (whispers.length === 0) return null;
 
   return (
-    <Card className="border-none shadow-xl bg-gradient-to-br from-indigo-50 to-purple-50 overflow-hidden">
-      <CardHeader className="border-b bg-white/50 pb-4">
-        <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2 text-indigo-900">
-          <Sparkles className="w-5 h-5 text-indigo-600 animate-pulse" />
+    <Card className="border-none shadow-xl bg-gradient-to-br from-accent/10 to-chart-5/10 overflow-hidden">
+      <CardHeader className="border-b bg-card/50 pb-4">
+        <CardTitle className="text-sm font-black uppercase tracking-tight flex items-center gap-2 text-primary">
+          <Sparkles className="w-5 h-5 text-accent animate-pulse" />
           AI Deal Whisperer
         </CardTitle>
-        <p className="text-[10px] font-bold text-indigo-500/70 uppercase tracking-widest">
+        <p className="text-[10px] font-bold text-accent/70 uppercase tracking-widest">
           Actionable intelligence based on pipeline momentum
         </p>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="divide-y divide-indigo-100">
+        <div className="divide-y divide-accent/15">
           {whispers.map((whisper, idx) => (
-            <div key={idx} className="p-5 hover:bg-white/60 transition-colors group">
+            <div key={idx} className="p-5 hover:bg-card/60 transition-colors group">
               <div className="flex gap-4">
                 <div className="shrink-0 mt-1">{whisper.icon}</div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-slate-800">{whisper.title}</h4>
+                    <h4 className="text-sm font-bold text-foreground">{whisper.title}</h4>
                     <Badge variant="outline" className={`text-[8px] font-black uppercase tracking-widest ${
-                      whisper.type === 'CRITICAL' ? 'border-red-200 text-red-600 bg-red-50' : 
-                      whisper.type === 'WARNING' ? 'border-orange-200 text-orange-600 bg-orange-50' : 
-                      'border-blue-200 text-blue-600 bg-blue-50'
+                      whisper.type === 'CRITICAL' ? 'border-destructive/25 text-destructive bg-danger-soft' : 
+                      whisper.type === 'WARNING' ? 'border-warning/25 text-warning-ink bg-warning-soft' : 
+                      'border-info/25 text-info bg-info-soft'
                     }`}>
                       {whisper.type}
                     </Badge>
                   </div>
-                  <p className="text-xs font-medium text-slate-500">{whisper.context}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{whisper.context}</p>
                   
-                  <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-100 shadow-sm flex items-start gap-3">
+                  <div className="mt-3 p-3 bg-card rounded-lg border border-accent/15 shadow-sm flex items-start gap-3">
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-indigo-900 leading-relaxed">
-                        <span className="text-[10px] uppercase tracking-widest text-indigo-400 block mb-1">Suggested Action</span>
+                      <p className="text-xs font-bold text-primary leading-relaxed">
+                        <span className="text-[10px] uppercase tracking-widest text-accent block mb-1">Suggested Action</span>
                         {whisper.suggestion}
                       </p>
                     </div>
                     <Button 
                       size="sm" 
                       onClick={() => openSalesforceSearch(whisper.deal.pipeline, whisper.deal.salesforceId)}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-[10px] h-8 shrink-0 shadow-md shadow-indigo-200"
+                      className="bg-accent hover:bg-accent/90 text-[10px] h-8 shrink-0 shadow-md shadow-accent/20"
                     >
                       Act in CRM <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>

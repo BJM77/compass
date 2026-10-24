@@ -116,23 +116,23 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
   const actualRevenue = safeTwtwWins.reduce((acc: number, win: any) => acc + (Number(win?.value) || 0), 0);
 
   return (
-    <Card className="border-none shadow-xl bg-white overflow-hidden">
+    <Card className="border-none shadow-xl bg-card overflow-hidden">
       {/* Header — always visible */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors text-left"
+        className="w-full flex items-center justify-between p-5 hover:bg-secondary/60 transition-colors text-left"
       >
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-black text-sm shadow-lg">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-sm shadow-lg">
             {data.userName?.charAt(0) || '?'}
           </div>
           <div>
             <p className="text-sm font-black uppercase text-primary tracking-tight">{data.userName}</p>
             <div className="flex gap-2 mt-1">
-              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${data.twtwStatus === 'SUBMITTED' ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'}`}>
+              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${data.twtwStatus === 'SUBMITTED' ? 'bg-success-soft text-success-ink' : 'bg-danger-soft text-destructive'}`}>
                 TWTW: {data.twtwStatus === 'SUBMITTED' ? 'SUBMITTED' : 'LATE/DUE'}
               </Badge>
-              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${data.fridayStatus === 'SUBMITTED' ? 'bg-green-100 text-green-700' : data.fridayStatus === 'DRAFT' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+              <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${data.fridayStatus === 'SUBMITTED' ? 'bg-success-soft text-success-ink' : data.fridayStatus === 'DRAFT' ? 'bg-warning-soft text-warning-ink' : 'bg-danger-soft text-destructive'}`}>
                 FRI FW: {data.fridayStatus}
               </Badge>
             </div>
@@ -140,20 +140,20 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
         </div>
         <div className="flex items-center gap-4">
           {/* Quick stats with comparison targets */}
-          <div className="hidden md:flex items-center gap-3 text-[9px] font-black text-slate-400 uppercase">
+          <div className="hidden md:flex items-center gap-3 text-[9px] font-black text-muted-foreground uppercase">
             <span><Phone className="w-3 h-3 inline mr-0.5" /> Calls: {actualCalls}/{callsGoal}</span>
             <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> Apps: {actualApps}/{appsGoal}</span>
             <span><FileText className="w-3 h-3 inline mr-0.5" /> Opps: {actualProposals}/{proposalsGoal}</span>
             <span><Award className="w-3 h-3 inline mr-0.5" /> Wins: {actualDeals}/{dealsGoal}</span>
             <span><TrendingUp className="w-3 h-3 inline mr-0.5" /> Rev: ${actualRevenue.toLocaleString()}/${revenueGoal.toLocaleString()}</span>
           </div>
-          {isExpanded ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
+          {isExpanded ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
         </div>
       </button>
 
       {/* Expanded content */}
       {isExpanded && (
-        <CardContent className="px-5 pb-6 pt-0 space-y-6 border-t border-slate-100">
+        <CardContent className="px-5 pb-6 pt-0 space-y-6 border-t border-border/60">
           {/* Activity Scorecard Grid comparing CRM Actuals with Goals */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4">
             <StatPill 
@@ -161,35 +161,35 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
               label="Calls Actual/Goal" 
               value={`${actualCalls} / ${callsGoal}`} 
               subValue={actualCalls >= callsGoal ? "Goal Met! 🎉" : `${callsGoal - actualCalls} behind`}
-              color={actualCalls >= callsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+              color={actualCalls >= callsGoal ? "bg-success-soft text-success-ink border-success/15" : "bg-danger-soft text-destructive border-destructive/15"} 
             />
             <StatPill 
               icon={CalendarCheck} 
               label="Apps Actual/Goal" 
               value={`${actualApps} / ${appsGoal}`} 
               subValue={actualApps >= appsGoal ? "Goal Met! 🎉" : `${appsGoal - actualApps} behind`}
-              color={actualApps >= appsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+              color={actualApps >= appsGoal ? "bg-success-soft text-success-ink border-success/15" : "bg-danger-soft text-destructive border-destructive/15"} 
             />
             <StatPill 
               icon={FileText} 
               label="Opps Actual/Goal" 
               value={`${actualProposals} / ${proposalsGoal}`} 
               subValue={actualProposals >= proposalsGoal ? "Goal Met! 🎉" : `${proposalsGoal - actualProposals} behind`}
-              color={actualProposals >= proposalsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+              color={actualProposals >= proposalsGoal ? "bg-success-soft text-success-ink border-success/15" : "bg-danger-soft text-destructive border-destructive/15"} 
             />
             <StatPill 
               icon={Award} 
               label="Wins Actual/Goal" 
               value={`${actualDeals} / ${dealsGoal}`} 
               subValue={actualDeals >= dealsGoal ? "Goal Met! 🎉" : `${dealsGoal - actualDeals} behind`}
-              color={actualDeals >= dealsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+              color={actualDeals >= dealsGoal ? "bg-success-soft text-success-ink border-success/15" : "bg-danger-soft text-destructive border-destructive/15"} 
             />
             <StatPill 
               icon={TrendingUp} 
               label="Revenue Actual/Goal" 
               value={`$${actualRevenue.toLocaleString()} / $${revenueGoal.toLocaleString()}`} 
               subValue={actualRevenue >= revenueGoal ? "Goal Met! 🎉" : `$${(revenueGoal - actualRevenue).toLocaleString()} behind`}
-              color={actualRevenue >= revenueGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
+              color={actualRevenue >= revenueGoal ? "bg-success-soft text-success-ink border-success/15" : "bg-danger-soft text-destructive border-destructive/15"} 
             />
           </div>
 
@@ -198,8 +198,8 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
             {/* TWTW (Thursday 2pm) */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <CalendarCheck className="w-4 h-4 text-rose-500" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-rose-700">TWTW - The Week That Was (Thu 2pm)</p>
+                <CalendarCheck className="w-4 h-4 text-destructive" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-destructive">TWTW - The Week That Was (Thu 2pm)</p>
               </div>
 
               {hasTwtwData ? (
@@ -207,14 +207,14 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   {/* Wins */}
                   {safeTwtwWins.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Wins This Week</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Wins This Week</p>
                       {safeTwtwWins.map((win: any, idx: number) => (
-                        <div key={idx} className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-1">
+                        <div key={idx} className="p-3 bg-success-soft/50 rounded-xl border border-success/15 space-y-1">
                           <div className="flex justify-between items-start">
-                            <p className="text-[10px] font-black text-slate-800 uppercase">{win.customer || 'Unnamed'}</p>
-                            <span className="text-[9px] font-black text-emerald-700">${(Number(win.value) || 0).toLocaleString()}</span>
+                            <p className="text-[10px] font-black text-foreground uppercase">{win.customer || 'Unnamed'}</p>
+                            <span className="text-[9px] font-black text-success-ink">${(Number(win.value) || 0).toLocaleString()}</span>
                           </div>
-                          {win.updateText && <p className="text-[9px] text-slate-600 font-medium leading-relaxed">{win.updateText}</p>}
+                          {win.updateText && <p className="text-[9px] text-foreground/75 font-medium leading-relaxed">{win.updateText}</p>}
                         </div>
                       ))}
                     </div>
@@ -223,14 +223,14 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   {/* Risks */}
                   {safeTwtwRisks.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest text-rose-600">Risks & Barriers</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest text-destructive">Risks & Barriers</p>
                       {safeTwtwRisks.map((risk: any, idx: number) => (
-                        <div key={idx} className="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-1">
+                        <div key={idx} className="p-3 bg-danger-soft/50 rounded-xl border border-destructive/15 space-y-1">
                           <div className="flex justify-between items-start">
-                            <p className="text-[10px] font-black text-rose-800 uppercase">{risk.account || 'Unnamed'}</p>
-                            {risk.impact && <span className="text-[9px] font-black text-rose-600">${(Number(risk.impact) || 0).toLocaleString()}</span>}
+                            <p className="text-[10px] font-black text-destructive uppercase">{risk.account || 'Unnamed'}</p>
+                            {risk.impact && <span className="text-[9px] font-black text-destructive">${(Number(risk.impact) || 0).toLocaleString()}</span>}
                           </div>
-                          {risk.mitigation && <p className="text-[9px] text-slate-600 font-medium leading-relaxed">{risk.mitigation}</p>}
+                          {risk.mitigation && <p className="text-[9px] text-foreground/75 font-medium leading-relaxed">{risk.mitigation}</p>}
                         </div>
                       ))}
                     </div>
@@ -238,17 +238,17 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
 
                   {/* Major Updates */}
                   {data.twtwMajorUpdates && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Major Updates</p>
+                    <div className="p-3 bg-secondary/60 rounded-xl border border-border/60 space-y-2">
+                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">Major Updates</p>
                       {typeof data.twtwMajorUpdates === 'string' ? (
-                        <p className="text-[9px] text-slate-700 leading-relaxed">{data.twtwMajorUpdates}</p>
+                        <p className="text-[9px] text-foreground/85 leading-relaxed">{data.twtwMajorUpdates}</p>
                       ) : Array.isArray(data.twtwMajorUpdates) ? (
                         <div className="space-y-2">
                           {(data.twtwMajorUpdates as any[]).map((mu: any, idx: number) => (
-                            <div key={idx} className="text-[9px] text-slate-700 leading-relaxed border-b border-slate-100 pb-1 last:border-0 last:pb-0">
-                              {mu.customer && <span className="font-bold uppercase text-slate-800">{mu.customer}: </span>}
+                            <div key={idx} className="text-[9px] text-foreground/85 leading-relaxed border-b border-border/60 pb-1 last:border-0 last:pb-0">
+                              {mu.customer && <span className="font-bold uppercase text-foreground">{mu.customer}: </span>}
                               <span>{mu.updateText || ''}</span>
-                              {Number(mu.value) > 0 && <span className="text-emerald-700 font-black ml-1">(${(Number(mu.value) || 0).toLocaleString()})</span>}
+                              {Number(mu.value) > 0 && <span className="text-success-ink font-black ml-1">(${(Number(mu.value) || 0).toLocaleString()})</span>}
                             </div>
                           ))}
                         </div>
@@ -259,11 +259,11 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   {/* Priorities */}
                   {safeTwtwPriorities.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Next Week's Priorities</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Next Week's Priorities</p>
                       <div className="space-y-1">
                         {safeTwtwPriorities.map((item: string, idx: number) => (
-                          <div key={idx} className="flex gap-2 items-center text-[9px] font-medium text-slate-600">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                          <div key={idx} className="flex gap-2 items-center text-[9px] font-medium text-foreground/75">
+                            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
                             <span>{typeof item === 'string' ? item : (item as any).text || (item as any).updateText || JSON.stringify(item)}</span>
                           </div>
                         ))}
@@ -272,12 +272,12 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   )}
                 </div>
               ) : (
-                <p className="text-[10px] text-slate-400 italic">No TWTW data submitted</p>
+                <p className="text-[10px] text-muted-foreground italic">No TWTW data submitted</p>
               )}
             </div>
 
             {/* Friday FW (Friday 12pm) */}
-            <div className="space-y-4 border-l pl-5 border-slate-100">
+            <div className="space-y-4 border-l pl-5 border-border/60">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-primary" />
                 <p className="text-[10px] font-black uppercase tracking-widest text-primary">Friday FW - Performance Review (Fri 12pm)</p>
@@ -288,15 +288,15 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   {/* Focus Accounts */}
                   {safeFocusAccounts.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Focus Accounts & Commitments</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Focus Accounts & Commitments</p>
                       {safeFocusAccounts.map((acc: any, i: number) => (
-                        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                        <div key={i} className="p-3 bg-secondary/60 rounded-xl border border-border/60 space-y-1">
                           <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black uppercase text-slate-800">{acc.accountName || 'Unnamed'}</p>
+                            <p className="text-[10px] font-black uppercase text-foreground">{acc.accountName || 'Unnamed'}</p>
                             <Badge className="text-[7px] font-black bg-primary/10 text-primary border-none">{acc.actionType || 'Close'}</Badge>
                           </div>
                           {acc.eav > 0 && <p className="text-[9px] font-bold text-accent">EAV: ${acc.eav.toLocaleString()}</p>}
-                          {acc.aboutAccount && <p className="text-[9px] text-slate-500 leading-relaxed">{acc.aboutAccount}</p>}
+                          {acc.aboutAccount && <p className="text-[9px] text-muted-foreground leading-relaxed">{acc.aboutAccount}</p>}
                         </div>
                       ))}
                     </div>
@@ -305,11 +305,11 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   {/* Monday Action Plan */}
                   {safeActionPlan.filter(a => typeof a === 'string' && a.trim()).length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Monday Action Plan</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Monday Action Plan</p>
                       {safeActionPlan.filter(a => typeof a === 'string' && a.trim()).map((action, i) => (
                         <div key={i} className="flex gap-2 items-start">
                           <Badge variant="outline" className="text-[7px] font-black w-5 h-5 p-0 flex items-center justify-center shrink-0">{i + 1}</Badge>
-                          <p className="text-[9px] font-medium text-slate-600 leading-relaxed">{action}</p>
+                          <p className="text-[9px] font-medium text-foreground/75 leading-relaxed">{action}</p>
                         </div>
                       ))}
                     </div>
@@ -317,22 +317,22 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
 
                   {/* Roadblocks & Support */}
                   {data.roadblocks && (
-                    <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                    <div className="p-3 bg-danger-soft rounded-xl border border-destructive/15">
                       <div className="flex items-center gap-1 mb-1">
-                        <AlertTriangle className="w-3 h-3 text-red-500" />
-                        <p className="text-[8px] font-black uppercase text-red-600 tracking-widest">Roadblocks</p>
+                        <AlertTriangle className="w-3 h-3 text-destructive" />
+                        <p className="text-[8px] font-black uppercase text-destructive tracking-widest">Roadblocks</p>
                       </div>
-                      <p className="text-[9px] text-red-700 leading-relaxed">{data.roadblocks}</p>
+                      <p className="text-[9px] text-destructive leading-relaxed">{data.roadblocks}</p>
                     </div>
                   )}
 
                   {data.supportNeeded && (
-                    <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="p-3 bg-info-soft rounded-xl border border-info/15">
                       <div className="flex items-center gap-1 mb-1">
-                        <LifeBuoy className="w-3 h-3 text-blue-500" />
-                        <p className="text-[8px] font-black uppercase text-blue-600 tracking-widest">Support Needed</p>
+                        <LifeBuoy className="w-3 h-3 text-info" />
+                        <p className="text-[8px] font-black uppercase text-info tracking-widest">Support Needed</p>
                       </div>
-                      <p className="text-[9px] text-blue-700 leading-relaxed">{data.supportNeeded}</p>
+                      <p className="text-[9px] text-info leading-relaxed">{data.supportNeeded}</p>
                     </div>
                   )}
 
@@ -348,7 +348,7 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   )}
                 </div>
               ) : (
-                <p className="text-[10px] text-slate-400 italic">No Friday FW data submitted</p>
+                <p className="text-[10px] text-muted-foreground italic">No Friday FW data submitted</p>
               )}
             </div>
           </div>
@@ -554,14 +554,14 @@ export function WeeklyArchive() {
           {canViewAll && archiveData.length > 0 && (
             <Button
               onClick={handleRemindLate}
-              className="h-12 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-lg gap-2"
+              className="h-12 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold text-xs rounded-xl shadow-lg gap-2"
             >
               <Mail className="w-4 h-4" />
               Remind Late Submissions
             </Button>
           )}
           <Select value={selectedWeek} onValueChange={setSelectedWeek}>
-            <SelectTrigger className="w-64 h-12 font-bold text-sm bg-white shadow-lg border-none rounded-xl">
+            <SelectTrigger className="w-64 h-12 font-bold text-sm bg-card shadow-lg border-none rounded-xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-80">
@@ -580,7 +580,7 @@ export function WeeklyArchive() {
 
       {/* Team summary banner */}
       {canViewAll && archiveData.length > 0 && !isLoading && (
-        <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden">
+        <Card className="border-none shadow-xl bg-panel text-panel-foreground overflow-hidden">
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -591,7 +591,7 @@ export function WeeklyArchive() {
                   <p className="text-xs font-black uppercase tracking-widest text-accent">
                     {selectedOption?.label} Team Snapshot
                   </p>
-                  <p className="text-[9px] text-slate-400 font-bold mt-0.5">
+                  <p className="text-[9px] text-panel-foreground/60 font-bold mt-0.5">
                     {selectedOption?.range}
                     {isCurrentWeek && <span className="ml-2 text-accent">• Live</span>}
                   </p>
@@ -600,27 +600,27 @@ export function WeeklyArchive() {
               <div className="flex flex-wrap gap-3 text-xs font-black">
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.crmCalls > 0 ? teamTotals.crmCalls : teamTotals.calls}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Calls {teamTotals.crmCalls > 0 ? `(Man: ${teamTotals.calls})` : ''}</p>
+                  <p className="text-[7px] uppercase tracking-widest text-panel-foreground/60">Calls {teamTotals.crmCalls > 0 ? `(Man: ${teamTotals.calls})` : ''}</p>
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.crmApps > 0 ? teamTotals.crmApps : teamTotals.apps}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Apps {teamTotals.crmApps > 0 ? `(Man: ${teamTotals.apps})` : ''}</p>
+                  <p className="text-[7px] uppercase tracking-widest text-panel-foreground/60">Apps {teamTotals.crmApps > 0 ? `(Man: ${teamTotals.apps})` : ''}</p>
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.proposals}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Opps</p>
+                  <p className="text-[7px] uppercase tracking-widest text-panel-foreground/60">Opps</p>
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-white">{teamTotals.deals}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Wins</p>
+                  <p className="text-[7px] uppercase tracking-widest text-panel-foreground/60">Wins</p>
                 </div>
-                <div className="border-l border-slate-700 pl-4 text-center">
-                  <p className="text-xl font-black text-green-400">{teamTotals.twtwSubmitted}/{archiveData.length}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">TWTW Submissions</p>
+                <div className="border-l border-foreground/30 pl-4 text-center">
+                  <p className="text-xl font-black text-success-fill">{teamTotals.twtwSubmitted}/{archiveData.length}</p>
+                  <p className="text-[7px] uppercase tracking-widest text-panel-foreground/60">TWTW Submissions</p>
                 </div>
                 <div className="text-center px-4">
-                  <p className="text-xl font-black text-blue-400">{teamTotals.fridaySubmitted}/{archiveData.length}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Friday FW</p>
+                  <p className="text-xl font-black text-info">{teamTotals.fridaySubmitted}/{archiveData.length}</p>
+                  <p className="text-[7px] uppercase tracking-widest text-panel-foreground/60">Friday FW</p>
                 </div>
               </div>
             </div>
@@ -649,11 +649,11 @@ export function WeeklyArchive() {
 
       {/* No data */}
       {!isLoading && archiveData.length === 0 && (
-        <Card className="border-none shadow-xl bg-white">
+        <Card className="border-none shadow-xl bg-card">
           <CardContent className="py-16 text-center">
-            <Clock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="font-black text-lg text-slate-400 uppercase">No Data for {selectedOption?.label}</p>
-            <p className="text-xs text-slate-400 mt-1">{selectedOption?.range}</p>
+            <Clock className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
+            <p className="font-black text-lg text-muted-foreground uppercase">No Data for {selectedOption?.label}</p>
+            <p className="text-xs text-muted-foreground mt-1">{selectedOption?.range}</p>
           </CardContent>
         </Card>
       )}

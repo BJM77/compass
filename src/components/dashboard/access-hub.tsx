@@ -151,7 +151,7 @@ export function AccessHub() {
 
           {owner && (
             <div className="rounded-xl border overflow-hidden">
-              <div className="grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] bg-slate-50 border-b text-[10px] font-black uppercase tracking-wide text-slate-600">
+              <div className="grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] bg-secondary/60 border-b text-[10px] font-black uppercase tracking-wide text-foreground/75">
                 <div className="p-2 sm:p-3">Can access {owner.name}&apos;s…</div>
                 {SHARE_AREAS.map((a) => (
                   <div key={a.key} className="p-2 sm:p-3 text-center leading-tight">{a.label}</div>
@@ -164,7 +164,7 @@ export function AccessHub() {
                 const a = areasFor(owner, v);
                 const busy = busyKey === `${owner.id}_${v.id}`;
                 return (
-                  <div key={v.id} className="grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] items-center border-b last:border-b-0 hover:bg-slate-50/60">
+                  <div key={v.id} className="grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] items-center border-b last:border-b-0 hover:bg-secondary/35">
                     <div className="p-2 sm:p-3 min-w-0">
                       <div className="text-xs sm:text-sm font-bold truncate flex items-center gap-1.5">
                         {v.name}
@@ -182,7 +182,7 @@ export function AccessHub() {
                             onCheckedChange={(c) => setArea(owner, v, area.key, c === true)}
                             aria-label={`${v.name} can access ${owner.name}'s ${area.label}`}
                           />
-                          {linked && <Lock className="w-3 h-3 text-slate-400" aria-label="Included with Fact Finding" />}
+                          {linked && <Lock className="w-3 h-3 text-muted-foreground" aria-label="Included with Fact Finding" />}
                         </div>
                       );
                     })}
@@ -212,7 +212,7 @@ export function AccessHub() {
               {summary.map((r) => (
                 <li key={`${r.owner.id}_${r.viewer.id}`} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                   <span className="font-bold">{r.owner.name}</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400" />
+                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
                   <span className="font-bold">{r.viewer.name}</span>
                   <span className="flex flex-wrap gap-1">
                     {r.areas.map((l) => (

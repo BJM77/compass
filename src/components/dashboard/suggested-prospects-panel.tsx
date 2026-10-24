@@ -14,9 +14,9 @@ import { WA_SUGGESTED_PROSPECTS, SuggestedProspect } from '@/data/wa-suggested-p
 import type { VerticalDismissals } from '@/hooks/use-vertical-dismissals';
 
 function confidenceClass(c: string) {
-  if (c === 'high') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  if (c === 'medium') return 'bg-amber-50 text-amber-800 border-amber-200';
-  return 'bg-slate-100 text-slate-600 border-slate-200';
+  if (c === 'high') return 'bg-success-soft text-success-ink border-success/25';
+  if (c === 'medium') return 'bg-warning-soft text-warning-ink border-warning/25';
+  return 'bg-secondary text-foreground/75 border-border';
 }
 
 function buildNotes(s: SuggestedProspect): string {
@@ -110,31 +110,31 @@ export function SuggestedProspectsPanel({
   const Row = ({ s }: { s: SuggestedProspect }) => {
     const added = isAdded(s);
     return (
-      <div className={cn('min-w-0 rounded-lg border bg-white p-3 space-y-1.5', added && 'opacity-70 bg-slate-50')}>
+      <div className={cn('min-w-0 rounded-lg border bg-card p-3 space-y-1.5', added && 'opacity-70 bg-secondary/60')}>
         <div className="flex items-start gap-1.5 min-w-0">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1 min-w-0">
               <a href={getSalesforceSearchUrl(s.company)} target="_blank" rel="noopener noreferrer" title="Search Salesforce"
-                className="font-bold text-sm text-slate-900 hover:text-indigo-700 hover:underline truncate">{s.company}</a>
-              <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
+                className="font-bold text-sm text-foreground hover:text-primary hover:underline truncate">{s.company}</a>
+              <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
               <button type="button" onClick={() => copy(s)} aria-label={`Copy ${s.company}`} title="Copy name"
-                className="shrink-0 p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700">
-                {copied === s.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                className="shrink-0 p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground/85">
+                {copied === s.id ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
-            <p className="text-[11px] text-slate-500 break-words">{s.sector}{s.region ? ` · ${s.region}` : ''}</p>
+            <p className="text-[11px] text-muted-foreground break-words">{s.sector}{s.region ? ` · ${s.region}` : ''}</p>
           </div>
           <span className={cn('shrink-0 text-[10px] font-bold uppercase border rounded-full px-1.5 py-0.5', confidenceClass(s.confidence))}>{s.confidence}</span>
         </div>
-        <p className="text-xs text-slate-700 break-words">{s.whyTheyShip}</p>
-        {s.lowPriority && s.lowPriorityReason && <p className="text-[11px] text-amber-800 flex gap-1"><Info className="w-3 h-3 shrink-0 mt-px" />{s.lowPriorityReason}</p>}
+        <p className="text-xs text-foreground/85 break-words">{s.whyTheyShip}</p>
+        {s.lowPriority && s.lowPriorityReason && <p className="text-[11px] text-warning-ink flex gap-1"><Info className="w-3 h-3 shrink-0 mt-px" />{s.lowPriorityReason}</p>}
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
           {s.evidenceUrl ? (
-            <a href={s.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-indigo-700 hover:underline inline-flex items-center gap-0.5">
+            <a href={s.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5">
               Evidence <ExternalLink className="w-3 h-3" />
             </a>
-          ) : s.evidenceNote ? <span className="text-[11px] text-slate-500 break-words">Evidence: {s.evidenceNote}</span> : null}
-          <span className="text-[10px] text-slate-400 break-words">{s.sources.join(' · ')}</span>
+          ) : s.evidenceNote ? <span className="text-[11px] text-muted-foreground break-words">Evidence: {s.evidenceNote}</span> : null}
+          <span className="text-[10px] text-muted-foreground break-words">{s.sources.join(' · ')}</span>
           <div className="flex-1" />
           {onCheckPain && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onCheckPain(s)}>Check delivery pain</Button>}
           <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy[`t-${s.id}`]} onClick={() => markTrading(s)}
@@ -142,7 +142,7 @@ export function SuggestedProspectsPanel({
             <Handshake className="w-3.5 h-3.5 mr-1" />Trading with TGE
           </Button>
           {added ? (
-            <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50"><CheckCircle2 className="w-3 h-3 mr-1" />In prospects</Badge>
+            <Badge variant="outline" className="text-success-ink border-success/25 bg-success-soft"><CheckCircle2 className="w-3 h-3 mr-1" />In prospects</Badge>
           ) : canAdd ? (
             <Button size="sm" className="h-7 text-xs" disabled={busy[s.id]} onClick={() => add(s)}><Plus className="w-3.5 h-3.5 mr-1" />Add to prospects</Button>
           ) : null}
@@ -158,7 +158,7 @@ export function SuggestedProspectsPanel({
       <div className="space-y-3">
         {Object.entries(bySector).sort(([a], [b]) => a.localeCompare(b)).map(([sector, items]) => (
           <div key={sector} className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-500 mb-1.5">{sector} ({items.length})</p>
+            <p className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-1.5">{sector} ({items.length})</p>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">{items.map(s => <Row key={s.id} s={s} />)}</div>
           </div>
         ))}
@@ -171,7 +171,7 @@ export function SuggestedProspectsPanel({
       <CardHeader className="py-3 px-4">
         <button type="button" onClick={() => setOpen(o => !o)} className="flex items-center gap-2 text-left w-full min-w-0">
           {open ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
-          <CardTitle className="text-base flex items-center gap-2 min-w-0"><Lightbulb className="w-4 h-4 text-amber-500 shrink-0" /><span className="truncate">Suggested WA prospects ({rows.length})</span></CardTitle>
+          <CardTitle className="text-base flex items-center gap-2 min-w-0"><Lightbulb className="w-4 h-4 text-warning shrink-0" /><span className="truncate">Suggested WA prospects ({rows.length})</span></CardTitle>
         </button>
         {open && (
           <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -180,7 +180,7 @@ export function SuggestedProspectsPanel({
               <input type="checkbox" checked={hideAdded} onChange={e => setHideAdded(e.target.checked)} /> Hide added
             </label>
             {hiddenRows.length > 0 && (
-              <button type="button" onClick={() => setShowHidden(v => !v)} className="text-xs font-bold text-indigo-700 hover:underline">
+              <button type="button" onClick={() => setShowHidden(v => !v)} className="text-xs font-bold text-primary hover:underline">
                 {showHidden ? 'Hide' : 'Show'} hidden ({hiddenRows.length} trading with TGE)
               </button>
             )}
@@ -189,10 +189,10 @@ export function SuggestedProspectsPanel({
       </CardHeader>
       {open && (
         <CardContent className="px-3 pb-3 space-y-3">
-          {main.length ? grouped(main) : <p className="text-sm text-slate-500">No suggestions to show: all are in prospects or marked as trading with TGE.</p>}
+          {main.length ? grouped(main) : <p className="text-sm text-muted-foreground">No suggestions to show: all are in prospects or marked as trading with TGE.</p>}
           {low.length > 0 && (
             <div className="border-t pt-2">
-              <button type="button" onClick={() => setShowLow(v => !v)} className="text-xs font-bold text-slate-600 flex items-center gap-1">
+              <button type="button" onClick={() => setShowLow(v => !v)} className="text-xs font-bold text-foreground/75 flex items-center gap-1">
                 {showLow ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                 Low priority / mostly bulk ({low.length})
               </button>
@@ -201,11 +201,11 @@ export function SuggestedProspectsPanel({
           )}
           {showHidden && hiddenRows.length > 0 && (
             <div className="border-t pt-2 space-y-1.5">
-              <p className="text-xs font-bold text-slate-600">Hidden: already trading with TGE</p>
+              <p className="text-xs font-bold text-foreground/75">Hidden: already trading with TGE</p>
               {hiddenRows.map(s => (
-                <div key={s.id} className="flex items-center gap-2 min-w-0 rounded-md border bg-slate-50 px-2 py-1.5">
+                <div key={s.id} className="flex items-center gap-2 min-w-0 rounded-md border bg-secondary/60 px-2 py-1.5">
                   <span className="text-sm font-semibold truncate min-w-0 flex-1">{s.company}</span>
-                  <span className="hidden sm:block text-[11px] text-slate-500 truncate max-w-[40%]">
+                  <span className="hidden sm:block text-[11px] text-muted-foreground truncate max-w-[40%]">
                     {dismissals.byKey.get(dismissalKey(s.company))?.dismissedByName ? `by ${dismissals.byKey.get(dismissalKey(s.company))?.dismissedByName}` : ''}
                   </span>
                   <Button size="sm" variant="ghost" className="h-7 text-xs shrink-0" onClick={() => restore(s)}><Undo2 className="w-3.5 h-3.5 mr-1" />Restore</Button>

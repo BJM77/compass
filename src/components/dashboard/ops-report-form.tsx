@@ -128,7 +128,7 @@ export function OpsReportForm() {
       </div>
 
       <Card className="border-none shadow-lg">
-        <CardHeader className="bg-slate-50 border-b">
+        <CardHeader className="bg-secondary/60 border-b">
           <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
             {editingId ? (
               <><Edit className="w-4 h-4" /> Edit Entry - Week {currentWeek.split('-')[1]}</>
@@ -140,23 +140,23 @@ export function OpsReportForm() {
         <CardContent className="pt-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Event Type</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Event Type</label>
               <Select value={type} onValueChange={(val: any) => setType(val)}>
-                <SelectTrigger className="h-12 border-slate-200">
+                <SelectTrigger className="h-12 border-border">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PROBLEM"><span className="font-bold text-orange-600 flex items-center gap-2"><AlertCircle className="w-4 h-4" /> Operational Problem</span></SelectItem>
-                  <SelectItem value="POSITIVE"><span className="font-bold text-emerald-600 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Positive Event</span></SelectItem>
+                  <SelectItem value="PROBLEM"><span className="font-bold text-warning-ink flex items-center gap-2"><AlertCircle className="w-4 h-4" /> Operational Problem</span></SelectItem>
+                  <SelectItem value="POSITIVE"><span className="font-bold text-success flex items-center gap-2"><Sparkles className="w-4 h-4" /> Positive Event</span></SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Description</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</label>
             <Textarea 
-              className="min-h-[120px] bg-slate-50 resize-none"
+              className="min-h-[120px] bg-secondary/60 resize-none"
               placeholder="Describe what happened, the impact, and any actions taken..."
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -192,22 +192,22 @@ export function OpsReportForm() {
         ) : teamReports && teamReports.length > 0 ? (
           <div className="grid gap-4">
             {teamReports.map((report: any) => (
-              <Card key={report.id} className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
+              <Card key={report.id} className="border-none shadow-sm bg-card hover:shadow-md transition-shadow">
                 <CardContent className="p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center">
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-primary font-black text-[10px] uppercase shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-primary font-black text-[10px] uppercase shrink-0">
                         {(report.userName || '?').charAt(0)}
                       </div>
                       <span className="font-bold text-sm text-primary mr-2">{report.userName}</span>
-                      <Badge className={report.type === 'PROBLEM' ? 'bg-orange-100 text-orange-800 border-none' : 'bg-emerald-100 text-emerald-800 border-none'}>
+                      <Badge className={report.type === 'PROBLEM' ? 'bg-warning-soft text-warning-ink border-none' : 'bg-success-soft text-success-ink border-none'}>
                         {report.type === 'PROBLEM' ? 'PROBLEM' : 'POSITIVE EVENT'}
                       </Badge>
-                      <Badge variant="outline" className={report.status === 'ESCALATED' ? 'border-primary text-primary' : 'border-slate-300 text-slate-500'}>
+                      <Badge variant="outline" className={report.status === 'ESCALATED' ? 'border-primary text-primary' : 'border-border text-muted-foreground'}>
                         {report.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap">{report.description}</p>
+                    <p className="text-sm text-foreground/85 font-medium whitespace-pre-wrap">{report.description}</p>
                   </div>
                   <div className="flex flex-col gap-2 shrink-0 md:items-end mt-4 md:mt-0">
                     <div className="flex items-center gap-2">
@@ -219,14 +219,14 @@ export function OpsReportForm() {
                           <Button variant="outline" size="sm" onClick={() => handleEdit(report)} className="h-8 text-xs px-2 shadow-sm">
                             <Edit className="w-3 h-3 mr-1.5" /> Edit
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(report.id)} className="h-8 text-xs px-2 shadow-sm bg-red-600 hover:bg-red-700">
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(report.id)} className="h-8 text-xs px-2 shadow-sm bg-destructive hover:bg-destructive/90">
                             <Trash2 className="w-3 h-3 mr-1.5" /> Delete
                           </Button>
                         </>
                       )}
                     </div>
                     {report.createdAt && (
-                      <div className="text-[9px] text-slate-400 font-bold uppercase mt-2">
+                      <div className="text-[9px] text-muted-foreground font-bold uppercase mt-2">
                         {report.createdAt.toDate?.().toLocaleString()}
                       </div>
                     )}
@@ -236,8 +236,8 @@ export function OpsReportForm() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No reports submitted this week.</p>
+          <div className="text-center py-12 bg-secondary/60 rounded-xl border border-dashed border-border">
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">No reports submitted this week.</p>
           </div>
         )}
       </div>

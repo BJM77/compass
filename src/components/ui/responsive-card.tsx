@@ -26,11 +26,11 @@ export function ResponsiveCard({
 
   return (
     <Card className={cn(
-      "border-none shadow-md bg-white overflow-hidden h-full",
+      "border-none shadow-md bg-card overflow-hidden h-full",
       className
     )}>
       <CardHeader className={cn(
-        "border-b border-slate-100",
+        "border-b border-border/60",
         variant === 'minimal' ? 'py-2 px-3 md:py-3 md:px-4' : 'py-3 px-4 md:py-4 md:px-6',
         headerClassName
       )}>
