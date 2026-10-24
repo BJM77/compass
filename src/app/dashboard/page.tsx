@@ -15,7 +15,6 @@ const UserManagement = dynamic(() => import('@/components/dashboard/user-managem
 const GMWeeklyReview = dynamic(() => import('@/components/dashboard/gm-weekly-review').then(m => m.GMWeeklyReview), { loading: () => <ViewSkeleton /> });
 const StrategyManagement = dynamic(() => import('@/components/dashboard/strategy-management').then(m => m.StrategyManagement), { loading: () => <ViewSkeleton /> });
 const AIBriefsHub = dynamic(() => import('@/components/dashboard/ai-briefs-hub').then(m => m.AIBriefsHub), { loading: () => <ViewSkeleton /> });
-const FridayReviewHub = dynamic(() => import('@/components/dashboard/friday-review-hub').then(m => m.FridayReviewHub), { loading: () => <ViewSkeleton /> });
 const CallPlanning = dynamic(() => import('@/components/dashboard/call-planning').then(m => m.CallPlanning), { loading: () => <ViewSkeleton /> });
 const AdminCallPlanning = dynamic(() => import('@/components/dashboard/admin-call-planning').then(m => m.AdminCallPlanning), { loading: () => <ViewSkeleton /> });
 const SettingsHub = dynamic(() => import('@/components/dashboard/settings-hub').then(m => m.SettingsHub), { loading: () => <ViewSkeleton /> });
