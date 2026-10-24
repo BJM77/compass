@@ -367,6 +367,47 @@ service cloud.firestore {
       allow delete: if ownerDelete();
     }
 
+    // ─── Fact Finding owner actions ("M" message / "TD" follow-up) ──────────────
+    // Admins/leaders message a record's owner. The message is kept on the record and an
+    // in-app notification goes to the owner's bell. Owners read their own and mark read.
+    // ("TD" writes into the owner's timeManagementPlans, already allowed for admins above.)
+    function ffOwner(docId) {
+      return get(/databases/$(database)/documents/factFindingDocs/$(docId)).data.get('userId', null);
+    }
+
+    match /factFindingDocs/{docId}/messages/{messageId} {
+      allow read: if isAdmin() || (isSignedIn() && ffOwner(docId) == request.auth.uid);
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['fromUid', 'fromName', 'toUid', 'text', 'createdAt'])
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid == ffOwner(docId)
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.get('fromName', '') is string
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId}/notifications/{notificationId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['type', 'title', 'body', 'factFindingId', 'fromUid', 'fromName', 'read', 'createdAt'])
+        && request.resource.data.type in ['FACT_FINDING_MESSAGE', 'FACT_FINDING_TODO']
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.read == false
+        && request.resource.data.title is string && request.resource.data.title.size() <= 300
+        && request.resource.data.body is string && request.resource.data.body.size() <= 2000
+        && request.resource.data.get('factFindingId', '') is string
+        && request.resource.data.createdAt == request.time;
+      // Owner can only mark as read.
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt'])
+        && request.resource.data.read == true;
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
     // ─── Verticals prospects ─────────────────────────────────────────────────────
     // Staff read all. BDMs/admins source, claim, score, tag and convert.
     // AMs read all and may only edit growth notes on leads routed to them.

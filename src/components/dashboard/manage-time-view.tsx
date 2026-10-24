@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { DebouncedInput } from '@/components/ui/debounced-input';
 import { Printer, Plus, Trash2, Clock, CalendarClock, Users, XCircle, Inbox, CheckCircle2, FileText, ChevronDown, Check, AlertTriangle, BellRing } from 'lucide-react';
 import { Task, cleanTask, needsAttention, isStale } from '@/lib/time-mgmt';
+import { autoPromoteReason, displayQuadrant, FollowUpTask } from '@/lib/fact-finding-actions';
 import { TaskDueControls, DueChip } from '@/components/dashboard/time-task-due';
 import { format } from 'date-fns';
 import {
@@ -103,7 +104,7 @@ export function ManageTimeView() {
   const { user, isLeader, isGM } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
-  const { viewParams } = useNavigation();
+  const { viewParams, navigateTo } = useNavigation();
   const highlightTaskId: string | null = viewParams?.highlightTaskId || null;
   const [flashId, setFlashId] = useState<string | null>(null);
   
@@ -219,23 +220,16 @@ export function ManageTimeView() {
       setTasks(prevTasks => {
         let changed = false;
         const now = Date.now();
-        const twentyFourHours = 24 * 60 * 60 * 1000;
         
         let movedStale = 0;
         let movedDue = 0;
         const updatedTasks = prevTasks.map(t => {
-          if (t.quadrant === 'Q1' || t.completed) return t;
-          if (needsAttention(t, now)) {
-            changed = true;
-            movedDue++;
-            return { ...t, quadrant: 'Q1' as const, promotedAt: now };
-          }
-          if (t.quadrant === 'Q2' && t.movedToSoonAt && (now - t.movedToSoonAt > twentyFourHours)) {
-            changed = true;
-            movedStale++;
-            return { ...t, quadrant: 'Q1' as const, promotedAt: now };
-          }
-          return t;
+          // Fact Finding follow-ups (holdUntilDue) only move once their due time passes.
+          const reason = autoPromoteReason(t, now);
+          if (!reason) return t;
+          changed = true;
+          if (reason === 'due') movedDue++; else movedStale++;
+          return { ...t, quadrant: 'Q1' as const, promotedAt: now };
         });
         
         if (changed) {
@@ -421,7 +415,8 @@ export function ManageTimeView() {
     : adminSelectedUserId
       ? allCompletedTasks(adminPlans as any)
       : allCompletedTasks((myPlans || []) as any, tasks);
-  const inboxTasks = openTasks.filter(t => !t.quadrant);
+  const renderNow = Date.now();
+  const inboxTasks = openTasks.filter(t => !displayQuadrant(t, renderNow));
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 print:m-0 print:p-0 print:max-w-none print:bg-white print:space-y-4">
@@ -665,7 +660,7 @@ export function ManageTimeView() {
       {/* The 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-4 print:grid-cols-2">
         {QUADRANTS.map((quadrant) => {
-          const qTasks = openTasks.filter(t => t.quadrant === quadrant.id);
+          const qTasks = openTasks.filter(t => displayQuadrant(t, renderNow) === quadrant.id);
           
           return (
             <Card key={quadrant.id} className={`border-2 shadow-sm flex flex-col h-full print:shadow-none print:border-2 print:border-slate-300 ${quadrant.borderColorClass}`}>
@@ -707,6 +702,16 @@ export function ManageTimeView() {
                         />
                         <div className="flex flex-wrap items-center gap-1.5 px-2">
                           <DueChip task={task} />
+                          {(task as FollowUpTask).factFindingId && (
+                            <button
+                              type="button"
+                              onClick={() => navigateTo('FACT_FINDING', { docId: (task as FollowUpTask).factFindingId })}
+                              title={(task as FollowUpTask).assignedByName ? `Added by ${(task as FollowUpTask).assignedByName}. Open the Fact Finding record` : 'Open the Fact Finding record'}
+                              className="text-[11px] font-semibold rounded px-1.5 py-0.5 bg-info-soft text-info hover:underline print:hidden"
+                            >
+                              Fact Finding
+                            </button>
+                          )}
                           {!isViewOnly && <TaskDueControls task={task} onChange={(patch) => patchTask(task.id, patch)} compact />}
                         </div>
                         {!isViewOnly && isStale(task) && (
