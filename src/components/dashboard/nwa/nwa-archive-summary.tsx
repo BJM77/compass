@@ -19,6 +19,11 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 }
 
 const money = (n: number) => `$${Math.round(Number(n) || 0).toLocaleString('en-AU')}`;
+const fmtDate = (d: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(d || '')) return d || '';
+  const dt = new Date(`${d.slice(0, 10)}T00:00:00`);
+  return Number.isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+};
 const sumValue = (rows: { value: number }[]) => rows.reduce((t, r) => t + (Number(r.value) || 0), 0);
 
 /**
@@ -50,6 +55,9 @@ export function NwaArchiveSummary({ data, role = 'BDM' }: { data: any; role?: st
   const growth = acc.growth.filter(r => r.account.trim());
   const handovers = acc.handovers.filter(h => h.account.trim());
   const kpiActuals: Record<string, number> | null = data.kpiActuals && typeof data.kpiActuals === 'object' ? data.kpiActuals : null;
+  const appointments = p.appointments.filter(a => a.customer.trim() || a.purpose.trim());
+  const keyFocus = p.keyFocusMetrics.trim();
+  const individual = p.individualCommitment.trim();
   const kpis = kpiDefsFor(kpiRole).filter(k => (p.kpiTargets[k.target] || 0) > 0 || (kpiActuals && Number(kpiActuals[k.key]) > 0));
 
   return (
@@ -59,6 +67,13 @@ export function NwaArchiveSummary({ data, role = 'BDM' }: { data: any; role?: st
       {priorities.length > 0 && (
         <Block title="Top 3 priorities">
           <ol className="list-decimal space-y-0.5 pl-5 text-foreground">{priorities.map((t, i) => <li key={i}>{t}</li>)}</ol>
+        </Block>
+      )}
+      {appointments.length > 0 && (
+        <Block title={`Appointments · ${appointments.length}`}>
+          <ul className="space-y-0.5 text-muted-foreground">{appointments.map(a => (
+            <li key={a.id}><span className="text-foreground">{a.customer || 'Appointment'}</span>{[fmtDate(a.date), a.meetingType, a.purpose].filter(Boolean).map(v => ` · ${v}`).join('')}</li>
+          ))}</ul>
         </Block>
       )}
       {(progressing.length + created.length + stalled.length) > 0 && (
@@ -90,6 +105,12 @@ export function NwaArchiveSummary({ data, role = 'BDM' }: { data: any; role?: st
             </tbody>
           </table>
         </Block>
+      )}
+      {(keyFocus || individual) && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {keyFocus && <Block title="Key focus metrics"><p className="whitespace-pre-wrap text-muted-foreground">{keyFocus}</p></Block>}
+          {individual && <Block title="Individual commitment"><p className="whitespace-pre-wrap text-muted-foreground">{individual}</p></Block>}
+        </div>
       )}
       {(atRiskOpen.length > 0 || revenueAtRisk > 0) && (
         <Block title={`At-risk accounts · ${money(revenueAtRisk)} at risk`}>
