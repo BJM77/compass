@@ -12,6 +12,7 @@ import { useVerticalDismissals } from '@/hooks/use-vertical-dismissals';
 import { Badge } from '@/components/ui/badge';
 import { cn, formatEAV, getCurrentWeek, getNextWeekKey, getNwaReviewWeek } from '@/lib/utils';
 import { computeMomentum } from '@/lib/momentum';
+import { nwaDueState, NWA_DUE_LABEL } from '@/lib/nwa';
 import { mergeContinuousPlans, formatPerth, type Task } from '@/lib/time-mgmt';
 import { VERTICALS, tsMs, type VerticalProspect } from '@/lib/verticals';
 import { WA_SUGGESTED_PROSPECTS } from '@/data/wa-suggested-prospects';
@@ -116,6 +117,9 @@ export function WeeklyRhythmWidget() {
   const { data: fw } = useDoc<any>(fwRef);
   const twtwStatus = twtw?.status || 'NOT_STARTED';
   const fwStatus = fw?.status || 'NOT_STARTED';
+  const fwDue = nwaDueState(nextWeek, fwStatus);
+  const fwLabel = fwDue === 'submitted' ? (fwStatus === 'REVIEWED_BY_ADMIN' ? 'Reviewed' : 'Done') : fwDue === 'overdue' ? 'Overdue' : fwStatus === 'DRAFT' ? 'Draft · due Sun 8pm' : NWA_DUE_LABEL;
+  const fwTone = fwDue === 'submitted' ? 'bg-success' : fwDue === 'overdue' ? 'bg-destructive' : fwStatus === 'DRAFT' || fwDue === 'due_soon' ? 'bg-warning' : 'bg-white/20';
 
   return (
     <div className="space-y-3">
@@ -136,8 +140,8 @@ export function WeeklyRhythmWidget() {
             <p className="mt-2 text-sm font-semibold">Next Week's Activity (NWA)</p>
             <p className="text-xs text-white/70">Monday review · Week {nextWeek.split('-')[1]}</p>
           </div>
-          <Badge className={cn('border-none font-semibold text-xs shrink-0 text-white', fwStatus === 'SUBMITTED' ? 'bg-success' : fwStatus === 'DRAFT' ? 'bg-warning' : 'bg-destructive')}>
-            {fwStatus === 'SUBMITTED' ? 'Done' : fwStatus === 'DRAFT' ? 'Draft' : 'Due Sunday 8pm'}
+          <Badge className={cn('border-none font-semibold text-xs shrink-0 text-white', fwTone)}>
+            {fwLabel}
           </Badge>
         </div>
       </div>
