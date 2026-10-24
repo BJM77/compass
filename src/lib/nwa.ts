@@ -109,7 +109,11 @@ export interface NwaDealRow {
  * revenueTarget is "New revenue" for BDMs and "Growth revenue" for account managers.
  */
 export interface NwaKpiTargets {
-  callsToMake: number;
+  /**
+   * Legacy only: Calls was removed from the NWA weekly goals and KPIs.
+   * Old docs may still carry it; it is preserved on read but never shown or defaulted.
+   */
+  callsToMake?: number;
   appointmentsToSet: number;
   proposalsToSend: number;
   dealsToClose: number;
@@ -235,7 +239,6 @@ export interface KpiDef { key: KpiKey; label: string; target: keyof NwaKpiTarget
 
 /** BDM KPIs: activity and new business. */
 export const BDM_KPI_DEFS: KpiDef[] = [
-  { key: 'calls', label: 'Calls', target: 'callsToMake' },
   { key: 'appointments', label: 'New appointments', target: 'appointmentsToSet' },
   { key: 'proposals', label: 'Proposals', target: 'proposalsToSend' },
   { key: 'deals', label: 'Deals closed', target: 'dealsToClose' },
@@ -245,7 +248,6 @@ export const BDM_KPI_DEFS: KpiDef[] = [
 /** Account manager KPIs: reviews, retention and renewals, plus growth in existing accounts. */
 export const AM_KPI_DEFS: KpiDef[] = [
   { key: 'accountReviews', label: 'Account reviews', target: 'accountReviewsTarget' },
-  { key: 'calls', label: 'Calls', target: 'callsToMake' },
   { key: 'renewals', label: 'Renewals and rate reviews', target: 'renewalsTarget' },
   { key: 'revenueRetained', label: 'Revenue retained', target: 'revenueRetainedTarget', currency: true },
   { key: 'revenue', label: 'Growth revenue', target: 'revenueTarget', currency: true },
@@ -284,7 +286,6 @@ export function defaultKpiTargets(role: string): NwaKpiTargets {
   const isBdm = (role || '').toUpperCase() === 'BDM';
   const am = isAmRole(role);
   return {
-    callsToMake: isBdm ? 50 : 30,
     appointmentsToSet: isBdm ? 15 : 10,
     proposalsToSend: 8,
     dealsToClose: 3,
@@ -298,7 +299,7 @@ export function defaultKpiTargets(role: string): NwaKpiTargets {
 export type KpiTargetSource = 'person' | 'team' | 'annualTarget' | 'default';
 
 export const KPI_TARGET_KEYS: (keyof NwaKpiTargets)[] = [
-  'callsToMake', 'appointmentsToSet', 'proposalsToSend', 'dealsToClose', 'revenueTarget',
+  'appointmentsToSet', 'proposalsToSend', 'dealsToClose', 'revenueTarget',
   'accountReviewsTarget', 'revenueRetainedTarget', 'renewalsTarget',
 ];
 
@@ -745,6 +746,8 @@ export function mapStoredNwa(d: any, role: string, twtwActions: string[] = []): 
   const kt = doc.kpiTargets || {};
   const kpiTargets: NwaKpiTargets = { ...base.kpiTargets };
   (Object.keys(kpiTargets) as (keyof NwaKpiTargets)[]).forEach(k => { if (kt[k] !== undefined && kt[k] !== '') kpiTargets[k] = num(kt[k]); });
+  // Calls is no longer an NWA KPI; keep an old doc's value so a re-save doesn't lose it.
+  if (kt.callsToMake !== undefined && kt.callsToMake !== '') kpiTargets.callsToMake = num(kt.callsToMake);
 
   // Legacy Friday focus accounts become "deals progressing" when the doc has no NWA pipeline.
   const hasPipeline = doc.pipeline && Object.values(doc.pipeline).some((v: any) => Array.isArray(v) && v.length);
@@ -882,6 +885,17 @@ export function strategicFocusMirror(p: NwaPlan): string {
     || p.topPriorities.filter(t => t.trim()).join('; ');
 }
 
+/**
+ * KPI actuals stored on the NWA doc: only the KPIs on the role's scorecard (Calls is no longer an
+ * NWA KPI, so it is dropped here; CRM call counts still go to weeklyReports.summary).
+ */
+export function nwaKpiActuals(actuals: Partial<Record<KpiKey, number>>, role?: string): Partial<Record<KpiKey, number>> {
+  const keys = new Set<KpiKey>(kpiDefsFor(role || 'BDM').map(k => k.key));
+  const out: Partial<Record<KpiKey, number>> = {};
+  for (const [k, v] of Object.entries(actuals || {})) if (keys.has(k as KpiKey) && typeof v === 'number') out[k as KpiKey] = v;
+  return out;
+}
+
 /** Firestore payload: NWA V2 fields plus legacy mirrors for older views. */
 export function buildNwaPayload(p: NwaPlan, opts: { kpiActuals?: Partial<Record<KpiKey, number>>; role?: string } = {}) {
   const roadblocks = [
@@ -923,7 +937,7 @@ export function buildNwaPayload(p: NwaPlan, opts: { kpiActuals?: Partial<Record<
     },
     revenueAtRisk: totalRevenueAtRisk(p.accounts),
     ...(opts.role ? { kpiRole: kpiRoleGroup(opts.role) } : {}),
-    ...(opts.kpiActuals ? { kpiActuals: opts.kpiActuals } : {}),
+    ...(opts.kpiActuals ? { kpiActuals: nwaKpiActuals(opts.kpiActuals, opts.role) } : {}),
     kpiTargets: p.kpiTargets,
     keyFocusMetrics: p.keyFocusMetrics,
     individualCommitment: p.individualCommitment,
@@ -948,7 +962,7 @@ export function sectionComplete(p: NwaPlan, id: NwaSectionId, role = 'BDM'): boo
     case 'appointments': return p.appointments.some(a => a.customer.trim());
     case 'pipeline': return Object.values(p.pipeline).some(rows => rows.some(r => r.account.trim()));
     case 'accounts': return Object.values(p.accounts).some((rows: any[]) => rows.some(r => str(r.account).trim()));
-    case 'kpis': return kpiDefsFor(role).every(k => p.kpiTargets[k.target] > 0);
+    case 'kpis': return kpiDefsFor(role).every(k => (p.kpiTargets[k.target] || 0) > 0);
     case 'priorities': return p.topPriorities.every(t => t.trim());
     case 'challenges': return !!(p.challenges.slowingProgress || p.challenges.customerIssues || p.challenges.internalIssues || p.challenges.resourcesRequired).trim();
     case 'updates': return true;

@@ -22,7 +22,7 @@ import { useReportDiagnostic } from '@/hooks/use-diagnostics';
 import { computeMomentum } from '@/lib/momentum';
 import { 
   Sparkles, Save, Send, Copy, Check, ChevronRight, AlertTriangle, 
-  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Phone, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck, Download
+  Award, TrendingUp, HelpCircle, Loader2, Calendar, ClipboardCheck, Trash2, Plus, Target, Edit3, Eye, EyeOff, Star, CalendarIcon, Users, DollarSign, FileText, BarChart3, CheckCircle2, XCircle, Clock, RefreshCw, Shield, ShieldCheck, Download
 } from 'lucide-react';
 import { TwiwEditDialog } from './twiw-edit-dialog';
 import { DemoDashView } from './demo-dash-view';
@@ -286,7 +286,6 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
     if (!prioritiesValid) return false;
 
     if (isRegisteredUser) {
-      if (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) return false;
       if (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) return false;
       if (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) return false;
       if (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) return false;
@@ -2315,8 +2314,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-2"><div className="flex items-center gap-2"><Phone className="w-4 h-4 text-accent" /><div className="text-xs font-semibold text-muted-foreground">Calls</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.callsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.callsActual || ''} onChange={(e) => updateKPI('callsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2"><div className="flex items-center gap-2"><Users className="w-4 h-4 text-success" /><div className="text-xs font-semibold text-muted-foreground">Appts</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.appointmentsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.appointmentsActual || ''} onChange={(e) => updateKPI('appointmentsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
             <div className="space-y-2"><div className="flex items-center gap-2"><FileText className="w-4 h-4 text-accent" /><div className="text-xs font-semibold text-muted-foreground">Proposals</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.proposalsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.proposalsActual || ''} onChange={(e) => updateKPI('proposalsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
             <div className="space-y-2"><div className="flex items-center gap-2"><Award className="w-4 h-4 text-warning" /><div className="text-xs font-semibold text-muted-foreground">Wins</div></div><div className="flex gap-2"><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Target</div><div className="text-xl font-semibold text-foreground">{kpiReview.dealsTarget}</div></div><div className="flex-1"><div className="text-xs font-bold text-muted-foreground">Actual</div><Input type="number" value={kpiReview.dealsActual || ''} onChange={(e) => updateKPI('dealsActual', parseInt(e.target.value) || 0)} className={cn("h-9 text-lg font-semibold w-full", (kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0) && "border-destructive focus-visible:ring-destructive bg-danger-soft/10")} placeholder="0" /></div></div></div>
@@ -3346,8 +3344,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
                       {!priorities.every(p => p.text?.trim() && p.salespersonName?.trim()) && <li>Complete all fields in added Priorities rows</li>}
                       {isRegisteredUser && (
                         <>
-                          {(kpiReview.callsActual === undefined || isNaN(kpiReview.callsActual) || kpiReview.callsActual < 0 ||
-                            kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0 ||
+                          {(kpiReview.appointmentsActual === undefined || isNaN(kpiReview.appointmentsActual) || kpiReview.appointmentsActual < 0 ||
                             kpiReview.proposalsActual === undefined || isNaN(kpiReview.proposalsActual) || kpiReview.proposalsActual < 0 ||
                             kpiReview.dealsActual === undefined || isNaN(kpiReview.dealsActual) || kpiReview.dealsActual < 0 ||
                             kpiReview.revenueActual === undefined || isNaN(kpiReview.revenueActual) || kpiReview.revenueActual < 0) && <li>Complete all KPI Actual values</li>}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, setDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, serverTimestamp, deleteDoc, deleteField } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +14,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTeamUsers } from '@/hooks/use-team-users';
+import { assignTeamColors, isNwaColorId, resolveNwaColor } from '@/lib/nwa-colors';
+import { NwaColorPicker } from './nwa/nwa-color-picker';
 
 interface UserManagementProps {
   onSimulate?: (userId: string) => void;
 }
 
 export function UserManagement({ onSimulate }: UserManagementProps) {
-  const { isGM } = useAuth();
+  const { isGM, isLeader } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
@@ -28,6 +31,22 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
 
   const [formData, setFormData] = useState({ id: '', name: '', email: '', role: 'BDM', territory: 'FLEX', state: 'WA', target: '2500000', manualYtdTarget: '' });
   const [isSaving, setIsSaving] = useState(false);
+
+  // NWA team-view colours: same assignment the whole-team NWA view uses (admin choice, else automatic).
+  const { teamUsers } = useTeamUsers();
+  const teamColors = useMemo(() => assignTeamColors(teamUsers), [teamUsers]);
+  const teamUserFor = (uid: string) => teamUsers.find(t => t.id === uid || t.linkedIds.includes(uid));
+  const saveNwaColor = async (uid: string, colorId: string | null) => {
+    if (!db) return;
+    const ids = teamUserFor(uid)?.linkedIds || [uid];
+    try {
+      // Duplicate records of one person share a colour.
+      await Promise.all(ids.map(id => setDoc(doc(db, 'users', id), { nwaColor: colorId ? colorId : deleteField() }, { merge: true })));
+      toast({ title: colorId ? 'NWA colour saved' : 'NWA colour set to auto' });
+    } catch {
+      toast({ variant: 'destructive', title: 'Could not save the colour' });
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +134,19 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex items-center gap-1">
+                      {isLeader && teamUserFor(u.id) && (() => {
+                        const tu = teamUserFor(u.id)!;
+                        const stored = isNwaColorId(u.nwaColor) ? u.nwaColor : null;
+                        return (
+                          <NwaColorPicker
+                            name={u.name || 'this person'}
+                            value={stored}
+                            resolved={teamColors[tu.id] || resolveNwaColor(u.id, stored)}
+                            onChange={id => saveNwaColor(u.id, id)}
+                          />
+                        );
+                      })()}
                       {onSimulate && u.role !== 'LEADER' && (
                         <Button 
                           size="icon" 

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  Archive, ChevronDown, ChevronRight, Target, Send, Phone,
+  Archive, ChevronDown, ChevronRight, Target, Send,
   CalendarCheck, FileText, Award, TrendingUp,
   Loader2, Briefcase, Users, Clock, Mail
 } from 'lucide-react';
@@ -100,13 +100,11 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
   const hasFridayData = data.fridayStatus !== 'NOT_STARTED';
 
   const targets = data.kpiTargets || {};
-  const callsGoal = Number(targets.callsToMake) || 0;
   const appsGoal = Number(targets.appointmentsToSet) || 0;
   const proposalsGoal = Number(targets.proposalsToSend) || 0;
   const dealsGoal = Number(targets.dealsToClose) || 0;
   const revenueGoal = Number(targets.revenueTarget) || 0;
 
-  const actualCalls = data.crmCalls !== undefined && data.crmCalls > 0 ? data.crmCalls : data.calls;
   const actualApps = data.crmApps !== undefined && data.crmApps > 0 ? data.crmApps : data.apps;
   const actualProposals = data.proposals || 0;
   const actualDeals = data.deals || 0;
@@ -142,7 +140,6 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
         <div className="flex items-center gap-4">
           {/* Quick stats with comparison targets */}
           <div className="hidden md:flex items-center gap-3 text-[9px] font-black text-slate-400 uppercase">
-            <span><Phone className="w-3 h-3 inline mr-0.5" /> Calls: {actualCalls}/{callsGoal}</span>
             <span><CalendarCheck className="w-3 h-3 inline mr-0.5" /> Apps: {actualApps}/{appsGoal}</span>
             <span><FileText className="w-3 h-3 inline mr-0.5" /> Opps: {actualProposals}/{proposalsGoal}</span>
             <span><Award className="w-3 h-3 inline mr-0.5" /> Wins: {actualDeals}/{dealsGoal}</span>
@@ -156,14 +153,7 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
       {isExpanded && (
         <CardContent className="px-5 pb-6 pt-0 space-y-6 border-t border-slate-100">
           {/* Activity Scorecard Grid comparing CRM Actuals with Goals */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4">
-            <StatPill 
-              icon={Phone} 
-              label="Calls Actual/Goal" 
-              value={`${actualCalls} / ${callsGoal}`} 
-              subValue={actualCalls >= callsGoal ? "Goal Met! 🎉" : `${callsGoal - actualCalls} behind`}
-              color={actualCalls >= callsGoal ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"} 
-            />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
             <StatPill 
               icon={CalendarCheck} 
               label="Apps Actual/Goal" 

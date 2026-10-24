@@ -368,7 +368,7 @@ function DashboardContent() {
               </div>
             </div>
           </div>
-          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto px-3 md:px-4 lg:px-6 pb-24 nav:pb-8">
+          <main className="flex-1 overflow-x-clip min-h-[calc(100vh-4rem)] w-full max-w-[1600px] mx-auto px-3 md:px-4 lg:px-6 pb-24 nav:pb-8">
             <ErrorBoundary>
               <Suspense fallback={<ViewSkeleton />}>
                 {renderContent()}

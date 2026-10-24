@@ -638,3 +638,30 @@ describe('Verticals: discoveredLeads ("Find new leads")', () => {
     await assertSucceeds(deleteDoc(doc(db(GM), 'discoveredLeads', 'newmedsupplies')));
   });
 });
+
+describe('NWA whole-team view: person colours and team reads', () => {
+  test('leaders can set and clear users/{uid}.nwaColor; BDMs cannot set a teammate’s', async () => {
+    for (const uid of [LEADER, GM, SUPER]) {
+      await assertSucceeds(setDoc(doc(db(uid), 'users', AM), { nwaColor: 'lavender' }, { merge: true }));
+      await assertSucceeds(updateDoc(doc(db(uid), 'users', AM), { nwaColor: null }));
+    }
+    await assertFails(setDoc(doc(db(BDM), 'users', AM), { nwaColor: 'sky' }, { merge: true }));
+    await assertFails(setDoc(doc(db(GUEST), 'users', AM), { nwaColor: 'sky' }, { merge: true }));
+  });
+
+  test('leaders can read every weeklyCommitments doc for the plan and review weeks; BDMs only their own', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const a = ctx.firestore();
+      await setDoc(doc(a, 'weeklyCommitments', `${BDM}_2026-44`), { userId: BDM, week: '2026-44', status: 'SUBMITTED' });
+      await setDoc(doc(a, 'weeklyCommitments', `${AM}_2026-43`), { userId: AM, week: '2026-43', status: 'SUBMITTED' });
+    });
+    const teamQuery = (uid?: string) => query(collection(db(uid), 'weeklyCommitments'), where('week', 'in', ['2026-44', '2026-43']));
+    for (const uid of [LEADER, GM, SUPER]) {
+      const snap = await assertSucceeds(getDocs(teamQuery(uid)));
+      expect(snap.size).toBe(2);
+    }
+    await assertFails(getDocs(teamQuery(BDM)));
+    await assertFails(getDoc(doc(db(BDM), 'weeklyCommitments', `${AM}_2026-43`)));
+    await assertSucceeds(getDoc(doc(db(BDM), 'weeklyCommitments', `${BDM}_2026-44`)));
+  });
+});

@@ -28,10 +28,11 @@ import {
   resolveKpiTargets, sectionComplete, signalToAtRiskRow, averageScore,
 } from '@/lib/nwa';
 import {
-  DueChip, EmptyHint, FieldLabel, FollowThroughBars, OutcomeToggle, ScoreChip, SectionCard, StatTile, SubHeading, TimeChip,
+  AgendaBar, NWA_SCROLL_MT, DueChip, EmptyHint, FieldLabel, FollowThroughBars, OutcomeToggle, ScoreChip, SectionCard, StatTile, SubHeading, TimeChip,
 } from './nwa-ui';
 import { LegacyFridaySummary } from './nwa-legacy';
 import { AccountMgmtEditor, HandoverEditor } from './nwa-accounts';
+import { NwaTeamOverview } from './nwa-team-overview';
 
 const TARGET_SOURCE_LABEL: Record<KpiTargetSource, string> = {
   person: 'set for this person',
@@ -62,6 +63,9 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
   // ─── Who and which week ────────────────────────────────────────────────────
   const [selectedRepId, setSelectedRepId] = useState<string>(userId);
   useEffect(() => { setSelectedRepId(userId); }, [userId]);
+  // Leaders who pick themselves see the whole team (read-only) by default; "My NWA" switches to their own form.
+  const [teamMode, setTeamMode] = useState(true);
+  const selectRep = useCallback((id: string) => { setSelectedRepId(id); if (id === userId) setTeamMode(true); }, [userId]);
   const rep = useMemo(() => teamUsers.find(u => u.id === selectedRepId), [teamUsers, selectedRepId]);
   const activeUserId = selectedRepId || userId;
   const activeUserName = activeUserId === userId ? userName : (rep?.name || userName);
@@ -385,6 +389,28 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
   };
   const teammateNames = useMemo(() => teamUsers.map(u => u.name).filter(n => n && n !== activeUserName), [teamUsers, activeUserName]);
 
+  const teamView = isLeader && selectedRepId === userId && teamMode;
+  const agendaItems = [
+    { anchorId: 'nwa-review', title: 'Last week’s commitments' },
+    ...sections.map(s => ({ anchorId: `nwa-${s.id}`, step: s.step, title: s.title, minutes: s.minutes, complete: completeIds.includes(s.id) })),
+  ];
+  const updatesActions = isLeader && !editingUpdates
+    ? <Button variant="outline" size="sm" onClick={() => setEditingUpdates(true)}><Megaphone className="mr-1.5 h-4 w-4" />Edit</Button>
+    : undefined;
+  const businessUpdatesBody = editingUpdates ? (
+    <div className="space-y-4">
+      <BusinessUpdateFields value={updatesDraft} onChange={setUpdatesDraft} />
+      <div className="flex gap-2">
+        <Button onClick={saveUpdates} disabled={saving === 'updates'}>{saving === 'updates' ? 'Saving…' : 'Save for everyone'}</Button>
+        <Button variant="ghost" onClick={() => { setEditingUpdates(false); setUpdatesDraft(savedUpdates); }}>Cancel</Button>
+      </div>
+    </div>
+  ) : hasBusinessUpdates(savedUpdates) ? (
+    <BusinessUpdatesView value={savedUpdates} />
+  ) : (
+    <EmptyHint>{isLeader ? 'No updates yet. Add them once and everyone sees them read-only.' : 'Your leader hasn’t posted updates for this week yet.'}</EmptyHint>
+  );
+
   if (!activeUserId) return null;
 
   return (
@@ -401,11 +427,13 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
               {dueAt && <> · due {formatPerth(dueAt, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} (Perth)</>}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <DueChip state={dueState} />
-            {status === 'DRAFT' && <span className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-foreground">Draft</span>}
-            <ScoreChip score={avgScore} label="Follow-through avg" />
-          </div>
+          {!teamView && (
+            <div className="flex flex-wrap items-center gap-2">
+              <DueChip state={dueState} />
+              {status === 'DRAFT' && <span className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-foreground">Draft</span>}
+              <ScoreChip score={avgScore} label="Follow-through avg" />
+            </div>
+          )}
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -416,28 +444,44 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
           </div>
           {isPastWeek && <Button variant="outline" size="sm" onClick={() => setPlanWeek(currentPlanWeek)}>Back to this week</Button>}
           {isLeader && teamUsers.length > 0 && (
-            <Select value={selectedRepId} onValueChange={setSelectedRepId}>
+            <Select value={selectedRepId} onValueChange={selectRep}>
               <SelectTrigger className="h-10 w-[220px]" aria-label="Team member"><Users className="mr-2 h-4 w-4 text-muted-foreground" /><SelectValue placeholder="Team member" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={userId}>{userName} (me)</SelectItem>
+                <SelectItem value={userId}>{userName} (me) · whole team</SelectItem>
                 {teamUsers.filter(u => u.id !== userId).map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
               </SelectContent>
             </Select>
           )}
-          <div className="ml-auto flex min-w-[180px] items-center gap-3">
-            <Progress value={completePct} className="h-2 w-32" aria-label="Sections complete" />
-            <span className="text-xs font-medium text-muted-foreground">{completeIds.length} of {sections.length} sections</span>
-          </div>
+          {isLeader && selectedRepId === userId && (
+            <div className="inline-flex items-center rounded-xl border border-border bg-surface-2/50 p-1" role="group" aria-label="View">
+              <Button variant={teamMode ? 'secondary' : 'ghost'} size="sm" className="h-8" aria-pressed={teamMode} onClick={() => setTeamMode(true)}><Users className="mr-1.5 h-4 w-4" />Whole team</Button>
+              <Button variant={!teamMode ? 'secondary' : 'ghost'} size="sm" className="h-8" aria-pressed={!teamMode} onClick={() => setTeamMode(false)}>My NWA</Button>
+            </div>
+          )}
+          {!teamView && (
+            <div className="ml-auto flex min-w-[180px] items-center gap-3">
+              <Progress value={completePct} className="h-2 w-32" aria-label="Sections complete" />
+              <span className="text-xs font-medium text-muted-foreground">{completeIds.length} of {sections.length} sections</span>
+            </div>
+          )}
         </div>
 
-        {readOnly && !legacy && (
+        {!teamView && readOnly && !legacy && (
           <p className="mt-4 flex items-center gap-2 rounded-xl bg-surface-2/60 px-4 py-2.5 text-sm text-muted-foreground">
             <Lock className="h-4 w-4" /> {isPastWeek ? 'Past weeks are read-only.' : 'Read-only.'}
           </p>
         )}
       </div>
 
-      {loading ? (
+      {teamView ? (
+        <NwaTeamOverview
+          planWeek={planWeek}
+          reviewWeek={reviewWeek}
+          excludeUserId={userId}
+          businessUpdates={businessUpdatesBody}
+          businessUpdatesComplete={hasBusinessUpdates(savedUpdates)}
+        />
+      ) : loading ? (
         <div className="space-y-4">{[0, 1, 2].map(i => <div key={i} className="h-40 animate-pulse rounded-2xl bg-surface-2/60" />)}</div>
       ) : legacy ? (
         <div className="space-y-4">
@@ -461,29 +505,11 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
             {showOriginal && <div className="border-t border-border p-4"><LegacyFridaySummary data={legacyConversion || stored.legacyFriday} /></div>}
           </div>
         )}
-        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-          {/* Agenda rail */}
-          <nav aria-label="Meeting agenda" className="hidden lg:block">
-            <div className="sticky top-24 space-y-1 rounded-2xl border border-border bg-card p-3">
-              <p className="px-2 pb-2 text-sm font-semibold text-foreground">Agenda</p>
-              {sections.map(s => (
-                <a key={s.id} href={`#nwa-${s.id}`} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-foreground hover:bg-surface-2">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold', completeIds.includes(s.id) ? 'bg-success-soft text-success-ink' : 'bg-surface-2 text-muted-foreground')}>{s.step}</span>
-                    <span className="truncate">{s.title}</span>
-                  </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{s.minutes}m</span>
-                </a>
-              ))}
-              <div className="mt-2 flex items-center justify-between border-t border-border px-2 pt-2 text-xs text-muted-foreground">
-                <span>Total</span><span className="font-semibold">{NWA_MEETING_MINUTES} min</span>
-              </div>
-            </div>
-          </nav>
+        <AgendaBar items={agendaItems} totalMinutes={NWA_MEETING_MINUTES} />
 
           <div className="space-y-6">
             {/* Last week's commitments */}
-            <section id="nwa-review" className="scroll-mt-24 rounded-2xl border border-border bg-card shadow-sm">
+            <section id="nwa-review" className={cn(NWA_SCROLL_MT, 'rounded-2xl border border-border bg-card shadow-sm')}>
               <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
                 <div className="flex items-start gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent"><History className="h-4 w-4" /></span>
@@ -662,7 +688,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
                   <tbody>
                     {kpiDefs.map(k => {
                       const actual = actuals[k.key];
-                      const target = lastTargetFor(k.target);
+                      const target = lastTargetFor(k.target) || 0;
                       const pct = target > 0 ? Math.round((actual / target) * 100) : null;
                       return (
                         <tr key={k.key} className="border-b border-border last:border-0">
@@ -748,23 +774,8 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
             </SectionCard>
 
             {/* 7. Business updates */}
-            <SectionCard
-              section={sec('updates')}
-              actions={isLeader && !editingUpdates ? <Button variant="outline" size="sm" onClick={() => setEditingUpdates(true)}><Megaphone className="mr-1.5 h-4 w-4" />Edit</Button> : undefined}
-            >
-              {editingUpdates ? (
-                <div className="space-y-4">
-                  <BusinessUpdateFields value={updatesDraft} onChange={setUpdatesDraft} />
-                  <div className="flex gap-2">
-                    <Button onClick={saveUpdates} disabled={saving === 'updates'}>{saving === 'updates' ? 'Saving…' : 'Save for everyone'}</Button>
-                    <Button variant="ghost" onClick={() => { setEditingUpdates(false); setUpdatesDraft(savedUpdates); }}>Cancel</Button>
-                  </div>
-                </div>
-              ) : hasBusinessUpdates(savedUpdates) ? (
-                <BusinessUpdatesView value={savedUpdates} />
-              ) : (
-                <EmptyHint>{isLeader ? 'No updates yet. Add them once and everyone sees them read-only.' : 'Your leader hasn’t posted updates for this week yet.'}</EmptyHint>
-              )}
+            <SectionCard section={sec('updates')} actions={updatesActions}>
+              {businessUpdatesBody}
             </SectionCard>
 
             {/* 8. Commitments */}
@@ -810,12 +821,11 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
               <StatTile label="Follow-through" value={avgScore === null ? '–' : `${avgScore}%`} sub={`Last ${trend.length} weeks`} tone={avgScore === null ? 'default' : avgScore >= 80 ? 'good' : avgScore >= 50 ? 'warn' : 'bad'} />
             </div>
           </div>
-        </div>
         </>
       )}
 
       {/* Sticky action bar */}
-      {!loading && !readOnly && (
+      {!teamView && !loading && !readOnly && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-8">
             <p className="text-sm text-muted-foreground">

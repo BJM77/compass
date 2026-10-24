@@ -133,7 +133,7 @@ describe('backward compatibility', () => {
     const p = mapStoredNwa(legacy, 'BDM');
     expect(p.topPriorities).toEqual(['P1', 'P2', 'P3']);
     expect(p.commitments.map(c => c.text)).toEqual(['Extra']);
-    expect(p.kpiTargets.callsToMake).toBe(40);
+    expect(p.kpiTargets.callsToMake).toBe(40); // legacy value preserved on old docs
     expect(p.challenges.internalIssues).toBe('Slow credit checks');
     expect(p.challenges.resourcesRequired).toBe('Pricing help');
   });
@@ -142,7 +142,8 @@ describe('backward compatibility', () => {
     expect(p.commitments[0]).toMatchObject({ id: 'a', text: 'Do it', owner: '', dueDate: '' });
     expect(p.pipeline.stalled[0]).toMatchObject({ account: 'Z', value: 5, note: 'Budget', nextStep: '' });
     expect(p.wins.shoutOut).toEqual({ teammate: '', reason: '' });
-    expect(p.kpiTargets.callsToMake).toBe(30);
+    expect(p.kpiTargets.callsToMake).toBeUndefined(); // Calls removed from NWA KPIs
+    expect(p.kpiTargets.appointmentsToSet).toBeGreaterThan(0);
   });
   test('payload writes V2 plus legacy mirrors and round-trips', () => {
     const plan = emptyNwaPlan('BDM');
