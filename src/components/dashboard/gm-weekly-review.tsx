@@ -1448,7 +1448,7 @@ function BDMReportCard({
 
                 {/* NWA details */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">{report.nwaDoc ? 'NWA: next week' : 'NWA Focus Accounts (legacy)'}</h4>
+                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">{report.nwaDoc ? 'TWA: next week' : 'TWA Focus Accounts (legacy)'}</h4>
                   {report.nwaDoc ? (
                     <NwaArchiveSummary data={report.nwaDoc} role={report.role} />
                   ) : report.focusAccounts && report.focusAccounts.length > 0 ? (

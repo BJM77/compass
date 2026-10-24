@@ -122,10 +122,10 @@ async function processUser(ctx: Ctx, uid: string, prefs: NotificationPrefs, cfg:
       ]);
       if (!nwaSubmitted(plan.exists ? plan.get('status') : null, report.exists ? report.get('submittedAt') : null)) {
         if (win.fwDue) {
-          pending.push({ key: `fw_due_${planWeek}`, kind: 'fw', title: 'NWA due 8pm tonight', body: "Your Next Week's Activity (NWA) for Monday's meeting is due at 8pm tonight.", link: '/dashboard?view=FRIDAY_FW' });
+          pending.push({ key: `fw_due_${planWeek}`, kind: 'fw', title: 'TWA due 8pm tonight', body: "Your TWA (This Week's Activities) for Monday's meeting is due at 8pm tonight.", link: '/dashboard?view=FRIDAY_FW' });
         }
         if (win.fw) {
-          pending.push({ key: `fw_${reviewWeek}`, kind: 'fw', title: 'NWA overdue', body: "Your Next Week's Activity (NWA) was due Sunday 8pm. Please submit it before this morning's meeting.", link: '/dashboard?view=FRIDAY_FW' });
+          pending.push({ key: `fw_${reviewWeek}`, kind: 'fw', title: 'TWA overdue', body: "Your TWA (This Week's Activities) was due Sunday 8pm. Please submit it before this morning's meeting.", link: '/dashboard?view=FRIDAY_FW' });
         }
       }
     }

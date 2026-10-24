@@ -137,7 +137,7 @@ export function WeeklyRhythmWidget() {
         <div className="rounded-2xl bg-primary text-white p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <ListChecks className="w-4 h-4 text-warning" />
-            <p className="mt-2 text-sm font-semibold">Next Week's Activity (NWA)</p>
+            <p className="mt-2 text-sm font-semibold">This Week's Activities (TWA)</p>
             <p className="text-xs text-white/70">Monday review · Week {nextWeek.split('-')[1]}</p>
           </div>
           <Badge className={cn('border-none font-semibold text-xs shrink-0 text-white', fwTone)}>
@@ -147,7 +147,7 @@ export function WeeklyRhythmWidget() {
       </div>
       <div className="flex flex-wrap gap-4">
         <WidgetLink view="TWIW">Open TWTW</WidgetLink>
-        <WidgetLink view="FRIDAY_FW">Open NWA</WidgetLink>
+        <WidgetLink view="FRIDAY_FW">Open TWA</WidgetLink>
       </div>
     </div>
   );

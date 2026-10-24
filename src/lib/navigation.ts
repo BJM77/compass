@@ -37,7 +37,7 @@ export const NAVIGATION_REGISTRY: NavGroup[] = [
     items: [
       { view: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard, guestAllowed: true },
       { view: 'TWIW', label: 'TWTW', icon: CalendarCheck, guestAllowed: true },
-      { view: 'FRIDAY_FW', label: 'NWA', icon: Send },
+      { view: 'FRIDAY_FW', label: 'TWA', icon: Send },
       { view: 'NWA_MEETING', label: 'Team meeting', icon: Presentation, adminOnly: true },
       { view: 'MANAGE_TIME', label: 'Manage Time', icon: Clock },
       { view: 'CALL_PLANNING', label: 'Call Plans', icon: PhoneCall },

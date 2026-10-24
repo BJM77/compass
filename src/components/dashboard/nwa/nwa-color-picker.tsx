@@ -25,8 +25,8 @@ export function NwaColorPicker({ name, value, resolved, onChange, disabled }: {
         <button
           type="button"
           disabled={disabled}
-          title={`NWA colour for ${name}: ${resolved.label}${value ? '' : ' (auto)'}`}
-          aria-label={`NWA colour for ${name}`}
+          title={`TWA colour for ${name}: ${resolved.label}${value ? '' : ' (auto)'}`}
+          aria-label={`TWA colour for ${name}`}
           className="flex h-9 items-center gap-1.5 rounded-lg border border-border px-2 text-xs font-medium text-muted-foreground hover:bg-surface-2 disabled:opacity-50"
         >
           <span className="h-5 w-5 rounded-full border-2" style={{ backgroundColor: resolved.tint, borderColor: resolved.strip }} aria-hidden />
@@ -34,8 +34,8 @@ export function NwaColorPicker({ name, value, resolved, onChange, disabled }: {
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-3">
-        <p className="text-sm font-semibold text-foreground">NWA colour</p>
-        <p className="mb-3 text-xs text-muted-foreground">Used for {name}’s items in the whole-team NWA view.</p>
+        <p className="text-sm font-semibold text-foreground">TWA colour</p>
+        <p className="mb-3 text-xs text-muted-foreground">Used for {name}’s items in the whole-team TWA view.</p>
         <div className="grid grid-cols-6 gap-2" role="radiogroup" aria-label="Colour">
           {NWA_COLORS.map(c => {
             const selected = value === c.id;

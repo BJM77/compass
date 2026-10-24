@@ -42,7 +42,7 @@ export function UserManagement({ onSimulate }: UserManagementProps) {
     try {
       // Duplicate records of one person share a colour.
       await Promise.all(ids.map(id => setDoc(doc(db, 'users', id), { nwaColor: colorId ? colorId : deleteField() }, { merge: true })));
-      toast({ title: colorId ? 'NWA colour saved' : 'NWA colour set to auto' });
+      toast({ title: colorId ? 'TWA colour saved' : 'TWA colour set to auto' });
     } catch {
       toast({ variant: 'destructive', title: 'Could not save the colour' });
     }

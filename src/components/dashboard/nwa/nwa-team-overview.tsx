@@ -332,7 +332,7 @@ export function NwaTeamOverview({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-foreground">Whole team · week {weekNo(planWeek)}</h2>
-            <p className="text-sm text-muted-foreground">{submittedCount} of {members.length} submitted. Tap a person to show or hide their items. Choose someone in the team list to edit their NWA or add a manager note.</p>
+            <p className="text-sm text-muted-foreground">{submittedCount} of {members.length} submitted. Tap a person to show or hide their items. Choose someone in the team list to edit their TWA or add a manager note.</p>
           </div>
           <div className="flex gap-2 text-xs">
             <button type="button" className="rounded-full border border-border px-3 py-1 font-medium hover:bg-surface-2" onClick={() => setHidden(new Set())}>Show all</button>

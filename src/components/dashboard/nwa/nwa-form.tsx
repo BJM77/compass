@@ -161,7 +161,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         setManagerNote(data?.managerNote || data?.adminCoachingNotes || '');
         setDirty(false);
       } catch (err: any) {
-        if (!cancelled) toast({ variant: 'destructive', title: 'Couldn’t load the NWA', description: err?.message });
+        if (!cancelled) toast({ variant: 'destructive', title: 'Couldn’t load the TWA', description: err?.message });
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -233,7 +233,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         ...fields, week: planWeek, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp(),
       }, { merge: true });
       setEditingUpdates(false);
-      toast({ title: 'Business updates saved', description: `Everyone will see them on the week ${weekNo(planWeek)} NWA.` });
+      toast({ title: 'Business updates saved', description: `Everyone will see them on the week ${weekNo(planWeek)} TWA.` });
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Couldn’t save updates', description: err?.message || 'Only leaders can edit business updates.' });
     } finally {
@@ -264,7 +264,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     if (!stored || !canEdit) return;
     setLegacyConversion(stored.legacyFriday || legacyFridaySnapshot(stored));
     setDirty(true);
-    toast({ title: 'Started an NWA from the Friday FW', description: 'The original is kept and stays viewable. Save a draft to keep the conversion.' });
+    toast({ title: 'Started a TWA from the Friday FW', description: 'The original is kept and stays viewable. Save a draft to keep the conversion.' });
   };
 
   const saveTeamTargets = async () => {
@@ -277,7 +277,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         byRole: { [group]: { ...values, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp() } },
       }, { merge: true });
       setTeamTargetsDoc((d: any) => ({ ...(d || {}), byRole: { ...(d?.byRole || {}), [group]: values } }));
-      toast({ title: `${group} team targets saved`, description: 'New NWAs for this role start with these targets unless a person has their own.' });
+      toast({ title: `${group} team targets saved`, description: 'New TWAs for this role start with these targets unless a person has their own.' });
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Couldn’t save team targets', description: err?.message || 'Only leaders can set team targets.' });
     }
@@ -343,7 +343,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
       setLegacyConversion(null);
       setDirty(false);
       toast({
-        title: mode === 'submit' ? 'NWA submitted' : 'Draft saved',
+        title: mode === 'submit' ? 'TWA submitted' : 'Draft saved',
         description: mode === 'submit' ? `Ready for Monday’s meeting, week ${weekNo(planWeek)}.` : 'You can come back and finish it before Sunday 8pm.',
       });
     } catch (err: any) {
@@ -365,7 +365,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         updatedAt: serverTimestamp(),
       }, { merge: true });
       setStored((s: any) => ({ ...(s || {}), managerNote, managerNoteBy: profile?.name || 'Leader' }));
-      toast({ title: 'Manager note saved', description: `${activeUserName} can see it on their NWA.` });
+      toast({ title: 'Manager note saved', description: `${activeUserName} can see it on their TWA.` });
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Couldn’t save note', description: err?.message });
     } finally {
@@ -420,7 +420,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Monday team meeting · {NWA_MEETING_MINUTES} min</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Next week’s activity</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">This Week’s Activities</h1>
             <p className="text-sm text-muted-foreground">
               Week {weekNo(planWeek)}
               {meetingAt && <> · meeting {formatPerth(meetingAt, { weekday: 'long', day: 'numeric', month: 'short' })}</>}
@@ -455,7 +455,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
           {isLeader && selectedRepId === userId && (
             <div className="inline-flex items-center rounded-xl border border-border bg-surface-2/50 p-1" role="group" aria-label="View">
               <Button variant={teamMode ? 'secondary' : 'ghost'} size="sm" className="h-8" aria-pressed={teamMode} onClick={() => setTeamMode(true)}><Users className="mr-1.5 h-4 w-4" />Whole team</Button>
-              <Button variant={!teamMode ? 'secondary' : 'ghost'} size="sm" className="h-8" aria-pressed={!teamMode} onClick={() => setTeamMode(false)}>My NWA</Button>
+              <Button variant={!teamMode ? 'secondary' : 'ghost'} size="sm" className="h-8" aria-pressed={!teamMode} onClick={() => setTeamMode(false)}>My TWA</Button>
             </div>
           )}
           {!teamView && (
@@ -487,8 +487,8 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         <div className="space-y-4">
           {canEdit && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">This week was filed on the old Friday FW form. Start an NWA from it; the original stays viewable.</p>
-              <Button onClick={startNwaFromLegacy} className="bg-cta text-white hover:bg-cta/90"><ArrowRight className="mr-1.5 h-4 w-4" />Start NWA</Button>
+              <p className="text-sm text-muted-foreground">This week was filed on the old Friday FW form. Start a TWA from it; the original stays viewable.</p>
+              <Button onClick={startNwaFromLegacy} className="bg-cta text-white hover:bg-cta/90"><ArrowRight className="mr-1.5 h-4 w-4" />Start TWA</Button>
             </div>
           )}
           <LegacyFridaySummary data={stored} />
@@ -798,7 +798,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
             {/* Post-meeting manager note */}
             {(isLeader || stored?.managerNote) && (
               <section className="rounded-2xl border border-border bg-surface-2/40 p-5">
-                <SubHeading hint={isLeader ? 'Optional. Add after the meeting; the rep sees it on their NWA.' : undefined}>Manager note</SubHeading>
+                <SubHeading hint={isLeader ? 'Optional. Add after the meeting; the rep sees it on their TWA.' : undefined}>Manager note</SubHeading>
                 {isLeader ? (
                   <div className="mt-3 space-y-3">
                     <Textarea rows={3} value={managerNote} onChange={e => setManagerNote(e.target.value)} placeholder="Coaching points, agreed follow-ups…" />
@@ -830,12 +830,12 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-8">
             <p className="text-sm text-muted-foreground">
               {dirty ? 'Unsaved changes' : submitted ? 'Submitted. You can still update it before the meeting.' : 'Save a draft any time.'}
-              {!isOwn && <span className="ml-2 font-medium text-foreground">Editing {activeUserName}’s NWA</span>}
+              {!isOwn && <span className="ml-2 font-medium text-foreground">Editing {activeUserName}’s TWA</span>}
             </p>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => persist('draft')} disabled={!!saving}><Save className="mr-1.5 h-4 w-4" />{saving === 'draft' ? 'Saving…' : 'Save draft'}</Button>
               <Button onClick={() => persist('submit')} disabled={!!saving} className="bg-cta text-white hover:bg-cta/90">
-                <Send className="mr-1.5 h-4 w-4" />{saving === 'submit' ? 'Submitting…' : submitted ? 'Update submission' : 'Submit NWA'}
+                <Send className="mr-1.5 h-4 w-4" />{saving === 'submit' ? 'Submitting…' : submitted ? 'Update submission' : 'Submit TWA'}
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </div>
