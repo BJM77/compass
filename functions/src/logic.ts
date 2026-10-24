@@ -32,10 +32,16 @@ export const DEFAULT_NUDGE_CONFIG: NudgeConfig = {
   /** NWA is due Sunday 8pm and reviewed in the Monday meeting: overdue nudge 7am Monday Perth. */
   fwWeekday: 1,
   fwHour: 7,
-  /** "NWA due 8pm tonight" reminder at 4pm Sunday Perth (suppressed for users with weekdaysOnly). */
+  /**
+   * "NWA due 8pm tonight" reminder from 4pm Sunday Perth, stopping before 7pm (FW_DUE_CUTOFF_HOUR).
+   * It is the one nudge exempt from the weekdaysOnly preference; the user's allowed hours still apply.
+   */
   fwDueWeekday: 0,
   fwDueHour: 16,
 };
+
+/** The Sunday NWA reminder is not sent from this hour (Perth): an hour before the 8pm due time. */
+export const FW_DUE_CUTOFF_HOUR = 19;
 
 export const DIGEST_HOUR = 8;
 /** Digests/nudges not sent by this hour on the day are dropped (stale). */
@@ -50,10 +56,13 @@ function hm(s: string, fallback: number): number {
   return m ? +m[1] * 60 + +m[2] : fallback;
 }
 
-/** True if `now` falls inside the user's allowed (non-quiet) window. */
-export function withinAllowedWindow(prefs: NotificationPrefs, now: number): boolean {
+/**
+ * True if `now` falls inside the user's allowed (non-quiet) window.
+ * ignoreWeekdaysOnly: used only for the Sunday "NWA due tonight" reminder.
+ */
+export function withinAllowedWindow(prefs: NotificationPrefs, now: number, opts: { ignoreWeekdaysOnly?: boolean } = {}): boolean {
   const p = perthParts(now);
-  if (prefs.weekdaysOnly && (p.weekday === 0 || p.weekday === 6)) return false;
+  if (prefs.weekdaysOnly && !opts.ignoreWeekdaysOnly && (p.weekday === 0 || p.weekday === 6)) return false;
   const mins = p.hour * 60 + p.minute;
   const start = hm(prefs.allowedStart, 7 * 60);
   const end = hm(prefs.allowedEnd, 18 * 60);
@@ -80,6 +89,21 @@ export function perthWeekKey(now: number): string {
 export function perthDateKey(now: number): string {
   const p = perthParts(now);
   return `${p.year}${String(p.month).padStart(2, '0')}${String(p.day).padStart(2, '0')}`;
+}
+
+/**
+ * What may be sent to this user right now: everything, only the Sunday NWA due reminder
+ * (weekend, weekdaysOnly on, inside allowed hours), or nothing.
+ */
+export function notificationGate(prefs: NotificationPrefs, now: number): 'all' | 'fwDueOnly' | 'none' {
+  if (!prefs.enabled) return 'none';
+  if (withinAllowedWindow(prefs, now)) return 'all';
+  if (withinAllowedWindow(prefs, now, { ignoreWeekdaysOnly: true })) return 'fwDueOnly';
+  return 'none';
+}
+
+export function isFwDueKey(key: string): boolean {
+  return key.startsWith('fw_due_');
 }
 
 export type PendingNotification = {
@@ -157,7 +181,8 @@ export function deadlineWindows(role: string, prefs: NotificationPrefs, cfg: Nud
   return {
     twtw: cfg.twtwEnabled && TWTW_ROLES.includes(role) && inWin(cfg.twtwDueWeekday, cfg.twtwHour),
     fw: cfg.fwEnabled && FW_ROLES.includes(role) && inWin(cfg.fwWeekday, cfg.fwHour),
-    fwDue: cfg.fwEnabled && FW_ROLES.includes(role) && inWin(cfg.fwDueWeekday, cfg.fwDueHour),
+    fwDue: cfg.fwEnabled && FW_ROLES.includes(role)
+      && p.weekday === cfg.fwDueWeekday && p.hour >= cfg.fwDueHour && p.hour < Math.min(FW_DUE_CUTOFF_HOUR, SAME_DAY_CUTOFF_HOUR + 1),
   };
 }
 

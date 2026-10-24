@@ -23,6 +23,7 @@ import { runFuelRefresh, type DbLike, type FetchLike } from './shared/fuel-surch
 import {
   PendingNotification, mergePrefs, withinAllowedWindow, taskNotifications, digestNotification,
   deadlineWindows, perthWeekKey, nwaWeeks, nwaSubmitted, applyAction, DEFAULT_NUDGE_CONFIG, NudgeConfig,
+  notificationGate, isFwDueKey,
 } from './logic';
 
 initializeApp();
@@ -84,7 +85,9 @@ async function send(ctx: Ctx, uid: string, tokens: { id: string; token: string }
 
 async function processUser(ctx: Ctx, uid: string, prefs: NotificationPrefs, cfg: NudgeConfig) {
   const { db, now } = ctx;
-  if (!prefs.enabled || !withinAllowedWindow(prefs, now)) return;
+  // weekdaysOnly users still get the Sunday "NWA due tonight" reminder (and nothing else) at the weekend.
+  const gate = notificationGate(prefs, now);
+  if (gate === 'none') return;
   const tokens = await loadTokens(db, uid);
   if (!tokens.length) return;
 
@@ -137,7 +140,8 @@ async function processUser(ctx: Ctx, uid: string, prefs: NotificationPrefs, cfg:
     }
   }
 
-  for (const n of pending.slice(0, 10)) {
+  const sendable = gate === 'fwDueOnly' ? pending.filter(n => isFwDueKey(n.key)) : pending;
+  for (const n of sendable.slice(0, 10)) {
     if (!(await claim(db, uid, n.key, now))) continue;
     try {
       await send(ctx, uid, tokens, n, plan?.id);

@@ -119,7 +119,7 @@ export function NotificationSettings() {
             onChange={e => e.target.value && save({ allowedEnd: e.target.value })} />
         </div>
       </Row>
-      <Row label="Weekdays only" description="Don't send on Saturday or Sunday.">
+      <Row label="Weekdays only" description="Don't send on Saturday or Sunday, except the Sunday afternoon reminder that your NWA is due at 8pm.">
         <Switch checked={prefs.weekdaysOnly} onCheckedChange={v => save({ weekdaysOnly: v })} />
       </Row>
       <Row label="Daily digest (8am)" description="Your top 3 Do Now tasks plus anything due today.">

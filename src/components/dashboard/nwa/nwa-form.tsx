@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import {
-  AlertTriangle, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, History, Lock, Megaphone, Plus, Save, Send, Sparkles, Trash2, Users,
+  AlertTriangle, ArrowRight, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, FileClock, History, Lock, Megaphone, Plus, Save, Send, Sparkles, Target, Trash2, Users,
 } from 'lucide-react';
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
@@ -18,17 +18,27 @@ import { Progress } from '@/components/ui/progress';
 import { cn, formatEAV, getNextWeekKey, getPreviousWeekKey } from '@/lib/utils';
 import { formatPerth } from '@/lib/time-mgmt';
 import {
-  KPI_DEFS, NWA_MEETING_MINUTES, NWA_SECTIONS, PIPELINE_GROUPS, STALL_DAYS,
-  type NwaAppointment, type NwaBusinessUpdates, type NwaCommitment, type NwaDealRow, type NwaPlan, type NwaSectionId, type PipelineKey,
-  buildNwaPayload, businessUpdatesFor, callPlanToAppointment, closedWonLines, computeActuals, dealToRow, emptyDealRow, emptyNwaPlan,
-  followThroughScore, followThroughTrend, hasBusinessUpdates, isLegacyFridayDoc, isSubmittedStatus, latestDeals, mapStoredNwa,
-  mergeCommitmentReview, nwaDueAt, nwaDueState, nwaId, nwaMeetingAt, pipelineSuggestions, previousCommitmentsFrom, sectionComplete,
-  averageScore,
+  KPI_TARGET_KEYS, NWA_ACCOUNTS_OPTIONAL, NWA_MEETING_MINUTES, PIPELINE_GROUPS, STALL_DAYS,
+  type KpiTargetSource, type NwaAppointment, type NwaBusinessUpdates, type NwaCommitment, type NwaDealRow, type NwaKpiTargets, type NwaPlan,
+  type NwaSectionId, type PipelineKey,
+  accountOptions, accountSignals, buildNwaPayload, businessUpdatesDocId, callPlanToAppointment, carryForwardAccounts, closedWonLines,
+  computeActuals, dealToRow, emptyDealRow, emptyNwaPlan, followThroughScore, followThroughTrend, hasBusinessUpdates, isAmRole,
+  isLegacyFridayDoc, isSubmittedStatus, kpiDefsFor, kpiRoleGroup, latestDeals, legacyFridaySnapshot, mapStoredNwa, mergeCommitmentReview,
+  nwaDueAt, nwaDueState, nwaId, nwaMeetingAt, nwaSectionsFor, pipelineSuggestions, previousCommitmentsFrom, resolveBusinessUpdates,
+  resolveKpiTargets, sectionComplete, signalToAtRiskRow, averageScore,
 } from '@/lib/nwa';
 import {
   DueChip, EmptyHint, FieldLabel, FollowThroughBars, OutcomeToggle, ScoreChip, SectionCard, StatTile, SubHeading, TimeChip,
 } from './nwa-ui';
 import { LegacyFridaySummary } from './nwa-legacy';
+import { AccountMgmtEditor, HandoverEditor } from './nwa-accounts';
+
+const TARGET_SOURCE_LABEL: Record<KpiTargetSource, string> = {
+  person: 'set for this person',
+  team: 'team target',
+  annualTarget: 'annual target ÷ 52',
+  default: 'default',
+};
 
 export interface NwaFormProps {
   userId: string;
@@ -39,7 +49,6 @@ export interface NwaFormProps {
   selectedWeek: string;
 }
 
-const sec = (id: NwaSectionId) => NWA_SECTIONS.find(s => s.id === id)!;
 const money = (n: number) => `$${Math.round(n || 0).toLocaleString('en-AU')}`;
 const weekNo = (w: string) => w.split('-')[1] || w;
 
@@ -75,12 +84,25 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
   const [saving, setSaving] = useState<'draft' | 'submit' | 'note' | 'updates' | null>(null);
   const [dirty, setDirty] = useState(false);
   const [managerNote, setManagerNote] = useState('');
-  const prefilled = useRef({ wins: false, appts: false });
+  const prefilled = useRef({ wins: false, appts: false, atRisk: false });
+  const [targetSource, setTargetSource] = useState<Record<keyof NwaKpiTargets, KpiTargetSource> | null>(null);
+  const [teamTargetsDoc, setTeamTargetsDoc] = useState<any>(null);
+  // Legacy Friday FW doc being converted to an NWA (snapshot of the original fields, kept on save).
+  const [legacyConversion, setLegacyConversion] = useState<Record<string, any> | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const [showAmOptional, setShowAmOptional] = useState(false);
+
+  const isAm = isAmRole(activeRole);
+  const sections = useMemo(() => nwaSectionsFor(activeRole), [activeRole]);
+  const sec = (id: NwaSectionId) => sections.find(s => s.id === id) || NWA_ACCOUNTS_OPTIONAL;
+  const kpiDefs = useMemo(() => kpiDefsFor(activeRole), [activeRole]);
 
   const status: string = stored?.status || 'NOT_STARTED';
   const submitted = isSubmittedStatus(status);
-  const legacy = !!stored && isLegacyFridayDoc(stored);
-  const readOnly = legacy || (!isLeader && (isPastWeek || !isOwn));
+  const legacyDoc = !!stored && isLegacyFridayDoc(stored);
+  const legacy = legacyDoc && !legacyConversion;
+  const canEdit = isLeader || (isOwn && !isPastWeek);
+  const readOnly = legacy || !canEdit;
 
   const update = useCallback((fn: (p: NwaPlan) => NwaPlan) => {
     setPlan(prev => fn(prev));
@@ -92,9 +114,16 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     if (!db || !activeUserId) return;
     let cancelled = false;
     setLoading(true);
-    prefilled.current = { wins: false, appts: false };
+    prefilled.current = { wins: false, appts: false, atRisk: false };
+    setLegacyConversion(null);
+    setShowOriginal(false);
     (async () => {
+      // Target sources are optional: a missing doc or a permissions error falls back to defaults.
+      const safeGet = (path: [string, string]) => getDoc(doc(db, path[0], path[1])).then(d => (d.exists() ? d.data() : null)).catch(() => null);
       try {
+        const [userDoc, statsDoc, teamTargets] = await Promise.all([
+          safeGet(['users', activeUserId]), safeGet(['bdmStats', activeUserId]), safeGet(['appSettings', 'nwaKpiTargets']),
+        ]);
         const [planSnap, prevSnap, histSnap, twtwSnap, progSnap] = await Promise.all([
           getDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${planWeek}`)),
           getDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${reviewWeek}`)),
@@ -109,11 +138,16 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         const twtwActions = (Array.isArray(twtw?.priorities) ? twtw!.priorities : [])
           .map((p: any) => (typeof p === 'string' ? p : p?.text || ''))
           .filter(Boolean);
+        const resolved = resolveKpiTargets(activeRole, { userDoc, teamTargets, stats: statsDoc });
         const mapped = data ? mapStoredNwa(data, activeRole, twtwActions) : (() => {
           const fresh = emptyNwaPlan(activeRole);
+          fresh.kpiTargets = resolved.targets;
+          if (prev) fresh.accounts = carryForwardAccounts(mapStoredNwa(prev, activeRole).accounts);
           twtwActions.slice(0, 3).forEach((t: string, i: number) => { fresh.topPriorities[i] = t; });
           return fresh;
         })();
+        setTargetSource(data ? null : resolved.source);
+        setTeamTargetsDoc(teamTargets);
         mapped.commitmentReview = mergeCommitmentReview(mapped.commitmentReview, previousCommitmentsFrom(prev));
         setStored(data);
         setPrevDoc(prev);
@@ -142,8 +176,15 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
   const { data: reviewCallPlans } = useCollection<any>(reviewCallPlansQ);
 
   const actuals = useMemo(() => computeActuals({
-    progress, activity, callPlanCount: reviewCallPlans?.length || 0, deals: suggestions.closedWon,
-  }), [progress, activity, reviewCallPlans, suggestions.closedWon]);
+    progress, activity, callPlanCount: reviewCallPlans?.length || 0, deals: suggestions.closedWon, accounts: plan.accounts,
+  }), [progress, activity, reviewCallPlans, suggestions.closedWon, plan.accounts]);
+  const signals = useMemo(() => accountSignals(deals), [deals]);
+  const acctOptions = useMemo(() => accountOptions(deals), [deals]);
+  const people = useMemo(() => {
+    const list = teamUsers.map(u => ({ id: u.id, name: u.name })).filter(u => u.name);
+    if (!list.some(u => u.id === activeUserId)) list.unshift({ id: activeUserId, name: activeUserName });
+    return list;
+  }, [teamUsers, activeUserId, activeUserName]);
   const lastTargets = useMemo(() => (prevDoc ? mapStoredNwa(prevDoc, activeRole).kpiTargets : null), [prevDoc, activeRole]);
 
   // Pre-fill a new plan: closed won deals into wins, call plans into appointments.
@@ -157,12 +198,24 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
       prefilled.current.appts = true;
       setPlan(p => (p.appointments.length ? p : { ...p, appointments: planCallPlans.map(callPlanToAppointment) }));
     }
-  }, [loading, stored, readOnly, suggestions.closedWon, planCallPlans]);
+    // Account managers: CRM-flagged at-risk accounts (top 5) on a new plan.
+    if (isAm && !prefilled.current.atRisk && signals.length) {
+      prefilled.current.atRisk = true;
+      setPlan(p => {
+        const have = new Set(p.accounts.atRisk.map(r => r.accountId).filter(Boolean));
+        const add = signals.filter(sg => !have.has(sg.id)).slice(0, 5).map(signalToAtRiskRow);
+        return add.length ? { ...p, accounts: { ...p.accounts, atRisk: [...p.accounts.atRisk, ...add] } } : p;
+      });
+    }
+  }, [loading, stored, readOnly, suggestions.closedWon, planCallPlans, isAm, signals]);
 
   // ─── Business updates (leader-owned, team-wide) ────────────────────────────
-  const updatesRef = useMemoFirebase(() => (db ? doc(db, 'appSettings', 'nwaBusinessUpdates') : null), [db]);
+  // One doc per week (appSettings/nwaBusinessUpdates_{week}); the old shared doc's byWeek map is the fallback.
+  const updatesRef = useMemoFirebase(() => (db ? doc(db, 'appSettings', businessUpdatesDocId(planWeek)) : null), [db, planWeek]);
+  const legacyUpdatesRef = useMemoFirebase(() => (db ? doc(db, 'appSettings', 'nwaBusinessUpdates') : null), [db]);
   const { data: updatesDoc } = useDoc<any>(updatesRef);
-  const savedUpdates = useMemo(() => businessUpdatesFor(updatesDoc, planWeek), [updatesDoc, planWeek]);
+  const { data: legacyUpdatesDoc } = useDoc<any>(legacyUpdatesRef);
+  const savedUpdates = useMemo(() => resolveBusinessUpdates(updatesDoc, legacyUpdatesDoc, planWeek), [updatesDoc, legacyUpdatesDoc, planWeek]);
   const [updatesDraft, setUpdatesDraft] = useState<NwaBusinessUpdates>(savedUpdates);
   const [editingUpdates, setEditingUpdates] = useState(false);
   useEffect(() => { if (!editingUpdates) setUpdatesDraft(savedUpdates); }, [savedUpdates, editingUpdates]);
@@ -172,8 +225,8 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     setSaving('updates');
     try {
       const { updatedBy: _b, updatedAt: _a, ...fields } = updatesDraft;
-      await setDoc(doc(db, 'appSettings', 'nwaBusinessUpdates'), {
-        byWeek: { [planWeek]: { ...fields, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp() } },
+      await setDoc(doc(db, 'appSettings', businessUpdatesDocId(planWeek)), {
+        ...fields, week: planWeek, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp(),
       }, { merge: true });
       setEditingUpdates(false);
       toast({ title: 'Business updates saved', description: `Everyone will see them on the week ${weekNo(planWeek)} NWA.` });
@@ -195,14 +248,42 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
     return followThroughTrend(docs);
   }, [history, planWeek, plan.commitmentReview]);
   const avgScore = averageScore(trend);
-  const completeIds = NWA_SECTIONS.filter(s => sectionComplete(plan, s.id)).map(s => s.id);
-  const completePct = Math.round((completeIds.length / NWA_SECTIONS.length) * 100);
+  const completeIds = sections.filter(s => sectionComplete(plan, s.id, activeRole)).map(s => s.id);
+  const completePct = Math.round((completeIds.length / sections.length) * 100);
+  const hasAccountData = plan.accounts.atRisk.length + plan.accounts.renewals.length + plan.accounts.growth.length > 0;
+  const lastTargetFor = (k: keyof NwaKpiTargets) => (lastTargets ? lastTargets[k] : 0);
+
+  // ─── Legacy Friday FW → NWA ───────────────────────────────────────────────
+  // The plan state already holds the legacy doc mapped onto NWA fields; saving keeps the original fields
+  // and stores a snapshot in legacyFriday so the original stays viewable.
+  const startNwaFromLegacy = () => {
+    if (!stored || !canEdit) return;
+    setLegacyConversion(stored.legacyFriday || legacyFridaySnapshot(stored));
+    setDirty(true);
+    toast({ title: 'Started an NWA from the Friday FW', description: 'The original is kept and stays viewable. Save a draft to keep the conversion.' });
+  };
+
+  const saveTeamTargets = async () => {
+    if (!db || !isLeader) return;
+    const group = kpiRoleGroup(activeRole);
+    const keys = kpiDefs.map(k => k.target);
+    const values = Object.fromEntries(KPI_TARGET_KEYS.filter(k => keys.includes(k)).map(k => [k, Number(plan.kpiTargets[k]) || 0]));
+    try {
+      await setDoc(doc(db, 'appSettings', 'nwaKpiTargets'), {
+        byRole: { [group]: { ...values, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp() } },
+      }, { merge: true });
+      setTeamTargetsDoc((d: any) => ({ ...(d || {}), byRole: { ...(d?.byRole || {}), [group]: values } }));
+      toast({ title: `${group} team targets saved`, description: 'New NWAs for this role start with these targets unless a person has their own.' });
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Couldn’t save team targets', description: err?.message || 'Only leaders can set team targets.' });
+    }
+  };
 
   // ─── Save / submit ─────────────────────────────────────────────────────────
   const persist = async (mode: 'draft' | 'submit') => {
     if (!db || !activeUserId) return;
     if (mode === 'submit') {
-      const missing = NWA_SECTIONS.filter(s => s.id !== 'updates' && !sectionComplete(plan, s.id));
+      const missing = sections.filter(s => s.id !== 'updates' && !sectionComplete(plan, s.id, activeRole));
       if (missing.some(s => s.id === 'priorities' || s.id === 'commitments')) {
         toast({ variant: 'destructive', title: 'Almost there', description: 'Add your top 3 priorities and at least one commitment before submitting.' });
         return;
@@ -217,7 +298,8 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
         userName: activeUserName,
         week: planWeek,
         reviewWeek,
-        ...buildNwaPayload(plan),
+        ...buildNwaPayload(plan, { kpiActuals: actuals, role: activeRole }),
+        ...(legacyConversion && !stored?.legacyFriday ? { legacyFriday: legacyConversion, convertedFromLegacyAt: serverTimestamp(), convertedFromLegacyBy: profile?.name || user?.email || activeUserName } : {}),
         status: nextStatus,
         dueAt: dueAt ?? null,
         updatedAt: serverTimestamp(),
@@ -250,7 +332,11 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
           updatedAt: serverTimestamp(),
         }, { merge: true });
       }
-      setStored((s: any) => ({ ...(s || {}), ...buildNwaPayload(plan), status: nextStatus, formVersion: 'NWA_V2' }));
+      setStored((s: any) => ({
+        ...(s || {}), ...buildNwaPayload(plan, { kpiActuals: actuals, role: activeRole }), status: nextStatus, formVersion: 'NWA_V2',
+        ...(legacyConversion && !s?.legacyFriday ? { legacyFriday: legacyConversion } : {}),
+      }));
+      setLegacyConversion(null);
       setDirty(false);
       toast({
         title: mode === 'submit' ? 'NWA submitted' : 'Draft saved',
@@ -340,7 +426,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
           )}
           <div className="ml-auto flex min-w-[180px] items-center gap-3">
             <Progress value={completePct} className="h-2 w-32" aria-label="Sections complete" />
-            <span className="text-xs font-medium text-muted-foreground">{completeIds.length} of {NWA_SECTIONS.length} sections</span>
+            <span className="text-xs font-medium text-muted-foreground">{completeIds.length} of {sections.length} sections</span>
           </div>
         </div>
 
@@ -354,14 +440,33 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
       {loading ? (
         <div className="space-y-4">{[0, 1, 2].map(i => <div key={i} className="h-40 animate-pulse rounded-2xl bg-surface-2/60" />)}</div>
       ) : legacy ? (
-        <LegacyFridaySummary data={stored} />
+        <div className="space-y-4">
+          {canEdit && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+              <p className="text-sm text-muted-foreground">This week was filed on the old Friday FW form. Start an NWA from it; the original stays viewable.</p>
+              <Button onClick={startNwaFromLegacy} className="bg-cta text-white hover:bg-cta/90"><ArrowRight className="mr-1.5 h-4 w-4" />Start NWA</Button>
+            </div>
+          )}
+          <LegacyFridaySummary data={stored} />
+        </div>
       ) : (
+        <>
+        {(legacyConversion || stored?.legacyFriday) && (
+          <div className="rounded-2xl border border-border bg-card">
+            <button type="button" onClick={() => setShowOriginal(v => !v)} aria-expanded={showOriginal}
+              className="flex w-full items-center justify-between gap-3 px-5 py-3 text-left text-sm font-semibold text-foreground">
+              <span className="flex items-center gap-2"><FileClock className="h-4 w-4 text-muted-foreground" />Original Friday FW{legacyConversion && !stored?.legacyFriday ? ' (save to keep the conversion)' : ''}</span>
+              <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', showOriginal && 'rotate-180')} />
+            </button>
+            {showOriginal && <div className="border-t border-border p-4"><LegacyFridaySummary data={legacyConversion || stored.legacyFriday} /></div>}
+          </div>
+        )}
         <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           {/* Agenda rail */}
           <nav aria-label="Meeting agenda" className="hidden lg:block">
             <div className="sticky top-24 space-y-1 rounded-2xl border border-border bg-card p-3">
               <p className="px-2 pb-2 text-sm font-semibold text-foreground">Agenda</p>
-              {NWA_SECTIONS.map(s => (
+              {sections.map(s => (
                 <a key={s.id} href={`#nwa-${s.id}`} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-foreground hover:bg-surface-2">
                   <span className="flex min-w-0 items-center gap-2">
                     <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold', completeIds.includes(s.id) ? 'bg-success-soft text-success-ink' : 'bg-surface-2 text-muted-foreground')}>{s.step}</span>
@@ -478,7 +583,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
 
             {/* 3. Pipeline */}
             <SectionCard section={sec('pipeline')} complete={completeIds.includes('pipeline')}>
-              {PIPELINE_GROUPS.map(g => {
+              {PIPELINE_GROUPS.filter(g => g.key !== 'handedOver').map(g => {
                 const rows = plan.pipeline[g.key];
                 const avail = suggestionFor[g.key].filter(d => !usedCrmIds.has(d.id));
                 return (
@@ -518,9 +623,30 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
                   </div>
                 );
               })}
+              <div className="space-y-3">
+                <SubHeading hint={PIPELINE_GROUPS.find(g => g.key === 'handedOver')?.hint || 'Accounts moving to or from a teammate.'}>Accounts handed over</SubHeading>
+                <HandoverEditor value={plan.accounts.handovers} readOnly={readOnly} options={acctOptions} people={people}
+                  defaultFrom={{ id: activeUserId, name: activeUserName }}
+                  onChange={rows => update(p => ({ ...p, accounts: { ...p.accounts, handovers: rows } }))} />
+              </div>
             </SectionCard>
 
-            {/* 4. KPIs */}
+            {/* Account management: an agenda item for account managers, optional for BDMs */}
+            <SectionCard
+              section={isAm ? sec('accounts') : NWA_ACCOUNTS_OPTIONAL}
+              complete={isAm ? completeIds.includes('accounts') : undefined}
+              collapsed={!isAm && !showAmOptional && !hasAccountData}
+              actions={!isAm && !hasAccountData ? (
+                <Button variant="outline" size="sm" aria-expanded={showAmOptional} onClick={() => setShowAmOptional(v => !v)}>
+                  <ChevronDown className={cn('mr-1.5 h-4 w-4 transition-transform', showAmOptional && 'rotate-180')} />{showAmOptional ? 'Hide' : 'Show'}
+                </Button>
+              ) : undefined}
+            >
+              <AccountMgmtEditor value={plan.accounts} readOnly={readOnly} options={acctOptions} signals={signals}
+                onChange={fn => update(p => ({ ...p, accounts: fn(p.accounts) }))} />
+            </SectionCard>
+
+            {/* KPIs */}
             <SectionCard section={sec('kpis')} complete={completeIds.includes('kpis')}>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[560px] text-sm">
@@ -534,9 +660,9 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
                     </tr>
                   </thead>
                   <tbody>
-                    {KPI_DEFS.map(k => {
+                    {kpiDefs.map(k => {
                       const actual = actuals[k.key];
-                      const target = lastTargets ? lastTargets[k.target] : 0;
+                      const target = lastTargetFor(k.target);
                       const pct = target > 0 ? Math.round((actual / target) * 100) : null;
                       return (
                         <tr key={k.key} className="border-b border-border last:border-0">
@@ -562,7 +688,19 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
                   </tbody>
                 </table>
               </div>
-              <p className="text-xs text-muted-foreground">Actuals come from CRM activity, call plans and closed won deals for week {weekNo(reviewWeek)}.</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  {isAm
+                    ? <>Actuals come from CRM activity and meetings for week {weekNo(reviewWeek)}; renewals and revenue retained count rows marked agreed or saved above.</>
+                    : <>Actuals come from CRM activity, call plans and closed won deals for week {weekNo(reviewWeek)}.</>}
+                  {targetSource && <> Targets: {Array.from(new Set(kpiDefs.map(k => TARGET_SOURCE_LABEL[targetSource[k.target]]))).join(', ')}.</>}
+                </p>
+                {isLeader && !readOnly && (
+                  <Button variant="outline" size="sm" onClick={saveTeamTargets} title={teamTargetsDoc?.byRole?.[kpiRoleGroup(activeRole)] ? 'Replaces the current team targets' : undefined}>
+                    <Target className="mr-1.5 h-4 w-4" />Save as {kpiRoleGroup(activeRole)} team targets
+                  </Button>
+                )}
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <FieldLabel htmlFor="nwa-focus" hint="The one or two numbers that matter most this week.">Key focus metrics</FieldLabel>
@@ -673,6 +811,7 @@ export function NwaForm({ userId, userName, userRole, selectedWeek }: NwaFormPro
             </div>
           </div>
         </div>
+        </>
       )}
 
       {/* Sticky action bar */}

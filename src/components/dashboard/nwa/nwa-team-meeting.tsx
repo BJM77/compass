@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { collection, doc, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import {
-  AlertTriangle, ChevronLeft, ChevronRight, Expand, Heart, ListChecks, Minimize, Pause, Play, RotateCcw, Target, Trophy, Users,
+  AlertTriangle, Briefcase, ChevronLeft, ChevronRight, Expand, Heart, ListChecks, Minimize, Pause, Play, RotateCcw, Target, Trophy, Users,
 } from 'lucide-react';
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { useAuth } from '@/contexts/auth-context';
@@ -14,9 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn, getNextWeekKey, getNwaReviewWeek, getPreviousWeekKey } from '@/lib/utils';
 import {
-  NWA_MEETING_MINUTES, NWA_SECTIONS, averageScore, businessUpdatesFor, followThroughScore, followThroughTrend, hasBusinessUpdates,
-  isLegacyFridayDoc, isStalledDeal, isSubmittedStatus, latestDeals, mapStoredNwa, nwaDueState, previousCommitmentsFrom,
-  mergeCommitmentReview,
+  HANDOVER_STATUS_LABEL, NWA_MEETING_MINUTES, NWA_SECTIONS, NWA_SECTIONS_AM, RENEWAL_STATUS_LABEL, RENEWAL_TYPE_LABEL, averageScore,
+  businessUpdatesDocId, followThroughScore, followThroughTrend, hasBusinessUpdates, isAmRole, isLegacyFridayDoc, isStalledDeal,
+  isSubmittedStatus, latestDeals, mapStoredNwa, nwaDueState, previousCommitmentsFrom, mergeCommitmentReview, resolveBusinessUpdates,
+  totalRevenueAtRisk,
 } from '@/lib/nwa';
 import { DueChip, EmptyHint, FollowThroughBars, OutcomeBadge, ScoreChip, scoreTone } from './nwa-ui';
 import { BusinessUpdatesView } from './nwa-form';
@@ -56,9 +57,11 @@ export function NwaTeamMeeting() {
   // Rules: leaders (isAdmin) may read every weeklyCommitments doc; the view is never rendered for others.
   const histQ = useMemoFirebase(() => (db && isLeader ? query(collection(db, 'weeklyCommitments'), where('week', 'in', weeks)) : null), [db, isLeader, weeks]);
   const { data: docs, isLoading: docsLoading } = useCollection<any>(histQ);
-  const updatesRef = useMemoFirebase(() => (db && isLeader ? doc(db, 'appSettings', 'nwaBusinessUpdates') : null), [db, isLeader]);
+  const updatesRef = useMemoFirebase(() => (db && isLeader ? doc(db, 'appSettings', businessUpdatesDocId(planWeek)) : null), [db, isLeader, planWeek]);
+  const legacyUpdatesRef = useMemoFirebase(() => (db && isLeader ? doc(db, 'appSettings', 'nwaBusinessUpdates') : null), [db, isLeader]);
   const { data: updatesDoc } = useDoc<any>(updatesRef);
-  const updates = businessUpdatesFor(updatesDoc, planWeek);
+  const { data: legacyUpdatesDoc } = useDoc<any>(legacyUpdatesRef);
+  const updates = resolveBusinessUpdates(updatesDoc, legacyUpdatesDoc, planWeek);
 
   const members: MemberSlide[] = useMemo(() => {
     const all = docs || [];
@@ -200,7 +203,7 @@ export function NwaTeamMeeting() {
               <div className="space-y-3">
                 <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground"><ListChecks className="h-5 w-5 text-accent" />Agenda</h2>
                 <ol className="space-y-1.5">
-                  {NWA_SECTIONS.map(s => (
+                  {(members.length > 0 && members.every(m => isAmRole(m.user.role)) ? NWA_SECTIONS_AM : NWA_SECTIONS).map(s => (
                     <li key={s.id} className="flex items-center justify-between rounded-xl bg-surface-2/40 px-4 py-2.5 text-base">
                       <span><span className="mr-3 font-semibold text-muted-foreground">{s.step}</span>{s.title}</span>
                       <span className="text-sm font-semibold text-info">{s.minutes} min</span>
@@ -311,6 +314,14 @@ function MemberSlideView({ m, planWeek, reviewWeek, onSaveNote }: { m: MemberSli
   ].filter(([, v]) => v.trim());
   const priorities = plan.topPriorities.filter(p => p.trim());
   const commitments = plan.commitments.filter(c => c.text.trim());
+  const acc = plan.accounts;
+  const atRisk = acc.atRisk.filter(r => r.account.trim() && r.status === 'open');
+  const renewals = acc.renewals.filter(r => r.account.trim());
+  const handovers = acc.handovers.filter(h => h.account.trim());
+  const growth = acc.growth.filter(r => r.account.trim());
+  const revenueAtRisk = totalRevenueAtRisk(acc);
+  const showAccounts = isAmRole(m.user.role) || atRisk.length + renewals.length + handovers.length + growth.length > 0;
+  const money = (n: number) => `$${Math.round(n || 0).toLocaleString('en-AU')}`;
 
   return (
     <div className="space-y-6">
@@ -357,6 +368,19 @@ function MemberSlideView({ m, planWeek, reviewWeek, onSaveNote }: { m: MemberSli
               </div>
             ) : <p className="text-base text-muted-foreground">No roadblocks raised.</p>}
           </Panel>
+
+          {showAccounts && (
+            <Panel icon={<Briefcase className="h-5 w-5 text-accent" />} title={`Accounts · ${money(revenueAtRisk)} at risk`}>
+              {atRisk.length + renewals.length + handovers.length + growth.length ? (
+                <div className="space-y-3 text-base">
+                  {atRisk.length > 0 && <div><p className="text-sm font-semibold text-muted-foreground">At risk</p>{atRisk.map(r => <p key={r.id} className="text-foreground">{r.account} <span className="text-muted-foreground">· {money(r.revenueAtRisk)}{r.action && ` · ${r.action}`}</span></p>)}</div>}
+                  {renewals.length > 0 && <div><p className="text-sm font-semibold text-muted-foreground">Renewals and rate reviews</p>{renewals.map(r => <p key={r.id} className="text-foreground">{r.account} <span className="text-muted-foreground">· {RENEWAL_TYPE_LABEL[r.type]} · {RENEWAL_STATUS_LABEL[r.status]}{r.dueDate && ` · ${r.dueDate}`}</span></p>)}</div>}
+                  {growth.length > 0 && <div><p className="text-sm font-semibold text-muted-foreground">Growth</p>{growth.map(r => <p key={r.id} className="text-foreground">{r.account} <span className="text-muted-foreground">{r.opportunity && `· ${r.opportunity}`}{r.value > 0 && ` · ${money(r.value)}`}</span></p>)}</div>}
+                  {handovers.length > 0 && <div><p className="text-sm font-semibold text-muted-foreground">Handovers</p>{handovers.map(h => <p key={h.id} className="text-foreground">{h.account} <span className="text-muted-foreground">· {h.fromName || '?'} → {h.toName || '?'} · {HANDOVER_STATUS_LABEL[h.status]}</span></p>)}</div>}
+                </div>
+              ) : <p className="text-base text-muted-foreground">No account updates.</p>}
+            </Panel>
+          )}
 
           <Panel icon={<ListChecks className="h-5 w-5 text-primary" />} title="Commitments">
             <div className="space-y-4">
