@@ -2,6 +2,7 @@
 "use client";
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { chartColor, chartAxisProps } from "@/lib/chart-theme";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface FunnelData {
@@ -18,16 +19,16 @@ interface PipelineFunnelProps {
 
 export function PipelineFunnel({ data, className }: PipelineFunnelProps) {
   const chartData = [
-    { name: "Prospecting", value: data.prospecting, color: "#94a3b8" },
-    { name: "Discovery", value: data.discovery, color: "#64748b" },
-    { name: "Proposal", value: data.proposal, color: "#475569" },
-    { name: "Closed Won", value: data.closed, color: "#2563eb" },
+    { name: "Prospecting", value: data.prospecting, color: chartColor(6) },
+    { name: "Discovery", value: data.discovery, color: chartColor(2) },
+    { name: "Proposal", value: data.proposal, color: chartColor(1) },
+    { name: "Closed Won", value: data.closed, color: chartColor(4) },
   ];
 
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Pipeline Velocity</CardTitle>
+        <CardTitle className="text-base font-semibold text-foreground">Pipeline Velocity</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[200px] w-full">
@@ -41,17 +42,15 @@ export function PipelineFunnel({ data, className }: PipelineFunnelProps) {
               <YAxis 
                 dataKey="name" 
                 type="category" 
-                fontSize={10} 
-                fontWeight="bold" 
-                axisLine={false} 
-                tickLine={false}
+                {...chartAxisProps}
+                width={88}
               />
               <Tooltip 
-                cursor={{ fill: 'transparent' }}
+                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-card border p-2 rounded shadow-sm text-xs">
+                      <div className="bg-popover text-popover-foreground border border-border px-3 py-2 rounded-xl shadow-elevated text-xs tabular-nums">
                         <span className="font-bold">${(payload[0].value as number).toLocaleString()}</span>
                       </div>
                     );

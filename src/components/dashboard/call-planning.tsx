@@ -620,7 +620,7 @@ export function CallPlanning({ userId, initialParams }: CallPlanningProps) {
       </Dialog>
 
       <Dialog open={spinGuideOpen} onOpenChange={setSpinGuideOpen}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-[#0f0f13] border-primary/80">
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-panel text-panel-foreground border-panel-foreground/15">
           <DialogTitle className="sr-only">Freight SPIN Guide</DialogTitle>
           <FreightSpinGuide />
         </DialogContent>

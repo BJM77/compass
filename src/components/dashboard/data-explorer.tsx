@@ -33,6 +33,7 @@ import {
   Building2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, Legend, PieChart, Pie } from 'recharts';
+import { CHART_PALETTE, chartColor, chartGridProps, chartAxisProps, chartTooltipProps, chartLegendProps } from '@/lib/chart-theme';
 
 export function DataExplorer() {
   const { allPipelineReviews, allWeeklyProgresses, isLoading } = usePipelineData();
@@ -514,7 +515,7 @@ export function DataExplorer() {
       existing.value += c.currentRevenue || 0;
       buMap.set(bu, existing);
     });
-    const COLORS = ['#2563eb', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#64748b'];
+    const COLORS = CHART_PALETTE;
     return Array.from(buMap.values()).map((bu, index) => ({
       ...bu,
       value: Math.round(bu.value / 1000) / 1000,
@@ -735,15 +736,15 @@ export function DataExplorer() {
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
-                      fill="#8884d8"
+                      fill={chartColor(1)}
                       label={({ name, value }: { name: string; value: number }) => `${name}: $${value.toFixed(1)}M`}
                     >
                       {customersChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}M`} />
-                    <Legend />
+                    <Tooltip {...chartTooltipProps} formatter={(value: number) => `$${value.toFixed(2)}M`} />
+                    <Legend {...chartLegendProps} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -847,13 +848,13 @@ export function DataExplorer() {
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={opportunitiesChartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="stage" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" />
-                    <YAxis tickLine={false} className="text-[10px] font-bold text-muted-foreground" unit="M" />
-                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}M`} />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                    <CartesianGrid {...chartGridProps} />
+                    <XAxis dataKey="stage" {...chartAxisProps} />
+                    <YAxis {...chartAxisProps} unit="M" />
+                    <Tooltip {...chartTooltipProps} formatter={(value: number) => `$${value.toFixed(2)}M`} />
+                    <Bar dataKey="value" fill={chartColor(1)} radius={[6, 6, 0, 0]}>
                       {opportunitiesChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#2563eb' : '#8b5cf6'} />
+                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? chartColor(1) : chartColor(2)} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -967,14 +968,14 @@ export function DataExplorer() {
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={activitiesChartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" tickLine={false} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" />
-                    <YAxis tickLine={false} className="text-[10px] font-bold text-muted-foreground" />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="calls" name="Calls Logged" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="meetings" name="Meetings" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="proposals" name="Proposals" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                    <CartesianGrid {...chartGridProps} />
+                    <XAxis dataKey="name" {...chartAxisProps} />
+                    <YAxis {...chartAxisProps} />
+                    <Tooltip {...chartTooltipProps} />
+                    <Legend {...chartLegendProps} />
+                    <Bar dataKey="calls" name="Calls Logged" fill={chartColor(1)} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="meetings" name="Meetings" fill={chartColor(2)} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="proposals" name="Proposals" fill={chartColor(3)} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

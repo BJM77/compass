@@ -1160,7 +1160,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               <path
                                 d={`M 95,330 Q ${mx},${my} ${state.x},${state.y}`}
                                 fill="none"
-                                stroke="#ef4444"
+                                stroke="hsl(var(--destructive))"
                                 strokeWidth="2.5"
                                 strokeDasharray="4 3"
                                 className="animate-[dash_2s_linear_infinite]"
@@ -1255,7 +1255,7 @@ export const FactFindingForm = forwardRef<FactFindingFormHandle, Props>(
                               <path
                                 d={`M 95,330 Q ${mx},${my} ${state.x},${state.y}`}
                                 fill="none"
-                                stroke="#f97316"
+                                stroke="hsl(var(--cta))"
                                 strokeWidth="2.5"
                                 strokeDasharray="4 3"
                                 className="animate-[dash_2s_linear_reverse_infinite]"
