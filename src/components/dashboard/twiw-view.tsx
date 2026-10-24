@@ -2305,10 +2305,10 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Target className="w-4 h-4 text-success-ink" /> Weekly KPI Review (vs Previous Friday's Plan)
+                <Target className="w-4 h-4 text-success-ink" /> Weekly KPI Review (vs this week's NWA plan)
               </CardTitle>
               <CardDescription className="text-xs font-bold text-muted-foreground">
-                Review your performance against the KPI targets set last Friday
+                Review your performance against the KPI targets set in this week's Monday NWA
               </CardDescription>
             </div>
             <Badge className="bg-secondary text-foreground/75 font-semibold text-xs">Week {previousWeek.split('-')[1]} Targets</Badge>
@@ -2328,7 +2328,7 @@ export function TWIWView({ userId, isLeader, defaultTab = "my-report" }: TWIWVie
           </div>
           {previousFocusAccounts.length > 0 && (
             <div className="space-y-3 pt-4 border-t">
-              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-accent" /> Previous Week's Focus Accounts (from Friday Plan)</h4>
+              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-accent" /> Previous Week's Focus Accounts (from NWA plan)</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {previousFocusAccounts.map((acc: any, idx: number) => (
                   <div key={idx} className="p-3 bg-secondary/60 border rounded-xl">
