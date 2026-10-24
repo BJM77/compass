@@ -1438,9 +1438,9 @@ function BDMReportCard({
                   )}
                 </div>
 
-                {/* Friday FW details */}
+                {/* NWA details */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">Friday FW Focus Accounts (Next Week)</h4>
+                  <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">NWA Focus Accounts (legacy)</h4>
                   {report.focusAccounts && report.focusAccounts.length > 0 ? (
                     <div className="space-y-2">
                       {report.focusAccounts.map((fa: any, idx: number) => (

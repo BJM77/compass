@@ -10,7 +10,7 @@ import { useCRMSummary } from '@/hooks/use-crm-summary';
 import { useTeamUsers } from '@/hooks/use-team-users';
 import { useVerticalDismissals } from '@/hooks/use-vertical-dismissals';
 import { Badge } from '@/components/ui/badge';
-import { cn, formatEAV, getCurrentWeek, getNextWeekKey } from '@/lib/utils';
+import { cn, formatEAV, getCurrentWeek, getNextWeekKey, getNwaReviewWeek } from '@/lib/utils';
 import { computeMomentum } from '@/lib/momentum';
 import { mergeContinuousPlans, formatPerth, type Task } from '@/lib/time-mgmt';
 import { VERTICALS, tsMs, type VerticalProspect } from '@/lib/verticals';
@@ -109,7 +109,7 @@ export function WeeklyRhythmWidget() {
   const { userId } = useWidgetContext();
   const db = useFirestore();
   const currentWeek = getCurrentWeek();
-  const nextWeek = getNextWeekKey(currentWeek);
+  const nextWeek = getNextWeekKey(getNwaReviewWeek());
   const twtwRef = useMemoFirebase(() => (db && userId ? doc(db, 'twiwSubmissions', `${userId}_${currentWeek}`) : null), [db, userId, currentWeek]);
   const fwRef = useMemoFirebase(() => (db && userId ? doc(db, 'weeklyCommitments', `${userId}_${nextWeek}`) : null), [db, userId, nextWeek]);
   const { data: twtw } = useDoc<any>(twtwRef);
@@ -123,27 +123,27 @@ export function WeeklyRhythmWidget() {
         <div className="rounded-2xl bg-primary text-white p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <FileDown className="w-4 h-4 text-destructive" />
-            <p className="mt-2 text-[11px] font-black uppercase tracking-wider">Thursday TWTW</p>
-            <p className="text-[10px] text-muted-foreground font-bold">Week {currentWeek.split('-')[1]}</p>
+            <p className="mt-2 text-sm font-semibold">Thursday TWTW</p>
+            <p className="text-xs text-white/70">Week {currentWeek.split('-')[1]}</p>
           </div>
-          <Badge className={cn('border-none font-bold text-[8px] uppercase shrink-0', twtwStatus === 'SUBMITTED' ? 'bg-success text-success' : 'bg-destructive text-destructive')}>
+          <Badge className={cn('border-none font-semibold text-xs shrink-0 text-white', twtwStatus === 'SUBMITTED' ? 'bg-success' : 'bg-destructive')}>
             {twtwStatus === 'SUBMITTED' ? 'Done' : 'Due: Thursday Morning'}
           </Badge>
         </div>
         <div className="rounded-2xl bg-primary text-white p-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <ListChecks className="w-4 h-4 text-warning" />
-            <p className="mt-2 text-[11px] font-black uppercase tracking-wider">Friday FW</p>
-            <p className="text-[10px] text-muted-foreground font-bold">Next-week activity · Week {nextWeek.split('-')[1]}</p>
+            <p className="mt-2 text-sm font-semibold">Next Week's Activity (NWA)</p>
+            <p className="text-xs text-white/70">Monday review · Week {nextWeek.split('-')[1]}</p>
           </div>
-          <Badge className={cn('border-none font-bold text-[8px] uppercase shrink-0', fwStatus === 'SUBMITTED' ? 'bg-success text-success' : fwStatus === 'DRAFT' ? 'bg-warning text-warning' : 'bg-destructive text-destructive')}>
-            {fwStatus === 'SUBMITTED' ? 'Done' : fwStatus === 'DRAFT' ? 'Draft' : 'Due: Friday Morning'}
+          <Badge className={cn('border-none font-semibold text-xs shrink-0 text-white', fwStatus === 'SUBMITTED' ? 'bg-success' : fwStatus === 'DRAFT' ? 'bg-warning' : 'bg-destructive')}>
+            {fwStatus === 'SUBMITTED' ? 'Done' : fwStatus === 'DRAFT' ? 'Draft' : 'Due Sunday 8pm'}
           </Badge>
         </div>
       </div>
       <div className="flex flex-wrap gap-4">
         <WidgetLink view="TWIW">Open TWTW</WidgetLink>
-        <WidgetLink view="FRIDAY_FW">Open Friday FW</WidgetLink>
+        <WidgetLink view="FRIDAY_FW">Open NWA</WidgetLink>
       </div>
     </div>
   );

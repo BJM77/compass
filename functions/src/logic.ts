@@ -9,7 +9,7 @@ import {
 
 export const CATCH_UP_MS = 72 * 60 * 60 * 1000;
 
-/** Config for TWTW / Friday FW nudges (see README in functions/). */
+/** Config for TWTW / NWA (Next Weeks Activity, Monday) nudges (see README in functions/). */
 export type NudgeConfig = {
   twtwEnabled: boolean;
   /** 0=Sun … 4=Thu. TWTW is the "Thursday TWTW" in the app. */
@@ -25,8 +25,9 @@ export const DEFAULT_NUDGE_CONFIG: NudgeConfig = {
   twtwDueWeekday: 4,
   twtwHour: 13,
   fwEnabled: true,
-  fwWeekday: 5,
-  fwHour: 11,
+  /** NWA is reviewed Monday morning: nudge 7am Monday Perth. */
+  fwWeekday: 1,
+  fwHour: 7,
 };
 
 export const DIGEST_HOUR = 8;

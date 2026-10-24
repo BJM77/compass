@@ -133,7 +133,7 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                 TWTW: {data.twtwStatus === 'SUBMITTED' ? 'SUBMITTED' : 'LATE/DUE'}
               </Badge>
               <Badge className={`text-[7px] font-black border-none px-2 py-0.5 ${data.fridayStatus === 'SUBMITTED' ? 'bg-green-100 text-green-700' : data.fridayStatus === 'DRAFT' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
-                FRI FW: {data.fridayStatus}
+                NWA: {data.fridayStatus}
               </Badge>
             </div>
           </div>
@@ -280,7 +280,7 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
             <div className="space-y-4 border-l pl-5 border-slate-100">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-primary" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Friday FW - Performance Review (Fri 12pm)</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary">NWA - Next Weeks Activity (Mon AM)</p>
               </div>
 
               {hasFridayData ? (
@@ -348,7 +348,7 @@ function BDMArchiveCard({ data, isExpanded, onToggle }: { data: ArchivedWeek; is
                   )}
                 </div>
               ) : (
-                <p className="text-[10px] text-slate-400 italic">No Friday FW data submitted</p>
+                <p className="text-[10px] text-slate-400 italic">No NWA data submitted</p>
               )}
             </div>
           </div>
@@ -378,7 +378,7 @@ export function WeeklyArchive() {
   const handleRemindLate = () => {
     const lateUsers = archiveData.filter(d => d.twtwStatus !== 'SUBMITTED' || d.fridayStatus !== 'SUBMITTED');
     if (lateUsers.length === 0) {
-      toast({ title: "No Action Needed", description: "All active team nodes have submitted TWTW and Friday FW." });
+      toast({ title: "No Action Needed", description: "All active team members have submitted TWTW and NWA." });
       return;
     }
 
@@ -389,9 +389,9 @@ export function WeeklyArchive() {
     const names = lateUsers.map(u => u.userName).join(', ');
 
     if (emails.length > 0) {
-      const subject = encodeURIComponent("Reminder: Outstanding Weekly Submissions (TWTW / Friday FW)");
+      const subject = encodeURIComponent("Reminder: Outstanding Weekly Submissions (TWTW / NWA)");
       const body = encodeURIComponent(
-        `Hi,\n\nThis is a friendly reminder that you have outstanding weekly submissions (Thursday TWTW and/or Friday FW) for this week.\n\nPlease log in to the Compass dashboard and complete your submissions as soon as possible.\n\nThanks!`
+        `Hi,\n\nThis is a friendly reminder that you have outstanding weekly submissions (Thursday TWTW and/or Monday NWA) for this week.\n\nPlease log in to the Compass dashboard and complete your submissions as soon as possible.\n\nThanks!`
       );
       
       const mailtoUrl = `mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`;
@@ -546,7 +546,7 @@ export function WeeklyArchive() {
             <Archive className="w-8 h-8" /> Weekly Archive
           </h1>
           <p className="text-xs text-muted-foreground font-bold">
-            {canViewAll ? 'Full team' : 'Your'} TWTW submissions, Friday FW reviews, and activity metrics
+            {canViewAll ? 'Full team' : 'Your'} TWTW submissions, NWA reviews, and activity metrics
           </p>
         </div>
 
@@ -620,7 +620,7 @@ export function WeeklyArchive() {
                 </div>
                 <div className="text-center px-4">
                   <p className="text-xl font-black text-blue-400">{teamTotals.fridaySubmitted}/{archiveData.length}</p>
-                  <p className="text-[7px] uppercase tracking-widest text-slate-400">Friday FW</p>
+                  <p className="text-[7px] uppercase tracking-widest text-slate-400">NWA</p>
                 </div>
               </div>
             </div>

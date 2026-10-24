@@ -52,7 +52,7 @@ export interface WidgetMeta {
 export const WIDGET_META: WidgetMeta[] = [
   { id: 'today', title: 'Today', description: 'Overdue and due-today tasks from Manage Time.', defaultWidth: 3, defaultVisible: true, view: 'MANAGE_TIME' },
   { id: 'kpi-pipeline', title: 'Revenue & Pipeline', description: 'Revenue YTD, weighted forecast, strategic yield and velocity pulse (Leaders see team totals).', defaultWidth: 3, defaultVisible: true },
-  { id: 'weekly-rhythm', title: 'Weekly Rhythm', description: 'Thursday TWTW and next-week activity (Friday FW) status.', defaultWidth: 2, defaultVisible: true, view: 'TWIW' },
+  { id: 'weekly-rhythm', title: 'Weekly Rhythm', description: 'Thursday TWTW and Monday Next Week’s Activity (NWA) status.', defaultWidth: 2, defaultVisible: true, view: 'TWIW' },
   { id: 'ambd-notes', title: 'AM/BD Notes', description: 'Notes from your AM/BD partner or leader.', defaultWidth: 1, defaultVisible: true },
   { id: 'verticals', title: 'Verticals Prospecting', description: 'New, claimed and pain-flagged prospects plus top suggested WA targets.', defaultWidth: 2, defaultVisible: true, view: 'VERTICALS' },
   { id: 'fuel', title: 'Fuel Surcharges', description: 'TGE vs competitor fuel surcharge, and when it was last checked.', defaultWidth: 1, defaultVisible: true, view: 'FUEL_SURCHARGES' },

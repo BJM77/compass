@@ -3,7 +3,7 @@
  *
  *  - sendTimeNotifications (every 5 min, australia-southeast1): task reminders
  *    (15 min before / 8am morning-of / day before), snoozes, stale Do Now
- *    escalations, 8am daily digest, TWTW + Friday FW deadline nudges, and
+ *    escalations, 8am daily digest, TWTW + NWA (Monday) deadline nudges, and
  *    pushes for leader "Team Nudges" – all respecting each user's quiet hours.
  *  - notificationAction (HTTPS): Snooze 1h / Tomorrow / Mark done from a
  *    notification. Authenticated by a random, single-use, expiring action token
@@ -111,9 +111,11 @@ async function processUser(ctx: Ctx, uid: string, prefs: NotificationPrefs, cfg:
       }
     }
     if (win.fw) {
-      const r = await db.collection('weeklyReports').doc(`${uid}_${week}`).get();
+      // Monday NWA reviews the week just finished (weeklyReports keyed by that week).
+      const reviewWeek = perthWeekKey(now - 7 * 24 * 60 * 60 * 1000);
+      const r = await db.collection('weeklyReports').doc(`${uid}_${reviewWeek}`).get();
       if (!r.exists || !r.get('submittedAt')) {
-        pending.push({ key: `fw_${week}`, kind: 'fw', title: 'Friday FW due today', body: "Your Friday performance pack hasn't been submitted yet.", link: '/dashboard?view=FRIDAY_FW' });
+        pending.push({ key: `fw_${reviewWeek}`, kind: 'fw', title: 'NWA due this morning', body: "Your Next Weeks Activity (NWA) hasn't been submitted yet for today's meeting.", link: '/dashboard?view=FRIDAY_FW' });
       }
     }
   }

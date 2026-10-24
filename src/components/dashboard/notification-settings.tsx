@@ -125,7 +125,7 @@ export function NotificationSettings() {
       <Row label="Daily digest (8am)" description="Your top 3 Do Now tasks plus anything due today.">
         <Switch checked={prefs.dailyDigest} onCheckedChange={v => save({ dailyDigest: v })} />
       </Row>
-      <Row label="TWTW / Friday FW deadline nudges" description="1pm on TWTW due day and 11am Fridays, only if you haven't submitted.">
+      <Row label="TWTW / NWA deadline nudges" description="1pm on TWTW due day and 7am Mondays (NWA), only if you haven't submitted.">
         <Switch checked={prefs.deadlineNudges} onCheckedChange={v => save({ deadlineNudges: v })} />
       </Row>
       <Row label="Stale Do Now alerts" description={'Push when a Do Now task has been untouched for 2+ days ("Delegate or Delete?").'}>

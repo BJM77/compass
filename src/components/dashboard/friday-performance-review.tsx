@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName, getWeekForDate, openSalesforceSearch } from '@/lib/utils';
+import { getCurrentWeek, getNextWeekKey, formatEAV, getPreviousWeekKey, normalizeBdmName, getWeekForDate, openSalesforceSearch, getNwaReviewWeek } from '@/lib/utils';
 import { useTeamUsers } from '@/hooks/use-team-users';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +16,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Loader2, TrendingUp, DollarSign, Target, Phone, CalendarCheck, 
   Users, Briefcase, AlertTriangle, CheckCircle2, ArrowRight,
   FileText, Calendar, RefreshCw, Save, Send, ChevronRight,
-  Award, Clock, Activity, PieChart, BarChart3, Plus, Trash2, LifeBuoy, ClipboardCheck,
+  Award, Clock, Activity, PieChart, BarChart3, Plus, ListOrdered, Trash2, LifeBuoy, ClipboardCheck,
   Search, Building2, Eye, ShieldCheck, MessageSquare, MapPin, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,7 +49,7 @@ export function FridayPerformanceReview({
   const { profile, isLeader, user } = useAuth();
   
   // Active Week state for reviewing past & current weeks
-  const [activeWeek, setActiveWeek] = useState<string>(selectedWeek || getCurrentWeek());
+  const [activeWeek, setActiveWeek] = useState<string>(selectedWeek || getNwaReviewWeek());
 
   useEffect(() => {
     if (selectedWeek) setActiveWeek(selectedWeek);
@@ -281,7 +282,7 @@ export function FridayPerformanceReview({
         notes: plan.purpose || plan.notes || plan.objective,
         businessUnit: plan.businessUnit,
         type: 'Call Plan Visit',
-        badgeColor: 'bg-success-soft text-success-ink border-none',
+        badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
         salesforceId: plan.salesforceId
       });
     });
@@ -299,7 +300,7 @@ export function FridayPerformanceReview({
         notes: lead.notes || lead.leadTopic || lead.freightProfile,
         businessUnit: lead.businessUnit,
         type: 'Field Visit',
-        badgeColor: 'bg-info-soft text-primary border-none',
+        badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
         salesforceId: lead.salesforceId
       });
     });
@@ -317,7 +318,7 @@ export function FridayPerformanceReview({
           notes: act.subject || act.notes || `${appCount} completed CRM meeting(s) logged`,
           businessUnit: act.businessUnit,
           type: 'CRM Meeting',
-          badgeColor: 'bg-info-soft text-primary border-none',
+          badgeColor: 'bg-blue-100 text-blue-800 border-none',
           salesforceId: act.salesforceId
         });
       }
@@ -331,7 +332,7 @@ export function FridayPerformanceReview({
         dateTime: getFormattedDateTime(ws) || `Whitespace Plan (Week ${currentWeek.split('-')[1]})`,
         notes: ws.notes || ws.strategy || 'Account whitespace review meeting',
         type: 'Whitespace Review',
-        badgeColor: 'bg-info-soft text-primary border-none',
+        badgeColor: 'bg-purple-100 text-purple-800 border-none',
         salesforceId: ws.salesforceId
       });
     });
@@ -350,7 +351,7 @@ export function FridayPerformanceReview({
           notes: opp?.stage ? `Meeting completed · Stage: ${opp.stage} · BU: ${opp.businessUnit || 'General'}` : 'Completed client appointment logged in CRM',
           businessUnit: opp?.businessUnit,
           type: 'Completed Appointment',
-          badgeColor: 'bg-success-soft text-success-ink border-none',
+          badgeColor: 'bg-emerald-100 text-emerald-800 border-none',
           salesforceId: opp?.salesforceId
         });
       }
@@ -427,7 +428,7 @@ export function FridayPerformanceReview({
         notes: plan.notes || plan.purpose || 'Scheduled phone outreach',
         businessUnit: plan.businessUnit,
         type: 'Call Plan',
-        badgeColor: 'bg-info-soft text-primary border-none',
+        badgeColor: 'bg-blue-100 text-blue-800 border-none',
         salesforceId: plan.salesforceId
       });
     });
@@ -443,7 +444,7 @@ export function FridayPerformanceReview({
           contactName: act.contactName || act.contact,
           notes: act.subject || act.notes || `${callCount} phone call interactions logged`,
           type: 'CRM Phone Calls',
-          badgeColor: 'bg-info-soft text-primary border-none',
+          badgeColor: 'bg-indigo-100 text-indigo-800 border-none',
           salesforceId: act.salesforceId
         });
       }
@@ -463,7 +464,7 @@ export function FridayPerformanceReview({
           notes: opp?.stage ? `Phone outreach call · Stage: ${opp.stage} · BU: ${opp.businessUnit || 'General'}` : 'Client phone call logged in CRM',
           businessUnit: opp?.businessUnit,
           type: 'Phone Call Logged',
-          badgeColor: 'bg-info-soft text-primary border-none',
+          badgeColor: 'bg-blue-100 text-blue-800 border-none',
           salesforceId: opp?.salesforceId
         });
       }
@@ -477,21 +478,84 @@ export function FridayPerformanceReview({
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [crmSearch, setCrmSearch] = useState('');
   
-  // ─── Next Week Planning Data ─────────────────────────────────────────────
-  const [nextWeekPlan, setNextWeekPlan] = useState({
-    focusAccounts: [] as { id: string; accountName: string; actionType: string; eav: number; aboutAccount: string }[],
-    kpiTargets: {
-      callsToMake: userRole === 'BDM' ? 50 : 30,
-      appointmentsToSet: userRole === 'BDM' ? 15 : 10,
-      proposalsToSend: 8,
-      dealsToClose: 3,
-      revenueTarget: 250000
-    },
-    actionPlan: ['', '', '', '', ''] as string[],
+  // ─── NWA (Next Weeks Activity) Planning Data ─────────────────────────────
+  const emptyNwaPlan = (role: string): NwaPlan => ({
+    focusAccounts: [],
+    kpiTargets: defaultKpiTargets(role),
+    actionPlan: [],
     roadblocks: '',
     supportNeeded: '',
     strategicFocus: '',
+    wins: { customerWins: '', closedOpportunities: '', positiveFeedback: '', teamRecognition: '' },
+    appointments: [],
+    pipeline: { progressing: [], stalled: [], created: [], handedOver: [] },
+    keyFocusMetrics: '',
+    individualCommitment: '',
+    topPriorities: ['', '', ''],
+    challenges: { customerIssues: '', internalIssues: '', resourcesRequired: '' },
+    commitments: [],
+    commitmentReview: [],
   });
+  const [nextWeekPlan, setNextWeekPlan] = useState<NwaPlan>(() => emptyNwaPlan(userRole));
+  const [twtwActionList, setTwtwActionList] = useState<string[]>([]);
+
+  // Call plans for the planned week (prefill Upcoming Appointments)
+  const nextWeekCallPlansQuery = useMemoFirebase(() => {
+    if (!db || !activeUserId) return null;
+    return query(collection(db, 'callPlans'), where('userId', '==', activeUserId), where('week', '==', nextWeek));
+  }, [db, activeUserId, nextWeek]);
+  const { data: nextWeekCallPlans } = useCollection(nextWeekCallPlansQuery);
+
+  // Team-level Business Updates (one entry per week, editable by leaders)
+  const businessUpdatesRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'appSettings', 'nwaBusinessUpdates');
+  }, [db]);
+  const { data: businessUpdatesDoc } = useDoc(businessUpdatesRef);
+  const [businessUpdates, setBusinessUpdates] = useState({ pricingChanges: '', productUpdates: '', competitorActivity: '' });
+  useEffect(() => {
+    const wk = (businessUpdatesDoc as any)?.byWeek?.[nextWeek];
+    setBusinessUpdates({
+      pricingChanges: wk?.pricingChanges || '',
+      productUpdates: wk?.productUpdates || '',
+      competitorActivity: wk?.competitorActivity || '',
+    });
+  }, [businessUpdatesDoc, nextWeek]);
+  const [isSavingUpdates, setIsSavingUpdates] = useState(false);
+  const handleSaveBusinessUpdates = async () => {
+    if (!db) return;
+    setIsSavingUpdates(true);
+    try {
+      await setDoc(doc(db, 'appSettings', 'nwaBusinessUpdates'), {
+        byWeek: { [nextWeek]: { ...businessUpdates, updatedBy: profile?.name || user?.email || 'Leader', updatedAt: serverTimestamp() } }
+      }, { merge: true });
+      toast({ title: 'Business Updates Saved', description: `Team updates for Week ${nextWeek.split('-')[1]} are now visible to all reps.` });
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Save Failed', description: err?.message || 'Only managers can edit Business Updates.' });
+    } finally {
+      setIsSavingUpdates(false);
+    }
+  };
+
+  // Prefill appointments from call plans when the NWA has none yet
+  useEffect(() => {
+    if (isLoading || !nextWeekCallPlans || nextWeekCallPlans.length === 0) return;
+    setNextWeekPlan(prev => {
+      if (prev.appointments.length > 0) return prev;
+      return {
+        ...prev,
+        appointments: nextWeekCallPlans.map((plan: any) => ({
+          id: crypto.randomUUID(),
+          customer: plan.customerName || plan.companyName || '',
+          date: typeof plan.date === 'string' ? plan.date : (plan.date?.toDate ? plan.date.toDate().toISOString().slice(0, 10) : ''),
+          meetingType: 'Face to Face',
+          purpose: plan.objective || plan.purpose || '',
+          desiredOutcome: '',
+          supportRequired: '',
+        })),
+      };
+    });
+  }, [isLoading, nextWeekCallPlans]);
   
   // ─── Load All Data ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -597,63 +661,29 @@ export function FridayPerformanceReview({
           keyLearnings: twtwData.keyLearnings || '',
         });
         
-        // 6. Load next week planning data & admin notes (if exists)
+        // 6. Load NWA planning data & admin notes (if exists).
+        // TWTW "This Weeks Actions" (priorities) for the reviewed week prefill
+        // Top 3 Priorities + Commitments, only when those fields are still empty.
         const twtwPriorities = twtwData.priorities || [];
-        const twtwActions = twtwPriorities.map((p: any) => typeof p === 'string' ? p : p.text).filter((t: string) => t && t.trim());
+        const twtwActions: string[] = twtwPriorities.map((p: any) => typeof p === 'string' ? p : p.text).filter((t: string) => t && t.trim());
+        setTwtwActionList(twtwActions);
 
         if (nextWeekData && Object.keys(nextWeekData).length > 0) {
           setStatus(nextWeekData.status || 'NOT_STARTED');
           setAdminCoachingNotes(nextWeekData.adminCoachingNotes || '');
           setAdminReviewedBy(nextWeekData.adminReviewedBy || '');
           setAdminReviewedAt(nextWeekData.adminReviewedAt || null);
-          
-          let actionPlan = nextWeekData.actionPlan || [];
-          if ((actionPlan.length === 0 || actionPlan.every((a: string) => !a.trim())) && twtwActions.length > 0) {
-            actionPlan = twtwActions;
-          }
-          if (actionPlan.length === 0) {
-            actionPlan = ['', '', '', '', ''];
-          }
-
-          setNextWeekPlan({
-            focusAccounts: nextWeekData.focusAccounts || [],
-            kpiTargets: nextWeekData.kpiTargets || {
-              callsToMake: activeUserRole === 'BDM' ? 50 : 30,
-              appointmentsToSet: activeUserRole === 'BDM' ? 15 : 10,
-              proposalsToSend: 8,
-              dealsToClose: 3,
-              revenueTarget: 250000
-            },
-            actionPlan: actionPlan,
-            roadblocks: nextWeekData.roadblocks || '',
-            supportNeeded: nextWeekData.supportNeeded || '',
-            strategicFocus: nextWeekData.strategicFocus || '',
-          });
+          setNextWeekPlan(mapStoredNwa(nextWeekData, activeUserRole, twtwActions));
         } else {
-          const initialActions = twtwActions.length > 0 ? twtwActions : ['', '', '', '', ''];
           setStatus('NOT_STARTED');
           setAdminCoachingNotes('');
           setAdminReviewedBy('');
           setAdminReviewedAt(null);
-
-          setNextWeekPlan({
-            focusAccounts: [],
-            kpiTargets: {
-              callsToMake: activeUserRole === 'BDM' ? 50 : 30,
-              appointmentsToSet: activeUserRole === 'BDM' ? 15 : 10,
-              proposalsToSend: 8,
-              dealsToClose: 3,
-              revenueTarget: 250000
-            },
-            actionPlan: initialActions,
-            roadblocks: '',
-            supportNeeded: '',
-            strategicFocus: '',
-          });
+          setNextWeekPlan(mapStoredNwa({}, activeUserRole, twtwActions));
         }
         
       } catch (error) {
-        console.error("Failed to load Friday data:", error);
+        console.error("Failed to load NWA data:", error);
         toast({ 
           variant: "destructive", 
           title: "Data Load Failed", 
@@ -676,12 +706,7 @@ export function FridayPerformanceReview({
       await setDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${nextWeek}`), {
         userId: activeUserId,
         week: nextWeek,
-        focusAccounts: nextWeekPlan.focusAccounts,
-        kpiTargets: nextWeekPlan.kpiTargets,
-        actionPlan: nextWeekPlan.actionPlan.filter(a => a.trim()),
-        roadblocks: nextWeekPlan.roadblocks,
-        supportNeeded: nextWeekPlan.supportNeeded,
-        strategicFocus: nextWeekPlan.strategicFocus,
+        ...buildNwaPayload(nextWeekPlan),
         adminCoachingNotes,
         status: 'DRAFT',
         updatedAt: serverTimestamp()
@@ -705,12 +730,7 @@ export function FridayPerformanceReview({
       await setDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${nextWeek}`), {
         userId: activeUserId,
         week: nextWeek,
-        focusAccounts: nextWeekPlan.focusAccounts,
-        kpiTargets: nextWeekPlan.kpiTargets,
-        actionPlan: nextWeekPlan.actionPlan.filter(a => a.trim()),
-        roadblocks: nextWeekPlan.roadblocks,
-        supportNeeded: nextWeekPlan.supportNeeded,
-        strategicFocus: nextWeekPlan.strategicFocus,
+        ...buildNwaPayload(nextWeekPlan),
         adminCoachingNotes,
         status: 'SUBMITTED',
         submittedAt: serverTimestamp(),
@@ -725,6 +745,7 @@ export function FridayPerformanceReview({
         keyLearnings: currentWeekData.keyLearnings,
         roadblocks: currentWeekData.roadblocks,
         supportNeeded: currentWeekData.supportNeeded,
+        nwaSubmitted: true,
         summary: {
           totalEAV: currentWeekData.revenue.pipeline + currentWeekData.revenue.won,
           newOpportunitiesCount: currentWeekData.opportunities.length,
@@ -743,8 +764,8 @@ export function FridayPerformanceReview({
       }, { merge: true });
       
       toast({ 
-        title: "✅ Friday Pack Submitted", 
-        description: "Weekly review submitted and next week's plan is locked in." 
+        title: "✅ NWA Submitted", 
+        description: "Your Next Weeks Activity is submitted for the Monday meeting." 
       });
       setStatus('SUBMITTED');
     } catch (error) {
@@ -763,12 +784,7 @@ export function FridayPerformanceReview({
       await setDoc(doc(db, 'weeklyCommitments', `${activeUserId}_${nextWeek}`), {
         userId: activeUserId,
         week: nextWeek,
-        focusAccounts: nextWeekPlan.focusAccounts,
-        kpiTargets: nextWeekPlan.kpiTargets,
-        actionPlan: nextWeekPlan.actionPlan.filter(a => a.trim()),
-        roadblocks: nextWeekPlan.roadblocks,
-        supportNeeded: nextWeekPlan.supportNeeded,
-        strategicFocus: nextWeekPlan.strategicFocus,
+        ...buildNwaPayload(nextWeekPlan),
         adminCoachingNotes,
         adminReviewedBy: adminName,
         adminReviewedAt: serverTimestamp(),
@@ -788,7 +804,7 @@ export function FridayPerformanceReview({
       }, { merge: true });
 
       toast({
-        title: "✅ Friday 1-on-1 Approved",
+        title: "✅ Monday NWA Review Approved",
         description: `Review completed & approved for ${activeUserName}.`
       });
       setStatus('REVIEWED_BY_ADMIN');
@@ -834,10 +850,15 @@ export function FridayPerformanceReview({
     
     const aboutAccount = notesParts.join(' | ');
 
-    updateFocusAccount(selectorAccountId, 'accountName', crmAcc.pipeline || crmAcc.opportunityName || '');
-    updateFocusAccount(selectorAccountId, 'eav', Number(crmAcc.value) || Number(crmAcc.currentRevenue) || 0);
-    updateFocusAccount(selectorAccountId, 'actionType', matchedActionType);
-    updateFocusAccount(selectorAccountId, 'aboutAccount', aboutAccount);
+    const [listKey, rowId] = selectorAccountId.split('::');
+    const name = crmAcc.pipeline || crmAcc.opportunityName || '';
+    if (listKey === 'appointments') {
+      updateAppointment(rowId, 'customer', name);
+    } else {
+      updatePipelineRow(listKey as PipelineKey, rowId, 'account', name);
+      updatePipelineRow(listKey as PipelineKey, rowId, 'value', Number(crmAcc.value) || Number(crmAcc.currentRevenue) || 0);
+      updatePipelineRow(listKey as PipelineKey, rowId, 'note', [matchedActionType, aboutAccount].filter(Boolean).join(' | '));
+    }
     
     setIsSelectorOpen(false);
     setSelectorAccountId(null);
@@ -845,64 +866,66 @@ export function FridayPerformanceReview({
   };
 
   // ─── Helper Functions ─────────────────────────────────────────────────────
-  const addFocusAccount = () => {
-    setNextWeekPlan(prev => ({
-      ...prev,
-      focusAccounts: [...prev.focusAccounts, {
-        id: crypto.randomUUID(),
-        accountName: '',
-        actionType: 'Prospect',
-        eav: 0,
-        aboutAccount: ''
-      }]
-    }));
+  const addAppointment = () => setNextWeekPlan(prev => ({
+    ...prev,
+    appointments: [...prev.appointments, { id: crypto.randomUUID(), customer: '', date: '', meetingType: 'Face to Face', purpose: '', desiredOutcome: '', supportRequired: '' }]
+  }));
+  const removeAppointment = (id: string) => setNextWeekPlan(prev => ({ ...prev, appointments: prev.appointments.filter(a => a.id !== id) }));
+  const updateAppointment = (id: string, field: keyof NwaAppointment, value: string) => setNextWeekPlan(prev => ({
+    ...prev,
+    appointments: prev.appointments.map(a => a.id === id ? { ...a, [field]: value } : a)
+  }));
+
+  const addPipelineRow = (key: PipelineKey) => setNextWeekPlan(prev => ({
+    ...prev,
+    pipeline: { ...prev.pipeline, [key]: [...prev.pipeline[key], { id: crypto.randomUUID(), account: '', value: 0, note: '' }] }
+  }));
+  const removePipelineRow = (key: PipelineKey, id: string) => setNextWeekPlan(prev => ({
+    ...prev,
+    pipeline: { ...prev.pipeline, [key]: prev.pipeline[key].filter(r => r.id !== id) }
+  }));
+  const updatePipelineRow = (key: PipelineKey, id: string, field: keyof NwaPipelineRow, value: any) => setNextWeekPlan(prev => ({
+    ...prev,
+    pipeline: { ...prev.pipeline, [key]: prev.pipeline[key].map(r => r.id === id ? { ...r, [field]: value } : r) }
+  }));
+
+  const updatePriority = (index: number, value: string) => setNextWeekPlan(prev => ({
+    ...prev,
+    topPriorities: prev.topPriorities.map((p, i) => i === index ? value : p)
+  }));
+
+  const addCommitment = (text = '') => setNextWeekPlan(prev => ({
+    ...prev,
+    commitments: [...prev.commitments, { id: crypto.randomUUID(), text, done: false }]
+  }));
+  const removeCommitment = (id: string) => setNextWeekPlan(prev => ({ ...prev, commitments: prev.commitments.filter(c => c.id !== id) }));
+  const updateCommitment = (id: string, value: string) => setNextWeekPlan(prev => ({
+    ...prev,
+    commitments: prev.commitments.map(c => c.id === id ? { ...c, text: value } : c)
+  }));
+
+  // Commitments made at the last NWA (for the reviewed week), ticked done / not done
+  const previousCommitments: NwaCommitment[] = useMemo(() => {
+    if (!previousFridayFw) return [];
+    return previousCommitmentsFrom(previousFridayFw);
+  }, [previousFridayFw]);
+  const getReviewDone = (c: NwaCommitment): boolean | null => {
+    const r = nextWeekPlan.commitmentReview.find(x => x.id === c.id || x.text === c.text);
+    return r ? r.done : null;
   };
-  
-  const removeFocusAccount = (id: string) => {
-    setNextWeekPlan(prev => ({
-      ...prev,
-      focusAccounts: prev.focusAccounts.filter(f => f.id !== id)
-    }));
-  };
-  
-  const updateFocusAccount = (id: string, field: string, value: any) => {
-    setNextWeekPlan(prev => ({
-      ...prev,
-      focusAccounts: prev.focusAccounts.map(f => 
-        f.id === id ? { ...f, [field]: value } : f
-      )
-    }));
-  };
-  
-  const addAction = () => {
-    setNextWeekPlan(prev => ({
-      ...prev,
-      actionPlan: [...prev.actionPlan, '']
-    }));
-  };
-  
-  const removeAction = (index: number) => {
-    if (nextWeekPlan.actionPlan.length <= 1) return;
-    setNextWeekPlan(prev => ({
-      ...prev,
-      actionPlan: prev.actionPlan.filter((_, i) => i !== index)
-    }));
-  };
-  
-  const updateAction = (index: number, value: string) => {
-    setNextWeekPlan(prev => ({
-      ...prev,
-      actionPlan: prev.actionPlan.map((a, i) => i === index ? value : a)
-    }));
-  };
-  
+  const setReviewDone = (c: NwaCommitment, done: boolean) => setNextWeekPlan(prev => {
+    const others = prev.commitmentReview.filter(x => !(x.id === c.id || x.text === c.text));
+    return { ...prev, commitmentReview: [...others, { id: c.id, text: c.text, done }] };
+  });
+  const prevTargets = (previousFridayFw as any)?.kpiTargets || null;
+
   // ─── Loading State ─────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-accent" />
-        <p className="text-xs font-semibold text-muted-foreground">
-          Loading your performance data...
+        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+          Loading your NWA data...
         </p>
       </div>
     );
@@ -913,32 +936,32 @@ export function FridayPerformanceReview({
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* Super Admin / Leader Representative Selector */}
       {isSuperAdminOrLeader && (
-        <Card className="border-2 border-accent bg-gradient-to-r from-primary via-primary to-primary text-white shadow-xl p-4">
+        <Card className="border-2 border-indigo-500 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-success-fill text-foreground rounded-xl font-bold shadow-md shrink-0">
+              <div className="p-2.5 bg-emerald-500 text-slate-950 rounded-xl font-bold shadow-md shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2">
-                  Super Admin 1-on-1 Friday Review Mode
+                <h3 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
+                  Super Admin Monday NWA Review Mode
                   {adminReviewedBy && (
-                    <Badge className="bg-success-fill/20 text-success border-success/40 text-xs">
+                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
                       ✓ Reviewed
                     </Badge>
                   )}
                 </h3>
-                <p className="text-xs text-info/70 mt-0.5">
-                  Reviewing: <strong className="text-success font-bold">{activeUserName}</strong> ({activeUserRole})
+                <p className="text-xs text-indigo-200 mt-0.5">
+                  Reviewing: <strong className="text-emerald-300 font-bold">{activeUserName}</strong> ({activeUserRole})
                 </p>
               </div>
             </div>
 
             <div className="w-full sm:w-auto shrink-0 flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-info/70">Rep:</span>
+                <span className="text-xs font-bold text-indigo-200">Rep:</span>
                 <Select value={selectedRepId} onValueChange={(val) => setSelectedRepId(val)}>
-                  <SelectTrigger className="w-[190px] bg-card text-foreground font-bold text-xs h-10">
+                  <SelectTrigger className="w-[190px] bg-white text-slate-900 font-bold text-xs h-10">
                     <SelectValue placeholder="Select BDM / AM" />
                   </SelectTrigger>
                   <SelectContent>
@@ -952,9 +975,9 @@ export function FridayPerformanceReview({
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-info/70">Week:</span>
+                <span className="text-xs font-bold text-indigo-200">Week:</span>
                 <Select value={activeWeek} onValueChange={(val) => setActiveWeek(val)}>
-                  <SelectTrigger className="w-[160px] bg-card text-foreground font-bold text-xs h-10">
+                  <SelectTrigger className="w-[160px] bg-white text-slate-900 font-bold text-xs h-10">
                     <SelectValue placeholder="Select Week" />
                   </SelectTrigger>
                   <SelectContent>
@@ -976,31 +999,31 @@ export function FridayPerformanceReview({
       )}
 
       {/* Header */}
-      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-primary p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+      <header className="flex flex-col lg:flex-row justify-between lg:items-center bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-12 opacity-5">
           <TrendingUp className="w-64 h-64" />
         </div>
         <div className="relative z-10 space-y-2">
-          <Badge className="bg-accent text-white font-semibold text-xs px-3 mb-2">
-            Friday Performance Review
+          <Badge className="bg-accent text-white font-black text-[9px] uppercase tracking-widest px-3 mb-2">
+            Next Weeks Activity (NWA) · Monday Review
           </Badge>
-          <h2 className="text-3xl font-extrabold tracking-tighter leading-none">
-            Week {currentWeek.split('-')[1]} Review &amp; Week {nextWeek.split('-')[1]} Planning
+          <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">
+            NWA: Week {currentWeek.split('-')[1]} Review &amp; Week {nextWeek.split('-')[1]} Plan
           </h2>
-          <p className="text-xs font-bold text-muted-foreground">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
             {activeUserName} · {activeUserRole} · {activeUserState} Region
           </p>
         </div>
         <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full lg:w-auto justify-end">
           <div className="text-right hidden sm:block mr-2">
-            <p className="text-xs font-semibold text-accent">Revenue YTD</p>
-            <p className="text-3xl font-extrabold">{formatEAV(currentWeekData.revenue.ytd)}</p>
+            <p className="text-[10px] font-black text-accent uppercase tracking-widest">Revenue YTD</p>
+            <p className="text-3xl font-black">{formatEAV(currentWeekData.revenue.ytd)}</p>
           </div>
           <Button 
             variant="outline" 
             onClick={handleSaveDraft} 
             disabled={isSaving || isSubmitting} 
-            className="font-semibold h-16 px-6 rounded-2xl shadow-sm gap-2 border-primary/70 bg-primary text-primary-foreground/85 hover:bg-primary/90 hover:text-white text-xs w-full sm:w-auto"
+            className="font-black h-16 px-6 rounded-2xl shadow-sm gap-2 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs w-full sm:w-auto"
           >
             {isSaving ? <Loader2 className="animate-spin w-5 h-5" /> : <Save className="w-5 h-5" />}
             Save Draft
@@ -1008,126 +1031,147 @@ export function FridayPerformanceReview({
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting || isSaving} 
-            className="bg-accent hover:bg-accent/90 text-white font-semibold h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto"
+            className="bg-accent hover:bg-accent/90 text-white font-black h-16 px-8 rounded-2xl shadow-xl gap-3 text-xs w-full sm:w-auto"
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : <Send className="w-5 h-5" />}
-            Submit Friday Pack
+            Submit NWA
           </Button>
         </div>
       </header>
 
-      {/* Previous Friday FW Viewer */}
+      {/* Commitments from the last NWA, ticked done / not done */}
       {previousFridayFw && (
         <Card className="border-accent/20 bg-accent/5 shadow-md">
           <CardHeader className="pb-3 border-b border-accent/10">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-bold text-accent tracking-tighter flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  This Week's Active Plan (Submitted Last Week)
+                <CardTitle className="text-lg font-black uppercase text-accent tracking-tighter flex items-center gap-2">
+                  <ClipboardCheck className="w-5 h-5" />
+                  Last Meeting&apos;s Commitments
                 </CardTitle>
                 <CardDescription className="text-xs font-bold mt-1">
-                  Your submitted Friday FW for Week {previousWeekKey.split('-')[1]} which acts as your plan for this current week.
+                  Committed at the last NWA for Week {currentWeek.split('-')[1]}. Tick whether each one was completed.
                 </CardDescription>
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-xs font-semibold border-accent text-accent hover:bg-accent hover:text-white"
+                className="text-[10px] font-black uppercase tracking-widest border-accent text-accent hover:bg-accent hover:text-white"
                 onClick={() => setShowPreviousPlan(!showPreviousPlan)}
               >
-                {showPreviousPlan ? (
-                  <>Hide Plan</>
-                ) : (
-                  <><Eye className="w-4 h-4 mr-2" /> View Plan</>
-                )}
+                {showPreviousPlan ? (<>Hide Last NWA</>) : (<><Eye className="w-4 h-4 mr-2" /> View Last NWA</>)}
               </Button>
             </div>
           </CardHeader>
-          {showPreviousPlan && (
-            <CardContent className="p-6 space-y-6">
-              <div>
-                <h4 className="text-xs font-semibold text-muted-foreground mb-2">Strategic Focus & Narrative</h4>
-                <p className="text-sm text-foreground/85 bg-card p-4 rounded-xl border border-border italic whitespace-pre-wrap">
-                  {previousFridayFw.strategicFocus || previousFridayFw.weeklyNotes || 'No narrative provided.'}
-                </p>
+          <CardContent className="p-6 space-y-4">
+            {previousCommitments.length > 0 ? (
+              <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
+                {previousCommitments.map((c) => {
+                  const done = getReviewDone(c);
+                  return (
+                    <div key={c.id} className="p-3 text-sm flex items-center gap-3">
+                      <span className="flex-1 font-medium text-slate-700">{c.text}</span>
+                      <Button size="sm" variant={done === true ? 'default' : 'outline'} onClick={() => setReviewDone(c, true)}
+                        className={cn("h-8 text-[10px] font-black uppercase", done === true && "bg-emerald-600 hover:bg-emerald-700")}>
+                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Done
+                      </Button>
+                      <Button size="sm" variant={done === false ? 'default' : 'outline'} onClick={() => setReviewDone(c, false)}
+                        className={cn("h-8 text-[10px] font-black uppercase", done === false && "bg-rose-600 hover:bg-rose-700")}>
+                        Not Done
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
-              
-              <div>
-                <h4 className="text-xs font-semibold text-muted-foreground mb-2">Key Actions Planned</h4>
-                <div className="bg-card rounded-xl border border-border divide-y divide-border">
-                  {previousFridayFw.actionPlan && previousFridayFw.actionPlan.length > 0 ? (
-                    previousFridayFw.actionPlan.map((action: string, i: number) => (
-                      <div key={i} className="p-3 text-sm flex gap-3">
-                        <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                        <span className="font-medium text-foreground/85">{action}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-xs italic text-muted-foreground">No actions planned.</div>
-                  )}
+            ) : (
+              <div className="p-4 text-xs italic text-slate-400 bg-white rounded-xl border border-slate-100">No commitments recorded at the last meeting.</div>
+            )}
+            {showPreviousPlan && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Top 3 Priorities (Last NWA)</h4>
+                  <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
+                    {((previousFridayFw as any).topPriorities || (previousFridayFw as any).actionPlan || []).filter((a: string) => a && a.trim()).map((a: string, i: number) => (
+                      <div key={i} className="p-3 text-sm flex gap-3"><Badge className="bg-slate-100 text-slate-700 border">{i + 1}</Badge><span className="text-slate-700">{a}</span></div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-semibold text-muted-foreground mb-2">Focus Accounts</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {previousFridayFw.focusAccounts && previousFridayFw.focusAccounts.length > 0 ? (
-                    previousFridayFw.focusAccounts.map((acc: any, i: number) => (
-                      <div key={i} className="bg-card p-3 rounded-xl border border-border shadow-sm flex flex-col gap-1">
-                        <div className="flex justify-between items-start">
-                          <span className="font-semibold text-sm text-primary">{acc.accountName}</span>
-                          <Badge variant="outline" className="text-xs">{acc.actionType}</Badge>
+                {(previousFridayFw as any).strategicFocus && (
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Strategic Focus (legacy)</h4>
+                    <p className="text-sm text-slate-700 bg-white p-4 rounded-xl border border-slate-100 italic whitespace-pre-wrap">{(previousFridayFw as any).strategicFocus}</p>
+                  </div>
+                )}
+                {((previousFridayFw as any).focusAccounts || []).length > 0 && (
+                  <div className="md:col-span-2">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Focus Accounts (legacy)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {(previousFridayFw as any).focusAccounts.map((acc: any, i: number) => (
+                        <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 text-xs">
+                          <span className="font-black text-primary">{acc.accountName}</span> · {acc.actionType} · {formatEAV(acc.eav)}
                         </div>
-                        <span className="text-xs font-bold text-accent">{formatEAV(acc.eav)}</span>
-                        {acc.aboutAccount && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{acc.aboutAccount}</p>}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-full p-4 text-xs italic text-muted-foreground bg-card rounded-xl border border-border">No focus accounts planned.</div>
-                  )}
-                </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          )}
+            )}
+          </CardContent>
         </Card>
       )}
       
       {/* ─── Section 1: Previous Week Performance (CRM Data) ───────────────── */}
-      <Card className="border-none shadow-xl bg-card overflow-hidden">
-        <CardHeader className="bg-secondary/60 border-b py-5">
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2">
+              <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-accent" />
-                Week {currentWeek.split('-')[1]} Performance Summary
+                1. Wins Since Last Meeting · Week {currentWeek.split('-')[1]}
               </CardTitle>
-              <CardDescription className="text-xs font-bold text-muted-foreground mt-0.5">
-                Combined CRM data and Thursday TWTW submission
+              <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                Wins first, then CRM performance and Thursday TWTW data
               </CardDescription>
             </div>
-            <Badge className="bg-success-soft text-success-ink border-none font-bold text-xs">
+            <Badge className="bg-green-100 text-green-700 border-none font-bold text-[9px] uppercase">
               <CheckCircle2 className="w-3 h-3 mr-1" /> {currentWeekData.wins.length} Wins
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
+          {/* Wins entered by the rep */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {([
+              ['customerWins', 'Customer Wins', 'New customers, signed paperwork, volume won...'],
+              ['closedOpportunities', 'Closed Opportunities', 'Opportunities closed since last meeting...'],
+              ['positiveFeedback', 'Positive Feedback', 'Customer or internal feedback worth sharing...'],
+              ['teamRecognition', 'Team Recognition', 'Who helped make it happen?'],
+            ] as const).map(([key, label, ph]) => (
+              <div key={key} className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-emerald-600 flex items-center gap-1"><Award className="w-3.5 h-3.5" /> {label}</Label>
+                <Textarea placeholder={ph} value={nextWeekPlan.wins[key]}
+                  onChange={e => setNextWeekPlan(prev => ({ ...prev, wins: { ...prev.wins, [key]: e.target.value } }))}
+                  className="min-h-[70px] text-xs font-medium rounded-xl" />
+              </div>
+            ))}
+          </div>
+
           {/* KPI Cards (Clickable to view detailed breakdowns in popup) */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* 1. Calls Card */}
             <div 
               onClick={() => setKpiModalType('CALLS')}
-              className="bg-info-soft hover:bg-info-soft/80 p-4 rounded-2xl border border-info/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-blue-50 hover:bg-blue-100/80 p-4 rounded-2xl border border-blue-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <Phone className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-semibold text-accent">Calls</p>
+                  <Phone className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Calls</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-extrabold text-foreground">{currentWeekData.activity.calls}</p>
-              <p className="text-xs font-semibold text-accent/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-black text-slate-800">{currentWeekData.activity.calls}</p>
+              <p className="text-[9px] font-semibold text-blue-600/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1135,17 +1179,17 @@ export function FridayPerformanceReview({
             {/* 2. Appointments Card */}
             <div 
               onClick={() => setKpiModalType('APPOINTMENTS')}
-              className="bg-success-soft hover:bg-success-soft/80 p-4 rounded-2xl border border-success/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-emerald-50 hover:bg-emerald-100/80 p-4 rounded-2xl border border-emerald-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <CalendarCheck className="w-4 h-4 text-success-ink group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-semibold text-success-ink">Appointments</p>
+                  <CalendarCheck className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Appointments</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-success opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-extrabold text-foreground">{currentWeekData.activity.apps}</p>
-              <p className="text-xs font-semibold text-success-ink/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-black text-slate-800">{currentWeekData.activity.apps}</p>
+              <p className="text-[9px] font-semibold text-emerald-600/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1153,17 +1197,17 @@ export function FridayPerformanceReview({
             {/* 3. Opportunities Card */}
             <div 
               onClick={() => setKpiModalType('OPPORTUNITIES')}
-              className="bg-info-soft hover:bg-info-soft/80 p-4 rounded-2xl border border-info/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-purple-50 hover:bg-purple-100/80 p-4 rounded-2xl border border-purple-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <Briefcase className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-semibold text-accent">Opportunities</p>
+                  <Briefcase className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest">Opportunities</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-extrabold text-foreground">{currentWeekData.opportunities.length}</p>
-              <p className="text-xs font-semibold text-accent/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-black text-slate-800">{currentWeekData.opportunities.length}</p>
+              <p className="text-[9px] font-semibold text-purple-600/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1171,17 +1215,17 @@ export function FridayPerformanceReview({
             {/* 4. Pipeline Value Card */}
             <div 
               onClick={() => setKpiModalType('PIPELINE_VALUE')}
-              className="bg-warning-soft hover:bg-warning-soft/80 p-4 rounded-2xl border border-warning/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-amber-50 hover:bg-amber-100/80 p-4 rounded-2xl border border-amber-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <DollarSign className="w-4 h-4 text-warning-ink group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-semibold text-warning-ink">Pipeline Value</p>
+                  <DollarSign className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Pipeline Value</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-warning opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-extrabold text-foreground">{formatEAV(currentWeekData.revenue.pipeline)}</p>
-              <p className="text-xs font-semibold text-warning-ink/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-black text-slate-800">{formatEAV(currentWeekData.revenue.pipeline)}</p>
+              <p className="text-[9px] font-semibold text-amber-600/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1189,17 +1233,17 @@ export function FridayPerformanceReview({
             {/* 5. Canvass Leads Card */}
             <div 
               onClick={() => setKpiModalType('CANVASS_LEADS')}
-              className="bg-info-soft hover:bg-info-soft/80 p-4 rounded-2xl border border-info/20 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
+              className="bg-indigo-50 hover:bg-indigo-100/80 p-4 rounded-2xl border border-indigo-100 cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] group relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-semibold text-accent">Canvass Leads</p>
+                  <MapPin className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
+                  <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Canvass Leads</p>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-extrabold text-foreground">{currentWeekCanvassLeadsCount}</p>
-              <p className="text-xs font-semibold text-accent/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-black text-slate-800">{currentWeekCanvassLeadsCount}</p>
+              <p className="text-[9px] font-semibold text-indigo-600/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1212,12 +1256,12 @@ export function FridayPerformanceReview({
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   <ExternalLink className="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-semibold text-teal-600">Sent to SF</p>
+                  <p className="text-[9px] font-black text-teal-600 uppercase tracking-widest">Sent to SF</p>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-extrabold text-foreground">{currentWeekSalesforceLeadsCount}</p>
-              <p className="text-xs font-semibold text-teal-600/70 mt-1 flex items-center gap-1">
+              <p className="text-2xl font-black text-slate-800">{currentWeekSalesforceLeadsCount}</p>
+              <p className="text-[9px] font-semibold text-teal-600/70 mt-1 flex items-center gap-1">
                 View Details <ArrowRight className="w-2.5 h-2.5" />
               </p>
             </div>
@@ -1225,15 +1269,15 @@ export function FridayPerformanceReview({
           
           {/* CRM Opportunities Table */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
               <Target className="w-4 h-4 text-accent" />
               Active Opportunities ({currentWeekData.opportunities.length})
             </h4>
             {currentWeekData.opportunities.length > 0 ? (
               <div className="overflow-x-auto border rounded-xl">
                 <table className="w-full text-xs">
-                  <thead className="bg-secondary/60 border-b">
-                    <tr className="text-xs font-semibold text-muted-foreground">
+                  <thead className="bg-slate-50 border-b">
+                    <tr className="text-[8px] font-black uppercase tracking-widest text-slate-500">
                       <th className="px-4 py-2 text-left">Account</th>
                       <th className="px-4 py-2 text-left">Stage</th>
                       <th className="px-4 py-2 text-right">Value</th>
@@ -1242,14 +1286,14 @@ export function FridayPerformanceReview({
                   </thead>
                   <tbody className="divide-y">
                     {currentWeekData.opportunities.map((opp: any) => (
-                      <tr key={opp.id} className="hover:bg-secondary/60">
-                        <td className="px-4 py-2 font-bold text-foreground/85">{opp.pipeline}</td>
+                      <tr key={opp.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-2 font-bold text-slate-700">{opp.pipeline}</td>
                         <td className="px-4 py-2">
-                          <Badge variant="outline" className="text-xs font-semibold">
+                          <Badge variant="outline" className="text-[8px] font-black uppercase">
                             {opp.stage || 'Discovery'}
                           </Badge>
                         </td>
-                        <td className="px-4 py-2 text-right font-bold">{formatEAV(opp.value || 0)}</td>
+                        <td className="px-4 py-2 text-right font-black">{formatEAV(opp.value || 0)}</td>
                         <td className="px-4 py-2 text-right font-bold">{opp.probability || 0}%</td>
                       </tr>
                     ))}
@@ -1257,162 +1301,162 @@ export function FridayPerformanceReview({
                 </table>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground italic">No active opportunities found in CRM for this week.</p>
+              <p className="text-xs text-slate-400 italic">No active opportunities found in CRM for this week.</p>
             )}
           </div>
           
           {/* Thursday TWTW Data */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
-                <Award className="w-4 h-4 text-success" />
+              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+                <Award className="w-4 h-4 text-emerald-500" />
                 Thursday TWTW Wins ({currentWeekData.wins.length})
               </h4>
               {currentWeekData.wins.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.wins.map((w: any, i: number) => (
-                    <div key={i} className="p-3 bg-success-soft border border-success/20 rounded-xl">
-                      <p className="font-bold text-foreground">{w.customer}</p>
-                      <p className="text-sm font-semibold text-success-ink">{formatEAV(w.value)}</p>
-                      {w.updateText && <p className="text-xs text-foreground/75 mt-1">{w.updateText}</p>}
+                    <div key={i} className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+                      <p className="font-bold text-slate-800">{w.customer}</p>
+                      <p className="text-sm font-black text-emerald-600">{formatEAV(w.value)}</p>
+                      {w.updateText && <p className="text-xs text-slate-600 mt-1">{w.updateText}</p>}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic">No wins logged in Thursday TWTW.</p>
+                <p className="text-xs text-slate-400 italic">No wins logged in Thursday TWTW.</p>
               )}
             </div>
             
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-destructive" />
+              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-500" />
                 Risks & Barriers
               </h4>
               {currentWeekData.risks.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.risks.map((r: any, i: number) => (
-                    <div key={i} className="p-3 bg-danger-soft border border-destructive/20 rounded-xl">
-                      <p className="font-bold text-foreground">{r.account}</p>
-                      <p className="text-sm font-semibold text-destructive">{formatEAV(r.value)}</p>
-                      {r.mitigation && <p className="text-xs text-foreground/75 mt-1">Mitigation: {r.mitigation}</p>}
+                    <div key={i} className="p-3 bg-rose-50 border border-rose-100 rounded-xl">
+                      <p className="font-bold text-slate-800">{r.account}</p>
+                      <p className="text-sm font-black text-rose-600">{formatEAV(r.value)}</p>
+                      {r.mitigation && <p className="text-xs text-slate-600 mt-1">Mitigation: {r.mitigation}</p>}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic">No risks logged in Thursday TWTW.</p>
+                <p className="text-xs text-slate-400 italic">No risks logged in Thursday TWTW.</p>
               )}
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-accent" />
+              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-500" />
                 30 Day Projected Wins ({currentWeekData.projectedWins.length})
               </h4>
               {currentWeekData.projectedWins.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.projectedWins.map((w: any, i: number) => (
-                    <div key={i} className="p-3 bg-info-soft border border-info/20 rounded-xl">
-                      <p className="font-bold text-foreground">{w.account}</p>
+                    <div key={i} className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                      <p className="font-bold text-slate-800">{w.account}</p>
                       <div className="flex justify-between items-center mt-1">
-                        <p className="text-sm font-semibold text-accent">{formatEAV(w.value)}</p>
-                        <Badge variant="outline" className="text-xs bg-card text-foreground/75">{w.expectedDate}</Badge>
+                        <p className="text-sm font-black text-blue-600">{formatEAV(w.value)}</p>
+                        <Badge variant="outline" className="text-[9px] bg-white text-slate-600">{w.expectedDate}</Badge>
                       </div>
-                      {w.updateText && <p className="text-xs text-foreground/75 mt-2">{w.updateText}</p>}
+                      {w.updateText && <p className="text-xs text-slate-600 mt-2">{w.updateText}</p>}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic">No projected wins logged.</p>
+                <p className="text-xs text-slate-400 italic">No projected wins logged.</p>
               )}
             </div>
             
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-accent" />
+              <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-purple-500" />
                 Major Pipeline & Customer Updates ({currentWeekData.updates.length})
               </h4>
               {currentWeekData.updates.length > 0 ? (
                 <div className="space-y-2">
                   {currentWeekData.updates.map((u: any, i: number) => (
-                    <div key={i} className="p-3 bg-info-soft border border-info/20 rounded-xl">
-                      <p className="font-bold text-foreground">{u.customer}</p>
-                      {u.value > 0 && <p className="text-sm font-semibold text-accent">{formatEAV(u.value)}</p>}
-                      <p className="text-xs text-foreground/85 mt-1">{u.updateText}</p>
+                    <div key={i} className="p-3 bg-purple-50 border border-purple-100 rounded-xl">
+                      <p className="font-bold text-slate-800">{u.customer}</p>
+                      {u.value > 0 && <p className="text-sm font-black text-purple-600">{formatEAV(u.value)}</p>}
+                      <p className="text-xs text-slate-700 mt-1">{u.updateText}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic">No major updates logged.</p>
+                <p className="text-xs text-slate-400 italic">No major updates logged.</p>
               )}
             </div>
           </div>
           
           {/* Weekly Compliance Audit */}
           <div className="pt-4 border-t space-y-4">
-            <h4 className="text-xs font-semibold text-foreground/85 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-success" />
+            <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
               Weekly Compliance Audit
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Call Plans */}
               <div className="space-y-2">
-                <h5 className="text-xs font-semibold text-muted-foreground">📞 Call Plans</h5>
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">📞 Call Plans</h5>
                 {userCallPlans.length > 0 ? (
                   <div className="space-y-2">
                     {userCallPlans.map((plan: any) => (
-                      <div key={plan.id} className="text-xs p-3 bg-card border rounded-xl shadow-sm">
-                        <div className="font-bold text-foreground">{plan.customerName || 'Unnamed'}</div>
-                        <div className="text-muted-foreground mt-1 flex justify-between">
+                      <div key={plan.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
+                        <div className="font-bold text-slate-800">{plan.customerName || 'Unnamed'}</div>
+                        <div className="text-slate-500 mt-1 flex justify-between">
                           <span>{plan.objective || 'No objective'}</span>
-                          <span className="font-bold text-success-ink">{plan.status || 'Draft'}</span>
+                          <span className="font-black text-emerald-600">{plan.status || 'Draft'}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs font-semibold text-destructive bg-danger-soft border border-destructive/20 rounded-xl p-3">No Call Plans Created</p>
+                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No Call Plans Created</p>
                 )}
               </div>
 
               {/* White Space */}
               <div className="space-y-2">
-                <h5 className="text-xs font-semibold text-muted-foreground">🗺️ White Space Reports</h5>
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">🗺️ White Space Reports</h5>
                 {userWhitespace.length > 0 ? (
                   <div className="space-y-2">
                     {userWhitespace.map((ws: any) => (
-                      <div key={ws.id} className="text-xs p-3 bg-card border rounded-xl shadow-sm">
-                        <div className="font-bold text-foreground">{ws.customerName || 'Unnamed'}</div>
-                        <div className="text-muted-foreground mt-1 flex justify-between">
+                      <div key={ws.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
+                        <div className="font-bold text-slate-800">{ws.customerName || 'Unnamed'}</div>
+                        <div className="text-slate-500 mt-1 flex justify-between">
                           <span>{ws.competitor || 'No competitor listed'}</span>
-                          <span className="font-bold text-success-ink">{formatEAV(ws.estimatedValue || 0)}</span>
+                          <span className="font-black text-emerald-600">{formatEAV(ws.estimatedValue || 0)}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs font-semibold text-destructive bg-danger-soft border border-destructive/20 rounded-xl p-3">No White Space Reports Created</p>
+                  <p className="text-xs font-black text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">No White Space Reports Created</p>
                 )}
               </div>
 
               {/* Ops Reports */}
               <div className="space-y-2">
-                <h5 className="text-xs font-semibold text-muted-foreground">⚠️ Ops Reports</h5>
+                <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">⚠️ Ops Reports</h5>
                 {userOps.length > 0 ? (
                   <div className="space-y-2">
                     {userOps.map((op: any) => (
-                      <div key={op.id} className="text-xs p-3 bg-card border rounded-xl shadow-sm">
-                        <div className="font-bold text-foreground">{op.customerName || 'Unnamed'}</div>
-                        <div className="text-muted-foreground mt-1 flex justify-between">
+                      <div key={op.id} className="text-xs p-3 bg-white border rounded-xl shadow-sm">
+                        <div className="font-bold text-slate-800">{op.customerName || 'Unnamed'}</div>
+                        <div className="text-slate-500 mt-1 flex justify-between">
                           <span className="truncate pr-2">{op.issueType || 'General'}</span>
-                          <span className={cn("font-bold", op.status === 'Resolved' ? 'text-success-ink' : 'text-warning-ink')}>{op.status || 'Open'}</span>
+                          <span className={cn("font-black", op.status === 'Resolved' ? 'text-emerald-600' : 'text-amber-600')}>{op.status || 'Open'}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs font-semibold text-success-ink bg-success-soft border border-success/20 rounded-xl p-3">No Ops Issues Logged</p>
+                  <p className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl p-3">No Ops Issues Logged</p>
                 )}
               </div>
             </div>
@@ -1420,272 +1464,286 @@ export function FridayPerformanceReview({
           
           {/* User Narrative */}
           {currentWeekData.narrative && (
-            <div className="p-4 bg-secondary/60 border rounded-xl">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">📝 Narrative Summary</p>
-              <p className="text-sm text-foreground/85 whitespace-pre-wrap">{currentWeekData.narrative}</p>
+            <div className="p-4 bg-slate-50 border rounded-xl">
+              <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">📝 Narrative Summary</p>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">{currentWeekData.narrative}</p>
             </div>
           )}
         </CardContent>
       </Card>
       
-      {/* ─── Section 2: Next Week Planning ─────────────────────────────────── */}
-      <Card className="border-none shadow-xl bg-card overflow-hidden">
-        <CardHeader className="bg-secondary/60 border-b py-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2">
-                <Target className="w-5 h-5 text-accent" />
-                Week {nextWeek.split('-')[1]} Planning
-              </CardTitle>
-              <CardDescription className="text-xs font-bold text-muted-foreground mt-0.5">
-                Set your KPI targets, focus accounts, and actions for the coming week
-              </CardDescription>
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
+          <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <CalendarCheck className="w-5 h-5 text-accent" />
+            2. Upcoming Appointments · Week {nextWeek.split('-')[1]}
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            Face to face meetings set for the week, why we are meeting, desired outcome and support
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-3">
+            {nextWeekPlan.appointments.map((a) => (
+              <div key={a.id} className="p-4 bg-slate-50 border rounded-xl space-y-3">
+                <div className="flex gap-2 items-center">
+                  <Input placeholder="Customer..." value={a.customer} onChange={e => updateAppointment(a.id, 'customer', e.target.value)} className="h-9 text-xs font-bold flex-1" />
+                  <Button type="button" variant="outline" size="icon" title="Select from CRM" onClick={() => { setSelectorAccountId(`appointments::${a.id}`); setIsSelectorOpen(true); }} className="h-9 w-9 bg-white shrink-0 rounded-xl"><Search className="w-4 h-4" /></Button>
+                  <Input type="date" value={a.date} onChange={e => updateAppointment(a.id, 'date', e.target.value)} className="h-9 text-xs w-[150px]" />
+                  <select value={a.meetingType} onChange={e => updateAppointment(a.id, 'meetingType', e.target.value)} className="h-9 text-[10px] font-black uppercase rounded-lg border bg-white px-2">
+                    {['Face to Face', 'Video', 'Phone', 'Site Visit'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <Button variant="ghost" size="icon" onClick={() => removeAppointment(a.id)} className="h-8 w-8 text-red-300 hover:text-red-500 shrink-0"><Trash2 className="w-4 h-4" /></Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Textarea placeholder="Why are we meeting?" value={a.purpose} onChange={e => updateAppointment(a.id, 'purpose', e.target.value)} className="min-h-[60px] text-xs" />
+                  <Textarea placeholder="Desired outcome" value={a.desiredOutcome} onChange={e => updateAppointment(a.id, 'desiredOutcome', e.target.value)} className="min-h-[60px] text-xs" />
+                  <Textarea placeholder="Support required" value={a.supportRequired} onChange={e => updateAppointment(a.id, 'supportRequired', e.target.value)} className="min-h-[60px] text-xs" />
+                </div>
+              </div>
+            ))}
+            {nextWeekPlan.appointments.length === 0 && (
+              <p className="text-xs text-slate-400 italic text-center py-4">No appointments yet. Call plans for Week {nextWeek.split('-')[1]} are added automatically.</p>
+            )}
+            <Button onClick={addAppointment} variant="outline" size="sm" className="text-[10px] font-black uppercase tracking-wider h-9 border-dashed border-slate-300 bg-white text-slate-700 flex items-center gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Add Appointment
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
+          <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <Briefcase className="w-5 h-5 text-accent" />
+            3. Pipeline / Opportunities Review
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            Key deals progressing, stalled opportunities, new opportunities and accounts handed over
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {PIPELINE_SECTIONS.map(({ key, label, notePlaceholder }) => (
+              <div key={key} className="space-y-2">
+                <h4 className="text-xs font-black uppercase text-slate-700">{label}</h4>
+                {nextWeekPlan.pipeline[key].map((r) => (
+                  <div key={r.id} className="p-3 bg-slate-50 border rounded-xl space-y-2">
+                    <div className="flex gap-2 items-center">
+                      <Input placeholder="Account / opportunity..." value={r.account} onChange={e => updatePipelineRow(key, r.id, 'account', e.target.value)} className="h-9 text-xs font-bold flex-1" />
+                      <Button type="button" variant="outline" size="icon" title="Select from CRM" onClick={() => { setSelectorAccountId(`${key}::${r.id}`); setIsSelectorOpen(true); }} className="h-9 w-9 bg-white shrink-0 rounded-xl"><Search className="w-4 h-4" /></Button>
+                      <Input type="number" placeholder="EAV ($)" value={r.value || ''} onChange={e => updatePipelineRow(key, r.id, 'value', parseFloat(e.target.value) || 0)} className="h-9 text-xs w-[110px] bg-white" />
+                      <Button variant="ghost" size="icon" onClick={() => removePipelineRow(key, r.id)} className="h-8 w-8 text-red-300 hover:text-red-500 shrink-0"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                    <Input placeholder={notePlaceholder} value={r.note} onChange={e => updatePipelineRow(key, r.id, 'note', e.target.value)} className="h-9 text-xs bg-white" />
+                  </div>
+                ))}
+                <Button onClick={() => addPipelineRow(key)} variant="outline" size="sm" className="text-[10px] font-black uppercase tracking-wider h-9 border-dashed border-slate-300 bg-white text-slate-700 flex items-center gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Add
+            </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
+          <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <Target className="w-5 h-5 text-accent" />
+            4. Weekly Goals &amp; KPIs · Week {nextWeek.split('-')[1]}
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            Targets for the week, with last week's actual vs target
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="space-y-1">
+                <Label className="text-[8px] font-black uppercase text-slate-400">Calls Target</Label>
+                <Input type="number" value={nextWeekPlan.kpiTargets.callsToMake}
+                  onChange={e => setNextWeekPlan(prev => ({ ...prev, kpiTargets: { ...prev.kpiTargets, callsToMake: parseInt(e.target.value) || 0 } }))}
+                  className="h-9 text-xs font-black" />
+                <p className="text-[9px] font-bold text-slate-500">Last week: {currentWeekData.activity.calls}{prevTargets ? ` / ${prevTargets.callsToMake ?? 0} target` : ''}</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[8px] font-black uppercase text-slate-400">Appts Target</Label>
+                <Input type="number" value={nextWeekPlan.kpiTargets.appointmentsToSet}
+                  onChange={e => setNextWeekPlan(prev => ({ ...prev, kpiTargets: { ...prev.kpiTargets, appointmentsToSet: parseInt(e.target.value) || 0 } }))}
+                  className="h-9 text-xs font-black" />
+                <p className="text-[9px] font-bold text-slate-500">Last week: {currentWeekData.activity.apps}{prevTargets ? ` / ${prevTargets.appointmentsToSet ?? 0} target` : ''}</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[8px] font-black uppercase text-slate-400">Proposals Target</Label>
+                <Input type="number" value={nextWeekPlan.kpiTargets.proposalsToSend}
+                  onChange={e => setNextWeekPlan(prev => ({ ...prev, kpiTargets: { ...prev.kpiTargets, proposalsToSend: parseInt(e.target.value) || 0 } }))}
+                  className="h-9 text-xs font-black" />
+                <p className="text-[9px] font-bold text-slate-500">Last week: {currentWeekData.activity.proposals}{prevTargets ? ` / ${prevTargets.proposalsToSend ?? 0} target` : ''}</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[8px] font-black uppercase text-slate-400">Deals Target</Label>
+                <Input type="number" value={nextWeekPlan.kpiTargets.dealsToClose}
+                  onChange={e => setNextWeekPlan(prev => ({ ...prev, kpiTargets: { ...prev.kpiTargets, dealsToClose: parseInt(e.target.value) || 0 } }))}
+                  className="h-9 text-xs font-black" />
+                <p className="text-[9px] font-bold text-slate-500">Last week: {currentWeekData.activity.deals}{prevTargets ? ` / ${prevTargets.dealsToClose ?? 0} target` : ''}</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[8px] font-black uppercase text-slate-400">Revenue ($) Target</Label>
+                <Input type="number" value={nextWeekPlan.kpiTargets.revenueTarget}
+                  onChange={e => setNextWeekPlan(prev => ({ ...prev, kpiTargets: { ...prev.kpiTargets, revenueTarget: parseInt(e.target.value) || 0 } }))}
+                  className="h-9 text-xs font-black" />
+                <p className="text-[9px] font-bold text-slate-500">Last week: {currentWeekData.revenue.won ? formatEAV(currentWeekData.revenue.won) : formatEAV(0)}{prevTargets ? ` / ${formatEAV(prevTargets.revenueTarget || 0)} target` : ''}</p>
+              </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-black uppercase text-indigo-600">Key Focus Metrics</Label>
+              <Textarea placeholder="e.g. 3 new F2F meetings with B2B prospects, 2 proposals over $100k..." value={nextWeekPlan.keyFocusMetrics} onChange={e => setNextWeekPlan(prev => ({ ...prev, keyFocusMetrics: e.target.value }))} className="min-h-[70px] text-xs rounded-xl" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-black uppercase text-indigo-600">Individual Commitment</Label>
+              <Textarea placeholder="What I personally commit to this week..." value={nextWeekPlan.individualCommitment} onChange={e => setNextWeekPlan(prev => ({ ...prev, individualCommitment: e.target.value }))} className="min-h-[70px] text-xs rounded-xl" />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
+          <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <ListOrdered className="w-5 h-5 text-accent" />
+            5. Top 3 Priorities
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            Most important task, second and third priority
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-2">
+            {nextWeekPlan.topPriorities.map((p, index) => (
+              <div key={index} className="flex gap-3 items-center">
+                <Badge className="bg-accent text-white font-black text-[10px] shrink-0 w-7 justify-center">{index + 1}</Badge>
+                <Input placeholder={['Most important task', 'Second priority', 'Third priority'][index]} value={p} onChange={e => updatePriority(index, e.target.value)} className="h-9 text-xs font-bold" />
+              </div>
+            ))}
+          </div>
+          {twtwActionList.length > 0 && (
+            <div className="p-4 bg-slate-50 border rounded-xl space-y-2">
+              <p className="text-[10px] font-black uppercase text-slate-500">This Weeks Actions from Thursday TWTW (Week {currentWeek.split('-')[1]})</p>
+              {twtwActionList.map((a, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <span className="flex-1 text-slate-700">{a}</span>
+                  <Button size="sm" variant="outline" className="h-7 text-[9px] font-black uppercase" onClick={() => addCommitment(a)}><Plus className="w-3 h-3 mr-1" /> Commitment</Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
+          <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-accent" />
+            6. Challenges &amp; Roadblocks
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            What's slowing progress?
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {([
+              ['customerIssues', 'Customer Issues', 'Customer problems slowing progress...'],
+              ['internalIssues', 'Internal Process Issues', 'What internal process is slowing you down?'],
+              ['resourcesRequired', 'Resources / Support Required', 'What support do you need from leadership?'],
+            ] as const).map(([key, label, ph]) => (
+              <div key={key} className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-red-600 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> {label}</Label>
+                <Textarea placeholder={ph} value={nextWeekPlan.challenges[key]} onChange={e => setNextWeekPlan(prev => ({ ...prev, challenges: { ...prev.challenges, [key]: e.target.value } }))} className="min-h-[90px] text-xs rounded-xl" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
+          <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <Activity className="w-5 h-5 text-accent" />
+            7. Business Updates
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            Team-level pricing, product and competitor updates (entered by managers)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {([
+              ['pricingChanges', 'Pricing Changes'],
+              ['productUpdates', 'Product Updates'],
+              ['competitorActivity', 'Competitor Activity'],
+            ] as const).map(([key, label]) => (
+              <div key={key} className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-blue-600">{label}</Label>
+                {isSuperAdminOrLeader ? (
+                  <Textarea value={businessUpdates[key]} onChange={e => setBusinessUpdates(prev => ({ ...prev, [key]: e.target.value }))} className="min-h-[80px] text-xs rounded-xl" />
+                ) : (
+                  <p className="min-h-[80px] text-xs text-slate-700 bg-slate-50 border rounded-xl p-3 whitespace-pre-wrap">{businessUpdates[key] || 'No update this week.'}</p>
+                )}
+              </div>
+            ))}
+          </div>
+          {isSuperAdminOrLeader && (
+            <div className="flex justify-end">
+              <Button onClick={handleSaveBusinessUpdates} disabled={isSavingUpdates} size="sm" className="text-[10px] font-black uppercase gap-1.5">
+                {isSavingUpdates ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Save Team Updates
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-xl bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-5">
+          <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <ClipboardCheck className="w-5 h-5 text-accent" />
+            8. Commitments Before Next Meeting
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            Reviewed with done / not done ticks at next Monday&apos;s NWA
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-6 space-y-8">
-          {/* KPI Targets */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-semibold text-foreground/85">KPI Targets</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-muted-foreground">Calls Target</Label>
-                <Input 
-                  type="number" 
-                  value={nextWeekPlan.kpiTargets.callsToMake} 
-                  onChange={e => setNextWeekPlan(prev => ({
-                    ...prev,
-                    kpiTargets: { ...prev.kpiTargets, callsToMake: parseInt(e.target.value) || 0 }
-                  }))}
-                  className="h-9 text-xs font-semibold"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-muted-foreground">Appts Target</Label>
-                <Input 
-                  type="number" 
-                  value={nextWeekPlan.kpiTargets.appointmentsToSet} 
-                  onChange={e => setNextWeekPlan(prev => ({
-                    ...prev,
-                    kpiTargets: { ...prev.kpiTargets, appointmentsToSet: parseInt(e.target.value) || 0 }
-                  }))}
-                  className="h-9 text-xs font-semibold"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-muted-foreground">Proposals Target</Label>
-                <Input 
-                  type="number" 
-                  value={nextWeekPlan.kpiTargets.proposalsToSend} 
-                  onChange={e => setNextWeekPlan(prev => ({
-                    ...prev,
-                    kpiTargets: { ...prev.kpiTargets, proposalsToSend: parseInt(e.target.value) || 0 }
-                  }))}
-                  className="h-9 text-xs font-semibold"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-muted-foreground">Deals Target</Label>
-                <Input 
-                  type="number" 
-                  value={nextWeekPlan.kpiTargets.dealsToClose} 
-                  onChange={e => setNextWeekPlan(prev => ({
-                    ...prev,
-                    kpiTargets: { ...prev.kpiTargets, dealsToClose: parseInt(e.target.value) || 0 }
-                  }))}
-                  className="h-9 text-xs font-semibold"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-muted-foreground">Revenue ($)</Label>
-                <Input 
-                  type="number" 
-                  value={nextWeekPlan.kpiTargets.revenueTarget} 
-                  onChange={e => setNextWeekPlan(prev => ({
-                    ...prev,
-                    kpiTargets: { ...prev.kpiTargets, revenueTarget: parseInt(e.target.value) || 0 }
-                  }))}
-                  className="h-9 text-xs font-semibold"
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* Focus Accounts */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold text-foreground/85">Focus Accounts</h4>
-            </div>
-            <div className="space-y-3">
-              {nextWeekPlan.focusAccounts.map((acc) => (
-                <div key={acc.id} className="p-4 bg-secondary/60 border rounded-xl space-y-3 relative group">
-                  <div className="flex justify-between items-center gap-2">
-                    <Input 
-                      placeholder="Account Name..." 
-                      value={acc.accountName} 
-                      onChange={e => updateFocusAccount(acc.id, 'accountName', e.target.value)}
-                      className="h-9 text-xs font-bold flex-1"
-                    />
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        setSelectorAccountId(acc.id);
-                        setIsSelectorOpen(true);
-                      }}
-                      className="h-9 w-9 bg-card border-border text-muted-foreground hover:text-accent hover:border-accent shrink-0 rounded-xl"
-                      title="Select from CRM Upload"
-                    >
-                      <Search className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => removeFocusAccount(acc.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <select 
-                      value={acc.actionType} 
-                      onChange={e => updateFocusAccount(acc.id, 'actionType', e.target.value)}
-                      className="h-9 text-xs font-semibold rounded-lg border bg-card px-2"
-                    >
-                      {['Prospect', 'Develop', 'Propose', 'Negotiate', 'Finalise', 'Pending Trade', 'Closed - Won'].map(t => (
-                        <option key={t} value={t}>{t.toUpperCase()}</option>
-                      ))}
-                    </select>
-                    <Input 
-                      type="number" 
-                      placeholder="EAV ($)" 
-                      value={acc.eav || ''} 
-                      onChange={e => updateFocusAccount(acc.id, 'eav', parseFloat(e.target.value) || 0)}
-                      className="h-9 text-xs bg-card"
-                    />
-                  </div>
-                  <Textarea 
-                    placeholder="About account..." 
-                    value={acc.aboutAccount} 
-                    onChange={e => updateFocusAccount(acc.id, 'aboutAccount', e.target.value)}
-                    className="min-h-[60px] text-xs"
-                  />
-                </div>
-              ))}
-              {nextWeekPlan.focusAccounts.length === 0 && (
-                <p className="text-xs text-muted-foreground italic text-center py-4">No focus accounts added yet.</p>
-              )}
-              <div className="pt-1">
-                <Button 
-                  onClick={addFocusAccount} 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-xs font-semibold h-9 border-dashed border-border hover:border-muted-foreground/40 bg-card shadow-sm hover:bg-secondary/60 text-foreground/85 flex items-center gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Focus Account
-                </Button>
-              </div>
-            </div>
-          </div>
-          
-          {/* This Weeks Actions */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold text-foreground/85">This Weeks Actions</h4>
-            </div>
-            <div className="space-y-2">
-              {nextWeekPlan.actionPlan.map((action, index) => (
-                <div key={index} className="flex gap-3 items-center group">
-                  <Badge className="bg-secondary text-foreground/85 font-semibold text-xs border shrink-0">
-                    Action {index + 1}
-                  </Badge>
-                  <Input 
-                    placeholder="Enter tactical action..." 
-                    value={action} 
-                    onChange={e => updateAction(index, e.target.value)}
-                    className="h-9 text-xs font-bold"
-                  />
-                  {nextWeekPlan.actionPlan.length > 1 && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => removeAction(index)}
-                      className="h-8 w-8 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <div className="pt-1">
-                <Button 
-                  onClick={addAction} 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-xs font-semibold h-9 border-dashed border-border hover:border-muted-foreground/40 bg-card shadow-sm hover:bg-secondary/60 text-foreground/85 flex items-center gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Action Item
-                </Button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Roadblocks & Support */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold text-destructive flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-destructive" /> Anticipated Roadblocks
-              </Label>
-              <Textarea 
-                placeholder="What roadblocks do you anticipate next week?" 
-                value={nextWeekPlan.roadblocks} 
-                onChange={e => setNextWeekPlan(prev => ({ ...prev, roadblocks: e.target.value }))}
-                className="min-h-[90px] text-xs font-medium rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold text-accent flex items-center gap-1">
-                <LifeBuoy className="w-3.5 h-3.5 text-accent" /> Management Support Needed
-              </Label>
-              <Textarea 
-                placeholder="What support do you need from leadership?" 
-                value={nextWeekPlan.supportNeeded} 
-                onChange={e => setNextWeekPlan(prev => ({ ...prev, supportNeeded: e.target.value }))}
-                className="min-h-[90px] text-xs font-medium rounded-xl"
-              />
-            </div>
-          </div>
-          
-          {/* Strategic Focus */}
           <div className="space-y-2">
-            <Label className="text-xs font-semibold text-accent flex items-center gap-1">
-              <Target className="w-3.5 h-3.5 text-accent" /> Strategic Focus for Next Week
-            </Label>
-            <Textarea 
-              placeholder="What is your primary strategic focus next week?" 
-              value={nextWeekPlan.strategicFocus} 
-              onChange={e => setNextWeekPlan(prev => ({ ...prev, strategicFocus: e.target.value }))}
-              className="min-h-[60px] text-xs font-medium rounded-xl"
-            />
+            {nextWeekPlan.commitments.map((c) => (
+              <div key={c.id} className="flex gap-3 items-center">
+                <Checkbox checked={false} disabled className="shrink-0" />
+                <Input placeholder="I will complete..." value={c.text} onChange={e => updateCommitment(c.id, e.target.value)} className="h-9 text-xs font-bold" />
+                <Button variant="ghost" size="icon" onClick={() => removeCommitment(c.id)} className="h-8 w-8 text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
+              </div>
+            ))}
+            {nextWeekPlan.commitments.length === 0 && <p className="text-xs text-slate-400 italic text-center py-2">No commitments yet.</p>}
+            <Button onClick={() => addCommitment()} variant="outline" size="sm" className="text-[10px] font-black uppercase tracking-wider h-9 border-dashed border-slate-300 bg-white text-slate-700 flex items-center gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Add Commitment
+            </Button>
           </div>
 
           {/* Publication Status Panel (uniform with TWTW but full-width) */}
           <div className="mt-8 pt-6 border-t w-full">
-            <Card className="border-primary/80 shadow-xl rounded-3xl overflow-hidden bg-primary text-white w-full">
-              <CardHeader className="border-b border-primary/80 py-4">
-                <CardTitle className="text-xs font-semibold text-accent flex items-center gap-2">
+            <Card className="border-slate-800 shadow-xl rounded-3xl overflow-hidden bg-slate-900 text-white w-full">
+              <CardHeader className="border-b border-slate-800 py-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
                   <ClipboardCheck className="w-4 h-4" /> Publication Status
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex justify-between items-center md:justify-start md:gap-6 bg-card/5 border border-white/10 rounded-2xl p-3 md:flex-1">
-                  <span className="text-xs font-semibold text-muted-foreground">Current Status</span>
+                <div className="flex justify-between items-center md:justify-start md:gap-6 bg-white/5 border border-white/10 rounded-2xl p-3 md:flex-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Status</span>
                   <Badge className={cn(
-                    "border-none text-xs font-semibold px-2 py-0.5 rounded-full",
-                    status === 'SUBMITTED' ? "bg-success-fill/20 text-success border-success/30" :
-                    status === 'DRAFT' ? "bg-warning/20 text-warning border-warning/30" : "bg-muted-foreground/20 text-muted-foreground/60"
+                    "border-none text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full",
+                    status === 'SUBMITTED' ? "bg-green-500/20 text-green-300 border-green-500/30" :
+                    status === 'DRAFT' ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-slate-500/20 text-slate-300"
                   )}>
                     {status === 'SUBMITTED' ? 'Submitted' : status === 'DRAFT' ? 'Draft' : 'Not Started'}
                   </Badge>
@@ -1695,19 +1753,19 @@ export function FridayPerformanceReview({
                   <Button 
                     onClick={handleSaveDraft} 
                     disabled={isSaving || isSubmitting}
-                    className="bg-primary hover:bg-primary/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-sm border border-primary/70 w-full sm:w-auto px-6"
+                    className="bg-slate-800 hover:bg-slate-700 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-sm border border-slate-700 w-full sm:w-auto px-6"
                   >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-muted-foreground/60" />}
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-slate-300" />}
                     Save Draft
                   </Button>
 
                   <Button 
                     onClick={handleSubmit} 
                     disabled={isSaving || isSubmitting}
-                    className="bg-accent hover:bg-accent/90 text-white font-semibold h-11 text-xs rounded-2xl gap-2 shadow-lg shadow-accent/20 w-full sm:w-auto px-8"
+                    className="bg-accent hover:bg-accent/90 text-white font-black h-11 text-xs uppercase tracking-widest rounded-2xl gap-2 shadow-lg shadow-accent/20 w-full sm:w-auto px-8"
                   >
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    {status === 'SUBMITTED' ? 'Update Submission' : 'Submit Friday Pack'}
+                    {status === 'SUBMITTED' ? 'Update Submission' : 'Submit NWA'}
                   </Button>
                 </div>
               </CardContent>
@@ -1718,25 +1776,25 @@ export function FridayPerformanceReview({
 
       {/* Super Admin 1-on-1 Review & Approval Panel */}
       {isSuperAdminOrLeader && (
-        <Card className="border-2 border-accent shadow-xl bg-gradient-to-br from-primary via-primary to-primary text-white overflow-hidden rounded-3xl mt-8">
-          <CardHeader className="border-b border-primary/60 pb-4">
+        <Card className="border-2 border-indigo-500 shadow-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white overflow-hidden rounded-3xl mt-8">
+          <CardHeader className="border-b border-indigo-800/60 pb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-success-fill text-foreground rounded-xl shadow-md font-bold">
+                <div className="p-2 bg-emerald-500 text-slate-950 rounded-xl shadow-md font-bold">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-base font-bold tracking-tight text-white flex items-center gap-2">
-                    Super Admin 1-on-1 Friday Review &amp; Sign-off
+                  <CardTitle className="text-base font-black uppercase tracking-tight text-white flex items-center gap-2">
+                    Monday NWA Review &amp; Sign-off
                   </CardTitle>
-                  <CardDescription className="text-xs text-info/70">
-                    Conducting Friday afternoon review with <strong className="text-success font-bold">{activeUserName}</strong> ({activeUserRole})
+                  <CardDescription className="text-xs text-indigo-200">
+                    Conducting Monday morning NWA review with <strong className="text-emerald-300 font-bold">{activeUserName}</strong> ({activeUserRole})
                   </CardDescription>
                 </div>
               </div>
 
               {adminReviewedBy && (
-                <Badge className="bg-success-fill/20 text-success border-success/40 text-xs px-3 py-1 font-bold">
+                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-xs px-3 py-1 font-bold">
                   ✓ Reviewed by {adminReviewedBy}
                 </Badge>
               )}
@@ -1744,33 +1802,33 @@ export function FridayPerformanceReview({
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-info/70 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-warning" />
+              <Label className="text-xs font-bold uppercase tracking-wider text-indigo-200 flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
                 Super Admin Coaching Notes &amp; 1-on-1 Discussion Summary
               </Label>
               <Textarea
-                placeholder="Enter 1-on-1 coaching feedback, agreed key actions, or performance notes discussed during Friday afternoon review..."
+                placeholder="Enter 1-on-1 coaching feedback, agreed key actions, or performance notes discussed during the Monday NWA review..."
                 value={adminCoachingNotes}
                 onChange={e => setAdminCoachingNotes(e.target.value)}
-                className="bg-primary/80 border-primary text-white placeholder:text-primary-foreground/60 min-h-[100px] text-xs font-medium focus-visible:ring-info/50"
+                className="bg-slate-950/80 border-indigo-800 text-white placeholder:text-slate-500 min-h-[100px] text-xs font-medium focus-visible:ring-indigo-400"
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-primary/60">
-              <div className="text-xs text-info font-medium">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-indigo-800/60">
+              <div className="text-xs text-indigo-300 font-medium">
                 {status === 'REVIEWED_BY_ADMIN' ? (
-                  <span className="text-success font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4" /> This Friday Review Pack has been signed off and locked by Admin.
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4" /> This NWA has been signed off and locked by Admin.
                   </span>
                 ) : (
-                  <span>Review status: <strong className="text-warning">{status}</strong>. Click button to complete 1-on-1 sign-off.</span>
+                  <span>Review status: <strong className="text-amber-400 uppercase">{status}</strong>. Click button to complete 1-on-1 sign-off.</span>
                 )}
               </div>
 
               <Button
                 onClick={handleAdminApprove}
                 disabled={isSaving}
-                className="w-full sm:w-auto bg-gradient-to-r from-success-fill to-teal-600 hover:from-success-fill hover:to-teal-700 text-foreground font-semibold text-xs h-11 px-6 rounded-xl shadow-lg gap-2"
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-black text-xs h-11 px-6 rounded-xl shadow-lg gap-2"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                 <span>Approve &amp; Mark 1-on-1 Reviewed ✓</span>
@@ -1782,12 +1840,12 @@ export function FridayPerformanceReview({
 
       {/* CRM Account Selector Dialog popup */}
       <Dialog open={isSelectorOpen} onOpenChange={setIsSelectorOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-border shadow-2xl bg-card">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-slate-100 shadow-2xl bg-white">
           <DialogHeader className="pb-4 border-b">
-            <DialogTitle className="text-base font-bold tracking-tight flex items-center gap-2 text-foreground">
-              <Building2 className="w-5 h-5 text-accent" /> Select Focus Account
+            <DialogTitle className="text-base font-black uppercase tracking-tight flex items-center gap-2 text-slate-800">
+              <Building2 className="w-5 h-5 text-accent" /> Select CRM Account
             </DialogTitle>
-            <DialogDescription className="text-xs font-bold text-muted-foreground mt-0.5">
+            <DialogDescription className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5">
               Choose an active opportunity or customer from your CRM uploads to auto-populate fields.
             </DialogDescription>
           </DialogHeader>
@@ -1795,12 +1853,12 @@ export function FridayPerformanceReview({
           {/* Search bar inside popup */}
           <div className="py-4">
             <div className="relative">
-              <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Search accounts by name, stage, or business unit..."
                 value={crmSearch}
                 onChange={e => setCrmSearch(e.target.value)}
-                className="pl-10 h-10 text-xs font-medium bg-secondary/60 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-accent"
+                className="pl-10 h-10 text-xs font-medium bg-slate-50 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-accent"
               />
             </div>
           </div>
@@ -1818,20 +1876,20 @@ export function FridayPerformanceReview({
                     className="p-4 border rounded-2xl hover:border-accent hover:bg-accent/5 cursor-pointer transition-all flex items-center justify-between group"
                   >
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors">
+                      <p className="text-xs font-black text-slate-800 group-hover:text-accent transition-colors">
                         {crmAcc.pipeline || crmAcc.opportunityName || 'Unnamed Account'}
                       </p>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className="bg-secondary text-foreground/75 font-bold border-none text-xs px-2 py-0.5 rounded-full">
+                        <Badge className="bg-slate-100 text-slate-600 font-bold border-none text-[8px] uppercase tracking-wide px-2 py-0.5 rounded-full">
                           {isOpp ? 'Opportunity' : 'Customer'}
                         </Badge>
                         {crmAcc.stage && (
-                          <Badge className="bg-info-soft text-accent font-bold border-none text-xs px-2 py-0.5 rounded-full">
+                          <Badge className="bg-blue-50 text-blue-600 font-bold border-none text-[8px] uppercase tracking-wide px-2 py-0.5 rounded-full">
                             {crmAcc.stage}
                           </Badge>
                         )}
                         {crmAcc.businessUnit && (
-                          <span className="text-xs text-muted-foreground font-bold">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">
                             BU: {crmAcc.businessUnit}
                           </span>
                         )}
@@ -1839,8 +1897,8 @@ export function FridayPerformanceReview({
                     </div>
                     
                     <div className="text-right">
-                      <p className="text-xs font-semibold text-foreground">{formatEAV(value)}</p>
-                      <p className="text-xs font-semibold text-muted-foreground">
+                      <p className="text-xs font-black text-slate-900">{formatEAV(value)}</p>
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                         {isOpp ? 'Expected Value' : 'YTD Revenue'}
                       </p>
                     </div>
@@ -1849,8 +1907,8 @@ export function FridayPerformanceReview({
               })
             ) : (
               <div className="py-20 text-center">
-                <Building2 className="w-12 h-12 text-border mx-auto mb-3" />
-                <p className="text-xs text-muted-foreground font-medium">No uploaded accounts found matching search.</p>
+                <Building2 className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                <p className="text-xs text-slate-400 font-medium">No uploaded accounts found matching search.</p>
               </div>
             )}
           </div>
@@ -1859,16 +1917,16 @@ export function FridayPerformanceReview({
 
       {/* ─── KPI Detail Breakdown Dialog Popup ────────────────────────────────── */}
       <Dialog open={!!kpiModalType} onOpenChange={(open) => { if (!open) setKpiModalType(null); }}>
-        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-border shadow-2xl bg-card">
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden p-6 border border-slate-100 shadow-2xl bg-white">
           <DialogHeader className="pb-4 border-b">
             <div className="flex items-center gap-3">
               <div className={cn(
                 "p-2.5 rounded-2xl font-bold text-white shadow-md",
-                kpiModalType === 'CALLS' ? "bg-accent" :
-                kpiModalType === 'APPOINTMENTS' ? "bg-success-fill" :
-                kpiModalType === 'OPPORTUNITIES' ? "bg-accent" :
-                kpiModalType === 'PIPELINE_VALUE' ? "bg-warning" :
-                kpiModalType === 'CANVASS_LEADS' ? "bg-accent" : "bg-teal-600"
+                kpiModalType === 'CALLS' ? "bg-blue-600" :
+                kpiModalType === 'APPOINTMENTS' ? "bg-emerald-600" :
+                kpiModalType === 'OPPORTUNITIES' ? "bg-purple-600" :
+                kpiModalType === 'PIPELINE_VALUE' ? "bg-amber-600" :
+                kpiModalType === 'CANVASS_LEADS' ? "bg-indigo-600" : "bg-teal-600"
               )}>
                 {kpiModalType === 'CALLS' && <Phone className="w-5 h-5" />}
                 {kpiModalType === 'APPOINTMENTS' && <CalendarCheck className="w-5 h-5" />}
@@ -1878,7 +1936,7 @@ export function FridayPerformanceReview({
                 {kpiModalType === 'SENT_TO_SF' && <ExternalLink className="w-5 h-5" />}
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold tracking-tight text-foreground">
+                <DialogTitle className="text-lg font-black uppercase tracking-tight text-slate-900">
                   {kpiModalType === 'CALLS' && `Phone Calls Breakdown · Week ${currentWeek.split('-')[1]}`}
                   {kpiModalType === 'APPOINTMENTS' && `Appointments & Meetings Breakdown · Week ${currentWeek.split('-')[1]}`}
                   {kpiModalType === 'OPPORTUNITIES' && `Active Opportunities · Week ${currentWeek.split('-')[1]}`}
@@ -1886,8 +1944,8 @@ export function FridayPerformanceReview({
                   {kpiModalType === 'CANVASS_LEADS' && `Canvassed Field Leads · Week ${currentWeek.split('-')[1]}`}
                   {kpiModalType === 'SENT_TO_SF' && `Salesforce Submitted Leads · Week ${currentWeek.split('-')[1]}`}
                 </DialogTitle>
-                <DialogDescription className="text-xs font-bold text-muted-foreground mt-0.5">
-                  Representative: <strong className="text-foreground font-bold">{activeUserName}</strong> · Week {currentWeek.split('-')[1]}
+                <DialogDescription className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+                  Representative: <strong className="text-slate-900 font-black">{activeUserName}</strong> · Week {currentWeek.split('-')[1]}
                 </DialogDescription>
               </div>
             </div>
@@ -1898,86 +1956,86 @@ export function FridayPerformanceReview({
             {/* CALLS DETAIL */}
             {kpiModalType === 'CALLS' && (
               <div className="space-y-4">
-                <div className="bg-info-soft p-4 rounded-2xl border border-info/20 flex items-center justify-between">
+                <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-primary">Total Calls Logged</span>
-                    <p className="text-xs text-primary font-medium">Phone calls and outreach logged for Week {currentWeek.split('-')[1]}</p>
+                    <span className="text-xs font-bold text-blue-900 uppercase tracking-wide">Total Calls Logged</span>
+                    <p className="text-[10px] text-blue-700 font-medium">Phone calls and outreach logged for Week {currentWeek.split('-')[1]}</p>
                   </div>
-                  <Badge className="bg-accent text-white font-semibold text-sm px-3 py-1">{currentWeekData.activity.calls}</Badge>
+                  <Badge className="bg-blue-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.calls}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden divide-y divide-border">
+                <div className="border rounded-2xl overflow-hidden divide-y divide-slate-100">
                   {callsList.length > 0 ? (
                     callsList.map((item, i) => (
-                      <div key={item.id || i} className="p-4 bg-card hover:bg-secondary/60 transition-colors space-y-2">
+                      <div key={item.id || i} className="p-4 bg-white hover:bg-slate-50 transition-colors space-y-2">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h4 className="font-semibold text-foreground text-sm flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <h4 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
                               {item.title}
                             </h4>
                             {item.dateTime && (
-                              <p className="text-xs font-bold text-primary mt-0.5 flex items-center gap-1.5">
-                                <Calendar className="w-3.5 h-3.5 text-accent" />
+                              <p className="text-xs font-bold text-blue-700 mt-0.5 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-blue-600" />
                                 {item.dateTime}
                               </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Badge className={`text-xs font-semibold px-2.5 py-1 ${item.badgeColor}`}>
+                            <Badge className={`text-[10px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
                               {item.type}
                             </Badge>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs font-bold gap-1 text-foreground/85 border-border hover:bg-secondary"
+                              className="h-7 text-xs font-bold gap-1 text-slate-700 border-slate-200 hover:bg-slate-100"
                               onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
                             >
-                              Salesforce <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                              Salesforce <ExternalLink className="w-3 h-3 text-slate-400" />
                             </Button>
                           </div>
                         </div>
 
                         {/* Details Metadata */}
-                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-foreground/75 font-medium pt-1 border-t border-border">
+                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium pt-1 border-t border-slate-50">
                           {item.contactName && (
                             <span className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                              <Users className="w-3.5 h-3.5 text-slate-400" />
                               <strong>Contact:</strong> {item.contactName}
                             </span>
                           )}
                           {item.contactPhone && (
                             <span className="flex items-center gap-1">
-                              <Phone className="w-3.5 h-3.5 text-muted-foreground" />
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
                               {item.contactPhone}
                             </span>
                           )}
                           {item.contactEmail && (
-                            <span className="flex items-center gap-1 text-muted-foreground">
+                            <span className="flex items-center gap-1 text-slate-500">
                               ✉ {item.contactEmail}
                             </span>
                           )}
                           {item.location && (
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
                               {item.location}
                             </span>
                           )}
                           {item.businessUnit && (
-                            <span className="font-bold text-accent text-xs">
+                            <span className="font-bold text-indigo-600 uppercase text-[10px]">
                               BU: {item.businessUnit}
                             </span>
                           )}
                         </div>
 
                         {item.notes && (
-                          <p className="text-xs text-foreground/75 italic bg-secondary/60 p-2.5 rounded-xl border border-border">
+                          <p className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                             "{item.notes}"
                           </p>
                         )}
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No detailed call logs found for this week.</div>
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No detailed call logs found for this week.</div>
                   )}
                 </div>
               </div>
@@ -1986,86 +2044,86 @@ export function FridayPerformanceReview({
             {/* APPOINTMENTS DETAIL */}
             {kpiModalType === 'APPOINTMENTS' && (
               <div className="space-y-4">
-                <div className="bg-success-soft p-4 rounded-2xl border border-success/20 flex items-center justify-between">
+                <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-success-ink">Total Appointments &amp; Meetings</span>
-                    <p className="text-xs text-success-ink font-medium">Client visits, meetings &amp; appointments for Week {currentWeek.split('-')[1]}</p>
+                    <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">Total Appointments &amp; Meetings</span>
+                    <p className="text-[10px] text-emerald-700 font-medium">Client visits, meetings &amp; appointments for Week {currentWeek.split('-')[1]}</p>
                   </div>
-                  <Badge className="bg-success-fill text-white font-semibold text-sm px-3 py-1">{currentWeekData.activity.apps}</Badge>
+                  <Badge className="bg-emerald-600 text-white font-black text-sm px-3 py-1">{currentWeekData.activity.apps}</Badge>
                 </div>
-                <div className="border rounded-2xl overflow-hidden divide-y divide-border">
+                <div className="border rounded-2xl overflow-hidden divide-y divide-slate-100">
                   {appointmentList.length > 0 ? (
                     appointmentList.map((item, i) => (
-                      <div key={item.id || i} className="p-4 bg-card hover:bg-secondary/60 transition-colors space-y-2">
+                      <div key={item.id || i} className="p-4 bg-white hover:bg-slate-50 transition-colors space-y-2">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h4 className="font-semibold text-foreground text-sm flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <h4 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
                               {item.title}
                             </h4>
                             {item.dateTime && (
-                              <p className="text-xs font-bold text-success-ink mt-0.5 flex items-center gap-1.5">
-                                <Calendar className="w-3.5 h-3.5 text-success-ink" />
+                              <p className="text-xs font-bold text-emerald-700 mt-0.5 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
                                 {item.dateTime}
                               </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Badge className={`text-xs font-semibold px-2.5 py-1 ${item.badgeColor}`}>
+                            <Badge className={`text-[10px] uppercase font-black px-2.5 py-1 ${item.badgeColor}`}>
                               {item.type}
                             </Badge>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs font-bold gap-1 text-foreground/85 border-border hover:bg-secondary"
+                              className="h-7 text-xs font-bold gap-1 text-slate-700 border-slate-200 hover:bg-slate-100"
                               onClick={() => openSalesforceSearch(item.title, item.salesforceId)}
                             >
-                              Salesforce <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                              Salesforce <ExternalLink className="w-3 h-3 text-slate-400" />
                             </Button>
                           </div>
                         </div>
 
                         {/* Details Metadata */}
-                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-foreground/75 font-medium pt-1 border-t border-border">
+                        <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium pt-1 border-t border-slate-50">
                           {item.contactName && (
                             <span className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                              <Users className="w-3.5 h-3.5 text-slate-400" />
                               <strong>Contact:</strong> {item.contactName}
                             </span>
                           )}
                           {item.contactPhone && (
                             <span className="flex items-center gap-1">
-                              <Phone className="w-3.5 h-3.5 text-muted-foreground" />
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
                               {item.contactPhone}
                             </span>
                           )}
                           {item.contactEmail && (
-                            <span className="flex items-center gap-1 text-muted-foreground">
+                            <span className="flex items-center gap-1 text-slate-500">
                               ✉ {item.contactEmail}
                             </span>
                           )}
                           {item.location && (
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
                               {item.location}
                             </span>
                           )}
                           {item.businessUnit && (
-                            <span className="font-bold text-accent text-xs">
+                            <span className="font-bold text-indigo-600 uppercase text-[10px]">
                               BU: {item.businessUnit}
                             </span>
                           )}
                         </div>
 
                         {item.notes && (
-                          <p className="text-xs text-foreground/75 italic bg-secondary/60 p-2.5 rounded-xl border border-border">
+                          <p className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                             "{item.notes}"
                           </p>
                         )}
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No appointment entries found for this week.</div>
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No appointment entries found for this week.</div>
                   )}
                 </div>
               </div>
@@ -2074,27 +2132,27 @@ export function FridayPerformanceReview({
             {/* OPPORTUNITIES DETAIL */}
             {kpiModalType === 'OPPORTUNITIES' && (
               <div className="space-y-4">
-                <div className="bg-info-soft p-4 rounded-2xl border border-info/20 flex items-center justify-between">
-                  <span className="text-xs font-bold text-primary">Active Opportunities Count</span>
-                  <Badge className="bg-accent text-white font-semibold text-sm px-3 py-1">{currentWeekData.opportunities.length}</Badge>
+                <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">Active Opportunities Count</span>
+                  <Badge className="bg-purple-600 text-white font-black text-sm px-3 py-1">{currentWeekData.opportunities.length}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekData.opportunities.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-secondary/60">
+                      <TableHeader className="bg-slate-50">
                         <TableRow>
-                          <TableHead className="text-xs font-semibold">Opportunity / Pipeline</TableHead>
-                          <TableHead className="text-xs font-semibold">Stage</TableHead>
-                          <TableHead className="text-xs font-semibold text-right">Expected EAV</TableHead>
-                          <TableHead className="text-xs font-semibold text-center">Salesforce</TableHead>
+                          <TableHead className="text-xs font-black">Opportunity / Pipeline</TableHead>
+                          <TableHead className="text-xs font-black">Stage</TableHead>
+                          <TableHead className="text-xs font-black text-right">Expected EAV</TableHead>
+                          <TableHead className="text-xs font-black text-center">Salesforce</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekData.opportunities.map((opp: any) => (
-                          <TableRow key={opp.id} className="hover:bg-secondary/60">
-                            <TableCell className="font-bold text-xs text-foreground">{opp.pipeline || opp.opportunityName}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-xs">{opp.stage || 'Discovery'}</Badge></TableCell>
-                            <TableCell className="text-right font-bold text-success-ink">{formatEAV(opp.value || 0)}</TableCell>
+                          <TableRow key={opp.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{opp.pipeline || opp.opportunityName}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[9px] uppercase">{opp.stage || 'Discovery'}</Badge></TableCell>
+                            <TableCell className="text-right font-black text-emerald-600">{formatEAV(opp.value || 0)}</TableCell>
                             <TableCell className="text-center">
                               <Button 
                                 size="sm" 
@@ -2110,7 +2168,7 @@ export function FridayPerformanceReview({
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No active opportunities found for this week.</div>
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No active opportunities found for this week.</div>
                   )}
                 </div>
               </div>
@@ -2119,34 +2177,34 @@ export function FridayPerformanceReview({
             {/* PIPELINE VALUE DETAIL */}
             {kpiModalType === 'PIPELINE_VALUE' && (
               <div className="space-y-4">
-                <div className="bg-warning-soft p-4 rounded-2xl border border-warning/20 flex items-center justify-between">
-                  <span className="text-xs font-bold text-warning-ink">Total Pipeline Value</span>
-                  <Badge className="bg-warning text-white font-bold text-base px-4 py-1">{formatEAV(currentWeekData.revenue.pipeline)}</Badge>
+                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Total Pipeline Value</span>
+                  <Badge className="bg-amber-600 text-white font-black text-base px-4 py-1">{formatEAV(currentWeekData.revenue.pipeline)}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekData.opportunities.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-secondary/60">
+                      <TableHeader className="bg-slate-50">
                         <TableRow>
-                          <TableHead className="text-xs font-semibold">Deal / Account</TableHead>
-                          <TableHead className="text-xs font-semibold">Stage</TableHead>
-                          <TableHead className="text-xs font-semibold">Business Unit</TableHead>
-                          <TableHead className="text-xs font-semibold text-right">Value</TableHead>
+                          <TableHead className="text-xs font-black">Deal / Account</TableHead>
+                          <TableHead className="text-xs font-black">Stage</TableHead>
+                          <TableHead className="text-xs font-black">Business Unit</TableHead>
+                          <TableHead className="text-xs font-black text-right">Value</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekData.opportunities.map((opp: any) => (
-                          <TableRow key={opp.id} className="hover:bg-secondary/60">
-                            <TableCell className="font-bold text-xs text-foreground">{opp.pipeline}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-xs">{opp.stage}</Badge></TableCell>
-                            <TableCell className="text-xs font-semibold text-muted-foreground">{opp.businessUnit || 'General'}</TableCell>
-                            <TableCell className="text-right font-bold text-warning-ink">{formatEAV(opp.value || 0)}</TableCell>
+                          <TableRow key={opp.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{opp.pipeline}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[9px] uppercase">{opp.stage}</Badge></TableCell>
+                            <TableCell className="text-xs font-semibold text-slate-500">{opp.businessUnit || 'General'}</TableCell>
+                            <TableCell className="text-right font-black text-amber-700">{formatEAV(opp.value || 0)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No pipeline deals found for this week.</div>
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No pipeline deals found for this week.</div>
                   )}
                 </div>
               </div>
@@ -2155,34 +2213,34 @@ export function FridayPerformanceReview({
             {/* CANVASS LEADS DETAIL */}
             {kpiModalType === 'CANVASS_LEADS' && (
               <div className="space-y-4">
-                <div className="bg-info-soft p-4 rounded-2xl border border-info/20 flex items-center justify-between">
-                  <span className="text-xs font-bold text-primary">Canvassed Field Leads</span>
-                  <Badge className="bg-accent text-white font-semibold text-sm px-3 py-1">{currentWeekCanvassLeadsCount}</Badge>
+                <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">Canvassed Field Leads</span>
+                  <Badge className="bg-indigo-600 text-white font-black text-sm px-3 py-1">{currentWeekCanvassLeadsCount}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekCanvassLeads.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-secondary/60">
+                      <TableHeader className="bg-slate-50">
                         <TableRow>
-                          <TableHead className="text-xs font-semibold">Company Name</TableHead>
-                          <TableHead className="text-xs font-semibold">Contact Person</TableHead>
-                          <TableHead className="text-xs font-semibold">Phone / Email</TableHead>
-                          <TableHead className="text-xs font-semibold">Location</TableHead>
-                          <TableHead className="text-xs font-semibold text-center">Status</TableHead>
+                          <TableHead className="text-xs font-black">Company Name</TableHead>
+                          <TableHead className="text-xs font-black">Contact Person</TableHead>
+                          <TableHead className="text-xs font-black">Phone / Email</TableHead>
+                          <TableHead className="text-xs font-black">Location</TableHead>
+                          <TableHead className="text-xs font-black text-center">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekCanvassLeads.map((lead: any) => (
-                          <TableRow key={lead.id} className="hover:bg-secondary/60">
-                            <TableCell className="font-bold text-xs text-foreground">{lead.companyName}</TableCell>
+                          <TableRow key={lead.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{lead.companyName}</TableCell>
                             <TableCell className="text-xs font-medium">{lead.firstName ? `${lead.firstName} ${lead.lastName}` : lead.lastName}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{lead.phone} · {lead.email || 'No email'}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{lead.suburb || lead.addressLine1 || 'Perth Metro'}</TableCell>
+                            <TableCell className="text-xs text-slate-500">{lead.phone} · {lead.email || 'No email'}</TableCell>
+                            <TableCell className="text-xs text-slate-500">{lead.suburb || lead.addressLine1 || 'Perth Metro'}</TableCell>
                             <TableCell className="text-center">
                               {lead.inSalesforce ? (
-                                <Badge className="bg-teal-100 text-teal-800 border-none text-xs font-bold">In Salesforce</Badge>
+                                <Badge className="bg-teal-100 text-teal-800 border-none text-[9px] uppercase font-bold">In Salesforce</Badge>
                               ) : (
-                                <Badge variant="outline" className="text-xs font-bold">Captured</Badge>
+                                <Badge variant="outline" className="text-[9px] uppercase font-bold">Captured</Badge>
                               )}
                             </TableCell>
                           </TableRow>
@@ -2190,7 +2248,7 @@ export function FridayPerformanceReview({
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No canvassing leads logged for this week.</div>
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No canvassing leads logged for this week.</div>
                   )}
                 </div>
               </div>
@@ -2200,26 +2258,26 @@ export function FridayPerformanceReview({
             {kpiModalType === 'SENT_TO_SF' && (
               <div className="space-y-4">
                 <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-teal-900">Leads Submitted to Salesforce</span>
-                  <Badge className="bg-teal-600 text-white font-semibold text-sm px-3 py-1">{currentWeekSalesforceLeadsCount}</Badge>
+                  <span className="text-xs font-bold text-teal-900 uppercase tracking-wide">Leads Submitted to Salesforce</span>
+                  <Badge className="bg-teal-600 text-white font-black text-sm px-3 py-1">{currentWeekSalesforceLeadsCount}</Badge>
                 </div>
                 <div className="border rounded-2xl overflow-x-auto">
                   {currentWeekSalesforceLeads.length > 0 ? (
                     <Table className="min-w-[600px]">
-                      <TableHeader className="bg-secondary/60">
+                      <TableHeader className="bg-slate-50">
                         <TableRow>
-                          <TableHead className="text-xs font-semibold">Company Name</TableHead>
-                          <TableHead className="text-xs font-semibold">Contact Name</TableHead>
-                          <TableHead className="text-xs font-semibold">Salesforce ID</TableHead>
-                          <TableHead className="text-xs font-semibold text-center">Action</TableHead>
+                          <TableHead className="text-xs font-black">Company Name</TableHead>
+                          <TableHead className="text-xs font-black">Contact Name</TableHead>
+                          <TableHead className="text-xs font-black">Salesforce ID</TableHead>
+                          <TableHead className="text-xs font-black text-center">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentWeekSalesforceLeads.map((lead: any) => (
-                          <TableRow key={lead.id} className="hover:bg-secondary/60">
-                            <TableCell className="font-bold text-xs text-foreground">{lead.companyName}</TableCell>
+                          <TableRow key={lead.id} className="hover:bg-slate-50">
+                            <TableCell className="font-bold text-xs text-slate-900">{lead.companyName}</TableCell>
                             <TableCell className="text-xs font-medium">{lead.firstName ? `${lead.firstName} ${lead.lastName}` : lead.lastName}</TableCell>
-                            <TableCell className="text-xs font-mono text-muted-foreground">{lead.salesforceId || 'Submitted'}</TableCell>
+                            <TableCell className="text-xs font-mono text-slate-500">{lead.salesforceId || 'Submitted'}</TableCell>
                             <TableCell className="text-center">
                               <Button
                                 size="sm"
@@ -2235,7 +2293,7 @@ export function FridayPerformanceReview({
                       </TableBody>
                     </Table>
                   ) : (
-                    <div className="p-8 text-center text-xs text-muted-foreground font-medium">No leads submitted to Salesforce for this week yet.</div>
+                    <div className="p-8 text-center text-xs text-slate-400 font-medium">No leads submitted to Salesforce for this week yet.</div>
                   )}
                 </div>
               </div>
@@ -2245,4 +2303,141 @@ export function FridayPerformanceReview({
       </Dialog>
     </div>
   );
+}
+
+// ─── NWA (Next Weeks Activity) data model ───────────────────────────────────
+// Stored in weeklyCommitments/{uid}_{plannedWeek} (same collection as the old
+// Friday FW). Legacy fields (actionPlan, roadblocks, supportNeeded,
+// focusAccounts, strategicFocus) are still written/kept so older views load.
+
+export type PipelineKey = 'progressing' | 'stalled' | 'created' | 'handedOver';
+export interface NwaPipelineRow { id: string; account: string; value: number; note: string }
+export interface NwaAppointment { id: string; customer: string; date: string; meetingType: string; purpose: string; desiredOutcome: string; supportRequired: string }
+export interface NwaCommitment { id: string; text: string; done: boolean }
+export interface NwaPlan {
+  focusAccounts: { id: string; accountName: string; actionType: string; eav: number; aboutAccount: string }[];
+  kpiTargets: { callsToMake: number; appointmentsToSet: number; proposalsToSend: number; dealsToClose: number; revenueTarget: number };
+  actionPlan: string[];
+  roadblocks: string;
+  supportNeeded: string;
+  strategicFocus: string;
+  wins: { customerWins: string; closedOpportunities: string; positiveFeedback: string; teamRecognition: string };
+  appointments: NwaAppointment[];
+  pipeline: Record<PipelineKey, NwaPipelineRow[]>;
+  keyFocusMetrics: string;
+  individualCommitment: string;
+  topPriorities: string[];
+  challenges: { customerIssues: string; internalIssues: string; resourcesRequired: string };
+  commitments: NwaCommitment[];
+  commitmentReview: NwaCommitment[];
+}
+
+const PIPELINE_SECTIONS: { key: PipelineKey; label: string; notePlaceholder: string }[] = [
+  { key: 'progressing', label: 'Key Deals Progressing This Week', notePlaceholder: 'Next step / stage...' },
+  { key: 'stalled', label: 'Stalled Opportunities', notePlaceholder: 'Why has it stalled?' },
+  { key: 'created', label: 'New Opportunities Created', notePlaceholder: 'Notes...' },
+  { key: 'handedOver', label: 'Accounts Handed Over', notePlaceholder: 'Handed over to / notes...' },
+];
+
+export function defaultKpiTargets(role: string): NwaPlan['kpiTargets'] {
+  return {
+    callsToMake: role === 'BDM' ? 50 : 30,
+    appointmentsToSet: role === 'BDM' ? 15 : 10,
+    proposalsToSend: 8,
+    dealsToClose: 3,
+    revenueTarget: 250000,
+  };
+}
+
+const str = (v: any) => (typeof v === 'string' ? v : '');
+const rowsOf = (v: any): NwaPipelineRow[] => Array.isArray(v)
+  ? v.map((r: any) => ({ id: r.id || crypto.randomUUID(), account: str(r.account), value: Number(r.value) || 0, note: str(r.note) }))
+  : [];
+
+/** Commitments a stored NWA (or legacy Friday FW) asked the rep to complete. */
+export function previousCommitmentsFrom(d: any): NwaCommitment[] {
+  if (Array.isArray(d?.commitments) && d.commitments.length > 0) {
+    return d.commitments.filter((c: any) => str(c?.text).trim()).map((c: any, i: number) => ({ id: c.id || `c_${i}`, text: c.text, done: !!c.done }));
+  }
+  // Legacy Friday FW: the action plan acted as the commitments for the week.
+  return (Array.isArray(d?.actionPlan) ? d.actionPlan : [])
+    .filter((a: any) => str(a).trim())
+    .map((a: string, i: number) => ({ id: `legacy_${i}`, text: a, done: false }));
+}
+
+/**
+ * Map a stored weeklyCommitments doc (new NWA or legacy Friday FW) into the form.
+ * twtwActions (Thursday TWTW "This Weeks Actions") prefill Top 3 Priorities and
+ * Commitments only when those are empty.
+ */
+export function mapStoredNwa(d: any, role: string, twtwActions: string[]): NwaPlan {
+  const legacyActions: string[] = (Array.isArray(d.actionPlan) ? d.actionPlan : []).filter((a: any) => str(a).trim());
+  let topPriorities: string[] = Array.isArray(d.topPriorities) ? d.topPriorities.map(str) : [];
+  if (topPriorities.every(p => !p.trim())) topPriorities = legacyActions.length > 0 ? legacyActions.slice(0, 3) : twtwActions.slice(0, 3);
+  while (topPriorities.length < 3) topPriorities.push('');
+  topPriorities = topPriorities.slice(0, 3);
+
+  let commitments: NwaCommitment[] = Array.isArray(d.commitments)
+    ? d.commitments.map((c: any) => ({ id: c.id || crypto.randomUUID(), text: str(c.text), done: !!c.done }))
+    : [];
+  if (commitments.length === 0) {
+    const source = legacyActions.length > 3 ? legacyActions.slice(3) : (legacyActions.length === 0 ? twtwActions : []);
+    commitments = source.map(t => ({ id: crypto.randomUUID(), text: t, done: false }));
+  }
+
+  const ch = d.challenges || {};
+  return {
+    focusAccounts: Array.isArray(d.focusAccounts) ? d.focusAccounts : [],
+    kpiTargets: { ...defaultKpiTargets(role), ...(d.kpiTargets || {}) },
+    actionPlan: legacyActions,
+    roadblocks: str(d.roadblocks),
+    supportNeeded: str(d.supportNeeded),
+    strategicFocus: str(d.strategicFocus),
+    wins: {
+      customerWins: str(d.wins?.customerWins), closedOpportunities: str(d.wins?.closedOpportunities),
+      positiveFeedback: str(d.wins?.positiveFeedback), teamRecognition: str(d.wins?.teamRecognition),
+    },
+    appointments: Array.isArray(d.appointments) ? d.appointments.map((a: any) => ({
+      id: a.id || crypto.randomUUID(), customer: str(a.customer), date: str(a.date), meetingType: str(a.meetingType) || 'Face to Face',
+      purpose: str(a.purpose), desiredOutcome: str(a.desiredOutcome), supportRequired: str(a.supportRequired),
+    })) : [],
+    pipeline: {
+      progressing: rowsOf(d.pipeline?.progressing), stalled: rowsOf(d.pipeline?.stalled),
+      created: rowsOf(d.pipeline?.created), handedOver: rowsOf(d.pipeline?.handedOver),
+    },
+    keyFocusMetrics: str(d.keyFocusMetrics),
+    individualCommitment: str(d.individualCommitment),
+    topPriorities,
+    challenges: {
+      customerIssues: str(ch.customerIssues),
+      // Legacy "Anticipated Roadblocks" → Internal Process Issues; "Support Needed" → Resources Required
+      internalIssues: ch.internalIssues !== undefined ? str(ch.internalIssues) : str(d.roadblocks),
+      resourcesRequired: ch.resourcesRequired !== undefined ? str(ch.resourcesRequired) : str(d.supportNeeded),
+    },
+    commitments,
+    commitmentReview: Array.isArray(d.commitmentReview) ? d.commitmentReview : [],
+  };
+}
+
+/** Firestore payload: new NWA fields plus legacy mirrors for older views. */
+export function buildNwaPayload(p: NwaPlan) {
+  const roadblocks = [p.challenges.customerIssues && `Customer: ${p.challenges.customerIssues}`, p.challenges.internalIssues]
+    .filter(Boolean).join('\n');
+  return {
+    formVersion: 'NWA_V1',
+    kpiTargets: p.kpiTargets,
+    wins: p.wins,
+    appointments: p.appointments,
+    pipeline: p.pipeline,
+    keyFocusMetrics: p.keyFocusMetrics,
+    individualCommitment: p.individualCommitment,
+    topPriorities: p.topPriorities,
+    challenges: p.challenges,
+    commitments: p.commitments.filter(c => c.text.trim()),
+    commitmentReview: p.commitmentReview,
+    // Legacy mirrors (weekly archive, GM review, TWTW prefill)
+    actionPlan: [...p.topPriorities, ...p.commitments.map(c => c.text)].filter(a => a && a.trim()),
+    roadblocks,
+    supportNeeded: p.challenges.resourcesRequired,
+  };
 }

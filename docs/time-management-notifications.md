@@ -12,18 +12,18 @@ All times are **Australia/Perth (AWST, UTC+8)**.
 - **Leaders** (LEADER / GM / ADMIN / SUPER_ADMIN): *View Team Plans* shows each person's overdue/due-today and stale counts, with a **Nudge** button. It writes `systemAnnouncements/nudge_<uid>` (the existing Team Nudge broadcast mechanism, targeted at one person), which shows as a banner for that user, and a push is sent if they've enabled notifications.
 
 ## Push notifications (Firebase Cloud Messaging)
-- Users opt in under **Settings → Notifications** (per device). Preferences: quiet hours (default 7am–6pm weekdays), daily digest, TWTW/Friday FW deadline nudges, and stale Do Now alerts.
+- Users opt in under **Settings → Notifications** (per device). Preferences: quiet hours (default 7am–6pm weekdays), daily digest, TWTW/NWA deadline nudges, and stale Do Now alerts.
 - Per task: reminders 15 min before, 8am on the day, and/or the day before.
 - Data: `users/{uid}/fcmTokens/{sha256(token)}` and `users/{uid}/notificationSettings/prefs` (owner-only by Firestore rules). The server-only `users/{uid}/notificationLog/*` and `notificationActions/*` collections are closed to clients.
 - Notification buttons (**Snooze 1h / Tomorrow / Mark done**) are handled by `public/firebase-messaging-sw.js`, which POSTs to the `notificationAction` function with a random, single-use action token that expires after 7 days. The token is issued with that one notification.
 
 ### Cloud Functions (`functions/`, region `australia-southeast1`)
-- `sendTimeNotifications`: runs every 5 minutes and sends task reminders, snoozes, stale escalations, the 8am digest (top 3 Do Now + due today), TWTW and Friday FW nudges, and Team Nudge pushes. It respects quiet hours; anything held by quiet hours is sent when the window opens, as long as that's within 72h.
+- `sendTimeNotifications`: runs every 5 minutes and sends task reminders, snoozes, stale escalations, the 8am digest (top 3 Do Now + due today), TWTW and NWA nudges, and Team Nudge pushes. It respects quiet hours; anything held by quiet hours is sent when the window opens, as long as that's within 72h.
 - `notificationAction`: an HTTPS endpoint for the notification buttons.
 
 ### Deadline nudges: how submissions are detected
 - **TWTW**: `twiwSubmissions/{uid}_{week}` with `status == 'SUBMITTED'`. The app labels it "Thursday TWTW", so the nudge goes out at **1pm on Thursday** by default.
-- **Friday FW**: `weeklyReports/{uid}_{week}` with `submittedAt` set. The nudge goes out at **11am on Fridays**.
+- **NWA (Next Weeks Activity, formerly Friday FW)**: `weeklyReports/{uid}_{reviewedWeek}` with `submittedAt` set, where the reviewed week is the week just finished. The nudge goes out at **7am on Mondays** (before the Monday NWA meeting).
 - `week` uses the app's financial-year week key (`getWeekForDate`), computed in Perth time.
 - There's no stored "TWTW due day" setting in the app, so the TWTW day is behind flags. Set them in `functions/.env.<projectId>`:
   ```
